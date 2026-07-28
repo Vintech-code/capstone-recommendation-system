@@ -49,7 +49,7 @@ function ValidationCasesPage({
   }
 
   return (
-    <div className="mx-auto max-w-[90rem]">
+    <div className="w-full">
       <Button type="button" variant="ghost" onClick={onBack} className="-ml-3">
         <ArrowLeft aria-hidden="true" />
         Recommendations
@@ -70,7 +70,7 @@ function ValidationCasesPage({
         }}
         searchLabel="Search validation cases"
         searchPlaceholder="Search case, profile, or reference"
-        className="mt-7 rounded-2xl p-4"
+        className="mt-5 rounded-2xl p-4"
       >
         <label
           htmlFor="validation-case-status"

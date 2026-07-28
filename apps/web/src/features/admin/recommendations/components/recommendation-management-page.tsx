@@ -45,7 +45,7 @@ function RecommendationManagementPage({
   }
 
   return (
-    <div className="mx-auto max-w-[90rem]">
+    <div className="w-full">
       <AdminPageHeader
         title="Recommendations"
         actions={
@@ -72,7 +72,7 @@ function RecommendationManagementPage({
         onSearchChange={setSearchValue}
         searchLabel="Search recommendations"
         searchPlaceholder="Search applicant, run, or course"
-        className="mt-7 rounded-2xl p-4"
+        className="mt-5 rounded-2xl p-4"
       >
         <label
           htmlFor="recommendation-status"

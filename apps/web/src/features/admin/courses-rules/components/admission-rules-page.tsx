@@ -13,7 +13,7 @@ function AdmissionRulesPage({
   onOpenRule: (id: string) => void
 }) {
   return (
-    <div className="mx-auto max-w-[90rem]">
+    <div className="w-full">
       <AdminPageHeader
         title="Admission rules"
         description="Review eligibility-rule versions, lifecycle status, scope, conditions, and effective periods."
@@ -24,7 +24,7 @@ function AdmissionRulesPage({
           </Button>
         }
       />
-      <div className="mt-7 grid gap-5 lg:grid-cols-3">
+      <div className="mt-5 grid gap-5 lg:grid-cols-3">
         {mockAdmissionRules.map((rule) => (
           <article
             key={rule.id}

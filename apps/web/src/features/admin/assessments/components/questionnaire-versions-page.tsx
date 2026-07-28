@@ -15,7 +15,7 @@ function QuestionnaireVersionsPage({
   onOpenQuestionnaire,
 }: QuestionnaireVersionsPageProps) {
   return (
-    <div className="mx-auto max-w-[90rem]">
+    <div className="w-full">
       <AdminPageHeader
         title="Questionnaire versions"
         description="Review the questionnaire lifecycle, response format, item count, and historical versions."
@@ -27,7 +27,7 @@ function QuestionnaireVersionsPage({
         }
       />
 
-      <div className="mt-7 grid gap-5 lg:grid-cols-3">
+      <div className="mt-5 grid gap-5 lg:grid-cols-3">
         {mockQuestionnaires.map((questionnaire) => (
           <article
             key={questionnaire.id}

@@ -63,7 +63,7 @@ function ResultImportReconciliationPage({
   }
 
   return (
-    <div className="mx-auto max-w-[90rem]">
+    <div className="w-full">
       <Button type="button" variant="ghost" onClick={onBack} className="-ml-3">
         <ArrowLeft aria-hidden="true" />
         Official results
@@ -93,7 +93,7 @@ function ResultImportReconciliationPage({
 
       <section
         aria-label="Import batch summary"
-        className="mt-7 grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
+        className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
       >
         <SummaryCard
           icon={Rows3}

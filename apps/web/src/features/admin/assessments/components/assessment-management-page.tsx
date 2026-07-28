@@ -46,7 +46,7 @@ function AssessmentManagementPage({
   }
 
   return (
-    <div className="mx-auto max-w-[90rem]">
+    <div className="w-full">
       <AdminPageHeader
         title="Assessments & questionnaires"
         description="Follow active assessment sessions through their workflow, then inspect submitted records and questionnaire versions."
@@ -67,7 +67,7 @@ function AssessmentManagementPage({
         onSearchChange={setSearchValue}
         searchLabel="Search assessment sessions"
         searchPlaceholder="Search applicant or session reference"
-        className="mt-7 rounded-2xl p-4"
+        className="mt-5 rounded-2xl p-4"
       >
         <label
           htmlFor="assessment-session-state"

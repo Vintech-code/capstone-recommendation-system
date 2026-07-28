@@ -42,7 +42,7 @@ function ReportManagementPage({
   }
 
   return (
-    <div className="mx-auto max-w-[90rem]">
+    <div className="w-full">
       <AdminPageHeader
         title="Reports"
         description="Browse prepared guidance documents by purpose, coverage, and lifecycle, then open a print-ready preview."
@@ -53,7 +53,7 @@ function ReportManagementPage({
         onSearchChange={setSearchValue}
         searchLabel="Search reports"
         searchPlaceholder="Search report, reference, or applicant"
-        className="mt-7 rounded-2xl p-4"
+        className="mt-5 rounded-2xl p-4"
       >
         <label
           htmlFor="report-type"

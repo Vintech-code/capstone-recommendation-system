@@ -1,10 +1,24 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="light">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>web</title>
+    <meta name="theme-color" content="#ffffff" />
+    <title>TCC Guidance</title>
+    <script>
+      try {
+        const theme = localStorage.getItem('tcc-ui-theme')
+        if (theme === 'dark') {
+          document.documentElement.classList.add('dark')
+          document.documentElement.dataset.theme = 'dark'
+          document.documentElement.style.colorScheme = 'dark'
+          document
+            .querySelector('meta[name="theme-color"]')
+            ?.setAttribute('content', '#0b1220')
+        }
+      } catch {}
+    </script>
   </head>
   <body>
     <div id="root"></div>

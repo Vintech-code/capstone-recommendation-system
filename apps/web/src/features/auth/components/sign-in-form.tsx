@@ -7,6 +7,7 @@ import { z } from 'zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { AuthApiError } from '@/features/auth/auth-api'
 
 const signInSchema = z.object({
   email: z
@@ -20,7 +21,7 @@ const signInSchema = z.object({
 type SignInFields = z.infer<typeof signInSchema>
 
 interface SignInFormProps {
-  onSignIn: () => void
+  onSignIn: (fields: SignInFields) => Promise<void>
 }
 
 function SignInForm({ onSignIn }: SignInFormProps) {
@@ -28,18 +29,47 @@ function SignInForm({ onSignIn }: SignInFormProps) {
   const {
     register,
     handleSubmit,
+    setError,
     formState: { errors, isSubmitting },
   } = useForm<SignInFields>({
     resolver: zodResolver(signInSchema),
     defaultValues: { email: '', password: '' },
   })
 
+  const submit = handleSubmit(async (fields) => {
+    try {
+      await onSignIn(fields)
+    } catch (error) {
+      if (error instanceof AuthApiError) {
+        const emailError = error.fieldErrors.email?.[0]
+        if (emailError) {
+          setError('email', { message: emailError }, { shouldFocus: true })
+          return
+        }
+        setError('root', { message: error.message })
+        return
+      }
+
+      setError('root', {
+        message: 'Sign in could not be completed. Please try again.',
+      })
+    }
+  })
+
   return (
     <form
       noValidate
-      onSubmit={handleSubmit(onSignIn)}
+      onSubmit={submit}
       className="space-y-5"
     >
+      {errors.root ? (
+        <div
+          role="alert"
+          className="rounded-lg bg-destructive/8 px-4 py-3 text-sm font-semibold text-destructive"
+        >
+          {errors.root.message}
+        </div>
+      ) : null}
       <div className="space-y-2">
         <Label htmlFor="email">Email address</Label>
         <div className="relative">
@@ -112,7 +142,7 @@ function SignInForm({ onSignIn }: SignInFormProps) {
         disabled={isSubmitting}
         className="min-h-12 w-full rounded-x"
       >
-        Sign in
+        {isSubmitting ? 'Signing in…' : 'Sign in'}
         <ArrowRight aria-hidden="true" />
       </Button>
     </form>

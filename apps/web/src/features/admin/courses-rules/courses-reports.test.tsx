@@ -1,4 +1,4 @@
-import { screen, within } from '@testing-library/react'
+import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
@@ -10,12 +10,7 @@ describe('Admin course, rule, and report workflows', () => {
     const user = userEvent.setup()
     await renderAppAt('/admin')
 
-    const modules = screen.getByRole('region', { name: 'Admin modules' })
-    await user.click(
-      within(modules).getByRole('button', {
-        name: /courses & rules.*open module/i,
-      }),
-    )
+    await user.click(screen.getByRole('button', { name: 'Courses & rules' }))
 
     expect(window.location.pathname).toBe('/admin/courses-rules')
     expect(
@@ -74,12 +69,7 @@ describe('Admin course, rule, and report workflows', () => {
     const user = userEvent.setup()
     await renderAppAt('/admin')
 
-    const modules = screen.getByRole('region', { name: 'Admin modules' })
-    await user.click(
-      within(modules).getByRole('button', {
-        name: /reports.*open module/i,
-      }),
-    )
+    await user.click(screen.getByRole('button', { name: 'Reports' }))
 
     expect(window.location.pathname).toBe('/admin/reports')
     expect(

@@ -1,4 +1,10 @@
 import {
+  createContext,
+  useContext,
+  type ReactNode,
+} from 'react'
+
+import {
   Breadcrumb,
   BreadcrumbButton,
   BreadcrumbItem,
@@ -7,22 +13,27 @@ import {
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
 import type { DashboardModule } from '@/features/auth/workspace-definitions'
+import { cn } from '@/lib/utils'
 
 interface WorkspaceBreadcrumbProps {
   activeModule?: DashboardModule
   activeId: string
+  className?: string
   pageLabel?: string
   onSelect: (id: string) => void
 }
 
+const WorkspaceBreadcrumbContext = createContext<ReactNode>(null)
+
 function WorkspaceBreadcrumb({
   activeModule,
   activeId,
+  className,
   pageLabel,
   onSelect,
 }: WorkspaceBreadcrumbProps) {
   return (
-    <Breadcrumb className="mx-auto mb-5 max-w-[90rem]">
+    <Breadcrumb className={cn('w-full', className)}>
       <BreadcrumbList>
         <BreadcrumbItem>
           {activeId === 'overview' ? (
@@ -66,4 +77,26 @@ function WorkspaceBreadcrumb({
   )
 }
 
-export { WorkspaceBreadcrumb }
+function WorkspaceBreadcrumbProvider({
+  breadcrumb,
+  children,
+}: {
+  breadcrumb: ReactNode
+  children: ReactNode
+}) {
+  return (
+    <WorkspaceBreadcrumbContext.Provider value={breadcrumb}>
+      {children}
+    </WorkspaceBreadcrumbContext.Provider>
+  )
+}
+
+function WorkspaceBreadcrumbSlot() {
+  return useContext(WorkspaceBreadcrumbContext)
+}
+
+export {
+  WorkspaceBreadcrumb,
+  WorkspaceBreadcrumbProvider,
+  WorkspaceBreadcrumbSlot,
+}

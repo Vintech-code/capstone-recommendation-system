@@ -191,7 +191,7 @@ function OfficialResultsPage({
   }
 
   return (
-    <div className="mx-auto max-w-[90rem]">
+    <div className="w-full">
       <AdminPageHeader
         title="Official results"
         description="Review result provenance, verification state, and version history without assuming an unapproved score format."
@@ -217,7 +217,7 @@ function OfficialResultsPage({
         }}
         searchLabel="Search official results"
         searchPlaceholder="Search applicant or result reference"
-        className="mt-7 rounded-2xl p-4"
+        className="mt-5 rounded-2xl p-4"
       >
         <ResultFilter
           id="result-review-state"

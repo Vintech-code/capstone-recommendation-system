@@ -1,8 +1,10 @@
 import { ShieldCheck } from 'lucide-react'
 import { useNavigate } from 'react-router'
 
+import { ThemeToggle } from '@/components/shared'
 import type { AccessRole } from '@/features/auth/access-types'
 import { roleOptions } from '@/features/auth/access-types'
+import { useAuth } from '@/features/auth/auth-context'
 import { SignInForm } from '@/features/auth/components/sign-in-form'
 
 interface PortalSignInPageProps {
@@ -11,10 +13,12 @@ interface PortalSignInPageProps {
 
 function PortalSignInPage({ role }: PortalSignInPageProps) {
   const navigate = useNavigate()
+  const { signIn } = useAuth()
   const portal = roleOptions.find((option) => option.value === role)!
 
   return (
-    <main className="grid min-h-svh bg-background lg:grid-cols-[.88fr_1.12fr]">
+    <main className="relative grid min-h-svh bg-background lg:grid-cols-[.88fr_1.12fr]">
+      <ThemeToggle className="absolute right-4 top-4 z-20 bg-background/80 shadow-sm backdrop-blur sm:right-6 sm:top-6" />
       <section className="relative hidden overflow-hidden bg-brand-dark p-10 text-white lg:flex lg:flex-col xl:p-14">
         <div className="absolute -left-32 -top-32 size-120 rounded-full border border-white/8" />
         <div className="absolute -left-16 -top-16 size-88 rounded-full border border-white/8" />
@@ -86,7 +90,12 @@ function PortalSignInPage({ role }: PortalSignInPageProps) {
           </p>
 
           <div className="mt-8">
-            <SignInForm onSignIn={() => navigate(`/${role}`)} />
+            <SignInForm
+              onSignIn={async (credentials) => {
+                await signIn({ ...credentials, portal: role })
+                navigate(`/${role}`, { replace: true })
+              }}
+            />
           </div>
         </div>
       </section>

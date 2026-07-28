@@ -30,7 +30,7 @@ function ManualResultEntryPage({ onBack }: ManualResultEntryPageProps) {
   }
 
   return (
-    <div className="mx-auto max-w-6xl">
+    <div className="w-full">
       <AdminPageHeader
         title="Encode official result"
         description="Create a manual result record, review its source details, and route it to verification."
@@ -38,7 +38,7 @@ function ManualResultEntryPage({ onBack }: ManualResultEntryPageProps) {
 
       <ol
         aria-label="Result entry progress"
-        className="mt-7 grid gap-3 rounded-2xl bg-background p-4 shadow-sm sm:grid-cols-3"
+        className="mt-5 grid gap-3 rounded-2xl bg-background p-4 shadow-sm sm:grid-cols-3"
       >
         <ProgressStep
           number="1"

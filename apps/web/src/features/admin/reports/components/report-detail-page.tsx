@@ -38,7 +38,7 @@ function ReportDetailPage({
   }
 
   return (
-    <div className="mx-auto max-w-[90rem]">
+    <div className="w-full">
       <div
         data-print-hidden
         className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"

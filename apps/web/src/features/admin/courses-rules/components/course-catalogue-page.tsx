@@ -30,7 +30,7 @@ function CourseCataloguePage({
   }, [query, status])
 
   return (
-    <div className="mx-auto max-w-[90rem]">
+    <div className="w-full">
       <AdminPageHeader
         title="Course catalogue"
         description="Review program information, lifecycle status, board-course classification, and interest profiles."
@@ -42,7 +42,7 @@ function CourseCataloguePage({
         }
       />
 
-      <div className="mt-7 flex flex-col gap-3 rounded-2xl bg-background p-4 shadow-sm sm:flex-row">
+      <div className="mt-5 flex flex-col gap-3 rounded-2xl bg-background p-4 shadow-sm sm:flex-row">
         <div className="relative flex-1">
           <Label htmlFor="course-search" className="sr-only">
             Search course catalogue

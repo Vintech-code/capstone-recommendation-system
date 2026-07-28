@@ -27,7 +27,7 @@ function DashboardOverview({
   onSelect,
 }: DashboardOverviewProps) {
   return (
-    <div className="mx-auto max-w-[90rem]">
+    <div className="w-full">
       <div>
         <p className="text-xs font-bold uppercase tracking-[0.14em] text-muted-foreground">
           Overview
@@ -197,7 +197,7 @@ function ModuleView({
   onBack: () => void
 }) {
   return (
-    <div className="mx-auto max-w-360">
+    <div className="w-full">
       <Button type="button" variant="ghost" onClick={onBack} className="-ml-3">
         <ArrowLeft aria-hidden="true" />
         Dashboard

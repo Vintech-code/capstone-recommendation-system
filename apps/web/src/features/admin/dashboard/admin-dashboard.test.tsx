@@ -4,90 +4,110 @@ import { describe, expect, it } from 'vitest'
 
 import { renderAppAt } from '@/test/render-app'
 
-describe('Admin operational dashboard', () => {
-  it('presents actionable priority, workflow, activity, and module areas', async () => {
+describe('Admin dashboard', () => {
+  it('matches the focused reference hierarchy without duplicate dashboard sections', async () => {
     await renderAppAt('/admin')
 
     expect(
-      screen.getByRole('heading', { level: 1, name: 'Operational overview' }),
+      screen.getByRole('heading', {
+        level: 1,
+        name: /insights today, guidance tomorrow/i,
+      }),
     ).toBeVisible()
     expect(
-      screen.getByRole('region', { name: 'Work requiring attention' }),
+      screen.getByRole('region', { name: 'Dashboard summaries' }),
     ).toBeVisible()
     expect(
-      screen.getByRole('region', { name: 'Current work queue' }),
+      screen.getByRole('region', { name: 'Operational activity' }),
     ).toBeVisible()
-    expect(screen.getByRole('region', { name: 'Quick actions' })).toBeVisible()
     expect(
-      screen.getByRole('region', { name: 'Applicant guidance flow' }),
+      screen.getByRole('region', { name: 'Assessment queue' }),
     ).toBeVisible()
-    expect(screen.getByRole('region', { name: 'Recent activity' })).toBeVisible()
-    expect(screen.getByRole('region', { name: 'Admin modules' })).toBeVisible()
-  })
+    expect(
+      screen.getByRole('region', { name: 'Recommendation review' }),
+    ).toBeVisible()
+    expect(
+      screen.getByRole('region', { name: 'Recent applicants' }),
+    ).toBeVisible()
+    expect(
+      screen.getByRole('region', { name: 'Latest activity' }),
+    ).toBeVisible()
 
-  it('filters the attention queue without hiding status text', async () => {
-    const user = userEvent.setup()
-    await renderAppAt('/admin')
-
-    const queue = screen.getByRole('region', { name: 'Current work queue' })
-    await user.click(within(queue).getByRole('button', { name: 'Imports' }))
-
+    for (const removedLabel of [
+      'Search modules',
+      'Work requiring attention',
+      'Current work queue',
+      'Quick actions',
+      'Applicant guidance flow',
+      'Admin modules',
+    ]) {
+      expect(screen.queryByText(removedLabel)).not.toBeInTheDocument()
+    }
     expect(
-      within(queue).getByText('Resolve CSV reconciliation issues'),
-    ).toBeVisible()
-    expect(within(queue).getAllByText('Needs attention').length).toBeGreaterThan(
-      0,
-    )
-    expect(
-      within(queue).queryByText('Verify encoded examination result'),
+      screen.queryByRole('navigation', { name: 'Breadcrumb' }),
     ).not.toBeInTheDocument()
   })
 
-  it('opens existing workflows from quick actions and priority cards', async () => {
+  it('switches the dashboard activity period', async () => {
     const user = userEvent.setup()
     await renderAppAt('/admin')
 
-    const actions = screen.getByRole('region', { name: 'Quick actions' })
+    const period = screen.getByRole('group', {
+      name: 'Dashboard activity period',
+    })
+    const sevenDays = within(period).getByRole('button', { name: '7 days' })
+    const thirtyDays = within(period).getByRole('button', { name: '30 days' })
+
+    expect(sevenDays).toHaveAttribute('aria-pressed', 'true')
+    await user.click(thirtyDays)
+    expect(thirtyDays).toHaveAttribute('aria-pressed', 'true')
+    expect(sevenDays).toHaveAttribute('aria-pressed', 'false')
+  })
+
+  it('opens existing modules from summary cards and the hero action', async () => {
+    const user = userEvent.setup()
+    await renderAppAt('/admin')
+
+    const summaries = screen.getByRole('region', {
+      name: 'Dashboard summaries',
+    })
     await user.click(
-      within(actions).getByRole('button', { name: /encode result/i }),
+      within(summaries).getByRole('button', {
+        name: /official results.*12.*4 awaiting verification/i,
+      }),
     )
 
-    expect(window.location.pathname).toBe('/admin/exam-results/new')
+    expect(window.location.pathname).toBe('/admin/official-results')
     expect(
-      screen.getByRole('heading', { level: 1, name: 'Encode official result' }),
+      screen.getByRole('heading', { level: 1, name: 'Official results' }),
     ).toBeVisible()
   })
 
-  it('expands recent activity and opens its linked record', async () => {
+  it('opens a recent applicant from the compact overview', async () => {
     const user = userEvent.setup()
     await renderAppAt('/admin')
 
-    const activity = screen.getByRole('region', { name: 'Recent activity' })
-    expect(within(activity).queryByText('Report prepared')).not.toBeInTheDocument()
-
-    await user.click(within(activity).getByRole('button', { name: /view all/i }))
-    const reportActivity = within(activity).getByRole('button', {
-      name: /report prepared/i,
+    const applicants = screen.getByRole('region', {
+      name: 'Recent applicants',
     })
-    expect(reportActivity).toBeVisible()
-
-    await user.click(reportActivity)
-    expect(window.location.pathname).toBe('/admin/reports/RPT-001')
-    expect(screen.getByText('Report overview')).toBeVisible()
-  })
-
-  it('searches only the Admin module catalogue', async () => {
-    const user = userEvent.setup()
-    await renderAppAt('/admin')
-
-    await user.type(
-      screen.getByRole('searchbox', { name: 'Search modules' }),
-      'reports',
+    await user.click(
+      within(applicants).getByRole('button', { name: 'Open Taylor Santos' }),
     )
 
-    const modules = screen.getByRole('region', { name: 'Matching modules' })
-    expect(within(modules).getByText('Reports')).toBeVisible()
-    expect(within(modules).queryByText('Applicants')).not.toBeInTheDocument()
-    expect(within(modules).getByText('1 result')).toBeVisible()
+    expect(window.location.pathname).toBe('/admin/applicants/APP-004')
+    expect(screen.getByText('Applicant record')).toBeVisible()
+  })
+
+  it('opens linked workflow records from latest activity', async () => {
+    const user = userEvent.setup()
+    await renderAppAt('/admin')
+
+    const activity = screen.getByRole('region', { name: 'Latest activity' })
+    await user.click(
+      within(activity).getByRole('button', { name: /report generated/i }),
+    )
+
+    expect(window.location.pathname).toBe('/admin/reports/RPT-001')
+    expect(screen.getByText('Report overview')).toBeVisible()
   })
 })

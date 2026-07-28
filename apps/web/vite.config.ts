@@ -6,6 +6,12 @@ import { defineConfig } from 'vite'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  server: {
+    proxy: {
+      '/api': 'http://localhost:8000',
+      '/sanctum': 'http://localhost:8000',
+    },
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
@@ -27,6 +33,10 @@ export default defineConfig({
             {
               name: 'vendor-data',
               test: /node_modules[\\/](@tanstack|react-hook-form|zod)[\\/]/,
+            },
+            {
+              name: 'vendor-charts',
+              test: /node_modules[\\/](recharts|react-is)[\\/]/,
             },
           ],
         },

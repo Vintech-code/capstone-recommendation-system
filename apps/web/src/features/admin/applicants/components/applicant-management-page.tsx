@@ -155,7 +155,7 @@ function ApplicantManagementPage({
   }
 
   return (
-    <div className="mx-auto max-w-[90rem]">
+    <div className="w-full">
       <AdminPageHeader
         title="Applicants"
         description="Search and review applicant records across the documented Admin workflow areas."
@@ -169,7 +169,7 @@ function ApplicantManagementPage({
         }}
         searchLabel="Search applicants"
         searchPlaceholder="Search name, email, or reference"
-        className="mt-7 rounded-2xl p-4"
+        className="mt-5 rounded-2xl p-4"
       >
         <label
           htmlFor="review-area"

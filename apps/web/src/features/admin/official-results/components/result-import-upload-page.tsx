@@ -89,7 +89,7 @@ function ResultImportUploadPage({
   }
 
   return (
-    <div className="mx-auto max-w-[90rem]">
+    <div className="w-full">
       <Button type="button" variant="ghost" onClick={onBack} className="-ml-3">
         <ArrowLeft aria-hidden="true" />
         Official results
@@ -102,7 +102,7 @@ function ResultImportUploadPage({
         />
       </div>
 
-      <div className="mt-7 grid gap-5 xl:grid-cols-[22rem_minmax(0,1fr)]">
+      <div className="mt-5 grid gap-5 xl:grid-cols-[22rem_minmax(0,1fr)]">
         <aside aria-label="Import controls" className="h-fit space-y-5">
           <section className="rounded-2xl bg-background p-6 shadow-sm">
             <span className="flex size-11 items-center justify-center rounded-2xl bg-primary/8 text-primary">

@@ -78,7 +78,7 @@ function ResultEntryForm({
               aria-describedby={
                 errors.applicantId ? 'applicant-id-error' : undefined
               }
-              className="h-12 w-full rounded-s border border-gray-300 bg-white pl-10 pr-4 text-sm outline-none transition-colors focus:border-gray-500"
+              className="h-12 w-full rounded-s border border-input bg-background pl-10 pr-4 text-sm text-foreground outline-none transition-colors focus:border-primary/55"
               {...register('applicantId')}
             >
               <option value="">Select an applicant</option>

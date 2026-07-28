@@ -38,6 +38,31 @@ describe('Admin shell and accessibility', () => {
     expect(window.location.pathname).toBe('/admin/official-results')
   })
 
+  it('places feature breadcrumbs below the heading and above local search', async () => {
+    await renderAppAt('/admin/applicants')
+
+    const main = screen.getByRole('main')
+    const heading = within(main).getByRole('heading', {
+      level: 1,
+      name: 'Applicants',
+    })
+    const breadcrumb = within(main).getByRole('navigation', {
+      name: 'Breadcrumb',
+    })
+    const search = within(main).getByRole('searchbox', {
+      name: 'Search applicants',
+    })
+
+    expect(
+      heading.compareDocumentPosition(breadcrumb) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy()
+    expect(
+      breadcrumb.compareDocumentPosition(search) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy()
+  })
+
   it('provides a keyboard-accessible workspace user menu', async () => {
     const user = userEvent.setup()
     await renderAppAt('/admin')
@@ -46,6 +71,47 @@ describe('Admin shell and accessibility', () => {
     await user.click(await screen.findByRole('menuitem', { name: 'Sign out' }))
 
     expect(window.location.pathname).toBe('/admin/login')
+  })
+
+  it('collapses the desktop sidebar to an icon rail and expands it again', async () => {
+    const user = userEvent.setup()
+    await renderAppAt('/admin')
+
+    const sidebar = screen.getByLabelText('Workspace sidebar')
+    expect(sidebar).toHaveAttribute('data-collapsed', 'false')
+
+    await user.click(
+      screen.getByRole('button', { name: 'Collapse desktop sidebar' }),
+    )
+
+    expect(sidebar).toHaveAttribute('data-collapsed', 'true')
+    expect(
+      within(sidebar).getByRole('button', { name: 'Dashboard' }),
+    ).toBeInTheDocument()
+
+    await user.click(
+      screen.getByRole('button', { name: 'Expand desktop sidebar' }),
+    )
+
+    expect(sidebar).toHaveAttribute('data-collapsed', 'false')
+  })
+
+  it('keeps every primary Admin feature surface fluid in the workspace', async () => {
+    for (const path of [
+      '/admin/applicants',
+      '/admin/official-results',
+      '/admin/assessments',
+      '/admin/recommendations',
+      '/admin/courses',
+      '/admin/reports',
+    ]) {
+      const { unmount } = await renderAppAt(path)
+      const pageSurface = screen.getByRole('main').firstElementChild
+
+      expect(pageSurface).toHaveClass('w-full')
+      expect(pageSurface?.className).not.toContain('max-w-[90rem]')
+      unmount()
+    }
   })
 
   it('has no automatically detectable new Admin workflow violations', async () => {

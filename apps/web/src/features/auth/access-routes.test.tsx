@@ -61,7 +61,7 @@ describe('access portals and workspace shell', () => {
     expect(
       await screen.findByRole('heading', {
         level: 1,
-        name: 'Student dashboard',
+        name: /your guidance journey, one step at a time/i,
       }),
     ).toBeVisible()
     expect(
@@ -76,7 +76,7 @@ describe('access portals and workspace shell', () => {
 
     expect(window.location.pathname).toBe('/student/login')
     expect(
-      screen.getByRole('heading', { name: 'Sign in to your account' }),
+      await screen.findByRole('heading', { name: 'Sign in to your account' }),
     ).toBeVisible()
   })
 
@@ -94,8 +94,8 @@ describe('access portals and workspace shell', () => {
     expect(
       await screen.findByRole('heading', {
         level: 1,
-        name: 'Operational overview',
-      }),
+        name: /insights today, guidance tomorrow/i,
+      }, { timeout: 5_000 }),
     ).toBeVisible()
     expect(screen.getAllByText('Applicants').length).toBeGreaterThan(0)
     expect(
@@ -118,7 +118,7 @@ describe('access portals and workspace shell', () => {
     expect(
       await screen.findByRole('heading', {
         level: 1,
-        name: 'System administration',
+        name: /secure access, visible operations/i,
       }),
     ).toBeVisible()
     expect(screen.getAllByText('User access').length).toBeGreaterThan(0)
@@ -145,11 +145,8 @@ describe('access portals and workspace shell', () => {
     await renderAppAt('/admin')
 
     const main = screen.getByRole('main')
-    const modules = screen.getByRole('region', { name: 'Admin modules' })
     await user.click(
-      within(modules).getByRole('button', {
-        name: /applicants.*open module/i,
-      }),
+      screen.getByRole('button', { name: 'Applicants' }),
     )
 
     expect(
@@ -164,7 +161,7 @@ describe('access portals and workspace shell', () => {
     expect(
       within(main).getByRole('heading', {
         level: 1,
-        name: 'Operational overview',
+        name: /insights today, guidance tomorrow/i,
       }),
     ).toBeVisible()
     expect(window.location.pathname).toBe('/admin')

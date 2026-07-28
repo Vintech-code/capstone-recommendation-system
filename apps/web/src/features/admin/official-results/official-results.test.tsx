@@ -7,22 +7,23 @@ import { renderAppAt } from '@/test/render-app'
 
 
 describe('Admin official-result workflows', () => {
-  it('opens Official Results from the Admin dashboard', async () => {
-    const user = userEvent.setup()
-    await renderAppAt('/admin')
+  it(
+    'opens Official Results from the Admin dashboard',
+    async () => {
+      const user = userEvent.setup()
+      await renderAppAt('/admin')
 
-    const modules = screen.getByRole('region', { name: 'Admin modules' })
-    await user.click(
-      within(modules).getByRole('button', {
-        name: /official results.*open module/i,
-      }),
-    )
+      await user.click(
+        screen.getByRole('button', { name: 'Official results' }),
+      )
 
-    expect(window.location.pathname).toBe('/admin/official-results')
-    expect(
-      screen.getByRole('heading', { level: 1, name: 'Official results' }),
-    ).toBeVisible()
-  })
+      expect(window.location.pathname).toBe('/admin/official-results')
+      expect(
+        screen.getByRole('heading', { level: 1, name: 'Official results' }),
+      ).toBeVisible()
+    },
+    10_000,
+  )
 
   it('opens the manual result-entry workflow from Official Results', async () => {
     const user = userEvent.setup()

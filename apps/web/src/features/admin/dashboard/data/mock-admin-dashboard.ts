@@ -1,51 +1,34 @@
 import {
   BookOpenCheck,
-  CircleAlert,
   ClipboardCheck,
-  FileCheck2,
   FileClock,
   FileText,
   Upload,
-  UserRoundSearch,
+  UsersRound,
   type LucideIcon,
 } from 'lucide-react'
 
 import type { StatusTone } from '@/components/shared/status-badge'
 
-type WorkArea =
-  | 'all'
-  | 'official-results'
-  | 'imports'
-  | 'assessments'
-  | 'recommendations'
-
-interface DashboardPriority {
-  id: Exclude<WorkArea, 'all'>
+interface DashboardMetric {
+  id: string
   label: string
-  count: number
+  value: number
   helper: string
   route: string
   icon: LucideIcon
-  tone: StatusTone
+  tone: 'primary' | 'blue' | 'teal' | 'amber' | 'navy'
+  trend: number[]
 }
 
-interface DashboardTask {
+interface RecentApplicant {
   id: string
-  area: Exclude<WorkArea, 'all'>
-  title: string
-  subject: string
-  context: string
+  name: string
+  currentArea: string
   status: string
   tone: StatusTone
-  timestamp: string
+  updatedAt: string
   route: string
-}
-
-interface QuickAction {
-  label: string
-  description: string
-  route: string
-  icon: LucideIcon
 }
 
 interface DashboardActivity {
@@ -57,152 +40,133 @@ interface DashboardActivity {
   icon: LucideIcon
 }
 
-interface WorkflowStage {
+interface ActivityPoint {
   label: string
-  helper: string
-  status: string
-  tone: StatusTone
-  route: string
+  results: number
+  assessments: number
+  recommendations: number
+}
+
+interface ChartState {
+  name: string
+  value: number
+  color: string
 }
 
 // Isolated synthetic records for D-015 stakeholder UI prototyping only.
-const priorities: DashboardPriority[] = [
+const dashboardMetrics: DashboardMetric[] = [
   {
-    id: 'official-results',
-    label: 'Results to verify',
-    count: 4,
-    helper: 'Encoded records awaiting review',
-    route: '/admin/official-results',
-    icon: ClipboardCheck,
-    tone: 'warning',
+    id: 'applicants',
+    label: 'Applicant records',
+    value: 8,
+    helper: '4 active reviews',
+    route: '/admin/applicants',
+    icon: UsersRound,
+    tone: 'primary',
+    trend: [3, 4, 4, 6, 5, 7, 8],
   },
   {
-    id: 'imports',
-    label: 'Import rows to resolve',
-    count: 3,
-    helper: 'Rows with missing or duplicate data',
-    route: '/admin/imports/IMP-001',
-    icon: Upload,
-    tone: 'danger',
+    id: 'results',
+    label: 'Official results',
+    value: 12,
+    helper: '4 awaiting verification',
+    route: '/admin/official-results',
+    icon: ClipboardCheck,
+    tone: 'blue',
+    trend: [5, 6, 6, 8, 7, 9, 12],
   },
   {
     id: 'assessments',
-    label: 'Assessments to review',
-    count: 3,
-    helper: 'Submitted sessions ready for review',
+    label: 'Assessment sessions',
+    value: 25,
+    helper: '12 submitted',
     route: '/admin/assessments',
     icon: FileClock,
-    tone: 'info',
+    tone: 'teal',
+    trend: [12, 15, 14, 18, 17, 21, 25],
   },
   {
     id: 'recommendations',
-    label: 'Guidance reviews',
-    count: 2,
-    helper: 'Recommendations needing a decision',
+    label: 'Recommendations',
+    value: 14,
+    helper: '4 awaiting review',
     route: '/admin/recommendations',
     icon: BookOpenCheck,
-    tone: 'neutral',
-  },
-]
-
-const tasks: DashboardTask[] = [
-  {
-    id: 'TASK-001',
-    area: 'official-results',
-    title: 'Verify encoded examination result',
-    subject: 'Taylor Santos · APP-004',
-    context: 'Manual entry has source details and is ready for review.',
-    status: 'Awaiting verification',
-    tone: 'warning',
-    timestamp: 'Today, 9:40 AM',
-    route: '/admin/official-results/RES-004',
+    tone: 'amber',
+    trend: [6, 8, 7, 9, 8, 12, 14],
   },
   {
-    id: 'TASK-002',
-    area: 'imports',
-    title: 'Resolve CSV reconciliation issues',
-    subject: 'Import batch IMP-001',
-    context: 'Three rows require attention before the batch can proceed.',
-    status: 'Needs attention',
-    tone: 'danger',
-    timestamp: 'Today, 9:12 AM',
-    route: '/admin/imports/IMP-001',
-  },
-  {
-    id: 'TASK-003',
-    area: 'assessments',
-    title: 'Review submitted assessment',
-    subject: 'Sam Reyes · APP-003',
-    context: 'The submitted session is linked to its questionnaire version.',
-    status: 'Ready for review',
-    tone: 'info',
-    timestamp: 'Yesterday, 4:28 PM',
-    route: '/admin/assessments/ASM-003',
-  },
-  {
-    id: 'TASK-004',
-    area: 'recommendations',
-    title: 'Review recommendation explanation',
-    subject: 'Jordan Flores · APP-005',
-    context: 'Ranked options and their input-version snapshot are available.',
-    status: 'Guidance review',
-    tone: 'neutral',
-    timestamp: 'Yesterday, 2:05 PM',
-    route: '/admin/recommendations/REC-005',
-  },
-]
-
-const quickActions: QuickAction[] = [
-  {
-    label: 'Encode result',
-    description: 'Add a result to the verification queue.',
-    route: '/admin/exam-results/new',
-    icon: FileCheck2,
-  },
-  {
-    label: 'Import CSV',
-    description: 'Validate and preview a local result file.',
-    route: '/admin/imports/new',
-    icon: Upload,
-  },
-  {
-    label: 'Review assessments',
-    description: 'Open submitted and in-progress sessions.',
-    route: '/admin/assessments',
-    icon: FileClock,
-  },
-  {
-    label: 'Validation cases',
-    description: 'Compare expected and deterministic outputs.',
-    route: '/admin/validation-cases',
-    icon: CircleAlert,
-  },
-  {
-    label: 'Student decisions',
-    description: 'Review recorded course preferences.',
-    route: '/admin/decisions',
-    icon: UserRoundSearch,
-  },
-  {
-    label: 'Generate report',
-    description: 'Open the report workspace and previews.',
+    id: 'reports',
+    label: 'Reports',
+    value: 6,
+    helper: '2 ready to generate',
     route: '/admin/reports',
     icon: FileText,
+    tone: 'navy',
+    trend: [2, 3, 2, 4, 3, 5, 6],
+  },
+]
+
+const recentApplicants: RecentApplicant[] = [
+  {
+    id: 'APP-004',
+    name: 'Taylor Santos',
+    currentArea: 'Official result review',
+    status: 'Awaiting verification',
+    tone: 'warning',
+    updatedAt: 'Jul 28, 2026',
+    route: '/admin/applicants/APP-004',
+  },
+  {
+    id: 'APP-003',
+    name: 'Sam Reyes',
+    currentArea: 'Assessment review',
+    status: 'Submitted',
+    tone: 'success',
+    updatedAt: 'Jul 28, 2026',
+    route: '/admin/applicants/APP-003',
+  },
+  {
+    id: 'APP-005',
+    name: 'Jordan Flores',
+    currentArea: 'Recommendation review',
+    status: 'Guidance review',
+    tone: 'neutral',
+    updatedAt: 'Jul 27, 2026',
+    route: '/admin/applicants/APP-005',
+  },
+  {
+    id: 'APP-006',
+    name: 'Casey Mendoza',
+    currentArea: 'Import follow-up',
+    status: 'Needs attention',
+    tone: 'danger',
+    updatedAt: 'Jul 27, 2026',
+    route: '/admin/applicants/APP-006',
+  },
+  {
+    id: 'APP-008',
+    name: 'Riley Navarro',
+    currentArea: 'Assessment session',
+    status: 'In progress',
+    tone: 'info',
+    updatedAt: 'Jul 26, 2026',
+    route: '/admin/applicants/APP-008',
   },
 ]
 
 const activities: DashboardActivity[] = [
   {
     id: 'ACT-001',
-    title: 'Result added to verification queue',
-    detail: 'Taylor Santos · RES-004',
+    title: 'Result encoded',
+    detail: 'Taylor Santos - RES-004',
     timestamp: '9:40 AM',
     route: '/admin/official-results/RES-004',
     icon: ClipboardCheck,
   },
   {
     id: 'ACT-002',
-    title: 'Import validation completed',
+    title: 'Import reconciled',
     detail: 'Batch IMP-001',
     timestamp: '9:12 AM',
     route: '/admin/imports/IMP-001',
@@ -211,66 +175,64 @@ const activities: DashboardActivity[] = [
   {
     id: 'ACT-003',
     title: 'Assessment submitted',
-    detail: 'Sam Reyes · ASM-003',
+    detail: 'Sam Reyes - ASM-003',
     timestamp: 'Yesterday',
     route: '/admin/assessments/ASM-003',
     icon: FileClock,
   },
   {
     id: 'ACT-004',
-    title: 'Recommendation generated',
-    detail: 'Jordan Flores · REC-005',
+    title: 'Recommendation reviewed',
+    detail: 'Jordan Flores - REC-005',
     timestamp: 'Yesterday',
     route: '/admin/recommendations/REC-005',
     icon: BookOpenCheck,
   },
   {
     id: 'ACT-005',
-    title: 'Report prepared',
-    detail: 'Guidance report · RPT-001',
+    title: 'Report generated',
+    detail: 'Guidance report - RPT-001',
     timestamp: 'Jul 26',
     route: '/admin/reports/RPT-001',
     icon: FileText,
   },
 ]
 
-const workflowStages: WorkflowStage[] = [
-  {
-    label: 'Applicant records',
-    helper: 'Profiles available for authorized review',
-    status: 'Review available',
-    tone: 'info',
-    route: '/admin/applicants',
-  },
-  {
-    label: 'Official results',
-    helper: 'Verification and reconciliation work is pending',
-    status: 'Action required',
-    tone: 'warning',
-    route: '/admin/official-results',
-  },
-  {
-    label: 'Assessments',
-    helper: 'Submitted and in-progress sessions are separated',
-    status: 'Review available',
-    tone: 'info',
-    route: '/admin/assessments',
-  },
-  {
-    label: 'Recommendations',
-    helper: 'Explanations and validation cases can be reviewed',
-    status: 'Review available',
-    tone: 'neutral',
-    route: '/admin/recommendations',
-  },
-  {
-    label: 'Decision & reporting',
-    helper: 'Preferences remain separate from enrolment',
-    status: 'Records available',
-    tone: 'success',
-    route: '/admin/decisions',
-  },
+const activityByRange: Record<'7d' | '30d', ActivityPoint[]> = {
+  '7d': [
+    { label: 'Mon', results: 3, assessments: 5, recommendations: 2 },
+    { label: 'Tue', results: 5, assessments: 4, recommendations: 3 },
+    { label: 'Wed', results: 4, assessments: 7, recommendations: 4 },
+    { label: 'Thu', results: 7, assessments: 6, recommendations: 3 },
+    { label: 'Fri', results: 6, assessments: 9, recommendations: 5 },
+    { label: 'Sat', results: 8, assessments: 7, recommendations: 4 },
+    { label: 'Sun', results: 9, assessments: 10, recommendations: 6 },
+  ],
+  '30d': [
+    { label: 'Week 1', results: 18, assessments: 23, recommendations: 12 },
+    { label: 'Week 2', results: 24, assessments: 28, recommendations: 16 },
+    { label: 'Week 3', results: 21, assessments: 34, recommendations: 19 },
+    { label: 'Week 4', results: 31, assessments: 38, recommendations: 24 },
+  ],
+}
+
+const assessmentStates: ChartState[] = [
+  { name: 'Submitted', value: 12, color: 'var(--primary)' },
+  { name: 'In progress', value: 8, color: 'var(--chart-blue)' },
+  { name: 'Not started', value: 5, color: 'var(--chart-slate)' },
 ]
 
-export { activities, priorities, quickActions, tasks, workflowStages }
-export type { WorkArea }
+const recommendationStates: ChartState[] = [
+  { name: 'Reviewed', value: 8, color: 'var(--primary)' },
+  { name: 'Awaiting review', value: 4, color: 'var(--chart-blue)' },
+  { name: 'Needs attention', value: 2, color: 'var(--chart-slate)' },
+]
+
+export {
+  activities,
+  activityByRange,
+  assessmentStates,
+  dashboardMetrics,
+  recentApplicants,
+  recommendationStates,
+}

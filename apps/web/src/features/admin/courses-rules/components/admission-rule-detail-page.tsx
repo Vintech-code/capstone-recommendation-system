@@ -25,7 +25,7 @@ function AdmissionRuleDetailPage({
   }
 
   return (
-    <div className="mx-auto max-w-[90rem]">
+    <div className="w-full">
       <Button type="button" variant="ghost" onClick={onBack} className="-ml-3">
         <ArrowLeft aria-hidden="true" />
         Admission rules

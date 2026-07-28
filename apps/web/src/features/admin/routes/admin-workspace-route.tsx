@@ -13,6 +13,8 @@ import {
   type RecommendationsView,
 } from '@/features/admin/routes/admin-route-types'
 import { WorkspacePreview } from '@/features/auth/components/workspace-preview'
+import { useAuth } from '@/features/auth/auth-context'
+import { ProtectedRoute } from '@/features/auth/components/protected-route'
 
 interface AdminWorkspaceRouteProps {
   fixedModuleId?: AdminModuleId
@@ -30,6 +32,7 @@ function AdminWorkspaceRoute({
   recommendationsView = 'list',
 }: AdminWorkspaceRouteProps) {
   const navigate = useNavigate()
+  const { signOut } = useAuth()
   const params = useParams()
   const [searchParams, setSearchParams] = useSearchParams()
   const { moduleId } = params
@@ -45,6 +48,18 @@ function AdminWorkspaceRoute({
     recommendationsView,
   })
   const previewState = searchParams.get('state')
+  const isDetailPage = Boolean(
+    params.applicantId ||
+      params.resultId ||
+      params.assessmentId ||
+      params.questionnaireId ||
+      params.recommendationId ||
+      params.courseId ||
+      params.ruleId ||
+      params.reportId,
+  )
+  const embedBreadcrumbInPageHeader =
+    !isDetailPage && !isAdminPreviewState(previewState)
 
   function clearPreviewState() {
     const next = new URLSearchParams(searchParams)
@@ -68,25 +83,24 @@ function AdminWorkspaceRoute({
     )
 
   return (
-    <WorkspacePreview
+    <ProtectedRoute role="admin">
+      <WorkspacePreview
       role="admin"
       activeModuleId={activeModuleId}
+      embedBreadcrumbInPageHeader={embedBreadcrumbInPageHeader}
+      moduleSearchPlacement="overview"
       pageLabel={pageLabel}
       onSelectModule={(id) =>
         navigate(id === 'overview' ? '/admin' : `/admin/${id}`)
       }
-      onExit={() => navigate('/admin/login')}
-      renderOverview={({ modules, query, onSelect }) => (
-        <AdminDashboardPage
-          modules={modules}
-          query={query}
-          onSelectModule={onSelect}
-          onNavigate={navigate}
-        />
-      )}
-    >
-      {content}
-    </WorkspacePreview>
+      onExit={() => {
+        void signOut().finally(() => navigate('/admin/login'))
+      }}
+      renderOverview={() => <AdminDashboardPage onNavigate={navigate} />}
+      >
+        {content}
+      </WorkspacePreview>
+    </ProtectedRoute>
   )
 }
 

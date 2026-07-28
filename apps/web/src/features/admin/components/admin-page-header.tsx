@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react'
 
+import { WorkspaceBreadcrumbSlot } from '@/features/auth/components/workspace-breadcrumb'
+
 interface AdminPageHeaderProps {
   title: string
   description: string
@@ -12,20 +14,24 @@ function AdminPageHeader({
   actions,
 }: AdminPageHeaderProps) {
   return (
-    <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-      <div>
-        <p className="text-xs font-bold uppercase tracking-[0.14em] text-muted-foreground">
-          Admin workspace
-        </p>
-        <h1 className="mt-2 text-3xl font-extrabold tracking-[-0.045em]">
-          {title}
-        </h1>
-        <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-          {description}
-        </p>
+    <header>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <h1 className="text-2xl font-extrabold tracking-[-0.04em] sm:text-[1.75rem]">
+            {title}
+          </h1>
+          <p className="mt-1 max-w-3xl text-sm leading-5 text-muted-foreground">
+            {description}
+          </p>
+        </div>
+        {actions ? (
+          <div className="flex shrink-0 flex-wrap items-center gap-2">
+            {actions}
+          </div>
+        ) : null}
       </div>
-      {actions ? <div className="shrink-0">{actions}</div> : null}
-    </div>
+      <WorkspaceBreadcrumbSlot />
+    </header>
   )
 }
 
