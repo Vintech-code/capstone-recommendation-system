@@ -4,9 +4,523 @@
 **Status:** IN PROGRESS.  
 **Basis:** Repository documentation workflow.  
 **Owner:** Capstone documentation lead.  
-**Last updated:** 2026-07-28.  
-**Related IDs:** D-001-D-008.  
+**Last updated:** 2026-07-29.
+**Related IDs:** D-001-D-020.
 **Open questions:** [22-OPEN-QUESTIONS.md](22-OPEN-QUESTIONS.md).
+
+## 2026-07-29 - Multiple individual Admin role holders
+
+### Approved
+
+- Recorded D-020: the combined `Guidance/Psychometrician/Admin` role is one
+  application-role type and portal, not one person.
+- Confirmed that multiple authorized guidance counselors and psychometricians
+  may each hold the role through a distinct individual account.
+- Kept the application-role count at exactly three; no separate Counselor or
+  Psychometrician role was added.
+
+### Changed
+
+- Replaced UI wording that could imply one Admin person with shared-role
+  wording.
+- Updated role, requirements, API, security, open-question, roadmap, sprint,
+  progress, backlog, and delivery documentation.
+- Clarified that shared staff credentials are prohibited and privileged work
+  must remain attributable to the acting account.
+
+### Validation
+
+- Frontend lint and all 126 frontend tests across 22 files passed.
+- Laravel Pint and all 20 Laravel tests passed.
+- The existing many-to-many role storage requires no schema change and now has
+  explicit coverage for two individual accounts holding the Admin role.
+
+### Remaining blockers
+
+- OQ-007 still controls whether one account may hold multiple different role
+  types and the account approval/authentication policy.
+- OQ-008 still controls action-level permission differences, approvers, and
+  separation of duties among counselors and psychometricians.
+
+## 2026-07-29 - Unified role dark palette
+
+### Corrected
+
+- Unified Student, Admin, and System Administrator dark surfaces on the
+  Admin palette: `#0b1220` canvas, `#121d2d` cards and dark feature surfaces,
+  and `#172437` muted/supporting surfaces.
+- Removed the separate violet Student feature-surface and brown warm-surface
+  appearance in dark mode while retaining semantic accents and status colors.
+- Added a token contract test preventing role surface aliases from drifting
+  away from the shared dark palette.
+
+### Validation
+
+- Frontend lint passed.
+- All 125 frontend tests across 22 files passed.
+- Frontend production build passed.
+- Rendered browser contrast review remains pending.
+
+## 2026-07-28 - System-wide dark mode
+
+### Added
+
+- Added D-019 and a shared theme provider with persistent `light`/`dark`
+  preference, semantic root state, and pre-React dark initialization.
+- Added accessible theme controls to all three portal entry screens,
+  authenticated workspace top bars, and recovery routes.
+- Added dark semantic tokens for canvases, surfaces, typography, controls,
+  focus, brand accents, charts, and shadows while preserving white print
+  output.
+- Added theme-aware notification rendering and three focused tests for
+  switching, persistence/restoration, and recovery-screen availability.
+
+### Corrected
+
+- Replaced hard-coded white and gray shared Input, Textarea, and manual-result
+  Select surfaces with semantic background, input, foreground, and focus
+  tokens.
+
+### Validation
+
+- Frontend lint passed.
+- All 124 frontend tests across 22 files passed.
+- Frontend production build passed.
+- `DESIGN.md` lint and in-app browser light/dark responsive, keyboard,
+  console, chart, print, and computed-contrast verification remain pending
+  because the external linter returned no usable result and the browser target
+  was unavailable.
+
+## 2026-07-28 - System Administrator dashboard
+
+### Added
+
+- Replaced the generic System Administrator landing view with a distinct
+  technical-operations dashboard for ADM-01.
+- Added functional 24-hour/7-day summaries, user/role/cycle/audit navigation,
+  ranked access-review work, text-labelled service states, recent audit
+  activity, module search, and a visible technical-responsibility boundary.
+- Added five focused tests for dashboard content, period changes, module
+  actions, search, role isolation, and automated accessibility.
+
+### Guardrails
+
+- Kept psychometric interpretation, official-result work, recommendation
+  review, and admission decisions out of the System Administrator workspace.
+- Kept all D-015 counts and states isolated from production monitoring, audit,
+  backup, policy, and validation evidence.
+- ADM-01 remains IN PROGRESS - UI ONLY pending OQ-001/OQ-007/OQ-008,
+  production APIs and policies, browser evidence, and stakeholder acceptance.
+
+### Validation
+
+- Frontend lint passed.
+- All 121 frontend tests across 21 files passed.
+- Frontend production build passed.
+- The required `DESIGN.md` lint was attempted, but the npm-backed command
+  could not produce a report in this environment.
+- Rendered desktop/mobile, keyboard, overflow, and console inspection remains
+  pending because the in-app browser target is unavailable.
+
+## 2026-07-28 - Remaining Student panel UI
+
+### Added
+
+- Expanded the Student dashboard from four to six journey areas and added
+  direct Sidebar, mobile Sheet, search, quick-access, and workflow navigation
+  for My decision and My report.
+- Completed STU-09 course details with program metadata, learning areas,
+  general career directions, recorded factors, review notes, and responsive
+  two-to-three-course comparison.
+- Completed STU-10 preference capture with RHF/Zod validation, four labelled
+  decisions, confirmation, editable recorded state, visible local history,
+  guidance/report transitions, and integrated loading/empty/error states.
+- Completed STU-11 with an own-record document preview, source references,
+  ranked guidance, current decision, limitations, functional browser printing,
+  text download, and loading/empty/error/preparing states.
+- Added focused interaction, validation, state, role-boundary, navigation,
+  print/download, and automated accessibility coverage.
+
+### Guardrails
+
+- D-015 course, ranking, career, decision, report, version, and identity data
+  are presentation fixtures only. They do not establish official catalogue,
+  eligibility, admission, employment, assignment, enrolment, report,
+  signatory, validation, or production records.
+
+### Verified
+
+- One hundred sixteen frontend tests across 20 files, frontend lint, and
+  production build pass without an oversized-chunk warning.
+- The required DESIGN.md linter was attempted twice but exited without a
+  report after registry/cache access failed in the restricted environment.
+
+### Pending
+
+- OQ-005/OQ-009/OQ-010, production Laravel domain APIs and ownership,
+  deterministic recommendation logic, idempotent decision storage, secure
+  report generation/download, rendered mobile/desktop/print review, guidance
+  acceptance, and E2E evidence remain pending.
+
+## 2026-07-28 - Student recommendation results
+
+### Added
+
+- Added a responsive Student Course guidance module with ranked recommendation
+  cards, explicit requirement states, numeric match values, explanation
+  factors, and recommendation provenance.
+- Added functional status filters, focused course details, reversible
+  comparison selection for two or three courses, and a direct handoff from
+  the Student assessment result.
+- Added loading, empty, retryable-error, and preparing states plus route,
+  interaction, role-boundary, state, and automated accessibility coverage.
+
+### Guardrails
+
+- D-015 courses, ranks, match values, eligibility labels, factors, and version
+  references are presentation fixtures only. They do not establish official
+  TCC catalogue data, rules, thresholds, weights, validation evidence,
+  admission, enrolment, or production seed data.
+
+### Verified
+
+- One hundred four frontend tests across 18 files, frontend lint, and
+  production build pass without an oversized-chunk warning.
+
+### Pending
+
+- OQ-002/OQ-005/OQ-009 approval, production deterministic recommendation
+  engine/API/ownership, rendered mobile/desktop review, guidance acceptance,
+  and E2E evidence remain pending.
+
+## 2026-07-28 - Student assessment result
+
+### Added
+
+- Added a functional handoff from the locked submitted-assessment state to a
+  responsive Student Assessment Result.
+- Added a focused top-code summary, six text-labelled numeric dimension bars,
+  leading-dimension order, result/session/assessment-version provenance,
+  read-only and guidance boundaries, and loading, empty, retryable-error, and
+  preparing states.
+- Added content, state, role-boundary, provenance, and automated accessibility
+  coverage.
+
+### Guardrails
+
+- D-015 values and ordering are visualization fixtures only. The screen makes
+  no approved scoring, norm, interpretation, mapping, validation,
+  recommendation, eligibility, diagnosis, admission, or enrolment claim.
+
+### Verified
+
+- Ninety-seven frontend tests across 17 files, frontend lint, and production
+  build pass.
+
+### Pending
+
+- OQ-004 approval, production Laravel API and ownership, psychometrician
+  validation, rendered mobile/desktop review, stakeholder acceptance, and E2E
+  evidence remain pending.
+
+## 2026-07-28 - Student assessment session
+
+### Added
+
+- Connected the acknowledged assessment introduction directly to a responsive
+  Student session with one-question mobile presentation, desktop progress
+  navigation, accessible response controls, and explicit answered progress.
+- Added local autosave/resume, save-and-exit, saved/offline/unsaved feedback,
+  offline retry, full response review/editing, incomplete-submit prevention,
+  accessible submission confirmation, stale-version recovery, and a locked
+  completed state.
+- Added focused component, persistence, recovery, submission-lock, role
+  boundary, and automated accessibility coverage.
+
+### Guardrails
+
+- Session prompts and choices are isolated D-015 interaction fixtures. The UI
+  calculates no RIASEC mapping, score, interpretation, validation result, or
+  course outcome.
+
+### Verified
+
+- Ninety-one frontend tests across 16 files, frontend lint, and production
+  build pass.
+
+### Pending
+
+- OQ-003/OQ-004 approval, production server persistence, duplicate-submit
+  protection, authorization/ownership, rendered mobile/desktop review,
+  psychometrician acceptance, and E2E evidence remain pending.
+
+## 2026-07-28 - Student assessment introduction
+
+### Added
+
+- Added a mobile-first and desktop-responsive Student Interest Assessment
+  introduction with general expectations, synthetic active-version/readiness
+  context, a non-diagnostic notice, acknowledgement and confirmation gates,
+  and a functional session-opening transition.
+- Added inactive, loading, empty, and retryable-error states plus component,
+  interaction, role-isolation, and automated accessibility coverage.
+
+### Guardrails
+
+- Excluded questionnaire items, response options, mappings, scoring,
+  interpretations, and validation claims pending OQ-003/OQ-004 approval.
+
+### Verified
+
+- Eighty-four frontend tests across 15 files, frontend lint, and production
+  build pass.
+
+### Pending
+
+- Production session APIs and ownership, approved instrument content and
+  lifecycle, rendered mobile/desktop review, psychometrician acceptance, and
+  end-to-end evidence remain pending.
+
+## 2026-07-28 - Student feature header and Official Result
+
+### Changed
+
+- Aligned Student feature pages with the Admin header hierarchy: title and
+  description first, breadcrumb underneath, and no duplicate Dashboard back
+  row.
+- Preserved dirty-change protection by routing the editable profile
+  breadcrumb through its guarded navigation action.
+
+### Added
+
+- Added a responsive strictly read-only Student Official Result screen with a
+  visible verification state, record/source metadata, verification history,
+  correction-contact guidance, and loading/empty/retryable-error states.
+- Added explicit role-boundary coverage proving the Student screen exposes no
+  result editing or Admin verification controls.
+
+### Verified
+
+- Seventy-eight frontend tests across 14 files, frontend lint, and production
+  build pass.
+
+### Pending
+
+- OQ-002 approval, official result format/status/correction guidance,
+  production data and ownership APIs, rendered mobile/desktop review, and
+  stakeholder acceptance remain pending.
+
+## 2026-07-28 - Student responsive parity clarification
+
+### Changed
+
+- Clarified that Student screens are mobile-first, not mobile-only.
+- Required the Student panel to retain the same responsive web-shell quality,
+  available desktop canvas, collapsible navigation, spacing discipline, and
+  overflow protection as the Admin panel while keeping Student-specific
+  content and navigation patterns.
+
+## 2026-07-28 - Student Panel Slice 2 profile and application
+
+### Added
+
+- Added a mobile-first Student Profile & application module with readable
+  stacked sections, 48px controls, 16px mobile form text, explicit edit/save
+  actions, and a constrained desktop reading width.
+- Added RHF/Zod validation, completion guidance, saving feedback,
+  dirty-change protection, a submission checklist and confirmation dialog,
+  and a read-only submitted state.
+- Added loading, empty, retryable-error, validation, draft, saving, and
+  submitted component states using isolated D-015 mock data.
+
+### Verified
+
+- Added Student role-isolation, editing/validation, save/submission,
+  dirty-change, shared-state, and accessibility coverage.
+- Seventy-three frontend tests across 13 files, frontend lint, and production
+  build pass.
+
+### Pending
+
+- OQ-005/OQ-006 approval, production fields and lifecycle, Laravel APIs,
+  ownership, persistence, conflict recovery, rendered mobile/desktop review,
+  and stakeholder acceptance remain pending.
+
+## 2026-07-28 - Student Panel Slice 1 journey dashboard
+
+### Added
+
+- Replaced the generic `/student` overview with a task-oriented Student
+  dashboard containing a next-action hero, four text-labelled journey stages,
+  a recommended next step, Student-only quick actions, and the visible
+  guidance-not-enrolment boundary.
+- Added isolated synthetic Student journey state under D-015 without scores,
+  thresholds, course rankings, admission likelihood, or success metrics.
+- Connected every dashboard action to an existing Student module while
+  preserving top-bar module search and the shared responsive shell.
+
+### Verified
+
+- Added Student dashboard role-isolation, next-action, read-only-result
+  navigation, and automated accessibility coverage.
+- Sixty-seven frontend tests across 12 files, frontend lint, and production
+  build pass.
+
+### Pending
+
+- Production status data, approved Student workflows, domain APIs, ownership
+  enforcement, browser-rendered responsive/keyboard review, and stakeholder
+  acceptance remain pending.
+
+## 2026-07-28 - Fluid width across all workspace features
+
+### Changed
+
+- Removed the fixed `90rem` wrapper from every Admin list and detail page,
+  shared role dashboard, module view, and workspace breadcrumb.
+- Standardized primary workspace surfaces on `w-full` so expanded and
+  collapsed sidebar layouts continue using the available canvas at wide
+  viewport and zoomed-out sizes.
+- Preserved intentional reading-width constraints for forms, dialogs, notices,
+  and document content.
+
+### Verified
+
+- Added coverage across the six primary Admin feature surfaces.
+- Sixty-three frontend tests across 11 files, frontend lint, and production
+  build pass.
+- Source inspection confirms no `max-w-[90rem]` or equivalent `max-w-360`
+  workspace wrappers remain.
+
+### Pending
+
+- Browser-rendered wide-screen, 75% zoom, desktop/mobile, keyboard, overflow,
+  console, and contrast verification remains pending if the in-app browser is
+  unavailable.
+
+## 2026-07-28 - Admin dashboard wide-view and collapsible icon rail
+
+### Changed
+
+- Removed the Admin dashboard's fixed `90rem` content cap so the reference
+  layout uses the available workspace at wide viewport and zoomed-out sizes.
+- Added a labelled edge chevron that collapses the 256px desktop sidebar into
+  an 80px icon rail instead of removing navigation; the existing mobile
+  navigation Sheet remains unchanged.
+- Preserved active module styling in collapsed mode and added accessible names
+  plus right-side tooltips for every navigation icon and sign-out.
+
+### Verified
+
+- Frontend lint and production build pass.
+- Sixty-two frontend tests across 11 files pass, including the desktop
+  expanded/icon-rail interaction.
+
+### Pending
+
+- Browser-rendered 75% zoom, desktop/mobile, keyboard, overflow, console, and
+  contrast verification remains pending if the in-app browser is unavailable.
+
+## 2026-07-28 - Admin dashboard visual and operational redesign
+
+### Added
+
+- Rebuilt `/admin` around a compact page header, responsive violet guidance
+  hero, four project-specific priority summaries, ranked work queue, quick
+  actions, workflow status, activity, and module access.
+- Added Recharts operational-activity and assessment-session visualizations
+  using isolated D-015 mock data, explicit legends, and a functional 7/30-day
+  period control.
+- Added semantic chart-blue, chart-teal, and chart-slate visualization tokens.
+- Recorded D-017 for Recharts-based, project-specific operational
+  visualizations and explicit exclusion of unsupported performance claims.
+
+### Changed
+
+- Removed the reference design's unsupported success-rate, recommendation-
+  accuracy, generic user, and enrollment-style metrics from the implemented
+  information architecture.
+- Split Recharts and `react-is` into a dedicated vendor chunk; the Admin route
+  chunk is approximately 166 kB and the build no longer emits the 500 kB
+  warning.
+
+### Verified
+
+- Sixty-one frontend tests across 11 files, frontend lint, and production
+  build pass.
+
+### Pending
+
+- Real-browser desktop/mobile, keyboard, overflow, console, and rendered
+  contrast verification remains pending because the in-app browser is
+  unavailable.
+
+## 2026-07-28 - Reference-aligned Admin dashboard simplification
+
+### Changed
+
+- Recorded D-018 and rebuilt `/admin` to directly follow the supplied violet
+  dashboard hierarchy.
+- Removed the dashboard breadcrumb/title block, module search, module cards,
+  priority cards, work queue, quick actions, and workflow-stage cards.
+- Kept detailed modules available through the persistent Sidebar/Sheet instead
+  of duplicating navigation inside the dashboard.
+- Added five compact functional summary cards with sparklines, a third
+  recommendation-review visualization, responsive recent-applicant records,
+  and a complete latest-activity list.
+
+### Verified
+
+- Sixty-one frontend tests across 11 files, frontend lint, and production build
+  pass. The build has no oversized-chunk warning.
+
+### Pending
+
+- Real-browser desktop/mobile, keyboard, overflow, console, and rendered
+  contrast verification remains pending because the in-app browser is
+  unavailable.
+
+## 2026-07-28 - Sanctum authentication foundation and Admin access
+
+### Added
+
+- Added Laravel Sanctum first-party SPA authentication with CSRF-cookie
+  initialization, session regeneration/invalidation, and stateful API
+  middleware.
+- Added the approved three-role catalogue and user-role assignment migration
+  without deciding the still-open account-multiplicity policy.
+- Added `/api/v1/auth/login`, `/api/v1/auth/me`, and `/api/v1/auth/logout`, portal-role
+  matching, guest protection, and a provisional five-attempt login throttle.
+- Added `/api/v1/auth/authorize/{portal}`, reusable Laravel role middleware,
+  stable API `401`/`403` codes, and tests for every approved portal boundary.
+- Added a typed React auth client/context, session restoration, protected
+  routes that wait for server portal authorization, expired/forbidden recovery,
+  real logout, preserved server validation errors, and Vite API proxy.
+- Added a local-only interactive `auth:create-local-admin` command so
+  development credentials are chosen locally and never committed.
+- Added disabled-by-default local authentication seed accounts for Student,
+  Admin, and System Administrator. Passwords come only from the ignored local
+  environment; production execution and conflicting role reassignment are
+  rejected.
+
+### Verified
+
+- Nineteen Laravel unit/feature tests pass, including all three role boundaries,
+  cross-role denial, policy-neutral multi-role membership, safe local Admin
+  provisioning, and idempotent opt-in local account seeding.
+- Sixty-one frontend tests across 11 files pass; frontend lint and production build
+  pass; Laravel Pint passes.
+- Local MySQL auth migrations and role seeding ran successfully.
+- A live Vite-proxied flow verified CSRF initialization, Admin login, current
+  session retrieval, logout, and a subsequent `401`.
+
+### Pending
+
+- Registration, password recovery, approved account states, Admin-specific
+  authentication requirements, feature/action policies, and production
+  topology remain governed by OQ-007/OQ-008 and related decisions.
+- Real-browser desktop/mobile, keyboard, focus, overflow, console, and rendered
+  contrast evidence remains pending because the in-app browser is unavailable.
 
 ## 2026-07-28 - Admin import, validation, decision, and shared-shell slices
 
@@ -721,3 +1235,64 @@
   unavailable.
 - Production Laravel data, authentication, authorization, approved
   institutional rules, and stakeholder review.
+
+## 2026-07-28 - Compact Admin feature hierarchy
+
+### Approved
+
+- Recorded D-016: Admin workspace chrome and feature introductions use a
+  compact shared hierarchy without a repeated role eyebrow or excessive
+  spacing before primary work.
+
+### Changed
+
+- Reduced the workspace top-bar height and content-canvas vertical padding.
+- Tightened the breadcrumb-to-heading and heading-to-primary-content spacing.
+- Reworked the shared Admin page header into one compact title, description,
+  and optional-action row.
+- Removed the repeated `Admin workspace` eyebrow from the dashboard and all
+  Admin feature pages.
+- Applied the compact hierarchy consistently across dashboard, applicants,
+  official results, imports, assessments, questionnaires, recommendations,
+  validation cases, student decisions, courses, rules, and reports.
+- Placed Admin landing-page breadcrumbs below the shared heading and above
+  relevant search or filter controls.
+- Moved `Search modules` from the Admin global top bar into the dashboard,
+  keeping global chrome focused on navigation and account context.
+
+### Verified
+
+- 54 Vitest tests across 10 files passed, including explicit dashboard and
+  Applicants heading-breadcrumb-search DOM-order coverage.
+- Frontend lint and the production TypeScript/Vite build passed.
+- Application source contains no `shadow-md`.
+
+### Pending
+
+- Real-browser desktop/mobile, keyboard-focus, overflow, console, and computed
+  contrast verification remains required before this UI work can be marked
+  COMPLETED.
+
+## 2026-07-28 - GP-01 command-center acceptance completion
+
+### Changed
+
+- Aligned the dashboard priority cards with the four required operational
+  categories.
+- Made the attention queue visibly ranked while retaining applicant or batch
+  context, status text, timestamps, and direct actions.
+- Added the required result, import, questionnaire, recommendation, and report
+  activity event types.
+- Aligned quick-action labels with the six required Admin workflows.
+
+### Verified
+
+- 56 Vitest tests across 10 files passed.
+- Added a complete GP-01 checklist test and verified every quick-action route
+  reaches its implemented workflow.
+- Frontend lint and the production TypeScript/Vite build passed.
+
+### Pending
+
+- GP-01 remains IN PROGRESS - UI ONLY until real-browser review, production
+  data minimization, Laravel authorization, and stakeholder acceptance exist.

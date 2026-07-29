@@ -4,8 +4,8 @@
 **Status:** PROVISIONAL; legal/DPO review required.  
 **Basis:** Roadmap, Section 11; Republic Act No. 10173 and NPC implementing rules.  
 **Owner:** TCC personal information controller/DPO and authorized IT owner; capstone team implements approved controls.  
-**Last updated:** 2026-07-26.  
-**Related IDs:** NFR-02, NFR-04-NFR-07, BR-02-BR-03, R-005, R-008.  
+**Last updated:** 2026-07-29.
+**Related IDs:** NFR-02, NFR-04-NFR-07, BR-02-BR-03, R-005, R-008, D-020.
 **Open questions:** Lawful basis, PIC/PIP assignments, DPO contact, retention schedule, incident owner, minors, data sharing, and deletion exceptions.
 
 ## Privacy requirements
@@ -26,6 +26,9 @@ This plan is engineering guidance, not legal advice. TCC's DPO or authorized cou
 
 - Complete a data inventory, data-flow map, and privacy impact assessment before real applicant data.
 - Use least privilege, server-side policies, ownership checks, Admin MFA if approved/available, account lockout/rate limiting, and secure recovery.
+- Provision a separate account for every authorized guidance counselor and
+  psychometrician assigned the combined Admin role. Prohibit shared staff
+  credentials so privileged actions and audit events remain attributable.
 - Use HTTPS, secure HTTP-only cookies, CSRF protection, restrictive CORS, validation, output encoding, dependency review, and secret management.
 - Encrypt sensitive backups and storage as supported; never put production data or secrets in source control.
 - Log authentication, exam verification/correction, rule/instrument lifecycle, recommendation generation, exports, role changes, and privileged access without logging secrets or unnecessary assessment content.

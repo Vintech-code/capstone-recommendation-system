@@ -67,6 +67,29 @@ class PortalAuthorizationTest extends TestCase
             ->assertOk();
     }
 
+    public function test_multiple_individual_accounts_may_hold_the_shared_admin_role(): void
+    {
+        $adminRole = Role::query()->create([
+            'slug' => RoleSlug::Admin->value,
+            'name' => RoleSlug::Admin->name,
+        ]);
+        $counselor = User::factory()->create();
+        $psychometrician = User::factory()->create();
+
+        $counselor->roles()->attach($adminRole);
+        $psychometrician->roles()->attach($adminRole);
+
+        $this->actingAs($counselor)
+            ->getJson('/api/v1/auth/authorize/admin')
+            ->assertOk();
+
+        $this->actingAs($psychometrician)
+            ->getJson('/api/v1/auth/authorize/admin')
+            ->assertOk();
+
+        $this->assertSame(2, $adminRole->users()->count());
+    }
+
     private function userWithRole(RoleSlug $role): User
     {
         $roleModel = Role::query()->create([

@@ -98,7 +98,7 @@ const dashboards: Record<AccessRole, DashboardDefinition> = {
       'Review recommendations',
     ],
     accessFacts: [
-      'One combined Guidance / Psychometrician / Admin role',
+      'Shared role for authorized counselors and psychometricians',
       'Institutional and guidance workflows',
     ],
     boundary:

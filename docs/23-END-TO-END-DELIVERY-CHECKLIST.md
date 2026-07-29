@@ -1,11 +1,11 @@
-# End-to-End Delivery Checklist
+﻿# End-to-End Delivery Checklist
 
 **Purpose:** Provide the granular execution order from initial planning and homepage design through implementation, testing, deployment, review, launch, and handover.  
 **Status:** PROVISIONAL execution plan; planning baseline, D-001, D-007, and D-008 direction are APPROVED, while dependent work remains BLOCKED by OQ-001-OQ-012 and OQ-014.  
 **Basis:** [Implementation Roadmap](14-IMPLEMENTATION-ROADMAP.md), [Product Backlog](15-PRODUCT-BACKLOG.md), [UI/UX Plan](11-UI-UX-PLAN.md), and repository governance.  
 **Owner:** Capstone project lead; individual steps require assigned owners.  
-**Last updated:** 2026-07-28.  
-**Related IDs:** D-001-D-008, OQ-001-OQ-014, FR-01-FR-10, US-01-US-18, TC-01-TC-15.  
+**Last updated:** 2026-07-29.
+**Related IDs:** D-001-D-020, OQ-001-OQ-014, FR-01-FR-10, US-01-US-18, TC-01-TC-15.
 **Open questions:** [22-OPEN-QUESTIONS.md](22-OPEN-QUESTIONS.md).
 
 ## How to maintain this checklist
@@ -50,12 +50,12 @@
 Do not begin dependent application features until the responsible authority answers the matching question.
 
 - [ ] `P1-01` Confirm the exact Hostinger plan and database capabilities; approve MySQL 8 or PostgreSQL. BLOCKED by OQ-001.
-- [ ] `P1-02` Approve the official admission score format, scale, “2.50 or better” direction/boundaries, thresholds, exceptions, source, import, verification, and correction workflow. BLOCKED by OQ-002.
+- [ ] `P1-02` Approve the official admission score format, scale, â€œ2.50 or betterâ€ direction/boundaries, thresholds, exceptions, source, import, verification, and correction workflow. BLOCKED by OQ-002.
 - [ ] `P1-03` Select and approve the authoritative 42-item or 18-item assessment, source rights, wording, responses, instructions, and lifecycle. BLOCKED by OQ-003.
 - [ ] `P1-04` Approve the RIASEC dimension mapping, scoring, normalization, ties, top-code method, missing-response rules, interpretations, and validation cases. BLOCKED by OQ-004.
 - [ ] `P1-05` Obtain the official admission-cycle course catalogue, board-course flags, requirements, admission rules, RIASEC profiles, weights, rationales, and approval lifecycle. BLOCKED by OQ-005.
 - [ ] `P1-06` Decide whether `applicant_no` belongs to the person or admission-cycle application. BLOCKED by OQ-006.
-- [ ] `P1-07` Using the approved three-role catalogue, decide single-role versus multi-role accounts, account approval, separation of duties, and Admin authentication. BLOCKED by OQ-007.
+- [ ] `P1-07` D-020 approves multiple individual users holding the same combined Admin role. Decide whether one account may hold multiple different role types, plus account approval, action-level separation of duties, and Admin authentication. BLOCKED by OQ-007/OQ-008.
 - [ ] `P1-08` Approve office ownership and the RACI/permission matrix for every protected workflow. BLOCKED by OQ-008.
 - [ ] `P1-09` Approve recommendation normalization, blend, tie-breaks, eligibility display, explanations, and result count. BLOCKED by OQ-009.
 - [ ] `P1-10` Approve the official report fields, layout, disclaimer, recipients, signatories, numbering, retention, correction, and reissue process. BLOCKED by OQ-010.
@@ -88,7 +88,7 @@ Do not begin dependent application features until the responsible authority answ
 - [ ] `P2-12` Design the read-only official examination result/status and correction-request guidance.
 - [ ] `P2-13` Design RIASEC instructions, consent/notice, assessment pagination, autosave/progress, resume, review, submit confirmation, and locked state.
 - [ ] `P2-14` Design RIASEC result explanation without diagnosis or unsupported certainty.
-- [ ] `P2-15` Design recommendation results, eligibility badges with text/icons, score-factor explanation, “why not,” course detail, comparison, and decision capture.
+- [ ] `P2-15` Design recommendation results, eligibility badges with text/icons, score-factor explanation, â€œwhy not,â€ course detail, comparison, and decision capture.
 - [ ] `P2-16` Design the Admin dashboard, applicant search, filters, responsive data table, applicant detail, and authorized actions.
 - [ ] `P2-17` Design exam encode/import preview, row errors, verification, rejection, correction reason, and history.
 - [ ] `P2-18` Design questionnaire, course, admission-rule, course-profile, approval/effective-version, and validation-case governance screens.
@@ -117,9 +117,9 @@ Do not begin dependent application features until the responsible authority answ
 - [ ] `P3-05` Configure Lucide React, React Router, TanStack Query, React Hook Form/Zod, and TanStack Table integration patterns.
 - [x] `P3-06` Create `components/ui`, `components/shared`, and feature-module boundaries.
 - [x] `P3-07` Implement and test shared `PageHeader`, `StatusBadge`, `LoadingState`, `EmptyState`, `ErrorState`, `ConfirmActionDialog`, `CollectionToolbar`, and `DataTableToolbar`.
-- [x] `P3-08` Implement neutral provisional theme tokens, body defaults, focus treatment, responsive layout utilities, error styles, and print styles.
+- [x] `P3-08` Implement neutral provisional theme tokens, body defaults, focus treatment, responsive layout utilities, error styles, and print styles. D-019 adds automated-evidence-backed light/dark semantic tokens, persistent accessible toggles, no-flash initialization, and theme-aware shared controls; rendered contrast review remains part of P3-15.
 - [ ] `P3-09` Create the Laravel API only after D-002 and hosting/PHP feasibility are approved.
-- [ ] `P3-10` Configure Sanctum/session/CORS/CSRF topology, environment separation, safe error envelopes, request IDs, and health checks.
+- [ ] `P3-10` Configure Sanctum/session/CORS/CSRF topology, environment separation, safe error envelopes, request IDs, and health checks. IN PROGRESS: same-origin/Vite-proxied Sanctum cookie sessions, CSRF, local stateful domains, JSON auth errors, and the default health route are implemented; production topology, explicit CORS policy, request IDs, and environment/deployment review remain pending.
 - [ ] `P3-11` Create approved database migrations and factories from the finalized ERD; do not copy the provisional PostgreSQL appendix blindly.
 - [ ] `P3-12` Implement roles/policies, audit infrastructure, state/version conflict handling, idempotency, and test-data factories.
 - [ ] `P3-13` Deploy a non-feature staging skeleton and confirm HTTPS, API connectivity, logs, storage, jobs/scheduler, and database access.
@@ -130,39 +130,80 @@ Do not begin dependent application features until the responsible authority answ
 
 Build the shared access experience as the first visible vertical slice after the foundation.
 
-**Implementation note (2026-07-27):** D-010-D-012 place the public introduction OUT OF SCOPE, prohibit role selection on the sign-in form, and name the combined role's portal `/admin`. Root redirects to Student login; combined Admin and System Administrator use dedicated portal URLs. The shared RHF/Zod form, password visibility, clean portal-matched role dashboards, module search/entry, and sign-out have 16 passing tests. P4-01-P4-04 remain unchecked because live-server/real-browser evidence and production authentication requirements are incomplete.
+**Implementation note (updated 2026-07-29):** D-010-D-012 place the public introduction OUT OF SCOPE, prohibit role selection on the sign-in form, and name the combined role's portal `/admin`. D-020 confirms that multiple authorized counselors and psychometricians may each use an individual account assigned to that role. The shared RHF/Zod portals now use Laravel Sanctum cookie login, session restoration, logout, CSRF protection, reusable role middleware, server-confirmed portal entry, stable `401`/`403` errors, client recovery routes, and disabled-by-default environment-backed local sign-in fixtures for each role. Twenty Laravel tests, 126 frontend tests, lint, Pint, production build, migrations, and a live proxied login/me/logout/401 flow pass. P4 items remain unchecked because registration, recovery, approved account states, detailed API policies, production topology, rendered browser evidence, and stakeholder acceptance are incomplete.
 
 - [ ] `P4-01` Implement responsive Student, combined Admin, and System Administrator portal entry screens using one shared sign-in component and no role picker.
 - [ ] `P4-02` Implement labelled credential fields, known-safe client validation, password visibility, and explicit frontend-preview boundaries.
 - [ ] `P4-03` Implement portal-matched UI workspace entry/sign-out without exposing fabricated data.
 - [ ] `P4-04` Add access/workspace component, accessibility, responsive, validation, and interaction tests.
 - [ ] `P4-05` Implement registration with approved fields, privacy acknowledgement/lawful flow, Zod/client validation, Laravel validation, duplicate prevention, and recoverable errors.
-- [ ] `P4-06` Implement login, logout, password recovery, safe session handling, rate limits, and actionable errors.
+- [ ] `P4-06` Implement login, logout, password recovery, safe session handling, rate limits, and actionable errors. IN PROGRESS: login/logout/session restoration, CSRF, session rotation/invalidation, a provisional login throttle, and credential/network errors are implemented; recovery and approved production policy remain pending.
 - [ ] `P4-07` Implement pending, inactive, locked, forbidden, and expired-session experiences.
-- [ ] `P4-08` Implement route guards as UX only and prove API policies remain authoritative.
+- [ ] `P4-08` Implement route guards as UX only and prove API policies remain authoritative. IN PROGRESS: client guards wait for Laravel portal authorization; reusable server role middleware independently rejects unauthenticated and wrong-role requests for all three portal boundaries. Feature/action and ownership policies remain pending.
 - [ ] `P4-09` Test authentication, authorization, recovery, validation, CSRF/session, keyboard, loading, and error paths.
 
 ## Phase 5 - Application shell and student application workflow
 
 **Implementation note (2026-07-27):** The UI-only portion of P5-01 is IN
-PROGRESS: role-aware desktop Sidebar, left-opening mobile Sheet, sticky top bar,
-responsive content layout, labelled module search, and role module navigation
-are implemented and component-tested. Breadcrumb, user Dropdown Menu,
-server-authorized routing, live-browser responsive/keyboard evidence, and real
-feature data remain pending, so P5-01 and P5-02 stay unchecked.
+PROGRESS: role-aware desktop Sidebar with a tested 256px-to-80px icon-rail
+collapse control,
+left-opening mobile Sheet, sticky top bar, responsive content layout, labelled
+module search, role module navigation, Breadcrumb, user Dropdown Menu, and
+server-authorized routing are implemented and component-tested. Primary
+dashboard, feature, module, detail, and breadcrumb surfaces now use the full
+available workspace without the former `90rem` cap. Live-browser responsive
+and keyboard evidence and real feature data remain pending, so P5-01 and P5-02
+stay unchecked.
 
 - [ ] `P5-01` Implement role-aware desktop Sidebar, mobile Sheet, Breadcrumb, user Dropdown Menu, content clearance, and responsive shell tests.
 - [ ] `P5-02` Implement the student dashboard with real completion/status data, no fake metrics or controls.
+  - UI evidence: the D-015 `/student` prototype now provides a functional
+    next-action hero, six text-labelled journey stages, recommended next
+    step, Student-only quick actions, read-only official-result boundary, and
+    guidance-not-enrolment notice without vanity metrics. Production status
+    data, domain APIs, browser review, and stakeholder acceptance remain
+    pending, so this item is not marked complete.
 - [ ] `P5-03` Implement applicant profile and admission-cycle application API, migrations, policies, validation, and audit events.
 - [ ] `P5-04` Implement profile/application forms with autosave or explicit save as approved, dirty-state protection, review, submit, and conflict recovery.
+  - UI evidence: the D-015 Student prototype provides mobile-first editable
+    RHF/Zod fields, inline validation, explicit save/loading feedback,
+    completion guidance, dirty-change protection, submission review and
+    confirmation, a read-only submitted state, and loading/empty/retryable
+    error surfaces. Approved production fields/lifecycle, persistence,
+    conflict recovery, ownership, browser review, and E2E evidence remain
+    pending, so this item stays unchecked.
 - [ ] `P5-05` Implement own-record ownership tests and application lifecycle/state-transition tests.
 - [ ] `P5-06` Implement the read-only official result/status page with provenance/verification information approved for student display.
+  - UI evidence: the D-015 Student prototype provides an aligned feature
+    header, responsive strictly read-only result summary, text-labelled
+    verification state, source/reference metadata, verification history,
+    correction-contact guidance, and loading/empty/retryable-error states.
+    It exposes no Student write or Admin verification controls and makes no
+    pass/fail or admission inference. OQ-002, approved production content,
+    API ownership enforcement, browser review, and E2E evidence remain
+    pending, so this item stays unchecked.
 - [ ] `P5-07` Implement Admin result encoding/verification only when Phase 8 permissions are ready; do not let the student workflow write official values.
 - [ ] `P5-08` Complete component, API, E2E, responsive, accessibility, and failure-state tests for the student application slice.
 
 ## Phase 6 - RIASEC assessment workflow
 
 Do not start until OQ-003 and OQ-004 are approved.
+
+**UI-only implementation note (updated 2026-07-28):** Under D-015, the STU-05
+assessment-introduction prototype demonstrates general instructions,
+synthetic version/readiness context, notice acknowledgement, confirmation,
+session opening, and inactive/loading/empty/error states. STU-06 adds an
+isolated synthetic one-question flow, local autosave/resume, offline and
+stale-version recovery, response review/editing, incomplete-submit prevention,
+confirmation, and completed locking. These fixtures provide no approved
+mapping, scoring, interpretation, validation, or recommendation behavior.
+STU-07 adds an isolated read-only result visualization with a synthetic top
+code, six labelled numeric bars, session/version provenance, and
+loading/empty/error/preparing states without diagnosis, admission, enrolment,
+eligibility, or recommendation claims. P6-04/P6-05/P6-06 remain unchecked
+because the approved instrument/scoring/interpretation, production server
+lifecycle, durable autosave/idempotency, browser evidence, and psychometrician
+acceptance are incomplete.
 
 - [ ] `P6-01` Implement questionnaire version, question, approval/effective lifecycle, assessment session, response, and score migrations.
 - [ ] `P6-02` Implement server-side questionnaire governance and reject inactive/unapproved versions.
@@ -177,18 +218,37 @@ Do not start until OQ-003 and OQ-004 are approved.
 
 Do not start until OQ-002, OQ-005, and OQ-009 are approved.
 
+**UI-only implementation note (2026-07-28):** Under D-015, STU-08 through
+STU-10 now demonstrate responsive recommendation results, complete course
+details, two-to-three-course comparison, and editable Student preference
+capture with confirmation and history. The assessment result hands off to
+guidance, and guidance hands off to the decision module. Synthetic courses,
+ranks, values, factors, statuses, career directions, decisions, and references
+are presentation fixtures only. P7-01 through P7-09 remain unchecked because
+approved catalogue/rules/weights, deterministic engine, production persistence
+and authorization, browser evidence, guidance review, and end-to-end
+validation are incomplete.
+
 - [ ] `P7-01` Implement course, course-profile version, admission-rule version, approval/effective lifecycle, and validation-case storage.
 - [ ] `P7-02` Implement Admin course/rule/profile management with server policies, reasoned changes, audit, and historical preservation.
 - [ ] `P7-03` Implement eligibility evaluation with approved score field, direction, inclusivity, precedence, exceptions, and boundary tests.
 - [ ] `P7-04` Implement RIASEC fit and academic components with approved normalization, weights, missing-data, and tie-break rules.
 - [ ] `P7-05` Implement deterministic recommendation generation with idempotency and immutable input/version snapshots.
 - [ ] `P7-06` Store ranks, component scores, eligibility, exclusions, explanations, and governing versions.
-- [ ] `P7-07` Implement student recommendation results, course details, comparison, “why/why not,” and accessible non-color status.
+- [ ] `P7-07` Implement student recommendation results, course details, comparison, â€œwhy/why not,â€ and accessible non-color status.
 - [ ] `P7-08` Implement accept/reject/undecided/other decision capture without treating it as enrolment.
 - [ ] `P7-09` Complete approved algorithm cases, determinism, policy, component, E2E, performance, and explanation review.
 - [ ] `P7-10` Keep ML DEFERRED unless the full ADR-004 gate and separate approval are satisfied.
 
 ## Phase 8 - Guidance/Psychometrician/Admin, reporting, and final System Administrator slice
+
+**Student report UI note (2026-07-28):** STU-11 provides a D-015 own-record
+document preview with assessment/recommendation/decision references, ranked
+guidance, current preference, limitations, browser printing, text download,
+and loading/empty/error/preparing states. It is not an approved report layout,
+signatory record, secure production export, or archive format. Reporting
+checklist items remain unchecked pending OQ-010, Laravel generation/storage/
+authorization, browser/print evidence, and stakeholder acceptance.
 
 **Implementation note (2026-07-28):** The UI-only portions of P8-02 through
 P8-07 are IN PROGRESS under D-013-D-015. `/admin/applicants`,
@@ -215,17 +275,27 @@ official production fields, scoring, report layout/signatories,
 governance/actions, data, authorization, browser evidence, and E2E tests remain
 pending, so these checklist items stay unchecked.
 
-The `/admin` dashboard now adds a synthetic operational priority overview,
-filterable attention queue, working quick actions, expandable activity,
-workflow navigation, and searchable module catalogue. Shared Admin routes
-support loading, empty, and retryable error states; focused forbidden,
-session-expired, and not-found recovery screens are implemented. The Admin
-route group is lazy-loaded and shell, definition, breadcrumb, navigation, and
-feature-content responsibilities are separated. Fifty-three automated tests
-are organized across 10 focused files. Production data, authorization,
-browser evidence, and stakeholder approval remain pending.
+The `/admin` dashboard directly follows the D-018 reference hierarchy and uses
+the available wide/zoomed-out workspace instead of a fixed content cap. Shared
+Admin routes support loading, empty, and retryable error states; focused
+forbidden, session-expired, and not-found recovery screens are implemented.
+The Admin route group is lazy-loaded and shell, definition, breadcrumb,
+navigation, and feature-content responsibilities are separated. Sixty-two
+automated tests are organized across 11 focused files. Production data,
+authorization, browser evidence, and stakeholder approval remain pending.
 
 - [ ] `P8-01` Implement the Guidance/Psychometrician/Admin dashboard with authorized, meaningful operational summaries only.
+  - UI evidence: D-018 aligns the D-015 prototype directly with the supplied
+    violet reference through a hero, five functional summaries, 7/30-day
+    operational activity, assessment and recommendation-review charts,
+    responsive recent applicants, and latest activity. Redundant dashboard
+    breadcrumbs, module search/cards, priority cards, queue, quick actions, and
+    workflow-stage cards were removed; feature workflows remain accessible
+    through the Sidebar/Sheet and dedicated routes. The fluid dashboard and
+    desktop sidebar icon rail address wide/zoomed-out workspace use. Unsupported
+    success-rate and recommendation-accuracy claims remain excluded.
+    Production data, authorization, browser review, and stakeholder acceptance
+    remain pending, so this item is not marked complete.
 - [ ] `P8-02` Implement applicant search/filter/sort/pagination with TanStack Table, server allowlists, and responsive small-screen behavior.
 - [ ] `P8-03` Implement Admin applicant detail and recommendation review with permission-specific actions. Synthetic validation-case and student-decision review UI is IN PROGRESS; approved cases, visibility, persistence, authorization, and audit remain blocked.
 - [ ] `P8-04` Implement exam manual encoding, verification/rejection, correction reason, immutable correction history, and audit. The staged manual-entry UI prototype is IN PROGRESS under D-015; production persistence, permissions, official validation, audit, and remaining actions are blocked.
@@ -235,6 +305,14 @@ browser evidence, and stakeholder approval remain pending.
 - [ ] `P8-08` Implement notification/alert behavior only where approved; use Sonner only for non-critical feedback.
 - [ ] `P8-09` Complete Admin ownership, responsive tables, imports, reports, audit, accessibility, and E2E tests.
 - [ ] `P8-10` Implement the limited System Administrator user/role, admission-cycle, account-status, audit-search, job/health, backup-status, and approved operational settings as the final role-specific panel.
+  - UI evidence: ADM-01 now provides a responsive technical-operations
+    dashboard with functional period summaries, navigable user/role/cycle/
+    audit actions, access-review work, text-labelled service states, recent
+    audit activity, module search, and an explicit boundary from guidance
+    workflows. D-015 counts and states are presentation fixtures only.
+    Remaining System Administrator feature screens, production monitoring,
+    Laravel policies/APIs, browser evidence, and stakeholder approval are
+    incomplete, so this item stays unchecked.
 
 ## Phase 9 - System testing and hardening
 
@@ -296,6 +374,7 @@ Add one row whenever an item is checked.
 | P0-01-P0-05 | 2026-07-26 | Capstone documentation setup | Repository documentation | Link, metadata, consistency, and source review | Planning baseline approved 2026-07-26 | Index, roadmap, sprint, progress, changelog |
 | P0-06-P0-07, P1-13 | 2026-07-26 | Team/adviser confirmation supplied by user | D-001 and documentation records | Documentation consistency/link validation | Explicit approval in Codex project session | ADR-001, UI/UX, architecture, decisions, open questions, sprint, progress, changelog |
 | P1-14 | 2026-07-27 | Team/adviser confirmation supplied by user | D-007 and role documentation | Documentation consistency/role-count validation | Explicit approval in Codex project session | Roles, requirements, API, roadmaps, decisions, open questions, ADRs, changelog |
+| D-020 clarification | 2026-07-29 | Team clarification supplied by user | Combined Admin role-holder model | Documentation consistency and existing many-user role-storage review | Explicit user clarification in Codex project session | Roles, requirements, API, security, roadmaps, decisions, open questions, sprint, progress, changelog |
 | P3-03, P3-04, P3-06-P3-08 | 2026-07-27 | Frontend/QA | `apps/web` Tailwind/shadcn/Radix configuration, provisional theme, UI/shared components, providers, and feature boundary | Lint passed; 9 Vitest tests in 2 files passed; axe-core reported no detectable violations with rendered contrast excluded; production build passed; live development server returned HTTP 200 | D-001 and explicit user approval to start Development Slice 1; P3-15 remains pending | UI/UX plan, testing strategy, roadmap, backlog, sprint, progress, checklist, changelog |
 
 Related documents: [Requirements](05-FUNCTIONAL-REQUIREMENTS.md), [Business Rules](06-BUSINESS-RULES.md), [Role-Based Feature Roadmap](24-ROLE-BASED-FEATURE-ROADMAP.md), [Testing Strategy](13-TESTING-STRATEGY.md), [Deployment Plan](20-DEPLOYMENT-PLAN.md), and [Defense Readiness](21-DEFENSE-READINESS.md).

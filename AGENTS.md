@@ -5,7 +5,7 @@
 **Basis:** Documentation initialization brief and source precedence in [docs/02-SOURCE-OF-TRUTH.md](docs/02-SOURCE-OF-TRUTH.md).  
 **Owner:** Capstone team.  
 **Last updated:** 2026-07-27.  
-**Related IDs:** D-001-D-015, R-001-R-013.  
+**Related IDs:** D-001-D-020, R-001-R-013.
 **Open questions:** See [docs/22-OPEN-QUESTIONS.md](docs/22-OPEN-QUESTIONS.md).
 
 Before any task, read:
@@ -26,6 +26,11 @@ Before any task, read:
 - Keep React as the presentation layer and Laravel as the REST API unless an approved ADR changes the architecture.
 - Keep one responsive web codebase. Mobile delivery must wrap the web application without a separate native feature implementation; the wrapper technology and distribution method remain BLOCKED until approved.
 - Implement exactly three application roles: `Student Applicant`, `Guidance/Psychometrician/Admin`, and the limited side role `System Administrator`. Do not implement separate Guidance, Psychometrician, Admission, Testing, or Developer/Maintainer roles.
+- The combined `Guidance/Psychometrician/Admin` role is a role type, not one
+  person or one shared account. Multiple authorized guidance counselors and
+  psychometricians may each hold this same role through their own individual
+  account. Never create separate Counselor or Psychometrician application
+  roles, and never use shared staff credentials.
 - After D-001 is approved, use Tailwind CSS v4 through `@tailwindcss/vite`, shadcn/ui with Radix primitives, and Lucide React. Do not introduce Bootstrap, Material UI, Chakra UI, Ant Design, plain CSS as the primary styling system, or another competing component library.
 - Keep generated/customized primitives in `src/components/ui`, application-level reusable components in `src/components/shared`, and feature-only components in `src/features/<feature>/components`.
 - Keep global CSS limited to the Tailwind import, theme tokens/CSS variables, body defaults, fonts, print styles, and rare global rules.

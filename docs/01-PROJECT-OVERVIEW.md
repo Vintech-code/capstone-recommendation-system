@@ -4,8 +4,8 @@
 **Status:** PROVISIONAL pending client/adviser review.  
 **Basis:** Capstone proposal, Chapter 1; React roadmap, Sections 1-2.  
 **Owner:** Capstone team and academic adviser.  
-**Last updated:** 2026-07-27.  
-**Related IDs:** FR-01-FR-10, BR-01-BR-12, D-001, D-004, D-007-D-008.  
+**Last updated:** 2026-07-29.
+**Related IDs:** FR-01-FR-10, BR-01-BR-12, D-001, D-004, D-007-D-008, D-020.
 **Open questions:** OQ-001-OQ-012 and OQ-014 in [22-OPEN-QUESTIONS.md](22-OPEN-QUESTIONS.md).
 
 ## Product statement
@@ -24,7 +24,12 @@ The output is a reproducible, ranked, explainable set of recommendations limited
 - Guidance/Psychometrician/Admin
 - System Administrator (limited side role)
 
-The three-role catalogue is APPROVED under D-007. Account multiplicity, exact approval steps, and Admin authentication details remain open in OQ-007.
+The three-role catalogue is APPROVED under D-007. D-020 confirms that the
+combined Admin entry is one role type, not one person: multiple authorized
+guidance counselors and psychometricians may each use an individual account
+assigned to that role. Whether one account may hold multiple different role
+types, exact approval steps, action-level differences, and Admin
+authentication details remain open in OQ-007/OQ-008.
 
 ## Objectives
 

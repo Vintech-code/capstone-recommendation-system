@@ -4,21 +4,21 @@
 **Status:** PROVISIONAL.  
 **Basis:** Proposal objectives/modules; roadmap, Sections 4-5.  
 **Owner:** Capstone team business analyst; approval by relevant TCC owners.  
-**Last updated:** 2026-07-26.  
-**Related IDs:** FR-01-FR-10, US-01-US-18, BR-01-BR-12.  
+**Last updated:** 2026-07-29.
+**Related IDs:** FR-01-FR-10, US-01-US-18, BR-01-BR-12, D-020.
 **Open questions:** Requirement details tied to OQ-001-OQ-012 remain BLOCKED.
 
 | ID | Requirement | Status |
 |---|---|---|
 | FR-01 | Provide registration, authentication, password recovery, account status, session, and role-based access controls. | PROVISIONAL |
 | FR-02 | Let applicants create and update their own profile and one application per admission cycle, subject to approved identity/application rules. | PROVISIONAL |
-| FR-03 | Let the authorized Guidance/Psychometrician/Admin role encode or import official exam results, verify them, and correct them with reason and history. Students have read-only access. | PROVISIONAL |
+| FR-03 | Let authorized individual guidance counselors and psychometricians assigned the shared Guidance/Psychometrician/Admin role encode or import official exam results, verify them, and correct them with reason and history, subject to the approved action-level permission matrix. Students have read-only access. | PROVISIONAL |
 | FR-04 | Publish only an approved, effective questionnaire version; autosave responses and lock immutable submitted attempts. | BLOCKED on instrument approval |
 | FR-05 | Calculate and store all six RIASEC scores and interpretation using the exact approved mapping/scoring version. | BLOCKED on mapping |
 | FR-06 | Manage a versioned TCC course catalogue, admission cycles, board-course flags, requirements, course RIASEC profiles, and admission rules. | BLOCKED on official data |
 | FR-07 | Generate a deterministic ranked recommendation snapshot with eligibility status, score components, rule/instrument versions, and human-readable reasons. | BLOCKED on rules/weights |
 | FR-08 | Let students view results, explore course details, record accept/reject/undecided/other decisions, and obtain an approved report. | PROVISIONAL |
-| FR-09 | Let the authorized Guidance/Psychometrician/Admin role search/filter applicants, review recommendations, generate reports, and see correction/audit history. | PROVISIONAL |
+| FR-09 | Let authorized individual users assigned the shared Guidance/Psychometrician/Admin role search/filter applicants, review recommendations, generate reports, and see correction/audit history, with every privileged action attributable to the acting account. | PROVISIONAL |
 | FR-10 | Provide authorized administrative lifecycle controls, audit search, exports, operational reporting, and safe archival. | PROVISIONAL |
 
 ## Non-functional requirements

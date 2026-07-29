@@ -4,8 +4,8 @@
 **Status:** PROPOSED.  
 **Basis:** Roadmap, Sections 1 and 6; ADR-001-ADR-003.  
 **Owner:** Capstone technical lead.  
-**Last updated:** 2026-07-27.  
-**Related IDs:** D-001-D-004, D-007-D-008, NFR-02-NFR-10.  
+**Last updated:** 2026-07-28.
+**Related IDs:** D-001-D-004, D-007-D-008, D-017, NFR-02-NFR-10.
 **Open questions:** Database/hosting decision OQ-001, integrations OQ-012, and mobile wrapper OQ-014.
 
 ## Architecture baseline
@@ -14,6 +14,8 @@
 - The same responsive web codebase is the sole feature implementation and will be delivered through a non-native mobile wrapper after OQ-014 selects the method.
 - APPROVED UI system: Tailwind CSS v4 through the official `@tailwindcss/vite` plugin; shadcn/ui with Radix as its explicit primitive base; Lucide React icons.
 - Forms and API state: React Hook Form + Zod, TanStack Query, and TanStack Table for complex applicant/report tables.
+- Recharts provides responsive, labelled Admin operational visualizations under
+  D-017 and is emitted as a separate vendor chunk.
 - Laravel REST API: validation, authorization policies, services, deterministic recommendation orchestration, jobs, reporting, audit, and integrations.
 - Relational system of record: MySQL 8 or PostgreSQL, BLOCKED by hosting decision.
 - Laravel Sanctum secure cookie authentication when frontend/API topology permits; alternate token topology requires an approved security review.

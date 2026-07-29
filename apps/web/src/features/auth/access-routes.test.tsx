@@ -2,6 +2,7 @@ import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 
+import { dashboards } from '@/features/auth/workspace-definitions'
 import { renderAppAt } from '@/test/render-app'
 
 async function signIn(user: ReturnType<typeof userEvent.setup>) {
@@ -14,6 +15,15 @@ async function signIn(user: ReturnType<typeof userEvent.setup>) {
 }
 
 describe('access portals and workspace shell', () => {
+  it('describes Admin as a shared role for authorized personnel', () => {
+    expect(dashboards.admin.accessFacts).toContain(
+      'Shared role for authorized counselors and psychometricians',
+    )
+    expect(dashboards.admin.accessFacts).not.toContain(
+      'One combined Guidance / Psychometrician / Admin role',
+    )
+  })
+
   it('opens the Student portal without exposing role selection', async () => {
     await renderAppAt('/student/login')
 

@@ -4,8 +4,8 @@
 **Status:** BLOCKED pending human confirmation.  
 **Basis:** Proposal/roadmap conflicts, database corrections, and documentation brief.  
 **Owner:** Capstone project lead coordinates; named authority answers.  
-**Last updated:** 2026-07-27.  
-**Related IDs:** OQ-001-OQ-014, D-001, D-003-D-009, R-001-R-013.  
+**Last updated:** 2026-07-29.
+**Related IDs:** OQ-001-OQ-014, D-001, D-003-D-009, D-020, R-001-R-013.
 **Open questions:** This document is the authoritative open-question list.
 
 | ID | Question / required evidence | Decision owner | Blocks |
@@ -16,8 +16,8 @@
 | OQ-004 | What is the approved question-to-dimension mapping, scoring, normalization, ties/top-code method, missing-response behavior, and validation case set? | Psychometrician | Scoring/recommendations |
 | OQ-005 | What is the official cycle-specific course catalogue, board-course classification, requirements, approved RIASEC profiles/weights/rationale, and effective approval lifecycle? | Admission/Psychometrician | Catalogue/recommendations |
 | OQ-006 | Is `applicant_no` permanent to a person or unique per admission cycle? What other official identifiers are required? | Admission | Data model |
-| OQ-007 | The role catalogue is fixed at exactly three roles under D-007. Can one account hold more than one of those roles, and what are the role-assignment, account-approval, separation-of-duty, and Admin-authentication requirements? | TCC owner/IT | Auth/data model |
-| OQ-008 | D-007 assigns institutional domain workflows to Guidance/Psychometrician/Admin and technical controls to the System Administrator side role. Confirm the named human approvers, escalation path, and any action-level separation of duties within those boundaries. | TCC sponsor | Authorization/operations |
+| OQ-007 | D-020 confirms that multiple distinct individual accounts may hold the combined Admin role. Can one account hold more than one different approved role type, and what are the role-assignment, account-approval, separation-of-duty, and Admin-authentication requirements? | TCC owner/IT | Auth/data model |
+| OQ-008 | D-007/D-020 assign institutional workflows to a shared Guidance/Psychometrician/Admin role held by authorized counselors and psychometricians, and technical controls to the System Administrator side role. Confirm the named human approvers, escalation path, and any action-level permission or separation-of-duty differences among those Admin role holders. | TCC sponsor | Authorization/operations |
 | OQ-009 | Approve the blend/normalization/tie-break policy, conditional eligibility behavior, explanation language, and number of displayed recommendations. Is the proposed 70/30 formula acceptable? | Psychometrician/Admission | Recommendation engine |
 | OQ-010 | What is the official report layout, fields, disclaimers, recipients, signatories, file format, numbering, retention, and correction/reissue process? | Guidance/Admission | Reports |
 | OQ-011 | Is ML an academic requirement? If yes, provide lawful approved labelled data, target label, feature schema, sample size, metrics, validation method, fairness review, and model approver; otherwise approve manuscript revision/deferment. | Adviser/Psychometrician | ML claim |
@@ -32,3 +32,4 @@ Record answers as signed evidence, then update the [Decision Register](18-DECISI
 | OQ-013 | APPROVED D-001 frontend architecture and neutral provisional branding-token approach. Official TCC visual identity remains open under OQ-012. | Explicit user confirmation in the Codex project session, 2026-07-26; [D-001](18-DECISION-REGISTER.md), [ADR-001](adr/ADR-001-FRONTEND.md). |
 | Working visual direction | APPROVED D-009 for provisional implementation using `DESIGN.md` color/motion language. This supersedes the neutral-only preview but does not approve official TCC branding. | Explicit user direction in the Codex project session, 2026-07-27; [D-009](18-DECISION-REGISTER.md). |
 | Role catalogue | APPROVED exactly three application roles under D-007; Developer/Maintainer excluded as a product role. | Explicit user confirmation in the Codex project session, 2026-07-27; [D-007](18-DECISION-REGISTER.md). |
+| Combined Admin role holders | APPROVED that multiple authorized guidance counselors and psychometricians may each use an individual account assigned to the same combined Admin role. This adds no new role; cross-role account multiplicity and action-level permissions remain open. | Explicit user clarification in the Codex project session, 2026-07-29; [D-020](18-DECISION-REGISTER.md). |
