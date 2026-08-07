@@ -13,9 +13,8 @@ import {
 } from '@/features/admin/official-results/schemas/result-entry-schema'
 
 interface ResultEntryFormProps {
-  initialValues?: ResultEntryFields
   onCancel: () => void
-  onReview: (values: ResultEntryFields) => void
+  onSave: (values: ResultEntryFields) => void
 }
 
 const emptyResultEntry: ResultEntryFields = {
@@ -28,9 +27,8 @@ const emptyResultEntry: ResultEntryFields = {
 }
 
 function ResultEntryForm({
-  initialValues,
   onCancel,
-  onReview,
+  onSave,
 }: ResultEntryFormProps) {
   const {
     register,
@@ -38,19 +36,19 @@ function ResultEntryForm({
     formState: { errors },
   } = useForm<ResultEntryFields>({
     resolver: zodResolver(resultEntrySchema),
-    defaultValues: initialValues ?? emptyResultEntry,
+    defaultValues: emptyResultEntry,
   })
 
   return (
     <form
       noValidate
-      onSubmit={handleSubmit(onReview)}
+      onSubmit={handleSubmit(onSave)}
       aria-labelledby="result-entry-form-title"
       className="rounded-2xl bg-background p-6 shadow-sm sm:p-8"
     >
       <div>
         <p className="text-xs font-bold uppercase tracking-[0.12em] text-primary">
-          Manual source
+          Official result
         </p>
         <h2
           id="result-entry-form-title"
@@ -59,8 +57,7 @@ function ResultEntryForm({
           Result details
         </h2>
         <p className="mt-2 text-sm leading-6 text-muted-foreground">
-          Enter the source values exactly as they appear, then review the
-          complete record before adding it to the verification queue.
+          Enter the result exactly as it appears in the authorized source.
         </p>
       </div>
 
@@ -212,7 +209,7 @@ function ResultEntryForm({
         <Button type="button" variant="secondary" onClick={onCancel}>
           Cancel
         </Button>
-        <Button type="submit">Review result</Button>
+        <Button type="submit">Save result</Button>
       </div>
     </form>
   )

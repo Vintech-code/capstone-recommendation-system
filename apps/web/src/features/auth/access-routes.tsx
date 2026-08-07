@@ -12,13 +12,13 @@ import { useAuth } from '@/features/auth/auth-context'
 import { ProtectedRoute } from '@/features/auth/components/protected-route'
 import { WorkspacePreview } from '@/features/auth/components/workspace-preview'
 import { PortalSignInPage } from '@/features/auth/portal-sign-in-page'
-import { StudentAssessmentIntroductionPage } from '@/features/student/assessment/components/student-assessment-introduction-page'
+import { StudentRegistrationPage } from '@/features/auth/student-registration-page'
+import { PasswordRecoveryPage } from '@/features/auth/password-recovery-page'
+import { PasswordResetPage } from '@/features/auth/password-reset-page'
+import { StudentAssessmentSessionPage } from '@/features/student/assessment/components/student-assessment-session-page'
 import { StudentDashboardPage } from '@/features/student/dashboard/components/student-dashboard-page'
-import { StudentDecisionPage } from '@/features/student/decision/components/student-decision-page'
-import { StudentOfficialResultPage } from '@/features/student/official-result/components/student-official-result-page'
-import { StudentProfileApplicationPage } from '@/features/student/profile/components/student-profile-application-page'
 import { StudentRecommendationResultsPage } from '@/features/student/recommendations/components/student-recommendation-results-page'
-import { StudentReportPage } from '@/features/student/report/components/student-report-page'
+import { StudentProgrammeCataloguePage } from '@/features/student/programmes/components/student-programme-catalogue-page'
 import { SystemAdminDashboardPage } from '@/features/system-admin/dashboard/components/system-admin-dashboard-page'
 
 const AdminWorkspaceRoute = lazy(() =>
@@ -40,12 +40,8 @@ function WorkspaceRoute({ role }: { role: AccessRole }) {
         }}
         renderOverview={
           role === 'student'
-            ? ({ modules, query, onSelect }) => (
-                <StudentDashboardPage
-                  modules={modules}
-                  query={query}
-                  onSelectModule={onSelect}
-                />
+            ? ({ onSelect }) => (
+                <StudentDashboardPage onSelectModule={onSelect} />
               )
             : role === 'system-admin'
               ? ({ modules, query, onSelect }) => (
@@ -60,44 +56,26 @@ function WorkspaceRoute({ role }: { role: AccessRole }) {
         renderModule={
           role === 'student'
             ? ({ module, onBack, onSelect }) => {
-                if (module.id === 'profile') {
-                  return <StudentProfileApplicationPage onBack={onBack} />
-                }
-                if (module.id === 'official-result') {
-                  return <StudentOfficialResultPage onBack={onBack} />
-                }
                 if (module.id === 'assessment') {
                   return (
-                    <StudentAssessmentIntroductionPage
-                      onBack={onBack}
-                      onOpenRecommendations={() => onSelect('guidance')}
+                    <StudentAssessmentSessionPage
+                      onExit={onBack}
+                      onReturnToIntroduction={onBack}
+                      onViewResult={() => onSelect('recommendations')}
+                      remotePersistence
                     />
                   )
                 }
-                if (module.id === 'guidance') {
+                if (module.id === 'recommendations') {
                   return (
                     <StudentRecommendationResultsPage
                       onBack={onBack}
-                      onOpenDecision={() => onSelect('decision')}
+                      onOpenAssessment={() => onSelect('assessment')}
                     />
                   )
                 }
-                if (module.id === 'decision') {
-                  return (
-                    <StudentDecisionPage
-                      onBack={onBack}
-                      onOpenGuidance={() => onSelect('guidance')}
-                      onOpenReport={() => onSelect('report')}
-                    />
-                  )
-                }
-                if (module.id === 'report') {
-                  return (
-                    <StudentReportPage
-                      onBack={onBack}
-                      onOpenGuidance={() => onSelect('guidance')}
-                    />
-                  )
+                if (module.id === 'programmes') {
+                  return <StudentProgrammeCataloguePage />
                 }
                 return undefined
               }
@@ -144,6 +122,12 @@ function AccessRoutes() {
         path="/student/login"
         element={<PortalSignInPage role="student" />}
       />
+      <Route
+        path="/student/register"
+        element={<StudentRegistrationPage />}
+      />
+      <Route path="/forgot-password" element={<PasswordRecoveryPage />} />
+      <Route path="/reset-password/:token?" element={<PasswordResetPage />} />
       <Route
         path="/admin/login"
         element={<PortalSignInPage role="admin" />}

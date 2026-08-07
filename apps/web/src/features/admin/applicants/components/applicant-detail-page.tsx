@@ -24,7 +24,7 @@ const recordSections = [
   },
   {
     title: 'Official result',
-    description: 'Admin-controlled result verification and history workspace.',
+    description: 'Official result record and version history.',
     icon: ClipboardCheck,
   },
   {

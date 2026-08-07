@@ -18,7 +18,6 @@ interface StudentPageHeaderProps {
 
 function StudentPageHeader({
   title,
-  description,
   onBack,
   actions,
 }: StudentPageHeaderProps) {
@@ -29,9 +28,6 @@ function StudentPageHeader({
           <h1 className="text-2xl font-extrabold tracking-[-0.04em] sm:text-[1.75rem]">
             {title}
           </h1>
-          <p className="mt-1 max-w-3xl text-sm leading-5 text-muted-foreground">
-            {description}
-          </p>
         </div>
         {actions ? (
           <div className="flex shrink-0 flex-wrap items-center gap-2">

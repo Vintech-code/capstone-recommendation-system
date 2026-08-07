@@ -1,16 +1,10 @@
-type OfficialResultSource = 'Manual encoding' | 'CSV import'
-
-type OfficialResultReviewState =
-  | 'Verification review'
-  | 'Verified'
-  | 'Correction review'
+type OfficialResultSource = 'Manual entry' | 'CSV import'
 
 interface MockOfficialResult {
   id: string
   applicantId: string
   applicantName: string
   source: OfficialResultSource
-  reviewState: OfficialResultReviewState
   scoreDisplay: string
   scaleLabel: string
   version: number
@@ -36,8 +30,7 @@ const mockOfficialResults: MockOfficialResult[] = [
     id: 'RES-001',
     applicantId: 'APP-001',
     applicantName: 'Alex Rivera',
-    source: 'Manual encoding',
-    reviewState: 'Verification review',
+    source: 'Manual entry',
     scoreDisplay: '87.5',
     scaleLabel: '100-point scale',
     version: 1,
@@ -51,7 +44,6 @@ const mockOfficialResults: MockOfficialResult[] = [
     applicantId: 'APP-002',
     applicantName: 'Jamie Cruz',
     source: 'CSV import',
-    reviewState: 'Verified',
     scoreDisplay: '91.0',
     scaleLabel: '100-point scale',
     version: 1,
@@ -64,8 +56,7 @@ const mockOfficialResults: MockOfficialResult[] = [
     id: 'RES-003',
     applicantId: 'APP-003',
     applicantName: 'Sam Reyes',
-    source: 'Manual encoding',
-    reviewState: 'Correction review',
+    source: 'Manual entry',
     scoreDisplay: '84.0',
     scaleLabel: '100-point scale',
     version: 2,
@@ -79,7 +70,6 @@ const mockOfficialResults: MockOfficialResult[] = [
     applicantId: 'APP-004',
     applicantName: 'Taylor Santos',
     source: 'CSV import',
-    reviewState: 'Verification review',
     scoreDisplay: '89.5',
     scaleLabel: '100-point scale',
     version: 1,
@@ -92,8 +82,7 @@ const mockOfficialResults: MockOfficialResult[] = [
     id: 'RES-005',
     applicantId: 'APP-005',
     applicantName: 'Jordan Flores',
-    source: 'Manual encoding',
-    reviewState: 'Verified',
+    source: 'Manual entry',
     scoreDisplay: '93.0',
     scaleLabel: '100-point scale',
     version: 1,
@@ -107,7 +96,6 @@ const mockOfficialResults: MockOfficialResult[] = [
     applicantId: 'APP-006',
     applicantName: 'Casey Mendoza',
     source: 'CSV import',
-    reviewState: 'Correction review',
     scoreDisplay: '82.5',
     scaleLabel: '100-point scale',
     version: 3,
@@ -120,8 +108,7 @@ const mockOfficialResults: MockOfficialResult[] = [
     id: 'RES-007',
     applicantId: 'APP-007',
     applicantName: 'Morgan Garcia',
-    source: 'Manual encoding',
-    reviewState: 'Verification review',
+    source: 'Manual entry',
     scoreDisplay: '86.0',
     scaleLabel: '100-point scale',
     version: 1,
@@ -135,7 +122,6 @@ const mockOfficialResults: MockOfficialResult[] = [
     applicantId: 'APP-008',
     applicantName: 'Riley Navarro',
     source: 'CSV import',
-    reviewState: 'Verified',
     scoreDisplay: '90.5',
     scaleLabel: '100-point scale',
     version: 1,
@@ -148,8 +134,7 @@ const mockOfficialResults: MockOfficialResult[] = [
     id: 'RES-009',
     applicantId: 'APP-009',
     applicantName: 'Avery Ramos',
-    source: 'Manual encoding',
-    reviewState: 'Correction review',
+    source: 'Manual entry',
     scoreDisplay: '85.5',
     scaleLabel: '100-point scale',
     version: 2,
@@ -160,17 +145,6 @@ const mockOfficialResults: MockOfficialResult[] = [
   },
 ]
 
-const officialResultSources: OfficialResultSource[] = [
-  'Manual encoding',
-  'CSV import',
-]
-
-const officialResultReviewStates: OfficialResultReviewState[] = [
-  'Verification review',
-  'Verified',
-  'Correction review',
-]
-
 function getMockResultHistory(
   result: MockOfficialResult,
 ): MockResultHistoryEntry[] {
@@ -179,37 +153,23 @@ function getMockResultHistory(
     title:
       result.source === 'CSV import'
         ? 'Result record imported'
-        : 'Result record encoded',
+        : 'Result record added',
     description: 'The original mock record version was created.',
     version: 1,
     occurredAt: result.createdAt,
     occurredLabel: result.createdLabel,
   }
 
-  if (result.reviewState === 'Verification review') {
+  if (result.version === 1) {
     return [createdEntry]
-  }
-
-  if (result.reviewState === 'Verified') {
-    return [
-      {
-        id: `${result.id}-verified`,
-        title: 'Verification recorded',
-        description: 'The mock record moved to verified review state.',
-        version: result.version,
-        occurredAt: result.updatedAt,
-        occurredLabel: result.updatedLabel,
-      },
-      createdEntry,
-    ]
   }
 
   return [
     {
-      id: `${result.id}-correction`,
-      title: 'Correction version created',
+      id: `${result.id}-updated`,
+      title: 'New record version added',
       description:
-        'A new mock version was created while the previous version was retained.',
+        'A new mock version was added while the previous version was retained.',
       version: result.version,
       occurredAt: result.updatedAt,
       occurredLabel: result.updatedLabel,
@@ -221,12 +181,8 @@ function getMockResultHistory(
 export {
   getMockResultHistory,
   mockOfficialResults,
-  officialResultReviewStates,
-  officialResultSources,
 }
 export type {
   MockOfficialResult,
   MockResultHistoryEntry,
-  OfficialResultReviewState,
-  OfficialResultSource,
 }

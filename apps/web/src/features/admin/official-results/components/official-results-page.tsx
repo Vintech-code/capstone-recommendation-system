@@ -11,7 +11,6 @@ import {
   ChevronRight,
   ClipboardCheck,
   Plus,
-  SlidersHorizontal,
   Upload,
 } from 'lucide-react'
 import { useMemo, useState } from 'react'
@@ -21,11 +20,8 @@ import { Button } from '@/components/ui/button'
 import { AdminPageHeader } from '@/features/admin/components/admin-page-header'
 import { TablePagination } from '@/features/admin/components/table-pagination'
 import { TableSortButton } from '@/features/admin/components/table-sort-button'
-import { ResultStateBadge } from '@/features/admin/official-results/components/result-state-badge'
 import {
   mockOfficialResults,
-  officialResultReviewStates,
-  officialResultSources,
   type MockOfficialResult,
 } from '@/features/admin/official-results/data/mock-official-results'
 
@@ -41,26 +37,21 @@ function OfficialResultsPage({
   onOpenResult,
 }: OfficialResultsPageProps) {
   const [searchValue, setSearchValue] = useState('')
-  const [reviewState, setReviewState] = useState('all')
-  const [source, setSource] = useState('all')
   const [sorting, setSorting] = useState<SortingState>([])
 
   const filteredResults = useMemo(() => {
     const normalizedSearch = searchValue.trim().toLowerCase()
 
     return mockOfficialResults.filter((result) => {
-      const matchesState =
-        reviewState === 'all' || result.reviewState === reviewState
-      const matchesSource = source === 'all' || result.source === source
       const matchesSearch =
         !normalizedSearch ||
         `${result.applicantName} ${result.applicantId} ${result.id}`
           .toLowerCase()
           .includes(normalizedSearch)
 
-      return matchesState && matchesSource && matchesSearch
+      return matchesSearch
     })
-  }, [reviewState, searchValue, source])
+  }, [searchValue])
 
   const columns = useMemo<ColumnDef<MockOfficialResult>[]>(
     () => [
@@ -92,41 +83,6 @@ function OfficialResultsPage({
         cell: ({ row }) => (
           <span className="font-mono text-xs font-semibold">
             {row.original.id}
-          </span>
-        ),
-      },
-      {
-        accessorKey: 'source',
-        header: ({ column }) => (
-          <TableSortButton
-            label="Source"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-          />
-        ),
-      },
-      {
-        accessorKey: 'reviewState',
-        header: ({ column }) => (
-          <TableSortButton
-            label="Review state"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-          />
-        ),
-        cell: ({ row }) => (
-          <ResultStateBadge state={row.original.reviewState} />
-        ),
-      },
-      {
-        accessorKey: 'version',
-        header: ({ column }) => (
-          <TableSortButton
-            label="Version"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-          />
-        ),
-        cell: ({ row }) => (
-          <span className="text-sm font-semibold">
-            v{row.original.version}
           </span>
         ),
       },
@@ -185,8 +141,6 @@ function OfficialResultsPage({
 
   const resetFilters = () => {
     setSearchValue('')
-    setReviewState('all')
-    setSource('all')
     table.setPageIndex(0)
   }
 
@@ -194,7 +148,6 @@ function OfficialResultsPage({
     <div className="w-full">
       <AdminPageHeader
         title="Official results"
-        description="Review result provenance, verification state, and version history without assuming an unapproved score format."
         actions={
           <div className="flex flex-wrap gap-2">
             <Button type="button" variant="secondary" onClick={onImportResults}>
@@ -203,7 +156,7 @@ function OfficialResultsPage({
             </Button>
             <Button type="button" onClick={onCreateResult}>
               <Plus aria-hidden="true" />
-              Encode result
+              Add result
             </Button>
           </div>
         }
@@ -218,30 +171,7 @@ function OfficialResultsPage({
         searchLabel="Search official results"
         searchPlaceholder="Search applicant or result reference"
         className="mt-5 rounded-2xl p-4"
-      >
-        <ResultFilter
-          id="result-review-state"
-          label="Filter by review state"
-          value={reviewState}
-          onChange={(value) => {
-            setReviewState(value)
-            table.setPageIndex(0)
-          }}
-          allLabel="All review states"
-          options={officialResultReviewStates}
-        />
-        <ResultFilter
-          id="result-source"
-          label="Filter by result source"
-          value={source}
-          onChange={(value) => {
-            setSource(value)
-            table.setPageIndex(0)
-          }}
-          allLabel="All sources"
-          options={officialResultSources}
-        />
-      </DataTableToolbar>
+      />
 
       {table.getRowModel().rows.length ? (
         <>
@@ -307,28 +237,11 @@ function OfficialResultsPage({
                     <p className="mt-1 font-mono text-xs text-muted-foreground">
                       {row.original.id}
                     </p>
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      Updated {row.original.updatedLabel}
+                    </p>
                   </div>
                 </div>
-                <dl className="mt-5 grid grid-cols-2 gap-4 text-xs">
-                  <div>
-                    <dt className="text-muted-foreground">Source</dt>
-                    <dd className="mt-1 font-semibold">
-                      {row.original.source}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-muted-foreground">Version</dt>
-                    <dd className="mt-1 font-semibold">
-                      v{row.original.version}
-                    </dd>
-                  </div>
-                  <div className="col-span-2">
-                    <dt className="text-muted-foreground">Review state</dt>
-                    <dd className="mt-2">
-                      <ResultStateBadge state={row.original.reviewState} />
-                    </dd>
-                  </div>
-                </dl>
                 <Button
                   type="button"
                   variant="secondary"
@@ -375,47 +288,6 @@ function OfficialResultsPage({
         onNextPage={() => table.nextPage()}
       />
     </div>
-  )
-}
-
-interface ResultFilterProps {
-  id: string
-  label: string
-  value: string
-  onChange: (value: string) => void
-  allLabel: string
-  options: readonly string[]
-}
-
-function ResultFilter({
-  id,
-  label,
-  value,
-  onChange,
-  allLabel,
-  options,
-}: ResultFilterProps) {
-  return (
-    <label
-      htmlFor={id}
-      className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-secondary px-3 text-sm font-semibold"
-    >
-      <SlidersHorizontal aria-hidden="true" className="size-4" />
-      <span className="sr-only">{label}</span>
-      <select
-        id={id}
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        className="min-h-11 bg-transparent outline-none"
-      >
-        <option value="all">{allLabel}</option>
-        {options.map((option) => (
-          <option key={option} value={option}>
-            {option}
-          </option>
-        ))}
-      </select>
-    </label>
   )
 }
 

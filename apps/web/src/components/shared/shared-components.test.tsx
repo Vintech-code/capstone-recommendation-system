@@ -1,9 +1,10 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
 import { Button } from '@/components/ui/button'
+import { SiteFooter } from '@/components/shared/site-footer'
 import {
   ConfirmActionDialog,
   DataTableToolbar,
@@ -15,6 +16,20 @@ import {
 } from '@/components/shared'
 
 describe('shared frontend foundation components', () => {
+  it('renders the shared institutional footer with the uploaded brand mark', () => {
+    render(<SiteFooter />)
+
+    const footer = screen.getByRole('contentinfo')
+    expect(within(footer).getByRole('img', { name: 'Pathways' })).toBeVisible()
+    expect(
+      within(footer).getByRole('heading', { name: 'Institutional' }),
+    ).toBeVisible()
+    expect(
+      within(footer).getByRole('heading', { name: 'Support' }),
+    ).toBeVisible()
+    expect(footer).toHaveTextContent('2026 Tagoloan Community College')
+  })
+
   it('renders the page header with semantic content and actions', () => {
     render(
       <PageHeader
@@ -41,8 +56,8 @@ describe('shared frontend foundation components', () => {
     expect(container.querySelector('svg')).toHaveAttribute('aria-hidden', 'true')
   })
 
-  it('announces loading information without exposing decorative skeletons', () => {
-    render(
+  it('announces loading information and renders skeleton placeholders without a spinner', () => {
+    const { container } = render(
       <LoadingState
         title="Loading applicants"
         description="Fetching the current list."
@@ -50,7 +65,21 @@ describe('shared frontend foundation components', () => {
     )
 
     expect(screen.getByRole('status')).toHaveAttribute('aria-busy', 'true')
-    expect(screen.getByText('Loading applicants')).toBeVisible()
+    expect(screen.getByRole('status')).toHaveTextContent('Loading applicants')
+    expect(container.querySelectorAll('[data-slot="skeleton"]')).toHaveLength(4)
+    expect(container.querySelector('svg')).not.toBeInTheDocument()
+  })
+
+  it('renders page-shaped recommendation skeletons', () => {
+    const { container } = render(
+      <LoadingState
+        variant="recommendations"
+        title="Loading recommendations"
+      />,
+    )
+
+    expect(screen.getByRole('status')).toHaveAttribute('aria-busy', 'true')
+    expect(container.querySelectorAll('[data-slot="skeleton"]').length).toBeGreaterThan(10)
   })
 
   it('provides an actionable semantic empty state', async () => {

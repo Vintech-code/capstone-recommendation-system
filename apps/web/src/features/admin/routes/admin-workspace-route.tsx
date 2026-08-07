@@ -126,7 +126,7 @@ function resolvePageLabel({
   officialResultsView: OfficialResultsView
   recommendationsView: RecommendationsView
 }) {
-  if (officialResultsView === 'new') return 'Encode result'
+  if (officialResultsView === 'new') return 'Add result'
   if (officialResultsView === 'import-upload') return 'Import CSV'
   if (officialResultsView === 'import-detail') return params.importId
   if (recommendationsView === 'validation-cases') return 'Validation cases'

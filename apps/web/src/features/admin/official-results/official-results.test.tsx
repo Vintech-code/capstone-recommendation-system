@@ -25,17 +25,17 @@ describe('Admin official-result workflows', () => {
     10_000,
   )
 
-  it('opens the manual result-entry workflow from Official Results', async () => {
+  it('opens the add-result form from Official Results', async () => {
     const user = userEvent.setup()
     await renderAppAt('/admin/official-results')
 
-    await user.click(screen.getByRole('button', { name: 'Encode result' }))
+    await user.click(screen.getByRole('button', { name: 'Add result' }))
 
     expect(window.location.pathname).toBe('/admin/exam-results/new')
     expect(
       screen.getByRole('heading', {
         level: 1,
-        name: 'Encode official result',
+        name: 'Add official result',
       }),
     ).toBeVisible()
     expect(
@@ -44,11 +44,11 @@ describe('Admin official-result workflows', () => {
     expect(screen.queryByRole('table')).not.toBeInTheDocument()
   })
 
-  it('validates, reviews, and queues a manually encoded result', async () => {
+  it('validates and saves an official result without a verification queue', async () => {
     const user = userEvent.setup()
     await renderAppAt('/admin/exam-results/new')
 
-    await user.click(screen.getByRole('button', { name: 'Review result' }))
+    await user.click(screen.getByRole('button', { name: 'Save result' }))
 
     expect(screen.getByText('Select an applicant.')).toBeVisible()
     expect(screen.getByText('Enter the examination reference.')).toBeVisible()
@@ -74,30 +74,19 @@ describe('Admin official-result workflows', () => {
     )
     await user.type(screen.getByLabelText('Examination date'), '2026-07-28')
 
-    await user.click(screen.getByRole('button', { name: 'Review result' }))
-
+    await user.click(screen.getByRole('button', { name: 'Save result' }))
     expect(
-      screen.getByRole('heading', { name: 'Confirm result details' }),
-    ).toBeVisible()
-    expect(screen.getByText('Jamie Cruz')).toBeVisible()
-    expect(screen.getByText('EXAM-MOCK-001')).toBeVisible()
-
-    await user.click(
-      screen.getByRole('button', { name: 'Add to review queue' }),
-    )
-    expect(
-      screen.getByRole('heading', {
-        name: 'Add result to the verification queue?',
-      }),
+      screen.getByRole('heading', { name: 'Save this official result?' }),
     ).toBeVisible()
 
-    await user.click(screen.getByRole('button', { name: 'Add result' }))
+    await user.click(screen.getByRole('button', { name: 'Save result' }))
 
     expect(
       await screen.findByRole('heading', {
-        name: 'Result record ready for review',
+        name: 'Official result added',
       }),
     ).toBeVisible()
+    expect(screen.queryByText(/verification queue/i)).not.toBeInTheDocument()
   })
 
   it('previews a sample CSV and opens import reconciliation', async () => {
@@ -152,7 +141,7 @@ describe('Admin official-result workflows', () => {
     ).toBeVisible()
   })
 
-  it('searches and filters mock official result records', async () => {
+  it('searches official result records without review-state controls', async () => {
     const user = userEvent.setup()
     await renderAppAt('/admin/official-results')
 
@@ -166,15 +155,10 @@ describe('Admin official-result workflows', () => {
       within(screen.getByRole('table')).getAllByRole('row'),
     ).toHaveLength(2)
 
-    await user.clear(
-      screen.getByRole('searchbox', { name: 'Search official results' }),
-    )
-    await user.selectOptions(
-      screen.getByRole('combobox', { name: 'Filter by review state' }),
-      'Correction review',
-    )
-
-    expect(screen.getByText('Showing 3 of 3 matching records')).toBeVisible()
+    expect(
+      screen.queryByRole('combobox', { name: 'Filter by review state' }),
+    ).not.toBeInTheDocument()
+    expect(screen.queryByText('Review state')).not.toBeInTheDocument()
   })
 
   it('paginates results and links result history to its applicant', async () => {
@@ -201,7 +185,10 @@ describe('Admin official-result workflows', () => {
       screen.getByRole('heading', { level: 1, name: 'RES-001' }),
     ).toBeVisible()
     expect(screen.getByText('Recorded score')).toBeVisible()
-    expect(screen.getByText('Version history')).toBeVisible()
+    expect(screen.getByText('Record activity')).toBeVisible()
+    expect(screen.queryByText('Applicant reference')).not.toBeInTheDocument()
+    expect(screen.queryByText('Record source')).not.toBeInTheDocument()
+    expect(screen.queryByText('Current version')).not.toBeInTheDocument()
 
     await user.click(
       screen.getByRole('button', { name: 'Open applicant record' }),

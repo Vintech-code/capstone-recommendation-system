@@ -69,7 +69,7 @@ const dashboardMetrics: DashboardMetric[] = [
     id: 'results',
     label: 'Official results',
     value: 12,
-    helper: '4 awaiting verification',
+    helper: '4 added this week',
     route: '/admin/official-results',
     icon: ClipboardCheck,
     tone: 'blue',
@@ -111,9 +111,9 @@ const recentApplicants: RecentApplicant[] = [
   {
     id: 'APP-004',
     name: 'Taylor Santos',
-    currentArea: 'Official result review',
-    status: 'Awaiting verification',
-    tone: 'warning',
+    currentArea: 'Official result record',
+    status: 'Result available',
+    tone: 'success',
     updatedAt: 'Jul 28, 2026',
     route: '/admin/applicants/APP-004',
   },
@@ -158,7 +158,7 @@ const recentApplicants: RecentApplicant[] = [
 const activities: DashboardActivity[] = [
   {
     id: 'ACT-001',
-    title: 'Result encoded',
+    title: 'Official result added',
     detail: 'Taylor Santos - RES-004',
     timestamp: '9:40 AM',
     route: '/admin/official-results/RES-004',

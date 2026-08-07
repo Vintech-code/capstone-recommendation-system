@@ -48,6 +48,7 @@ import {
   dashboards,
   type DashboardModule,
 } from '@/features/auth/workspace-definitions'
+import { StudentWorkspaceShell } from '@/features/student/components/student-workspace-shell'
 import { cn } from '@/lib/utils'
 
 interface WorkspacePreviewProps {
@@ -126,6 +127,76 @@ function WorkspacePreview({
   const breadcrumbIsEmbedded =
     embedBreadcrumbInPageHeader &&
     (activeId === 'overview' || Boolean(children ?? customModuleView))
+
+  const changeQuery = (nextQuery: string) => {
+    setQuery(nextQuery)
+    if (activeId !== 'overview') {
+      if (onSelectModule) {
+        onSelectModule('overview')
+      } else {
+        setInternalActiveId('overview')
+      }
+    }
+  }
+
+  const workspaceContent = (
+    <WorkspaceBreadcrumbProvider
+      breadcrumb={
+        <WorkspaceBreadcrumb
+          activeModule={activeModule}
+          activeId={activeId}
+          className={breadcrumbIsEmbedded ? 'mt-2' : 'mx-auto mb-3'}
+          pageLabel={pageLabel}
+          onSelect={selectModule}
+        />
+      }
+    >
+      {!breadcrumbIsEmbedded ? (
+        <WorkspaceBreadcrumb
+          activeModule={activeModule}
+          activeId={activeId}
+          className="mx-auto mb-3"
+          pageLabel={pageLabel}
+          onSelect={selectModule}
+        />
+      ) : null}
+      {children ?? (activeModule ? (
+        customModuleView ?? (
+          <ModuleView
+            module={activeModule}
+            onBack={() => selectModule('overview')}
+          />
+        )
+      ) : renderOverview ? (
+        renderOverview({
+          modules: filteredModules,
+          query,
+          onQueryChange: setQuery,
+          onSelect: selectModule,
+        })
+      ) : (
+        <DashboardOverview
+          definition={definition}
+          modules={filteredModules}
+          query={query}
+          onSelect={selectModule}
+        />
+      ))}
+    </WorkspaceBreadcrumbProvider>
+  )
+
+  if (role === 'student') {
+    return (
+      <StudentWorkspaceShell
+        modules={definition.modules}
+        activeId={activeId}
+        onSelect={selectModule}
+        onExit={onExit}
+      >
+        {workspaceContent}
+      </StudentWorkspaceShell>
+    )
+  }
 
   return (
     <div
@@ -299,16 +370,7 @@ function WorkspacePreview({
                   id="workspace-search"
                   type="search"
                   value={query}
-                  onChange={(event) => {
-                    setQuery(event.target.value)
-                    if (activeId !== 'overview') {
-                      if (onSelectModule) {
-                        onSelectModule('overview')
-                      } else {
-                        setInternalActiveId('overview')
-                      }
-                    }
-                  }}
+                  onChange={(event) => changeQuery(event.target.value)}
                   placeholder="Search modules"
                   className="h-10 rounded-xl border-transparent bg-secondary pl-9 shadow-none focus-visible:bg-background"
                 />
@@ -359,49 +421,7 @@ function WorkspacePreview({
         </header>
 
         <main className="px-4 py-4 sm:px-6 lg:px-8 lg:py-5">
-          <WorkspaceBreadcrumbProvider
-            breadcrumb={
-              <WorkspaceBreadcrumb
-                activeModule={activeModule}
-                activeId={activeId}
-                className={breadcrumbIsEmbedded ? 'mt-2' : 'mx-auto mb-3'}
-                pageLabel={pageLabel}
-                onSelect={selectModule}
-              />
-            }
-          >
-            {!breadcrumbIsEmbedded ? (
-              <WorkspaceBreadcrumb
-                activeModule={activeModule}
-                activeId={activeId}
-                className="mx-auto mb-3"
-                pageLabel={pageLabel}
-                onSelect={selectModule}
-              />
-            ) : null}
-            {children ?? (activeModule ? (
-              customModuleView ?? (
-                <ModuleView
-                  module={activeModule}
-                  onBack={() => selectModule('overview')}
-                />
-              )
-            ) : renderOverview ? (
-              renderOverview({
-                modules: filteredModules,
-                query,
-                onQueryChange: setQuery,
-                onSelect: selectModule,
-              })
-            ) : (
-              <DashboardOverview
-                definition={definition}
-                modules={filteredModules}
-                query={query}
-                onSelect={selectModule}
-              />
-            ))}
-          </WorkspaceBreadcrumbProvider>
+          {workspaceContent}
         </main>
       </div>
     </div>

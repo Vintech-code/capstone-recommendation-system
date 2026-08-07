@@ -98,7 +98,7 @@ function ResultImportUploadPage({
       <div className="mt-4">
         <AdminPageHeader
           title="Import official results"
-          description="Upload a CSV, review every row locally, and reconcile issues before any record enters verification."
+          description="Upload a CSV, review every row locally, and reconcile issues before adding records."
         />
       </div>
 

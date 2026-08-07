@@ -1,46 +1,49 @@
-@import "@fontsource-variable/manrope";
 @import "tailwindcss";
 
 @custom-variant dark (&:is(.dark *));
 
 :root {
   color-scheme: light;
-  --radius: 0.875rem;
-  --background: #ffffff;
-  --foreground: #0d253d;
+  --radius: 0.25rem;
+  --background: #f9f9ff;
+  --foreground: #111c2c;
   --card: #ffffff;
-  --card-foreground: #0d253d;
+  --card-foreground: #111c2c;
   --popover: #ffffff;
-  --popover-foreground: #0d253d;
-  --primary: #533afd;
+  --popover-foreground: #111c2c;
+  --primary: #001e40;
   --primary-foreground: #ffffff;
-  --secondary: #f6f9fc;
-  --secondary-foreground: #273951;
-  --muted: #f6f9fc;
-  --muted-foreground: #64748d;
-  --accent: #f5e9d4;
-  --accent-foreground: #0d253d;
+  --secondary: #f0f3ff;
+  --secondary-foreground: #705d00;
+  --muted: #e7eeff;
+  --muted-foreground: #43474f;
+  --accent: #fcd400;
+  --accent-foreground: #221b00;
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.985 0 0);
-  --border: #e3e8ee;
-  --input: #a8c3de;
-  --ring: #533afd;
+  --border: #c3c6d1;
+  --input: #737780;
+  --ring: #3a5f94;
   --success: oklch(0.527 0.154 150.069);
   --success-foreground: oklch(0.985 0 0);
   --warning: oklch(0.666 0.179 58.318);
   --warning-foreground: oklch(0.205 0 0);
-  --info: #533afd;
+  --info: #3a5f94;
   --info-foreground: #ffffff;
-  --brand-dark: #1c1e54;
-  --brand-ruby: #ea2261;
-  --brand-magenta: #f96bee;
-  --brand-soft: #b9b9f9;
-  --canvas-cream: #f5e9d4;
+  --brand-dark: #001e40;
+  --brand-ruby: #705d00;
+  --brand-magenta: #e9c400;
+  --brand-soft: #a7c8ff;
+  --canvas-cream: #f0f3ff;
+  --primary-fixed: #d5e3ff;
+  --on-primary-fixed: #001b3c;
+  --secondary-container: #fcd400;
+  --outline-variant: #c3c6d1;
   --chart-blue: #4f8df7;
   --chart-teal: #42b8a5;
   --chart-slate: #a9b2ca;
-  --shadow-primary: rgba(83, 58, 253, 0.14);
-  --shadow-primary-strong: rgba(83, 58, 253, 0.3);
+  --shadow-primary: rgba(0, 51, 102, 0.08);
+  --shadow-primary-strong: rgba(0, 51, 102, 0.18);
   --shadow-brand-soft: rgba(28, 30, 84, 0.07);
   --shadow-brand-dark: rgba(28, 30, 84, 0.22);
   --shadow-cream: rgba(155, 104, 41, 0.1);
@@ -55,8 +58,8 @@
   --card-foreground: #edf3fa;
   --popover: #121d2d;
   --popover-foreground: #edf3fa;
-  --primary: #8b7fff;
-  --primary-foreground: #ffffff;
+  --primary: #a7c8ff;
+  --primary-foreground: #001b3c;
   --secondary: #172437;
   --secondary-foreground: #edf3fa;
   --muted: #172437;
@@ -125,6 +128,13 @@
   --color-chart-blue: var(--chart-blue);
   --color-chart-teal: var(--chart-teal);
   --color-chart-slate: var(--chart-slate);
+  --color-primary-fixed: var(--primary-fixed);
+  --color-on-primary-fixed: var(--on-primary-fixed);
+  --color-secondary-container: var(--secondary-container);
+  --color-outline-variant: var(--outline-variant);
+  --font-sans: "Public Sans", Arial, ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Work Sans", Arial, ui-sans-serif, system-ui, sans-serif;
+  --font-label: "IBM Plex Sans", Arial, ui-sans-serif, system-ui, sans-serif;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -144,8 +154,7 @@
 
   body {
     @apply m-0 min-w-80 bg-background font-sans text-foreground antialiased transition-colors duration-200;
-    font-feature-settings: "ss02";
-    font-size: 15px;
+    font-size: 16px;
   }
 
   button,
@@ -156,6 +165,143 @@
   button:disabled,
   [role="button"][aria-disabled="true"] {
     @apply cursor-not-allowed;
+  }
+}
+
+@layer components {
+  .student-page {
+    @apply mx-auto w-full max-w-[1280px] px-4 sm:px-6 lg:px-10;
+  }
+
+  .student-kicker {
+    @apply flex items-center gap-3 font-label text-xs font-medium uppercase tracking-[0.14em] text-primary;
+  }
+
+  .student-kicker > span {
+    @apply block h-8 w-1 rounded bg-secondary-container;
+  }
+
+  .catalogue-hero {
+    @apply relative grid min-h-[22rem] overflow-hidden rounded-b-2xl bg-[#cfdaf1] px-6 py-10 sm:px-8 lg:grid-cols-[minmax(0,1fr)_11rem] lg:items-center lg:px-10;
+  }
+
+  .catalogue-hero::after {
+    content: "";
+    @apply pointer-events-none absolute -bottom-20 -right-24 h-56 w-[70%] rotate-[-8deg] rounded-[50%] bg-background;
+  }
+
+  .catalogue-count {
+    @apply relative z-10 mt-6 flex flex-col items-start lg:mt-12 lg:items-center;
+  }
+
+  .catalogue-count strong {
+    @apply font-display text-4xl font-bold text-primary;
+  }
+
+  .catalogue-count span {
+    @apply mt-2 font-label text-xs font-medium uppercase tracking-[0.12em];
+  }
+
+  .catalogue-band {
+    @apply -mx-4 rounded-2xl bg-primary-fixed/55 px-4 py-8 sm:-mx-6 sm:px-6 lg:-mx-10 lg:px-10;
+  }
+
+  .programme-card {
+    @apply flex min-h-64 flex-col overflow-hidden rounded-lg bg-white shadow-sm;
+    box-shadow: inset 0 3px 0 #001e40, 0 2px 8px rgba(0, 30, 64, 0.08);
+  }
+
+  .programme-card-featured {
+    @apply md:flex-row;
+  }
+
+  .programme-visual {
+    @apply flex min-h-32 items-center justify-between overflow-hidden bg-gradient-to-br from-primary via-[#174a7c] to-[#7b94b5] p-5 text-white md:min-h-44 md:min-w-[34%];
+  }
+
+  .programme-monogram {
+    @apply font-display text-3xl font-bold tracking-[-0.04em];
+  }
+
+  .outcome-chip {
+    @apply inline-flex w-fit rounded bg-primary-fixed px-3 py-1.5 font-label text-xs font-medium text-on-primary-fixed;
+  }
+
+  .match-chip {
+    @apply inline-flex items-center gap-1.5 rounded bg-secondary-container px-3 py-1.5 font-label text-xs font-medium text-[#221b00];
+  }
+
+  .programme-detail-hero {
+    @apply relative grid min-h-80 items-center gap-6 overflow-hidden rounded-b-2xl bg-[#cfdaf1] p-6 pb-16 sm:p-8 sm:pb-20 lg:grid-cols-[minmax(0,1fr)_14rem] lg:p-10 lg:pb-20;
+  }
+
+  .programme-detail-hero::after {
+    content: "";
+    @apply pointer-events-none absolute -bottom-28 -right-20 z-0 h-48 w-[72%] rotate-[-6deg] rounded-[50%] bg-background;
+  }
+
+  .programme-detail-hero > * {
+    @apply relative z-10;
+  }
+
+  .programme-detail-mark {
+    @apply flex min-h-44 flex-col items-center justify-center gap-4 rounded-lg bg-white/75 p-6 text-primary shadow-sm;
+  }
+
+  .programme-detail-mark strong {
+    @apply font-display text-2xl font-semibold;
+  }
+
+  .academic-panel {
+    @apply rounded-lg bg-white p-5 shadow-sm sm:p-6;
+  }
+
+  .learning-row {
+    @apply flex min-h-48 items-start gap-4 rounded bg-secondary p-4;
+  }
+
+  .learning-row > span {
+    @apply pt-0.5 font-label text-sm font-medium text-primary;
+  }
+
+  .learning-row h3 {
+    @apply font-display text-base font-semibold;
+  }
+
+  .learning-row p {
+    @apply mt-2 text-sm leading-5 text-muted-foreground;
+  }
+
+  .learning-topics {
+    @apply mt-4 flex flex-wrap gap-2;
+  }
+
+  .learning-topics li {
+    @apply rounded bg-white/75 px-2.5 py-1.5 font-label text-xs font-medium text-primary shadow-sm;
+  }
+
+  .programme-info-card {
+    box-shadow: inset 0 3px 0 #001e40, 0 2px 8px rgba(0, 30, 64, 0.08);
+  }
+
+  .programme-section-icon {
+    @apply flex size-11 shrink-0 items-center justify-center rounded bg-primary-fixed text-primary;
+  }
+
+  .programme-section-icon > svg {
+    @apply size-5;
+  }
+
+  .strand-chip {
+    @apply inline-flex min-h-8 items-center rounded bg-primary-fixed px-3 font-label text-xs font-semibold text-on-primary-fixed;
+  }
+
+  .strand-row {
+    @apply grid min-h-14 grid-cols-[auto_minmax(0,1fr)] items-center gap-3 rounded bg-secondary p-3 text-sm font-medium;
+  }
+
+  .programme-readiness {
+    @apply flex items-start gap-4 rounded-lg bg-primary px-5 py-6 shadow-sm sm:px-6;
   }
 }
 
@@ -303,6 +449,11 @@
 }
 
 @media print {
+  @page {
+    size: A4 portrait;
+    margin: 12mm;
+  }
+
   body {
     background: white;
     color: black;
@@ -323,6 +474,28 @@
     width: 100%;
     border-radius: 0;
     box-shadow: none;
+    background: white !important;
+    color: black !important;
+  }
+
+  [data-report-print] section,
+  [data-report-print] header,
+  [data-report-print] footer,
+  [data-report-print] article,
+  [data-report-print] li,
+  [data-report-print] div {
+    box-shadow: none !important;
+    break-inside: avoid;
+    background-color: transparent !important;
+    color: black !important;
+  }
+
+  [data-report-print] * {
+    color: black !important;
+  }
+
+  [data-report-print] [aria-hidden="true"] {
+    display: none !important;
   }
 
   [data-print-hidden] {

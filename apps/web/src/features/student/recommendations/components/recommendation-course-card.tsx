@@ -3,12 +3,11 @@ import {
   Check,
   CircleAlert,
   GitCompareArrows,
-  Sparkles,
+  Target,
 } from 'lucide-react'
 
-import { StatusBadge } from '@/components/shared'
 import { Button } from '@/components/ui/button'
-import type { StudentRecommendedCourse } from '@/features/student/recommendations/data/mock-student-recommendations'
+import type { StudentRecommendedCourse } from '@/features/student/recommendations/recommendation-types'
 
 interface RecommendationCourseCardProps {
   course: StudentRecommendedCourse
@@ -25,8 +24,6 @@ function RecommendationCourseCard({
   onToggleComparison,
   onViewDetails,
 }: RecommendationCourseCardProps) {
-  const eligible = course.eligibility === 'Eligible'
-
   return (
     <article className="rounded-2xl bg-background p-5 shadow-sm sm:p-6">
       <div className="flex items-start justify-between gap-4">
@@ -41,22 +38,19 @@ function RecommendationCourseCard({
             <h2 className="mt-1 text-lg font-extrabold leading-6">
               {course.name}
             </h2>
-            <p className="mt-1 text-xs text-muted-foreground">
-              {course.department} · {course.duration}
-            </p>
+            {course.department || course.duration ? (
+              <p className="mt-1 text-xs text-muted-foreground">
+                {[course.department, course.duration].filter(Boolean).join(' · ')}
+              </p>
+            ) : null}
           </div>
         </div>
-        <StatusBadge
-          label={course.eligibility}
-          tone={eligible ? 'success' : 'warning'}
-          className="shrink-0"
-        />
       </div>
 
       <div className="mt-5 rounded-xl bg-secondary/50 p-4">
         <div className="flex items-center justify-between gap-3">
           <span className="inline-flex items-center gap-2 text-xs font-bold text-muted-foreground">
-            <Sparkles aria-hidden="true" className="size-4 text-primary" />
+            <Target aria-hidden="true" className="size-4 text-primary" />
             Recorded match
           </span>
           <span className="text-lg font-extrabold">{course.match}%</span>

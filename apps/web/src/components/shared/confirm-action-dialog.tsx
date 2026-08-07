@@ -1,4 +1,3 @@
-import { LoaderCircle } from 'lucide-react'
 import { useState, type MouseEvent } from 'react'
 
 import {
@@ -68,9 +67,6 @@ function ConfirmActionDialog({
               destructive && buttonVariants({ variant: 'destructive' }),
             )}
           >
-            {isConfirming ? (
-              <LoaderCircle aria-hidden="true" className="animate-spin" />
-            ) : null}
             {isConfirming ? 'Working…' : confirmLabel}
           </AlertDialogAction>
         </AlertDialogFooter>

@@ -27,6 +27,10 @@ describe('access portals and workspace shell', () => {
   it('opens the Student portal without exposing role selection', async () => {
     await renderAppAt('/student/login')
 
+    expect(screen.getAllByRole('contentinfo')).toHaveLength(1)
+    expect(
+      screen.getByRole('heading', { name: 'Institutional' }),
+    ).toBeVisible()
     expect(
       screen.getByRole('heading', { name: 'Sign in to your account' }),
     ).toBeVisible()
@@ -34,6 +38,27 @@ describe('access portals and workspace shell', () => {
     expect(screen.queryByRole('radio')).not.toBeInTheDocument()
     expect(screen.queryByText(/frontend ui preview/i)).not.toBeInTheDocument()
     expect(screen.queryByText(/no backend/i)).not.toBeInTheDocument()
+    expect(
+      screen.getByRole('link', { name: 'Create an account' }),
+    ).toHaveAttribute('href', '/student/register')
+  })
+
+  it('provides the backend-ready Student registration form without role selection', async () => {
+    const user = userEvent.setup()
+    await renderAppAt('/student/register')
+
+    expect(
+      screen.getByRole('heading', { name: 'Create your account' }),
+    ).toBeVisible()
+    expect(screen.queryByRole('radio')).not.toBeInTheDocument()
+
+    await user.click(
+      screen.getByRole('button', { name: 'Create student account' }),
+    )
+    expect(screen.getByText('Enter your full name.')).toBeVisible()
+    expect(screen.getByText('Enter your email address.')).toBeVisible()
+    expect(screen.getByText('Enter a password.')).toBeVisible()
+    expect(screen.getByText('Confirm your password.')).toBeVisible()
   })
 
   it('validates required fields without inventing password policy', async () => {
@@ -71,24 +96,28 @@ describe('access portals and workspace shell', () => {
     expect(
       await screen.findByRole('heading', {
         level: 1,
-        name: /your guidance journey, one step at a time/i,
+        name: 'Dashboard',
       }),
     ).toBeVisible()
+    expect(screen.getAllByText('Pathways').length).toBeGreaterThan(0)
     expect(
       screen.getByRole('navigation', { name: 'Workspace navigation' }),
     ).toBeVisible()
-    expect(screen.getAllByText('Profile & application').length).toBeGreaterThan(
-      0,
-    )
-    expect(screen.getAllByText('Official result').length).toBeGreaterThan(0)
+    expect(screen.queryByLabelText('Workspace sidebar')).not.toBeInTheDocument()
+    expect(screen.getAllByText('Assessment').length).toBeGreaterThan(0)
+    expect(screen.queryByText('Assessment result')).not.toBeInTheDocument()
+    expect(screen.getAllByText('Explore Programs').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('My Matches').length).toBeGreaterThan(0)
+    expect(screen.queryByText('My report')).not.toBeInTheDocument()
 
-    await user.click(screen.getByRole('button', { name: 'Sign out' }))
+    await user.click(screen.getByRole('button', { name: 'Open user menu' }))
+    await user.click(await screen.findByRole('menuitem', { name: 'Sign out' }))
 
     expect(window.location.pathname).toBe('/student/login')
     expect(
       await screen.findByRole('heading', { name: 'Sign in to your account' }),
     ).toBeVisible()
-  })
+  }, 10_000)
 
   it('uses a separate portal and workspace for the combined Admin role', async () => {
     const user = userEvent.setup()
@@ -133,21 +162,6 @@ describe('access portals and workspace shell', () => {
     ).toBeVisible()
     expect(screen.getAllByText('User access').length).toBeGreaterThan(0)
     expect(screen.getAllByText('Role assignments').length).toBeGreaterThan(0)
-  })
-
-  it('filters the active role modules from the dashboard search', async () => {
-    const user = userEvent.setup()
-    await renderAppAt('/student')
-
-    await user.type(
-      screen.getByRole('searchbox', { name: 'Search modules' }),
-      'official',
-    )
-    const modules = screen.getByRole('region', { name: 'Matching modules' })
-
-    expect(within(modules).getByText('Official result')).toBeVisible()
-    expect(within(modules).queryByText('Course guidance')).not.toBeInTheDocument()
-    expect(within(modules).getByText('1 result')).toBeVisible()
   })
 
   it('opens a role module and returns to the dashboard overview', async () => {

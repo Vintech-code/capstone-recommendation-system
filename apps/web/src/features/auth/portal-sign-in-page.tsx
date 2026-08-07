@@ -1,5 +1,5 @@
 import { ShieldCheck } from 'lucide-react'
-import { useNavigate } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 
 import { ThemeToggle } from '@/components/shared'
 import type { AccessRole } from '@/features/auth/access-types'
@@ -97,6 +97,18 @@ function PortalSignInPage({ role }: PortalSignInPageProps) {
               }}
             />
           </div>
+          <p className="mt-5 text-center text-sm"><Link to={`/forgot-password?portal=${role}`} className="font-bold text-primary underline-offset-4 hover:underline">Forgot password?</Link></p>
+          {role === 'student' ? (
+            <p className="mt-6 text-center text-sm text-muted-foreground">
+              New student?{' '}
+              <Link
+                to="/student/register"
+                className="font-extrabold text-primary underline-offset-4 hover:underline"
+              >
+                Create an account
+              </Link>
+            </p>
+          ) : null}
         </div>
       </section>
     </main>

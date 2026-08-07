@@ -1,14 +1,11 @@
 import {
   ArrowLeft,
   ClipboardCheck,
-  FileClock,
   Gauge,
   History,
-  UserRound,
 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
-import { ResultStateBadge } from '@/features/admin/official-results/components/result-state-badge'
 import {
   getMockResultHistory,
   mockOfficialResults,
@@ -72,64 +69,21 @@ function OfficialResultDetailPage({
             <p className="mt-2 text-sm font-semibold text-muted-foreground">
               {result.applicantName}
             </p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Updated {result.updatedLabel}
+            </p>
           </div>
         </div>
-        <ResultStateBadge state={result.reviewState} />
+        <Button
+          type="button"
+          variant="secondary"
+          onClick={() => onOpenApplicant(result.applicantId)}
+        >
+          Open applicant record
+        </Button>
       </div>
 
-      <div className="mt-5 grid gap-5 lg:grid-cols-[minmax(0,.75fr)_minmax(0,1.25fr)]">
-        <div className="space-y-5">
-          <section
-            aria-labelledby="result-overview-title"
-            className="rounded-2xl bg-background p-6 shadow-sm"
-          >
-            <h2 id="result-overview-title" className="text-lg font-extrabold">
-              Record overview
-            </h2>
-            <dl className="mt-6 space-y-5 text-sm">
-              <div>
-                <dt className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
-                  <UserRound aria-hidden="true" className="size-4" />
-                  Applicant reference
-                </dt>
-                <dd className="mt-2 font-mono font-semibold">
-                  {result.applicantId}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-xs font-semibold text-muted-foreground">
-                  Record source
-                </dt>
-                <dd className="mt-2 font-semibold">{result.source}</dd>
-              </div>
-              <div>
-                <dt className="text-xs font-semibold text-muted-foreground">
-                  Current version
-                </dt>
-                <dd className="mt-2 font-semibold">v{result.version}</dd>
-              </div>
-              <div>
-                <dt className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
-                  <FileClock aria-hidden="true" className="size-4" />
-                  Last updated
-                </dt>
-                <dd className="mt-2 font-semibold">
-                  <time dateTime={result.updatedAt}>
-                    {result.updatedLabel}
-                  </time>
-                </dd>
-              </div>
-            </dl>
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => onOpenApplicant(result.applicantId)}
-              className="mt-6 w-full"
-            >
-              Open applicant record
-            </Button>
-          </section>
-
+      <div className="mt-5 grid gap-5 lg:grid-cols-[minmax(18rem,.65fr)_minmax(0,1.35fr)]">
           <section className="rounded-2xl bg-background p-6 shadow-sm">
             <div className="flex items-center gap-3">
               <Gauge aria-hidden="true" className="size-5 text-primary" />
@@ -142,10 +96,9 @@ function OfficialResultDetailPage({
               {result.scaleLabel}
             </p>
           </section>
-        </div>
 
         <section
-          aria-labelledby="version-history-title"
+          aria-labelledby="record-activity-title"
           className="rounded-2xl bg-background p-6 shadow-sm"
         >
           <div className="flex items-center gap-3">
@@ -153,11 +106,8 @@ function OfficialResultDetailPage({
               <History aria-hidden="true" className="size-4.5" />
             </span>
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.12em] text-muted-foreground">
-                Immutable record
-              </p>
-              <h2 id="version-history-title" className="mt-1 font-extrabold">
-                Version history
+              <h2 id="record-activity-title" className="font-extrabold">
+                Record activity
               </h2>
             </div>
           </div>
@@ -168,16 +118,11 @@ function OfficialResultDetailPage({
                 key={entry.id}
                 className="rounded-2xl bg-secondary/65 p-5"
               >
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <h3 className="font-bold">{entry.title}</h3>
-                    <p className="mt-2 text-xs leading-5 text-muted-foreground">
-                      {entry.description}
-                    </p>
-                  </div>
-                  <span className="rounded-full bg-background px-3 py-1 text-xs font-bold">
-                    v{entry.version}
-                  </span>
+                <div>
+                  <h3 className="font-bold">{entry.title}</h3>
+                  <p className="mt-2 text-xs leading-5 text-muted-foreground">
+                    {entry.description}
+                  </p>
                 </div>
                 <time
                   dateTime={entry.occurredAt}

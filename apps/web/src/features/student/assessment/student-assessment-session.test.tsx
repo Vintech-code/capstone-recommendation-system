@@ -5,6 +5,7 @@ import type { ComponentProps } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { StudentAssessmentSessionPage } from '@/features/student/assessment/components/student-assessment-session-page'
+import { testAssessmentContent } from '@/test/fixtures/student-api-fixtures'
 
 function renderSession(
   props: Partial<ComponentProps<typeof StudentAssessmentSessionPage>> = {},
@@ -17,6 +18,7 @@ function renderSession(
       onExit={onExit}
       onReturnToIntroduction={onReturnToIntroduction}
       onViewResult={onViewResult}
+      initialContent={testAssessmentContent}
       {...props}
     />,
   )
@@ -28,12 +30,10 @@ async function answerQuestion(
   user: ReturnType<typeof userEvent.setup>,
   questionNumber: number,
 ) {
-  await user.click(
-    screen.getByRole('button', {
-      name: new RegExp(`Go to question ${questionNumber},`),
-    }),
-  )
-  await user.click(screen.getByRole('radio', { name: /Very much like me/i }))
+  expect(
+    screen.getByRole('group', { name: `Response for question ${questionNumber}` }),
+  ).toBeVisible()
+  await user.click(screen.getByRole('radio', { name: /Strongly like/i }))
 }
 
 describe('Student assessment session', () => {
@@ -41,22 +41,35 @@ describe('Student assessment session', () => {
     window.localStorage.clear()
   })
 
+  it('uses the Navigator assessment hierarchy with truthful session data', () => {
+    renderSession()
+
+    expect(screen.getByRole('heading', { name: 'Assessment session' })).toBeVisible()
+    expect(screen.getByText('Discover your path')).toBeVisible()
+    expect(screen.getByLabelText('0% assessment completion')).toBeVisible()
+    expect(screen.getByRole('list', { name: 'Assessment stages' })).toBeVisible()
+    expect(screen.getByAltText('Student studying with a tablet in a library')).toBeVisible()
+    expect(screen.getAllByRole('radio')).toHaveLength(5)
+    expect(screen.queryByText('Aptitude')).not.toBeInTheDocument()
+    expect(screen.queryByText(/module 1 of/i)).not.toBeInTheDocument()
+  })
+
   it('answers questions and autosaves progress locally', async () => {
     const user = userEvent.setup()
     renderSession()
 
     await user.click(
-      screen.getByRole('radio', { name: /Very much like me/i }),
+      screen.getByRole('radio', { name: /Strongly like/i }),
     )
 
     expect(
       screen.getByRole('progressbar', { name: 'Assessment completion' }),
     ).toHaveAttribute('aria-valuenow', '17')
-    expect(screen.getByText('Saving...')).toBeVisible()
+    expect(screen.getByRole('status')).toHaveTextContent('Saving...')
 
-    await waitFor(() => expect(screen.getByText('Saved')).toBeVisible())
+    await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Saved'))
     expect(window.localStorage.getItem('tcc-guidance:student-assessment-session'))
-      .toContain('"item-01":"very-like-me"')
+      .toContain('"item-01":5')
   })
 
   it('reviews incomplete responses and returns to a missing question', async () => {
@@ -64,10 +77,12 @@ describe('Student assessment session', () => {
     renderSession()
 
     await answerQuestion(user, 1)
-    await user.click(
-      screen.getByRole('button', { name: /Go to question 6,/ }),
-    )
-    await user.click(screen.getByRole('button', { name: 'Review responses' }))
+    for (let index = 0; index < 4; index += 1) {
+      await user.click(screen.getByRole('button', { name: 'Skip question' }))
+    }
+    const reviewButton = screen.getByRole('button', { name: 'Review responses' })
+    expect(reviewButton.parentElement).toHaveClass('flex-row', 'justify-between')
+    await user.click(reviewButton)
 
     expect(
       screen.getByRole('heading', {
@@ -85,7 +100,7 @@ describe('Student assessment session', () => {
         name: 'Edit response',
       }),
     )
-    expect(screen.getByText('Question 2 of 6')).toBeVisible()
+    expect(screen.getByRole('group', { name: 'Response for question 2' })).toBeVisible()
   })
 
   it('submits a complete assessment and locks the responses', async () => {
@@ -95,8 +110,6 @@ describe('Student assessment session', () => {
     for (let questionNumber = 1; questionNumber <= 6; questionNumber += 1) {
       await answerQuestion(user, questionNumber)
     }
-
-    await user.click(screen.getByRole('button', { name: 'Review responses' }))
     expect(
       screen.getByRole('heading', { name: 'All questions are answered' }),
     ).toBeVisible()
@@ -116,7 +129,8 @@ describe('Student assessment session', () => {
         name: 'Responses submitted successfully',
       }),
     ).toBeVisible()
-    expect(screen.getByText('Locked')).toBeVisible()
+    expect(screen.getByText('Responses recorded')).toBeVisible()
+    expect(screen.queryByText('Version reference')).not.toBeInTheDocument()
     expect(screen.queryByRole('radio')).not.toBeInTheDocument()
     expect(window.localStorage.getItem('tcc-guidance:student-assessment-session'))
       .toBeNull()
@@ -131,19 +145,36 @@ describe('Student assessment session', () => {
     const first = renderSession()
 
     await user.click(
-      screen.getByRole('radio', { name: /Somewhat like me/i }),
+      screen.getByRole('radio', { name: /^Like/i }),
     )
-    await user.click(screen.getByRole('button', { name: 'Save and exit' }))
-    expect(first.onExit).toHaveBeenCalledOnce()
+    await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Saved'))
     first.unmount()
 
     renderSession()
     expect(
-      screen.getByRole('radio', { name: /Somewhat like me/i }),
+      screen.getByRole('radio', { name: /^Like/i }),
     ).toBeChecked()
     expect(
       screen.getByRole('progressbar', { name: 'Assessment completion' }),
     ).toHaveAttribute('aria-valuenow', '17')
+  })
+
+  it('autosaves an online session to the authenticated API', async () => {
+    const user = userEvent.setup()
+    renderSession({ remotePersistence: true })
+
+    expect(
+      await screen.findByRole('group', { name: 'Response for question 1' }),
+    ).toBeVisible()
+    await user.click(screen.getByRole('radio', { name: /Strongly like/i }))
+
+    await waitFor(() => {
+      expect(fetch).toHaveBeenCalledWith(
+        '/api/v1/student/assessments/onet-mini-ip/sessions/1',
+        expect.objectContaining({ method: 'PATCH' }),
+      )
+    })
+    expect(screen.getByRole('status')).toHaveTextContent('Saved')
   })
 
   it('keeps responses on the device while offline and supports retry', async () => {
@@ -153,9 +184,9 @@ describe('Student assessment session', () => {
     expect(screen.getByRole('alert')).toHaveTextContent(
       'You are working offline',
     )
-    expect(screen.getByText('Saved on device')).toBeVisible()
+    expect(screen.getByRole('status')).toHaveTextContent('Saved on device')
     await user.click(
-      screen.getByRole('radio', { name: /Not like me/i }),
+      screen.getByRole('radio', { name: /Strongly dislike/i }),
     )
     await user.click(
       screen.getByRole('button', { name: 'Retry connection' }),
@@ -164,7 +195,7 @@ describe('Student assessment session', () => {
     expect(
       screen.queryByText('You are working offline'),
     ).not.toBeInTheDocument()
-    expect(screen.getByText('Saved')).toBeVisible()
+    expect(screen.getByRole('status')).toHaveTextContent('Saved')
   })
 
   it('defines loading, empty, retryable error, and stale-version states', async () => {
@@ -204,6 +235,24 @@ describe('Student assessment session', () => {
       screen.getByRole('button', { name: 'Return to introduction' }),
     )
     expect(stale.onReturnToIntroduction).toHaveBeenCalledOnce()
+  })
+
+  it('does not render a question card when loaded content has no questions', async () => {
+    const user = userEvent.setup()
+    renderSession({
+      initialLoadState: 'error',
+      initialContent: {
+        id: '',
+        versionReference: '',
+        questions: [],
+        responseOptions: [],
+      },
+    })
+
+    await user.click(screen.getByRole('button', { name: 'Try again' }))
+    expect(
+      screen.getByRole('alert'),
+    ).toHaveTextContent('The assessment questions are unavailable')
   })
 
   it('has no automatically detectable accessibility violations', async () => {

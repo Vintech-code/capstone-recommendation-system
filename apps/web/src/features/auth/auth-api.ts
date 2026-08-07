@@ -5,12 +5,20 @@ interface AuthUser {
   name: string
   email: string
   roles: AccessRole[]
+  accountStatus?: 'active' | 'pending' | 'suspended' | 'archived'
 }
 
 interface SignInCredentials {
   email: string
   password: string
   portal: AccessRole
+}
+
+interface StudentRegistrationFields {
+  name: string
+  email: string
+  password: string
+  passwordConfirmation: string
 }
 
 interface AuthResponse {
@@ -103,6 +111,20 @@ async function signIn(credentials: SignInCredentials) {
   })
 }
 
+async function registerStudent(fields: StudentRegistrationFields) {
+  await csrfCookie()
+
+  return request<{ message: string }>('/api/v1/auth/register', {
+    method: 'POST',
+    body: JSON.stringify({
+      name: fields.name,
+      email: fields.email,
+      password: fields.password,
+      password_confirmation: fields.passwordConfirmation,
+    }),
+  })
+}
+
 async function currentUser() {
   return request<AuthResponse>('/api/v1/auth/me')
 }
@@ -117,5 +139,35 @@ async function signOut() {
   return request<{ message: string }>('/api/v1/auth/logout', { method: 'POST' })
 }
 
-export { AuthApiError, authorizePortal, currentUser, signIn, signOut }
-export type { AuthUser, SignInCredentials }
+async function requestPasswordReset(email: string) {
+  await csrfCookie()
+  return request<{ message: string }>('/api/v1/auth/forgot-password', {
+    method: 'POST',
+    body: JSON.stringify({ email }),
+  })
+}
+
+async function resetPassword(fields: { token: string; email: string; password: string; passwordConfirmation: string }) {
+  await csrfCookie()
+  return request<{ message: string }>('/api/v1/auth/reset-password', {
+    method: 'POST',
+    body: JSON.stringify({
+      token: fields.token,
+      email: fields.email,
+      password: fields.password,
+      password_confirmation: fields.passwordConfirmation,
+    }),
+  })
+}
+
+export {
+  AuthApiError,
+  authorizePortal,
+  currentUser,
+  registerStudent,
+  signIn,
+  signOut,
+  requestPasswordReset,
+  resetPassword,
+}
+export type { AuthUser, SignInCredentials, StudentRegistrationFields }

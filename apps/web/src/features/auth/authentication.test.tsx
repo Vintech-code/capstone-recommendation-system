@@ -5,10 +5,58 @@ import { describe, expect, it, vi } from 'vitest'
 import { renderAppAt } from '@/test/render-app'
 
 describe('server-backed authentication', () => {
+  it('requests password recovery without exposing whether the account exists', async () => {
+    const user = userEvent.setup()
+    await renderAppAt('/forgot-password?portal=student')
+
+    await user.type(screen.getByRole('textbox', { name: 'Email address' }), 'student@example.test')
+    await user.click(screen.getByRole('button', { name: 'Send reset link' }))
+
+    expect(await screen.findByRole('status')).toHaveTextContent('If an active account matches that email')
+    expect(fetch).toHaveBeenCalledWith('/api/v1/auth/forgot-password', expect.objectContaining({
+      body: JSON.stringify({ email: 'student@example.test' }),
+    }))
+  })
+
+  it('resets a password from a tokenized recovery link', async () => {
+    const user = userEvent.setup()
+    await renderAppAt('/reset-password/test-token?email=student%40example.test')
+
+    await user.type(screen.getByLabelText('New password'), 'new-password')
+    await user.type(screen.getByLabelText('Confirm new password'), 'new-password')
+    await user.click(screen.getByRole('button', { name: 'Reset password' }))
+
+    expect(await screen.findByRole('status')).toHaveTextContent('Your password has been reset')
+    expect(fetch).toHaveBeenCalledWith('/api/v1/auth/reset-password', expect.objectContaining({
+      body: JSON.stringify({ token: 'test-token', email: 'student@example.test', password: 'new-password', password_confirmation: 'new-password' }),
+    }))
+  })
+
+  it('registers a Student account and enters the Student workspace', async () => {
+    const user = userEvent.setup()
+    await renderAppAt('/student/register')
+
+    await user.type(screen.getByRole('textbox', { name: 'Full name' }), 'New Student')
+    await user.type(screen.getByRole('textbox', { name: 'Email address' }), 'new.student@example.test')
+    await user.type(screen.getByLabelText('Password'), 'student-password')
+    await user.type(screen.getByLabelText('Confirm password'), 'student-password')
+    await user.click(screen.getByRole('button', { name: 'Create student account' }))
+
+    await waitFor(() => expect(window.location.pathname).toBe('/student'))
+    expect(fetch).toHaveBeenCalledWith('/api/v1/auth/register', expect.objectContaining({
+      body: JSON.stringify({
+        name: 'New Student',
+        email: 'new.student@example.test',
+        password: 'student-password',
+        password_confirmation: 'student-password',
+      }),
+    }))
+  })
+
   it('redirects an unauthenticated Admin request to the Admin portal', async () => {
     await renderAppAt('/admin/applicants', { authUser: null })
 
-    expect(window.location.pathname).toBe('/admin/login')
+    await waitFor(() => expect(window.location.pathname).toBe('/admin/login'))
     expect(
       await screen.findByRole(
         'heading',
@@ -102,8 +150,8 @@ describe('server-backed authentication', () => {
       }),
     )
     expect(
-      screen.getByRole('heading', {
-        name: 'Your guidance journey, one step at a time.',
+      await screen.findByRole('heading', {
+        name: 'Dashboard',
       }),
     ).toBeVisible()
   })

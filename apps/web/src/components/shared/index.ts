@@ -1,4 +1,5 @@
 export { ApplicationStatePage } from './application-state-page'
+export { ApplicationErrorBoundary } from './application-error-boundary'
 export { ConfirmActionDialog } from './confirm-action-dialog'
 export { CollectionToolbar } from './collection-toolbar'
 export { DataTableToolbar } from './data-table-toolbar'

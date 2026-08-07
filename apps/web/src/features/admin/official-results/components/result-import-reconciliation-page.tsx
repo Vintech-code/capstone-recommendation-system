@@ -72,7 +72,7 @@ function ResultImportReconciliationPage({
       <div className="mt-4">
         <AdminPageHeader
           title="Import reconciliation"
-          description="Review ready rows, resolve incomplete records, and isolate duplicates before verification."
+          description="Review ready rows, resolve incomplete records, and isolate duplicates before saving."
           actions={
             <Button type="button" variant="secondary" onClick={refreshValidation}>
               <RefreshCw aria-hidden="true" />
@@ -105,7 +105,7 @@ function ResultImportReconciliationPage({
           icon={CheckCircle2}
           label="Ready"
           value={ready}
-          detail="Eligible for verification queue"
+          detail="Ready to add"
           tone="success"
         />
         <SummaryCard
@@ -221,7 +221,7 @@ function ResultImportReconciliationPage({
                 ) : (
                   <p className="mt-4 rounded-xl bg-emerald-50 p-4 text-xs font-semibold leading-5 text-emerald-800">
                     Required source values are present and ready for the next
-                    verification step.
+                    save step.
                   </p>
                 )}
               </article>

@@ -73,7 +73,7 @@ describe('Admin dashboard', () => {
     })
     await user.click(
       within(summaries).getByRole('button', {
-        name: /official results.*12.*4 awaiting verification/i,
+        name: /official results.*12.*4 added this week/i,
       }),
     )
 
