@@ -25,6 +25,22 @@ class AuthenticatedSessionController extends Controller
         /** @var User $user */
         $user = $request->user()->load('roles');
 
+        if ($user->account_status !== 'active') {
+            Auth::guard('web')->logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return response()->json([
+                'message' => match ($user->account_status) {
+                    'pending' => 'This account is awaiting activation.',
+                    'suspended' => 'This account is suspended. Contact an authorized administrator.',
+                    'archived' => 'This account is archived. Contact an authorized administrator.',
+                    default => 'This account is not currently active.',
+                },
+                'error' => ['code' => 'ACCOUNT_NOT_ACTIVE'],
+            ], 403);
+        }
+
         if (! $user->hasRole($request->role())) {
             Auth::guard('web')->logout();
             $request->session()->invalidate();
@@ -57,7 +73,7 @@ class AuthenticatedSessionController extends Controller
     }
 
     /**
-     * @return array{id: int, name: string, email: string, roles: array<int, string>}
+     * @return array{id: int, name: string, email: string, accountStatus: string, roles: array<int, string>}
      */
     private function userPayload(User $user): array
     {
@@ -65,6 +81,7 @@ class AuthenticatedSessionController extends Controller
             'id' => $user->id,
             'name' => $user->name,
             'email' => $user->email,
+            'accountStatus' => $user->account_status,
             'roles' => $user->roles->pluck('slug')->values()->all(),
         ];
     }

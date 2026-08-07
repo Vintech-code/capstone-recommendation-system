@@ -35,4 +35,11 @@ return [
         ],
     ],
 
+    'onet' => [
+        'base_url' => env('ONET_API_BASE_URL', 'https://api-v2.onetcenter.org'),
+        'api_key' => env('ONET_API_KEY'),
+        'timeout_seconds' => (int) env('ONET_API_TIMEOUT_SECONDS', 10),
+        'question_cache_seconds' => (int) env('ONET_QUESTION_CACHE_SECONDS', 3600),
+    ],
+
 ];

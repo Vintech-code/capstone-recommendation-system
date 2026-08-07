@@ -1,0 +1,196 @@
+{
+    "schema_version": 2,
+    "catalogue_id": "tcc-programme-catalogue",
+    "catalogue_version": 1,
+    "catalogue_status": "approved_current_scope",
+    "scope_approved_on": "2026-08-07",
+    "academic_year": "2026-2027",
+    "riasec_dimensions": ["R", "I", "A", "S", "E", "C"],
+    "matching_policy": {
+        "method": "unweighted_riasec_profile_matching",
+        "percentage_weights_used": false,
+        "approval_status": "researcher_proposed_temporary_runtime",
+        "runtime_enabled": true,
+        "proposed_by": "capstone_researchers",
+        "designated_reviewer": "Jason D. Ang",
+        "review_status": "pending",
+        "approval_date": null,
+        "formula": {
+            "name": "equal_membership_profile_mean",
+            "status": "proposed",
+            "profile_size_min": 1,
+            "profile_size_max": 3,
+            "included_dimensions_are_equally_weighted": true
+        },
+        "normalization": {
+            "output_min": 0,
+            "output_max": 100,
+            "instrument_min": 5,
+            "instrument_max": 25,
+            "formula": "100 * (score - instrument_min) / (instrument_max - instrument_min)",
+            "status": "proposed_pending_instrument_version_validation"
+        },
+        "eligibility": {
+            "catalogue_programmes_only": true,
+            "required_criteria_must_be_met": true,
+            "programme_criteria_status": "pending_definition"
+        },
+        "tie_break": {
+            "field": "display_name",
+            "direction": "ascending"
+        },
+        "display": {
+            "default_count": 3,
+            "allow_view_all": true
+        }
+    },
+    "programmes": [
+        {
+            "id": "bs-information-technology",
+            "display_name": "BS Information Technology",
+            "short_label": "BSIT",
+            "majors": null,
+            "major_confirmation_status": "not_specified",
+            "riasec_profile": ["I", "C", "R"],
+            "riasec_profile_status": "researcher_proposed_temporary",
+            "profile_version": "TEMP-2026-01",
+            "profile_rationale": "Temporary researcher-proposed programme-domain profile for software testing; not psychometrically validated.",
+            "profile_approved_by": null,
+            "profile_approved_on": null
+        },
+        {
+            "id": "bs-business-administration",
+            "display_name": "BS Business Administration",
+            "short_label": "BSBA",
+            "majors": null,
+            "major_confirmation_status": "not_specified",
+            "riasec_profile": ["E", "C", "S"],
+            "riasec_profile_status": "researcher_proposed_temporary",
+            "profile_version": "TEMP-2026-01",
+            "profile_rationale": "Temporary researcher-proposed programme-domain profile for software testing; not psychometrically validated.",
+            "profile_approved_by": null,
+            "profile_approved_on": null
+        },
+        {
+            "id": "bs-criminology",
+            "display_name": "BS Criminology",
+            "short_label": "BSCrim",
+            "majors": null,
+            "major_confirmation_status": "not_specified",
+            "riasec_profile": ["I", "S", "R"],
+            "riasec_profile_status": "researcher_proposed_temporary",
+            "profile_version": "TEMP-2026-01",
+            "profile_rationale": "Temporary researcher-proposed programme-domain profile for software testing; not psychometrically validated.",
+            "profile_approved_by": null,
+            "profile_approved_on": null
+        },
+        {
+            "id": "bs-hospitality-management",
+            "display_name": "BS Hospitality Management",
+            "short_label": "BSHM",
+            "majors": null,
+            "major_confirmation_status": "not_specified",
+            "riasec_profile": ["E", "S", "C"],
+            "riasec_profile_status": "researcher_proposed_temporary",
+            "profile_version": "TEMP-2026-01",
+            "profile_rationale": "Temporary researcher-proposed programme-domain profile for software testing; not psychometrically validated.",
+            "profile_approved_by": null,
+            "profile_approved_on": null
+        },
+        {
+            "id": "bachelor-elementary-education",
+            "display_name": "Bachelor of Elementary Education",
+            "short_label": "BEEd",
+            "majors": null,
+            "major_confirmation_status": "separate_degree_confirmed",
+            "riasec_profile": ["S", "A", "C"],
+            "riasec_profile_status": "researcher_proposed_temporary",
+            "profile_version": "TEMP-2026-01",
+            "profile_rationale": "Temporary researcher-proposed programme-domain profile for software testing; not psychometrically validated.",
+            "profile_approved_by": null,
+            "profile_approved_on": null
+        },
+        {
+            "id": "bachelor-secondary-education",
+            "display_name": "Bachelor of Secondary Education",
+            "short_label": "BSEd",
+            "majors": [
+                "English",
+                "Filipino",
+                "Social Studies / Araling Panlipunan"
+            ],
+            "major_confirmation_status": "approved_current_scope",
+            "riasec_profile": ["S", "A", "I"],
+            "riasec_profile_status": "researcher_proposed_temporary",
+            "profile_version": "TEMP-2026-01",
+            "profile_rationale": "Temporary researcher-proposed shared BSEd profile for software testing; major-specific profiles remain subject to review.",
+            "profile_approved_by": null,
+            "profile_approved_on": null
+        },
+        {
+            "id": "bs-midwifery",
+            "display_name": "BS Midwifery",
+            "short_label": "BS Midwifery",
+            "majors": null,
+            "major_confirmation_status": "not_specified",
+            "riasec_profile": ["S", "I", "R"],
+            "riasec_profile_status": "researcher_proposed_temporary",
+            "profile_version": "TEMP-2026-01",
+            "profile_rationale": "Temporary researcher-proposed programme-domain profile for software testing; not psychometrically validated.",
+            "profile_approved_by": null,
+            "profile_approved_on": null
+        },
+        {
+            "id": "bachelor-library-information-science",
+            "display_name": "Bachelor of Library and Information Science",
+            "short_label": "BLIS",
+            "majors": null,
+            "major_confirmation_status": "not_specified",
+            "riasec_profile": ["C", "I", "S"],
+            "riasec_profile_status": "researcher_proposed_temporary",
+            "profile_version": "TEMP-2026-01",
+            "profile_rationale": "Temporary researcher-proposed programme-domain profile for software testing; not psychometrically validated.",
+            "profile_approved_by": null,
+            "profile_approved_on": null
+        },
+        {
+            "id": "bs-sociology",
+            "display_name": "BS Sociology",
+            "short_label": "BS Sociology",
+            "majors": null,
+            "major_confirmation_status": "not_specified",
+            "riasec_profile": ["I", "S", "A"],
+            "riasec_profile_status": "researcher_proposed_temporary",
+            "profile_version": "TEMP-2026-01",
+            "profile_rationale": "Temporary researcher-proposed programme-domain profile for software testing; not psychometrically validated.",
+            "profile_approved_by": null,
+            "profile_approved_on": null
+        },
+        {
+            "id": "bs-community-development",
+            "display_name": "BS Community Development",
+            "short_label": "BS Community Development",
+            "majors": null,
+            "major_confirmation_status": "not_specified",
+            "riasec_profile": ["S", "E", "A"],
+            "riasec_profile_status": "researcher_proposed_temporary",
+            "profile_version": "TEMP-2026-01",
+            "profile_rationale": "Temporary researcher-proposed programme-domain profile for software testing; not psychometrically validated.",
+            "profile_approved_by": null,
+            "profile_approved_on": null
+        },
+        {
+            "id": "bachelor-physical-education",
+            "display_name": "Bachelor of Physical Education",
+            "short_label": "BPED",
+            "majors": null,
+            "major_confirmation_status": "separate_degree_confirmed",
+            "riasec_profile": ["S", "R", "E"],
+            "riasec_profile_status": "researcher_proposed_temporary",
+            "profile_version": "TEMP-2026-01",
+            "profile_rationale": "Temporary researcher-proposed programme-domain profile for software testing; not psychometrically validated.",
+            "profile_approved_by": null,
+            "profile_approved_on": null
+        }
+    ]
+}

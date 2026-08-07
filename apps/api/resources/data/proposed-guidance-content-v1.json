@@ -1,0 +1,242 @@
+{
+  "policy_status": "proposed",
+  "policy_version": "GUIDANCE-PROPOSED-2026-01",
+  "reviewed_by": null,
+  "approved_on": null,
+  "student_notice": "These descriptions and explanations are proposed guidance content for review. They are not admission decisions or psychometric diagnoses.",
+  "riasec_explanations": {
+    "R": "You may enjoy practical activities that involve tools, equipment, movement, or producing visible results.",
+    "I": "You may enjoy exploring questions, analysing information, solving problems, and understanding how things work.",
+    "A": "You may enjoy creating, expressing ideas, designing, writing, performing, or working in less structured ways.",
+    "S": "You may enjoy helping, teaching, supporting, communicating with, or contributing to other people.",
+    "E": "You may enjoy leading, persuading, organising initiatives, making decisions, or developing opportunities.",
+    "C": "You may enjoy organising information, following clear procedures, checking details, and maintaining accurate records."
+  },
+  "common_requirements": [
+    "Meet the general admission requirements published by TCC for the applicable academic year.",
+    "Submit the records requested by the TCC registrar or admissions office.",
+    "Complete any programme-specific screening that TCC formally adopts and publishes."
+  ],
+  "programmes": {
+    "bs-information-technology": {
+      "description": "Focuses on applying computing, software, data, and network technologies to organisational needs.",
+      "learning_areas": ["Software development", "Information management", "Computer networks", "Systems analysis"],
+      "learning_area_descriptions": {
+        "Software development": "Design, build, test, and maintain software applications using programming concepts and development tools.",
+        "Information management": "Organise, store, retrieve, and protect information using databases and structured data practices.",
+        "Computer networks": "Set up, manage, secure, and troubleshoot the systems that connect computers and digital services.",
+        "Systems analysis": "Study organisational needs and workflows, gather requirements, and design appropriate technology solutions."
+      },
+      "learning_area_topics": {
+        "Software development": ["Programming fundamentals", "Application testing", "Software maintenance"],
+        "Information management": ["Database design", "Data organisation", "Information security"],
+        "Computer networks": ["Network configuration", "Connectivity and services", "Troubleshooting and security"],
+        "Systems analysis": ["Requirements gathering", "Process modelling", "Solution design"]
+      },
+      "career_directions": ["Software and application development", "Systems and business analysis", "Network and systems administration"],
+      "recommended_strands": ["STEM", "TVL-ICT", "GAS"],
+      "strand_guidance": "STEM supports mathematics and analytical preparation, while TVL-ICT provides practical exposure to computer systems and digital tools.",
+      "readiness_prompt": "Discuss your interest in problem solving, technology, detail-oriented work, and continuous learning."
+    },
+    "bs-business-administration": {
+      "description": "Focuses on managing organisations, people, operations, markets, and business information.",
+      "learning_areas": ["Management", "Marketing", "Finance fundamentals", "Business operations"],
+      "learning_area_descriptions": {
+        "Management": "Develop skills in planning, organising, leading teams, and evaluating organisational performance.",
+        "Marketing": "Understand customer needs, market research, product positioning, promotion, and relationship building.",
+        "Finance fundamentals": "Learn budgeting, financial statements, cash-flow concepts, and responsible business decision-making.",
+        "Business operations": "Examine the processes, resources, quality controls, and services needed to run an organisation effectively."
+      },
+      "learning_area_topics": {
+        "Management": ["Planning and organising", "Leadership", "Performance evaluation"],
+        "Marketing": ["Market research", "Customer behaviour", "Promotion strategy"],
+        "Finance fundamentals": ["Budgeting", "Financial statements", "Cash-flow concepts"],
+        "Business operations": ["Process improvement", "Resource coordination", "Quality and service"]
+      },
+      "career_directions": ["Business and operations administration", "Marketing and customer development", "Entrepreneurship and enterprise support"],
+      "recommended_strands": ["ABM", "GAS"],
+      "strand_guidance": "ABM offers the closest preparation in business, accounting, management, and entrepreneurship; GAS also provides broad academic preparation.",
+      "readiness_prompt": "Discuss your interest in leadership, communication, planning, and working with business information."
+    },
+    "bs-criminology": {
+      "description": "Focuses on crime, public safety, justice systems, investigation, and community-based prevention.",
+      "learning_areas": ["Criminal justice", "Law-enforcement foundations", "Investigation", "Community safety"],
+      "learning_area_descriptions": {
+        "Criminal justice": "Study how law enforcement, courts, corrections, and related institutions respond to crime and protect rights.",
+        "Law-enforcement foundations": "Build knowledge of professional ethics, legal procedures, public service, and responsible community relations.",
+        "Investigation": "Develop foundational skills in observation, interviewing, evidence handling, documentation, and analytical reporting.",
+        "Community safety": "Examine crime prevention, risk reduction, public-safety planning, and cooperation with local communities."
+      },
+      "learning_area_topics": {
+        "Criminal justice": ["Justice institutions", "Rights and due process", "Courts and corrections"],
+        "Law-enforcement foundations": ["Professional ethics", "Legal procedures", "Community relations"],
+        "Investigation": ["Evidence documentation", "Interviewing", "Analytical reporting"],
+        "Community safety": ["Crime prevention", "Risk assessment", "Public-safety coordination"]
+      },
+      "career_directions": ["Law-enforcement services", "Investigation and security support", "Community safety and crime prevention"],
+      "recommended_strands": ["HUMSS", "GAS"],
+      "strand_guidance": "HUMSS supports study of society, governance, communication, and human behaviour, while GAS offers broad preparation across disciplines.",
+      "readiness_prompt": "Ask TCC about current fitness, conduct, health, or other programme requirements before making a decision."
+    },
+    "bs-hospitality-management": {
+      "description": "Focuses on guest service, hospitality operations, events, food service, and tourism-related management.",
+      "learning_areas": ["Guest service", "Hospitality operations", "Events", "Food-service management"],
+      "learning_area_descriptions": {
+        "Guest service": "Practise professional communication, service recovery, and creating positive experiences for diverse guests.",
+        "Hospitality operations": "Learn how lodging, front-office, housekeeping, reservations, and service teams work together.",
+        "Events": "Plan and coordinate event concepts, schedules, venues, suppliers, guests, and on-site operations.",
+        "Food-service management": "Study food-service workflows, sanitation, menu planning, cost control, and customer service."
+      },
+      "learning_area_topics": {
+        "Guest service": ["Professional communication", "Service recovery", "Guest experience"],
+        "Hospitality operations": ["Front-office services", "Housekeeping coordination", "Reservations"],
+        "Events": ["Event planning", "Supplier coordination", "On-site operations"],
+        "Food-service management": ["Food safety", "Menu planning", "Cost control"]
+      },
+      "career_directions": ["Hospitality operations", "Guest and customer services", "Events and food-service coordination"],
+      "recommended_strands": ["TVL-HE", "ABM", "GAS"],
+      "strand_guidance": "TVL-Home Economics can provide practical hospitality and food-service exposure, while ABM supports the management side of hospitality operations.",
+      "readiness_prompt": "Discuss your interest in service, teamwork, communication, and working in active operational settings."
+    },
+    "bachelor-elementary-education": {
+      "description": "Prepares learners for teaching and supporting children across elementary learning areas.",
+      "learning_areas": ["Teaching methods", "Child development", "Classroom assessment", "Learning resources"],
+      "learning_area_descriptions": {
+        "Teaching methods": "Plan age-appropriate lessons and use varied strategies to help elementary learners understand different subjects.",
+        "Child development": "Understand how children grow, learn, communicate, and develop socially, emotionally, physically, and cognitively.",
+        "Classroom assessment": "Create and interpret activities, observations, and assessments that guide instruction and learner support.",
+        "Learning resources": "Select, design, and adapt print, digital, and hands-on materials for inclusive elementary classrooms."
+      },
+      "learning_area_topics": {
+        "Teaching methods": ["Lesson planning", "Instructional strategies", "Inclusive teaching"],
+        "Child development": ["Cognitive growth", "Social-emotional development", "Learner diversity"],
+        "Classroom assessment": ["Observation", "Learning evidence", "Feedback and support"],
+        "Learning resources": ["Instructional materials", "Digital resources", "Resource adaptation"]
+      },
+      "career_directions": ["Elementary teaching", "Learning and classroom support", "Education programme support"],
+      "recommended_strands": ["HUMSS", "GAS"],
+      "strand_guidance": "HUMSS develops communication and understanding of people and society; GAS provides broad preparation across subjects taught in elementary school.",
+      "readiness_prompt": "Discuss your interest in teaching children, communication, patience, and responsible classroom practice."
+    },
+    "bachelor-secondary-education": {
+      "description": "Prepares learners for secondary teaching, including the currently recorded English, Filipino, and Social Studies or Araling Panlipunan majors.",
+      "learning_areas": ["Teaching methods", "Adolescent learning", "Subject specialisation", "Classroom assessment"],
+      "learning_area_descriptions": {
+        "Teaching methods": "Design lessons, discussions, and learning activities suited to junior and senior high school classrooms.",
+        "Adolescent learning": "Study the cognitive, social, emotional, and developmental needs that influence how adolescents learn.",
+        "Subject specialisation": "Build deeper content and teaching knowledge in the selected English, Filipino, or Social Studies major.",
+        "Classroom assessment": "Develop fair assessments, interpret learner performance, and use feedback to improve secondary instruction."
+      },
+      "learning_area_topics": {
+        "Teaching methods": ["Lesson design", "Classroom discussion", "Active learning"],
+        "Adolescent learning": ["Adolescent development", "Learning motivation", "Learner support"],
+        "Subject specialisation": ["Major content", "Subject pedagogy", "Curriculum alignment"],
+        "Classroom assessment": ["Assessment design", "Performance analysis", "Instructional feedback"]
+      },
+      "career_directions": ["Secondary teaching", "Subject-focused learning support", "Curriculum and education programme support"],
+      "recommended_strands": ["HUMSS", "GAS"],
+      "strand_guidance": "HUMSS aligns closely with the recorded English, Filipino, and Social Studies majors; GAS offers broad preparation for further subject specialisation.",
+      "readiness_prompt": "Confirm the available major with TCC and discuss your interest in teaching, communication, and subject-focused study."
+    },
+    "bs-midwifery": {
+      "description": "Focuses on maternal and newborn care, community health, professional practice, and supervised clinical learning.",
+      "learning_areas": ["Maternal care", "Newborn care", "Community health", "Clinical practice"],
+      "learning_area_descriptions": {
+        "Maternal care": "Study health support before, during, and after childbirth, including monitoring, education, and appropriate referral.",
+        "Newborn care": "Learn essential newborn assessment, routine care, parent education, and recognition of conditions needing referral.",
+        "Community health": "Understand preventive care, health promotion, family support, and maternal-newborn services in community settings.",
+        "Clinical practice": "Apply knowledge and professional standards through supervised skills training and clinical learning experiences."
+      },
+      "learning_area_topics": {
+        "Maternal care": ["Prenatal support", "Childbirth care", "Postpartum monitoring"],
+        "Newborn care": ["Newborn assessment", "Routine care", "Parent education"],
+        "Community health": ["Health promotion", "Preventive care", "Family support"],
+        "Clinical practice": ["Supervised skills", "Professional standards", "Clinical documentation"]
+      },
+      "career_directions": ["Maternal health services", "Newborn care services", "Community health support"],
+      "recommended_strands": ["STEM", "TVL-HE", "GAS"],
+      "strand_guidance": "STEM strengthens preparation in the sciences, while relevant TVL-Home Economics health-care subjects may provide practical care experience.",
+      "readiness_prompt": "Ask TCC about current health, clinical placement, equipment, and regulatory requirements before making a decision."
+    },
+    "bachelor-library-information-science": {
+      "description": "Focuses on organising, preserving, finding, and providing access to information and knowledge resources.",
+      "learning_areas": ["Information organisation", "Reference services", "Digital libraries", "Records and collections"],
+      "learning_area_descriptions": {
+        "Information organisation": "Describe, classify, index, and arrange information so people can discover and retrieve it efficiently.",
+        "Reference services": "Identify information needs, evaluate sources, conduct searches, and guide users toward reliable resources.",
+        "Digital libraries": "Work with digital collections, repositories, metadata, access systems, and long-term digital preservation.",
+        "Records and collections": "Develop, preserve, and manage physical or digital records and collections throughout their useful life."
+      },
+      "learning_area_topics": {
+        "Information organisation": ["Classification", "Cataloguing", "Indexing and metadata"],
+        "Reference services": ["Information searching", "Source evaluation", "User assistance"],
+        "Digital libraries": ["Digital repositories", "Metadata systems", "Digital preservation"],
+        "Records and collections": ["Collection development", "Records lifecycle", "Preservation"]
+      },
+      "career_directions": ["Library and reference services", "Records and information management", "Digital information services"],
+      "recommended_strands": ["HUMSS", "TVL-ICT", "GAS"],
+      "strand_guidance": "HUMSS supports research and communication, while TVL-ICT can help with digital information systems and technology-enabled library services.",
+      "readiness_prompt": "Discuss your interest in information, service, technology, organisation, and careful record keeping."
+    },
+    "bs-sociology": {
+      "description": "Focuses on society, communities, institutions, culture, social research, and social change.",
+      "learning_areas": ["Social theory", "Research methods", "Community studies", "Social analysis"],
+      "learning_area_descriptions": {
+        "Social theory": "Use major sociological ideas to understand relationships, institutions, inequality, culture, and social change.",
+        "Research methods": "Design ethical studies and collect, organise, analyse, and interpret qualitative and quantitative social data.",
+        "Community studies": "Examine how communities are formed, how they change, and how local institutions shape everyday life.",
+        "Social analysis": "Evaluate social issues using evidence, multiple perspectives, and clear written or oral communication."
+      },
+      "learning_area_topics": {
+        "Social theory": ["Social institutions", "Culture and inequality", "Social change"],
+        "Research methods": ["Study design", "Qualitative research", "Quantitative analysis"],
+        "Community studies": ["Local institutions", "Community relationships", "Patterns of change"],
+        "Social analysis": ["Evidence evaluation", "Multiple perspectives", "Research communication"]
+      },
+      "career_directions": ["Social and field research", "Community programme support", "Policy and social analysis"],
+      "recommended_strands": ["HUMSS", "GAS"],
+      "strand_guidance": "HUMSS provides close preparation in society, culture, communication, and social sciences; GAS offers a broad academic foundation.",
+      "readiness_prompt": "Discuss your interest in people, communities, research, writing, and analysing social issues."
+    },
+    "bs-community-development": {
+      "description": "Focuses on participatory community work, programme planning, local development, and social mobilisation.",
+      "learning_areas": ["Community organising", "Development planning", "Project work", "Participatory research"],
+      "learning_area_descriptions": {
+        "Community organising": "Build relationships, support local leadership, facilitate participation, and help communities act on shared concerns.",
+        "Development planning": "Assess community needs and resources, set priorities, and design inclusive strategies for local development.",
+        "Project work": "Plan, coordinate, monitor, document, and evaluate community-based programmes and services.",
+        "Participatory research": "Work with community members to gather evidence, interpret local conditions, and shape practical responses."
+      },
+      "learning_area_topics": {
+        "Community organising": ["Relationship building", "Local leadership", "Participatory facilitation"],
+        "Development planning": ["Needs assessment", "Resource mapping", "Inclusive planning"],
+        "Project work": ["Project coordination", "Monitoring", "Evaluation and documentation"],
+        "Participatory research": ["Community-led inquiry", "Local data gathering", "Action planning"]
+      },
+      "career_directions": ["Community organising and facilitation", "Development project coordination", "Community research and programme support"],
+      "recommended_strands": ["HUMSS", "GAS"],
+      "strand_guidance": "HUMSS supports communication, social analysis, and understanding communities; GAS provides flexible preparation for interdisciplinary community work.",
+      "readiness_prompt": "Discuss your interest in community service, facilitation, fieldwork, teamwork, and project planning."
+    },
+    "bachelor-physical-education": {
+      "description": "Prepares learners to teach and facilitate physical activity, movement, fitness, sports, and wellness education.",
+      "learning_areas": ["Movement education", "Fitness", "Sports instruction", "Teaching methods"],
+      "learning_area_descriptions": {
+        "Movement education": "Understand movement concepts and design safe activities that develop coordination, body awareness, and physical literacy.",
+        "Fitness": "Learn principles of exercise, conditioning, wellness, and age-appropriate fitness assessment and programme planning.",
+        "Sports instruction": "Teach sport skills, rules, teamwork, safety, officiating, and responsible participation in physical activities.",
+        "Teaching methods": "Plan inclusive physical education lessons, manage active learning environments, and assess learner progress."
+      },
+      "learning_area_topics": {
+        "Movement education": ["Physical literacy", "Coordination", "Safe movement activities"],
+        "Fitness": ["Exercise principles", "Conditioning", "Fitness assessment"],
+        "Sports instruction": ["Sport skills", "Rules and officiating", "Teamwork and safety"],
+        "Teaching methods": ["Lesson planning", "Active-class management", "Learner assessment"]
+      },
+      "career_directions": ["Physical education teaching", "Sports and fitness instruction", "Wellness programme support"],
+      "recommended_strands": ["Sports Track", "HUMSS", "GAS"],
+      "strand_guidance": "The Sports Track offers the closest activity-based preparation, while HUMSS and GAS support communication and broad academic readiness for teaching.",
+      "readiness_prompt": "Ask TCC about current physical, health, practicum, or activity requirements before making a decision."
+    }
+  }
+}

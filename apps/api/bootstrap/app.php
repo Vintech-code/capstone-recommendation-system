@@ -1,5 +1,7 @@
 <?php
 
+use App\Exceptions\OnetServiceException;
+use App\Http\Middleware\EnsureAccountIsActive;
 use App\Http\Middleware\EnsureUserHasRole;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Application;
@@ -18,9 +20,30 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->statefulApi();
         $middleware->alias([
             'role' => EnsureUserHasRole::class,
+            'active' => EnsureAccountIsActive::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        $exceptions->render(function (OnetServiceException $exception, Request $request) {
+            if (! $request->is('api/*')) {
+                return null;
+            }
+
+            $response = response()->json([
+                'message' => $exception->getMessage(),
+                'error' => [
+                    'code' => $exception->errorCode(),
+                    'message' => $exception->getMessage(),
+                ],
+            ], $exception->status());
+
+            if ($exception->retryAfterSeconds() !== null) {
+                $response->headers->set('Retry-After', (string) $exception->retryAfterSeconds());
+            }
+
+            return $response;
+        });
+
         $exceptions->render(function (
             AuthenticationException $exception,
             Request $request,
