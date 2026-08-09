@@ -24,6 +24,13 @@ class EnsureUserHasRole
             return $this->forbiddenResponse();
         }
 
+        if ($user->must_change_password && ! str_contains($request->path(), 'auth/authorize/')) {
+            return response()->json([
+                'message' => 'Change the temporary password before using this workspace.',
+                'error' => ['code' => 'PASSWORD_CHANGE_REQUIRED'],
+            ], 409);
+        }
+
         return $next($request);
     }
 

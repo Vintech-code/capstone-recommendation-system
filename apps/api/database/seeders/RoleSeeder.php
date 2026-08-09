@@ -15,8 +15,8 @@ class RoleSeeder extends Seeder
                 ['slug' => $role->value],
                 ['name' => match ($role) {
                     RoleSlug::Student => 'Student Applicant',
-                    RoleSlug::Admin => 'Guidance / Psychometrician / Admin',
-                    RoleSlug::SystemAdmin => 'System Administrator',
+                    RoleSlug::Admin => 'Administrator',
+                    RoleSlug::Counselor => 'Counselor',
                 }],
             );
         }

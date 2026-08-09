@@ -10,12 +10,12 @@ return [
             'email' => env('LOCAL_STUDENT_EMAIL', 'student@example.test'),
         ],
         'admin' => [
-            'name' => env('LOCAL_ADMIN_NAME', 'Local Guidance Admin'),
+            'name' => env('LOCAL_ADMIN_NAME', 'Local Administrator'),
             'email' => env('LOCAL_ADMIN_EMAIL', 'admin@example.test'),
         ],
-        'system-admin' => [
-            'name' => env('LOCAL_SYSTEM_ADMIN_NAME', 'Local System Administrator'),
-            'email' => env('LOCAL_SYSTEM_ADMIN_EMAIL', 'system-admin@example.test'),
+        'counselor' => [
+            'name' => env('LOCAL_COUNSELOR_NAME', 'Local Counselor'),
+            'email' => env('LOCAL_COUNSELOR_EMAIL', 'counselor@example.test'),
         ],
     ],
 ];

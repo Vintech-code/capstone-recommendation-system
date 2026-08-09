@@ -12,7 +12,7 @@ class CreateLocalAdmin extends Command
 {
     protected $signature = 'auth:create-local-admin {email?}';
 
-    protected $description = 'Create a local Guidance / Psychometrician / Admin account';
+    protected $description = 'Create a local Administrator account';
 
     public function handle(): int
     {

@@ -10,7 +10,6 @@ use App\Models\User;
 use App\Services\Onet\OnetInterestProfilerClient;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Queue;
 use RuntimeException;
 use Tests\TestCase;
 
@@ -70,9 +69,17 @@ class AssessmentSessionPersistenceTest extends TestCase
             ->assertNotFound();
     }
 
-    public function test_complete_session_is_locked_and_queued_for_result_processing(): void
+    public function test_complete_session_ignores_late_save_replays_without_changing_submitted_answers(): void
     {
-        Queue::fake();
+        config()->set('services.onet.api_key', 'test-onet-key');
+        Http::fake(['api-v2.onetcenter.org/*' => Http::response(['result' => [
+            ['title' => 'Realistic', 'score' => 10],
+            ['title' => 'Investigative', 'score' => 20],
+            ['title' => 'Artistic', 'score' => 15],
+            ['title' => 'Social', 'score' => 12],
+            ['title' => 'Enterprising', 'score' => 11],
+            ['title' => 'Conventional', 'score' => 18],
+        ]])]);
         $student = $this->student();
         $answers = array_combine(range(1, 30), array_fill(0, 30, 3));
         $session = AssessmentSession::query()->create([
@@ -86,15 +93,31 @@ class AssessmentSessionPersistenceTest extends TestCase
 
         $this->actingAs($student)
             ->postJson("/api/v1/student/assessments/onet-mini-ip/sessions/{$session->getKey()}/submit")
-            ->assertAccepted()
-            ->assertJsonPath('data.status', 'preparing_result');
-
-        Queue::assertPushed(ProcessAssessmentResult::class, fn (ProcessAssessmentResult $job): bool => $job->assessmentSessionId === $session->getKey());
+            ->assertOk()
+            ->assertJsonPath('data.status', 'result_available')
+            ->assertJsonCount(6, 'data.result.result');
 
         $this->patchJson("/api/v1/student/assessments/onet-mini-ip/sessions/{$session->getKey()}", [
             'answers' => $answers,
             'current_question' => 30,
-        ])->assertConflict();
+        ])
+            ->assertOk()
+            ->assertJsonPath('data.status', 'result_available')
+            ->assertJsonPath('meta.save_ignored', true);
+
+        $changedAnswers = $answers;
+        $changedAnswers[1] = 5;
+
+        $this->patchJson("/api/v1/student/assessments/onet-mini-ip/sessions/{$session->getKey()}", [
+            'answers' => $changedAnswers,
+            'current_question' => 12,
+        ])
+            ->assertOk()
+            ->assertJsonPath('data.answers.1', 3)
+            ->assertJsonPath('data.current_question', 30)
+            ->assertJsonPath('meta.save_ignored', true);
+
+        $this->assertSame($answers, $session->fresh()->answers);
     }
 
     public function test_incomplete_session_cannot_be_submitted(): void
@@ -115,7 +138,7 @@ class AssessmentSessionPersistenceTest extends TestCase
             ->assertJsonValidationErrors('answers');
     }
 
-    public function test_queued_processing_makes_the_result_available(): void
+    public function test_result_processor_makes_the_result_available(): void
     {
         config()->set('services.onet.api_key', 'test-onet-key');
         config()->set('assessment.retake.minimum_days_between_completed_attempts', 14);
@@ -154,9 +177,38 @@ class AssessmentSessionPersistenceTest extends TestCase
         $this->assertSame(14, (int) $session->result_available_at->diffInDays($session->retake_available_at));
     }
 
+    public function test_loading_a_legacy_preparing_session_finishes_the_result_immediately(): void
+    {
+        config()->set('services.onet.api_key', 'test-onet-key');
+        Http::fake(['api-v2.onetcenter.org/*' => Http::response(['result' => [
+            ['title' => 'Realistic', 'score' => 10],
+            ['title' => 'Investigative', 'score' => 20],
+            ['title' => 'Artistic', 'score' => 15],
+            ['title' => 'Social', 'score' => 12],
+            ['title' => 'Enterprising', 'score' => 11],
+            ['title' => 'Conventional', 'score' => 18],
+        ]])]);
+        $student = $this->student();
+        AssessmentSession::query()->create([
+            'user_id' => $student->getKey(),
+            'instrument_code' => 'onet-mini-ip-30',
+            'status' => 'preparing_result',
+            'answers' => array_combine(range(1, 30), array_fill(0, 30, 3)),
+            'current_question' => 30,
+            'is_current' => true,
+            'started_at' => now(),
+            'submitted_at' => now(),
+        ]);
+
+        $this->actingAs($student)
+            ->getJson('/api/v1/student/assessments/onet-mini-ip/session')
+            ->assertOk()
+            ->assertJsonPath('data.status', 'result_available')
+            ->assertJsonCount(6, 'data.result.result');
+    }
+
     public function test_failed_processing_is_recoverable_without_unlocking_answers(): void
     {
-        Queue::fake();
         $student = $this->student();
         $session = AssessmentSession::query()->create([
             'user_id' => $student->getKey(),
@@ -176,13 +228,22 @@ class AssessmentSessionPersistenceTest extends TestCase
         $this->assertSame('ASSESSMENT_PROVIDER_UNAVAILABLE', $session->processing_error_code);
         $this->assertNotNull($session->processing_failed_at);
 
+        config()->set('services.onet.api_key', 'test-onet-key');
+        Http::fake(['api-v2.onetcenter.org/*' => Http::response(['result' => [
+            ['title' => 'Realistic', 'score' => 10],
+            ['title' => 'Investigative', 'score' => 20],
+            ['title' => 'Artistic', 'score' => 15],
+            ['title' => 'Social', 'score' => 12],
+            ['title' => 'Enterprising', 'score' => 11],
+            ['title' => 'Conventional', 'score' => 18],
+        ]])]);
+
         $this->actingAs($student)
             ->postJson("/api/v1/student/assessments/onet-mini-ip/sessions/{$session->getKey()}/retry-result")
-            ->assertAccepted()
-            ->assertJsonPath('data.status', 'preparing_result')
+            ->assertOk()
+            ->assertJsonPath('data.status', 'result_available')
             ->assertJsonPath('data.answer_count', 30);
 
-        Queue::assertPushed(ProcessAssessmentResult::class);
         $this->assertDatabaseMissing('assessment_sessions', [
             'id' => $session->getKey(),
             'processing_error_code' => 'Provider details must not be stored.',

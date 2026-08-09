@@ -17,7 +17,7 @@ class CreateLocalAdminCommandTest extends TestCase
     {
         Role::query()->create([
             'slug' => RoleSlug::Admin->value,
-            'name' => 'Guidance / Psychometrician / Admin',
+            'name' => 'Administrator',
         ]);
 
         $this->artisan('auth:create-local-admin', [

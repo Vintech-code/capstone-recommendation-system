@@ -1,13 +1,25 @@
 <?php
 
+use App\Http\Controllers\Admin\AdminAppointmentController;
+use App\Http\Controllers\Admin\AdminConfigurationController;
+use App\Http\Controllers\Admin\AdminCounselorAccountController;
+use App\Http\Controllers\Admin\AdminGuidanceController;
+use App\Http\Controllers\Admin\AdminGuidanceRequestController;
+use App\Http\Controllers\Admin\AdminProgrammeMediaController;
+use App\Http\Controllers\Admin\AdminWorkspaceController;
 use App\Http\Controllers\Assessment\AssessmentSessionController;
 use App\Http\Controllers\Assessment\OnetInterestProfilerController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\Auth\PasswordChangeController;
 use App\Http\Controllers\Auth\PasswordRecoveryController;
 use App\Http\Controllers\Auth\PortalAccessController;
 use App\Http\Controllers\Auth\RegisteredStudentController;
+use App\Http\Controllers\Guidance\StudentGuidanceAppointmentController;
+use App\Http\Controllers\Guidance\StudentGuidanceRequestController;
 use App\Http\Controllers\Recommendation\StudentProgrammeController;
 use App\Http\Controllers\Recommendation\StudentRecommendationController;
+use App\Http\Controllers\Recommendation\StudentSavedProgrammeController;
+use App\Http\Controllers\Student\StudentProfileController;
 use App\Models\RoleSlug;
 use Illuminate\Support\Facades\Route;
 
@@ -25,6 +37,7 @@ Route::prefix('v1/auth')->group(function (): void {
     Route::middleware(['auth:sanctum', 'active'])->group(function (): void {
         Route::get('/me', [AuthenticatedSessionController::class, 'show']);
         Route::post('/logout', [AuthenticatedSessionController::class, 'destroy']);
+        Route::put('/password', PasswordChangeController::class);
 
         foreach (RoleSlug::cases() as $role) {
             Route::get("/authorize/{$role->value}", PortalAccessController::class)
@@ -59,4 +72,81 @@ Route::prefix('v1/student/programmes')
     ->group(function (): void {
         Route::get('/', [StudentProgrammeController::class, 'index']);
         Route::get('/{programme}', [StudentProgrammeController::class, 'show']);
+    });
+
+Route::get('v1/student/guidance-appointments', [StudentGuidanceAppointmentController::class, 'index'])
+    ->middleware(['auth:sanctum', 'active', 'role:student']);
+Route::post('v1/student/guidance-appointments/{guidanceAppointment}/confirm', [StudentGuidanceAppointmentController::class, 'confirm'])
+    ->middleware(['auth:sanctum', 'active', 'role:student']);
+Route::post('v1/student/guidance-appointments/{guidanceAppointment}/cancel', [StudentGuidanceAppointmentController::class, 'cancel'])
+    ->middleware(['auth:sanctum', 'active', 'role:student']);
+
+Route::prefix('v1/student/guidance-requests')
+    ->middleware(['auth:sanctum', 'active', 'role:student'])
+    ->group(function (): void {
+        Route::get('/', [StudentGuidanceRequestController::class, 'index']);
+        Route::post('/', [StudentGuidanceRequestController::class, 'store']);
+        Route::post('/{guidanceRequest}/cancel', [StudentGuidanceRequestController::class, 'cancel']);
+    });
+
+Route::prefix('v1/student/saved-programmes')
+    ->middleware(['auth:sanctum', 'active', 'role:student'])
+    ->group(function (): void {
+        Route::get('/', [StudentSavedProgrammeController::class, 'index']);
+        Route::put('/{programme}', [StudentSavedProgrammeController::class, 'store']);
+        Route::delete('/{programme}', [StudentSavedProgrammeController::class, 'destroy']);
+    });
+
+Route::prefix('v1/student/profile')
+    ->middleware(['auth:sanctum', 'active', 'role:student'])
+    ->group(function (): void {
+        Route::get('/', [StudentProfileController::class, 'show']);
+        Route::match(['post', 'put'], '/', [StudentProfileController::class, 'store']);
+        Route::post('/photo', [StudentProfileController::class, 'storePhoto']);
+        Route::get('/riasec-result', [StudentProfileController::class, 'riasec']);
+    });
+
+Route::get('v1/profile-photos/{student}', [StudentProfileController::class, 'showPhoto'])
+    ->middleware(['auth:sanctum', 'active']);
+
+Route::prefix('v1/admin')
+    ->middleware(['auth:sanctum', 'active', 'role:admin'])
+    ->group(function (): void {
+        Route::get('/overview', [AdminWorkspaceController::class, 'overview']);
+        Route::get('/students', [AdminWorkspaceController::class, 'students']);
+        Route::get('/students/{student}', [AdminWorkspaceController::class, 'student']);
+        Route::get('/assessments', [AdminWorkspaceController::class, 'assessments']);
+        Route::get('/counselors', [AdminWorkspaceController::class, 'counselors']);
+        Route::post('/counselors', [AdminCounselorAccountController::class, 'store']);
+        Route::put('/counselors/{counselor}', [AdminCounselorAccountController::class, 'update']);
+        Route::post('/counselors/{counselor}/reset-password', [AdminCounselorAccountController::class, 'resetPassword']);
+        Route::get('/appointments', [AdminAppointmentController::class, 'index']);
+        Route::get('/guidance-requests', [AdminGuidanceRequestController::class, 'index']);
+        Route::get('/programmes', [AdminWorkspaceController::class, 'programmes']);
+        Route::post('/programmes/{programme}/media', [AdminProgrammeMediaController::class, 'store']);
+        Route::get('/reports', [AdminWorkspaceController::class, 'reports']);
+        Route::get('/reports/export', [AdminWorkspaceController::class, 'exportReports']);
+        Route::get('/activity', [AdminWorkspaceController::class, 'activity']);
+        Route::get('/configurations/{kind}', [AdminConfigurationController::class, 'index']);
+        Route::post('/configurations/{kind}', [AdminConfigurationController::class, 'store']);
+        Route::put('/configurations/versions/{configurationVersion}', [AdminConfigurationController::class, 'update']);
+        Route::post('/configurations/versions/{configurationVersion}/publish', [AdminConfigurationController::class, 'publish']);
+    });
+
+Route::prefix('v1/counselor')
+    ->middleware(['auth:sanctum', 'active', 'role:counselor'])
+    ->group(function (): void {
+        Route::get('/overview', [AdminWorkspaceController::class, 'overview']);
+        Route::get('/students', [AdminWorkspaceController::class, 'students']);
+        Route::get('/students/{student}', [AdminWorkspaceController::class, 'student']);
+        Route::put('/students/{student}/guidance-case', [AdminGuidanceController::class, 'updateCase']);
+        Route::post('/students/{student}/guidance-notes', [AdminGuidanceController::class, 'storeNote']);
+        Route::get('/counselors', [AdminWorkspaceController::class, 'counselors']);
+        Route::get('/appointments', [AdminAppointmentController::class, 'index']);
+        Route::get('/guidance-requests', [AdminGuidanceRequestController::class, 'index']);
+        Route::post('/guidance-requests/{guidanceRequest}/decline', [AdminGuidanceRequestController::class, 'decline']);
+        Route::post('/appointments', [AdminAppointmentController::class, 'store']);
+        Route::put('/appointments/{guidanceAppointment}', [AdminAppointmentController::class, 'update']);
+        Route::get('/reports', [AdminWorkspaceController::class, 'reports']);
+        Route::get('/reports/export', [AdminWorkspaceController::class, 'exportReports']);
     });

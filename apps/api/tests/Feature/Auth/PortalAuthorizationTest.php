@@ -47,12 +47,12 @@ class PortalAuthorizationTest extends TestCase
         }
     }
 
-    public function test_an_account_with_multiple_assignments_is_not_restricted_until_policy_is_approved(): void
+    public function test_an_account_can_hold_multiple_explicit_role_assignments(): void
     {
         $user = User::factory()->create();
 
         foreach ([RoleSlug::Student, RoleSlug::Admin] as $role) {
-            $user->roles()->attach(Role::query()->create([
+            $user->roles()->attach(Role::query()->updateOrCreate([
                 'slug' => $role->value,
                 'name' => $role->name,
             ]));
@@ -67,32 +67,32 @@ class PortalAuthorizationTest extends TestCase
             ->assertOk();
     }
 
-    public function test_multiple_individual_accounts_may_hold_the_shared_admin_role(): void
+    public function test_multiple_individual_accounts_may_hold_the_counselor_role(): void
     {
-        $adminRole = Role::query()->create([
-            'slug' => RoleSlug::Admin->value,
-            'name' => RoleSlug::Admin->name,
+        $counselorRole = Role::query()->updateOrCreate([
+            'slug' => RoleSlug::Counselor->value,
+            'name' => RoleSlug::Counselor->name,
         ]);
         $counselor = User::factory()->create();
         $psychometrician = User::factory()->create();
 
-        $counselor->roles()->attach($adminRole);
-        $psychometrician->roles()->attach($adminRole);
+        $counselor->roles()->attach($counselorRole);
+        $psychometrician->roles()->attach($counselorRole);
 
         $this->actingAs($counselor)
-            ->getJson('/api/v1/auth/authorize/admin')
+            ->getJson('/api/v1/auth/authorize/counselor')
             ->assertOk();
 
         $this->actingAs($psychometrician)
-            ->getJson('/api/v1/auth/authorize/admin')
+            ->getJson('/api/v1/auth/authorize/counselor')
             ->assertOk();
 
-        $this->assertSame(2, $adminRole->users()->count());
+        $this->assertSame(2, $counselorRole->users()->count());
     }
 
     private function userWithRole(RoleSlug $role): User
     {
-        $roleModel = Role::query()->create([
+        $roleModel = Role::query()->updateOrCreate([
             'slug' => $role->value,
             'name' => $role->name,
         ]);

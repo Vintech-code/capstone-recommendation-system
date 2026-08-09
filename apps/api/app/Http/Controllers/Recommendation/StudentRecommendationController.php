@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\AssessmentSession;
 use App\Models\RecommendationRun;
 use App\Services\Onet\OnetInterestProfilerClient;
-use App\Services\Recommendation\ProposedGuidanceContentRepository;
 use App\Services\Recommendation\ProvisionalRiasecRecommendationEngine;
 use App\Services\Recommendation\TccProgrammeCatalogueRepository;
 use DomainException;
@@ -19,7 +18,6 @@ final class StudentRecommendationController extends Controller
         Request $request,
         ProvisionalRiasecRecommendationEngine $engine,
         TccProgrammeCatalogueRepository $catalogues,
-        ProposedGuidanceContentRepository $guidance,
     ): JsonResponse {
         $current = AssessmentSession::query()
             ->whereBelongsTo($request->user())
@@ -40,7 +38,7 @@ final class StudentRecommendationController extends Controller
             return response()->json(['data' => ['status' => 'preparing', 'recommendation' => null]]);
         }
 
-        return $this->forSession($request, $session, $engine, $catalogues, $guidance);
+        return $this->forSession($request, $session, $engine, $catalogues);
     }
 
     public function show(
@@ -48,12 +46,11 @@ final class StudentRecommendationController extends Controller
         AssessmentSession $assessmentSession,
         ProvisionalRiasecRecommendationEngine $engine,
         TccProgrammeCatalogueRepository $catalogues,
-        ProposedGuidanceContentRepository $guidance,
     ): JsonResponse {
         abort_unless($assessmentSession->user_id === $request->user()->getKey(), 404);
         $assessmentSession->load('recommendationRun');
 
-        return $this->forSession($request, $assessmentSession, $engine, $catalogues, $guidance);
+        return $this->forSession($request, $assessmentSession, $engine, $catalogues);
     }
 
     private function forSession(
@@ -61,7 +58,6 @@ final class StudentRecommendationController extends Controller
         ?AssessmentSession $session,
         ProvisionalRiasecRecommendationEngine $engine,
         TccProgrammeCatalogueRepository $catalogues,
-        ProposedGuidanceContentRepository $guidance,
     ): JsonResponse {
 
         $entries = $session?->result_payload['result'] ?? null;
@@ -69,12 +65,17 @@ final class StudentRecommendationController extends Controller
             return $this->notAvailable('ASSESSMENT_RESULT_UNAVAILABLE');
         }
 
+        try {
+            $catalogue = $catalogues->current();
+        } catch (\JsonException) {
+            return $this->notAvailable('RECOMMENDATION_CONFIGURATION_INVALID');
+        }
+
         $run = $session->recommendationRun;
         if ($run === null) {
             try {
-                $catalogue = $catalogues->current();
                 $result = $engine->recommend(OnetInterestProfilerClient::normalizeResultEntries($entries), $catalogue);
-            } catch (DomainException|\JsonException) {
+            } catch (DomainException) {
                 return $this->notAvailable('RECOMMENDATION_CONFIGURATION_INVALID');
             }
 
@@ -102,7 +103,7 @@ final class StudentRecommendationController extends Controller
                 $session,
                 OnetInterestProfilerClient::normalizeResultEntries($entries),
                 $request->query('view') === 'all',
-                $guidance->current(),
+                $catalogue,
             ),
         ]]);
     }
@@ -126,13 +127,23 @@ final class StudentRecommendationController extends Controller
             'factors' => array_map(static fn (string $code): string => "Profile includes {$code}", $course['profile']),
             'interestAreas' => $course['profile'],
             'learningAreas' => $course['learning_areas'],
-            'careerDirections' => [],
+            'learningAreaDescriptions' => $course['learning_area_descriptions'] ?? [],
+            'careerDirections' => $course['career_directions'] ?? [],
             'reviewNotes' => array_values(array_filter([
                 ...$course['requirements'],
                 $course['readiness_prompt'],
             ])),
             'contentStatus' => $course['content_status'],
             'contentVersion' => $course['content_version'],
+            'degreeType' => $course['degree_type'] ?? '',
+            'durationSource' => $course['duration'] ?? null,
+            'duration' => $course['duration']['display'] ?? '',
+            'salary' => $course['salary'] ?? null,
+            'jobGrowth' => $course['job_growth'] ?? null,
+            'outlookVersion' => $course['outlook_version'] ?? null,
+            'coverImageUrl' => $course['cover_image_url'] ?? null,
+            'logoImageUrl' => $course['logo_image_url'] ?? null,
+            'catalogueSnapshotVersion' => 1,
         ];
     }
 
@@ -142,25 +153,32 @@ final class StudentRecommendationController extends Controller
         AssessmentSession $session,
         array $entries,
         bool $viewAll,
-        array $guidance,
-    ): array
-    {
+        array $catalogue,
+    ): array {
         $courses = $run->ranked_courses ?? [];
-        $programmes = $guidance['programmes'] ?? [];
-        $commonRequirements = $guidance['common_requirements'] ?? [];
-        $courses = array_map(static function (array $course) use ($programmes, $commonRequirements, $guidance): array {
-            $programme = $programmes[$course['id']] ?? [];
+        $programmes = collect($catalogue['programmes'] ?? [])->keyBy('id');
+        $courses = array_map(static function (array $course) use ($programmes): array {
+            $programme = $programmes->get($course['id'], []);
 
             return array_merge($course, [
                 'summary' => $programme['description'] ?? '',
                 'learningAreas' => $programme['learning_areas'] ?? [],
+                'learningAreaDescriptions' => $programme['learning_area_descriptions'] ?? [],
                 'careerDirections' => $programme['career_directions'] ?? [],
                 'reviewNotes' => array_values(array_filter([
-                    ...$commonRequirements,
+                    ...($programme['requirements'] ?? []),
                     $programme['readiness_prompt'] ?? null,
                 ])),
-                'contentStatus' => $guidance['policy_status'] ?? 'proposed',
-                'contentVersion' => $guidance['policy_version'] ?? '',
+                'contentStatus' => $programme['content_status'] ?? 'proposed',
+                'contentVersion' => $programme['content_version'] ?? '',
+                'degreeType' => $programme['degree_type'] ?? '',
+                'duration' => $programme['duration']['display'] ?? '',
+                'durationSource' => $programme['duration'] ?? null,
+                'salary' => $programme['salary'] ?? null,
+                'jobGrowth' => $programme['job_growth'] ?? null,
+                'outlookVersion' => $programme['outlook_version'] ?? null,
+                'coverImageUrl' => $programme['cover_image_url'] ?? null,
+                'logoImageUrl' => $programme['logo_image_url'] ?? null,
             ]);
         }, $courses);
         $visibleCourses = $viewAll ? $courses : array_slice($courses, 0, $run->default_count);
@@ -209,8 +227,7 @@ final class StudentRecommendationController extends Controller
         ));
 
         $leading = $dimensions;
-        usort($leading, static fn (array $left, array $right): int =>
-            ($right['value'] <=> $left['value']) ?: ($left['order'] <=> $right['order'])
+        usort($leading, static fn (array $left, array $right): int => ($right['value'] <=> $left['value']) ?: ($left['order'] <=> $right['order'])
         );
         $leading = array_slice($leading, 0, 2);
 

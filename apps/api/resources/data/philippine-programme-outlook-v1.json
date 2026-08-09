@@ -1,0 +1,57 @@
+{
+    "schema_version": 1,
+    "policy_status": "official_sources_with_explicit_gaps",
+    "policy_version": "PH-OUTLOOK-2026-08-09",
+    "defaults": {
+        "degree_type": "Bachelor's degree",
+        "salary": {
+            "status": "not_published",
+            "display": "Not published",
+            "note": "No official Philippine course-specific starting-salary figure is available.",
+            "source_name": "Philippine Statistics Authority Occupational Wages Survey",
+            "source_url": "https://psa.gov.ph/statistics/occupational-wages-survey"
+        },
+        "job_growth": {
+            "status": "not_published",
+            "display": "Not published",
+            "note": "No official Philippine course-specific job-growth percentage is available.",
+            "source_name": "Philippine Statistics Authority OpenSTAT",
+            "source_url": "https://openstat.psa.gov.ph/Database/Demographic-and-Social-Statistics/Labor-and-Employment"
+        }
+    },
+    "programmes": {
+        "bs-information-technology": {
+            "duration": { "status": "ched_psg", "display": "4 years", "source_name": "CHED CMO No. 25, series of 2015", "source_url": "https://legacy.ched.gov.ph/2015-ched-memorandum-orders/" }
+        },
+        "bs-business-administration": {
+            "duration": { "status": "ched_psg", "display": "4 years", "source_name": "CHED CMO No. 17, series of 2017", "source_url": "https://ched.gov.ph/2017-ched-memorandum-orders/" }
+        },
+        "bs-criminology": {
+            "duration": { "status": "ched_psg", "display": "4 years", "source_name": "CHED CMO No. 5, series of 2018", "source_url": "https://ched.gov.ph/wp-content/uploads/2018/05/CMO-No.-05-s.-2018-PSG-for-BS-Criminology.pdf" }
+        },
+        "bs-hospitality-management": {
+            "duration": { "status": "ched_psg", "display": "4 years", "source_name": "CHED CMO No. 62, series of 2017", "source_url": "https://ched.gov.ph/wp-content/uploads/2018/03/CMO-62-BS-Hospitality-Tourism-Management.pdf" }
+        },
+        "bachelor-elementary-education": {
+            "duration": { "status": "ched_psg", "display": "4 years", "source_name": "CHED CMO No. 74, series of 2017", "source_url": "https://ched.gov.ph/wp-content/uploads/2017/11/CMO-No.-74-s.-2017.pdf" }
+        },
+        "bachelor-secondary-education": {
+            "duration": { "status": "ched_psg", "display": "4 years", "source_name": "CHED CMO No. 75, series of 2017", "source_url": "https://ched.gov.ph/2017-ched-memorandum-orders/" }
+        },
+        "bs-midwifery": {
+            "duration": { "status": "ched_psg", "display": "4 years", "source_name": "CHED CMO No. 3, series of 2023", "source_url": "https://ched.gov.ph/2023-ched-memorandum-orders/" }
+        },
+        "bachelor-library-information-science": {
+            "duration": { "status": "ched_psg", "display": "4 years", "source_name": "CHED CMO No. 24, series of 2015", "source_url": "https://legacy.ched.gov.ph/2015-ched-memorandum-orders/" }
+        },
+        "bs-sociology": {
+            "duration": { "status": "needs_tcc_confirmation", "display": "Confirm with TCC", "source_name": "CHED 2017 Memorandum Orders", "source_url": "https://ched.gov.ph/2017-ched-memorandum-orders/", "note": "The CHED PSG located is for BA Sociology, while the TCC catalogue records BS Sociology." }
+        },
+        "bs-community-development": {
+            "duration": { "status": "needs_tcc_confirmation", "display": "Confirm with TCC", "source_name": "CHED issuances", "source_url": "https://ched.gov.ph/issuances/", "note": "A matching current CHED PSG was not located for the exact TCC programme title." }
+        },
+        "bachelor-physical-education": {
+            "duration": { "status": "ched_psg", "display": "4 years", "source_name": "CHED CMO No. 80, series of 2017", "source_url": "https://ched.gov.ph/2017-ched-memorandum-orders/" }
+        }
+    }
+}

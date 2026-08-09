@@ -50,6 +50,13 @@ class StudentProgrammeController extends Controller
             'requirements' => $programme['requirements'] ?? [],
             'readinessPrompt' => $programme['readiness_prompt'] ?? '',
             'contentVersion' => $programme['content_version'] ?? null,
+            'degreeType' => $programme['degree_type'] ?? '',
+            'duration' => $programme['duration'] ?? null,
+            'salary' => $programme['salary'] ?? null,
+            'jobGrowth' => $programme['job_growth'] ?? null,
+            'outlookVersion' => $programme['outlook_version'] ?? null,
+            'coverImageUrl' => $programme['cover_image_url'] ?? null,
+            'logoImageUrl' => $programme['logo_image_url'] ?? null,
         ];
     }
 }

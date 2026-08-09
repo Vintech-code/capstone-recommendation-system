@@ -1,0 +1,46 @@
+{
+  "version": "onet-mini-ip-30-v1",
+  "source": {
+    "title": "Development of the O*NET Mini Interest Profiler (Mini-IP)",
+    "url": "https://www.onetcenter.org/dl_files/Mini-IP.pdf"
+  },
+  "answer_options": [
+    { "value": 1, "name": "Strongly Dislike" },
+    { "value": 2, "name": "Dislike" },
+    { "value": 3, "name": "Unsure" },
+    { "value": 4, "name": "Like" },
+    { "value": 5, "name": "Strongly Like" }
+  ],
+  "questions": [
+    { "index": 1, "area": "Realistic", "text": "Build kitchen cabinets" },
+    { "index": 2, "area": "Investigative", "text": "Develop a new medicine" },
+    { "index": 3, "area": "Artistic", "text": "Write books or plays" },
+    { "index": 4, "area": "Social", "text": "Help people with personal or emotional problems" },
+    { "index": 5, "area": "Enterprising", "text": "Manage a department within a large company" },
+    { "index": 6, "area": "Conventional", "text": "Install software across computers on a large network" },
+    { "index": 7, "area": "Realistic", "text": "Repair household appliances" },
+    { "index": 8, "area": "Investigative", "text": "Study ways to reduce water pollution" },
+    { "index": 9, "area": "Artistic", "text": "Compose or arrange music" },
+    { "index": 10, "area": "Social", "text": "Give career guidance to people" },
+    { "index": 11, "area": "Enterprising", "text": "Start your own business" },
+    { "index": 12, "area": "Conventional", "text": "Operate a calculator" },
+    { "index": 13, "area": "Realistic", "text": "Assemble electronic parts" },
+    { "index": 14, "area": "Investigative", "text": "Conduct chemical experiments" },
+    { "index": 15, "area": "Artistic", "text": "Create special effects for movies" },
+    { "index": 16, "area": "Social", "text": "Perform rehabilitation therapy" },
+    { "index": 17, "area": "Enterprising", "text": "Negotiate business contracts" },
+    { "index": 18, "area": "Conventional", "text": "Keep shipping and receiving records" },
+    { "index": 19, "area": "Realistic", "text": "Drive a truck to deliver packages to offices and homes" },
+    { "index": 20, "area": "Investigative", "text": "Examine blood samples using a microscope" },
+    { "index": 21, "area": "Artistic", "text": "Paint sets for plays" },
+    { "index": 22, "area": "Social", "text": "Do volunteer work at a non-profit organization" },
+    { "index": 23, "area": "Enterprising", "text": "Market a new line of clothing" },
+    { "index": 24, "area": "Conventional", "text": "Inventory supplies using a hand-held computer" },
+    { "index": 25, "area": "Realistic", "text": "Test the quality of parts before shipment" },
+    { "index": 26, "area": "Investigative", "text": "Develop a way to better predict the weather" },
+    { "index": 27, "area": "Artistic", "text": "Write scripts for movies or television shows" },
+    { "index": 28, "area": "Social", "text": "Teach a high-school class" },
+    { "index": 29, "area": "Enterprising", "text": "Sell merchandise at a department store" },
+    { "index": 30, "area": "Conventional", "text": "Stamp, sort, and distribute mail for an organization" }
+  ]
+}

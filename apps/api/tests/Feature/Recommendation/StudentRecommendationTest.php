@@ -3,6 +3,7 @@
 namespace Tests\Feature\Recommendation;
 
 use App\Models\AssessmentSession;
+use App\Models\GuidanceAppointment;
 use App\Models\RecommendationRun;
 use App\Models\Role;
 use App\Models\RoleSlug;
@@ -59,6 +60,11 @@ class StudentRecommendationTest extends TestCase
             ->assertJsonPath('data.learningAreaTopics.Software development.0', 'Programming fundamentals')
             ->assertJsonPath('data.learningAreaTopics.Software development.1', 'Application testing')
             ->assertJsonPath('data.careerDirections.0', 'Software and application development')
+            ->assertJsonPath('data.degreeType', "Bachelor's degree")
+            ->assertJsonPath('data.duration.display', '4 years')
+            ->assertJsonPath('data.salary.status', 'not_published')
+            ->assertJsonPath('data.jobGrowth.status', 'not_published')
+            ->assertJsonMissingPath('data.careerTrajectory')
             ->assertJsonPath('data.recommendedStrands.0', 'STEM')
             ->assertJsonPath('data.recommendedStrands.1', 'TVL-ICT')
             ->assertJsonPath(
@@ -74,6 +80,76 @@ class StudentRecommendationTest extends TestCase
         $this->actingAs($this->student())
             ->getJson('/api/v1/student/programmes/not-a-programme')
             ->assertNotFound();
+    }
+
+    public function test_student_saved_programmes_are_owned_validated_and_removable(): void
+    {
+        $student = $this->student();
+        $otherStudent = $this->student();
+
+        $this->actingAs($student)
+            ->putJson('/api/v1/student/saved-programmes/bs-information-technology')
+            ->assertCreated()
+            ->assertJsonPath('data.saved', true);
+
+        $this->putJson('/api/v1/student/saved-programmes/not-a-programme')->assertNotFound();
+
+        $this->getJson('/api/v1/student/saved-programmes')
+            ->assertOk()
+            ->assertExactJson(['data' => ['programmeIds' => ['bs-information-technology']]]);
+
+        $this->actingAs($otherStudent)
+            ->getJson('/api/v1/student/saved-programmes')
+            ->assertOk()
+            ->assertExactJson(['data' => ['programmeIds' => []]]);
+
+        $this->actingAs($student)
+            ->deleteJson('/api/v1/student/saved-programmes/bs-information-technology')
+            ->assertOk()
+            ->assertJsonPath('data.saved', false);
+
+        $this->getJson('/api/v1/student/saved-programmes')
+            ->assertOk()
+            ->assertExactJson(['data' => ['programmeIds' => []]]);
+    }
+
+    public function test_student_can_only_read_their_own_guidance_appointments(): void
+    {
+        $student = $this->student();
+        $otherStudent = $this->student();
+        $adminRole = Role::query()->firstOrCreate(
+            ['slug' => RoleSlug::Admin->value],
+            ['name' => 'Guidance/Psychometrician/Admin'],
+        );
+        $counselor = User::factory()->create(['account_status' => 'active']);
+        $counselor->roles()->attach($adminRole);
+
+        GuidanceAppointment::query()->create([
+            'student_id' => $student->getKey(),
+            'counselor_id' => $counselor->getKey(),
+            'created_by' => $counselor->getKey(),
+            'scheduled_at' => now()->addDay(),
+            'topic' => 'Review programme matches',
+            'programme_code' => 'BSIT',
+            'status' => 'scheduled',
+        ]);
+        GuidanceAppointment::query()->create([
+            'student_id' => $otherStudent->getKey(),
+            'counselor_id' => $counselor->getKey(),
+            'created_by' => $counselor->getKey(),
+            'scheduled_at' => now()->addDays(2),
+            'topic' => 'Private appointment',
+            'status' => 'scheduled',
+        ]);
+
+        $this->actingAs($student)
+            ->getJson('/api/v1/student/guidance-appointments')
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.counselorName', $counselor->name)
+            ->assertJsonPath('data.0.topic', 'Review programme matches')
+            ->assertJsonPath('data.0.programmeCode', 'BSIT')
+            ->assertJsonMissing(['Private appointment']);
     }
 
     public function test_configured_temporary_catalogue_produces_visible_recommendations(): void
@@ -112,6 +188,10 @@ class StudentRecommendationTest extends TestCase
             ->assertJsonPath('data.recommendation.canViewAll', true)
             ->assertJsonPath('data.recommendation.guidanceContentStatus', 'proposed')
             ->assertJsonPath('data.recommendation.courses.0.contentStatus', 'proposed')
+            ->assertJsonPath('data.recommendation.courses.0.degreeType', "Bachelor's degree")
+            ->assertJsonPath('data.recommendation.courses.0.salary.status', 'not_published')
+            ->assertJsonPath('data.recommendation.courses.0.jobGrowth.status', 'not_published')
+            ->assertJsonMissingPath('data.recommendation.courses.0.careerTrajectory')
             ->assertJsonCount(3, 'data.recommendation.courses.0.careerDirections')
             ->assertJsonCount(3, 'data.recommendation.courses');
 
@@ -147,7 +227,7 @@ class StudentRecommendationTest extends TestCase
         ]);
 
         $repository = $this->mock(TccProgrammeCatalogueRepository::class);
-        $repository->shouldReceive('current')->once()->andReturn($this->temporaryCatalogue());
+        $repository->shouldReceive('current')->twice()->andReturn($this->temporaryCatalogue());
 
         $this->actingAs($student)
             ->getJson('/api/v1/student/recommendations/latest')
@@ -192,6 +272,40 @@ class StudentRecommendationTest extends TestCase
             ->assertOk()
             ->assertJsonPath('data.status', 'available')
             ->assertJsonPath('data.recommendation.assessmentResultReference', 'ASMT-'.str_pad((string) $completed->getKey(), 6, '0', STR_PAD_LEFT));
+    }
+
+    public function test_existing_recommendation_run_is_hydrated_from_the_current_programme_catalogue(): void
+    {
+        $student = $this->student();
+        $completed = $this->completedAssessment($student, 1, true);
+        RecommendationRun::query()->create([
+            'user_id' => $student->getKey(),
+            'assessment_session_id' => $completed->getKey(),
+            'catalogue_reference' => 'TCC-AY-2026-2027-V1',
+            'rule_reference' => 'PROPOSED-RIASEC-1',
+            'methodology_status' => 'Proposed methodology',
+            'default_count' => 3,
+            'total_eligible' => 1,
+            'ranked_courses' => [[
+                'id' => 'bs-business-administration',
+                'rank' => 1,
+                'code' => 'BSBA',
+                'name' => 'BS Business Administration',
+                'match' => 75,
+                'interestAreas' => ['E', 'C'],
+                'learningAreas' => [],
+                'careerDirections' => [],
+            ]],
+            'generated_at' => now()->subDay(),
+        ]);
+
+        $this->actingAs($student)
+            ->getJson('/api/v1/student/recommendations/latest')
+            ->assertOk()
+            ->assertJsonPath('data.recommendation.courses.0.degreeType', "Bachelor's degree")
+            ->assertJsonPath('data.recommendation.courses.0.duration', '4 years')
+            ->assertJsonPath('data.recommendation.courses.0.learningAreaDescriptions.Management', 'Develop skills in planning, organising, leading teams, and evaluating organisational performance.')
+            ->assertJsonPath('data.recommendation.courses.0.careerDirections.0', 'Business and operations administration');
     }
 
     public function test_student_can_read_recommendations_for_an_owned_historical_attempt_only(): void

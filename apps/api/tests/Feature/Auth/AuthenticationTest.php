@@ -131,6 +131,13 @@ class AuthenticationTest extends TestCase
         $this->postJson('/api/v1/auth/logout')->assertUnauthorized();
     }
 
+    public function test_protected_api_endpoint_returns_json_for_browser_guest_without_accept_header(): void
+    {
+        $this->get('/api/v1/auth/me')
+            ->assertUnauthorized()
+            ->assertJsonPath('error.code', 'AUTHENTICATION_REQUIRED');
+    }
+
     public function test_suspended_account_cannot_sign_in(): void
     {
         $user = $this->adminUser();
@@ -178,7 +185,7 @@ class AuthenticationTest extends TestCase
     {
         $role = Role::query()->create([
             'slug' => RoleSlug::Admin->value,
-            'name' => 'Guidance / Psychometrician / Admin',
+            'name' => 'Administrator',
         ]);
         $user = User::factory()->create([
             'password' => 'correct-password',

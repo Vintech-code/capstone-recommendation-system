@@ -18,6 +18,10 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->statefulApi();
+        // This application exposes an API-only authentication boundary. Returning
+        // no guest redirect prevents unauthenticated browser requests from trying
+        // to resolve a nonexistent server-rendered `login` route.
+        $middleware->redirectGuestsTo(null);
         $middleware->alias([
             'role' => EnsureUserHasRole::class,
             'active' => EnsureAccountIsActive::class,

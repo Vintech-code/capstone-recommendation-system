@@ -16,7 +16,7 @@ class OnetInterestProfilerClient
 
     public const QUESTION_COUNT = 30;
 
-    private const RESULT_AREAS = [
+    public const RESULT_AREAS = [
         'Realistic',
         'Investigative',
         'Artistic',
@@ -24,6 +24,10 @@ class OnetInterestProfilerClient
         'Enterprising',
         'Conventional',
     ];
+
+    public function __construct(
+        private readonly OfficialMiniIpInstrument $officialInstrument,
+    ) {}
 
     /**
      * @return array{
@@ -39,37 +43,43 @@ class OnetInterestProfilerClient
             'onet:interest-profiler:questions:v2:'.self::QUESTION_COUNT,
             max(0, (int) config('services.onet.question_cache_seconds', 3600)),
             function (): array {
-                $payload = $this->get('/mnm/interestprofiler/questions_30', [
-                    'start' => 1,
-                    'end' => self::QUESTION_COUNT,
-                ]);
+                try {
+                    $payload = $this->get('/mnm/interestprofiler/questions_30', [
+                        'start' => 1,
+                        'end' => self::QUESTION_COUNT,
+                    ]);
 
-                $questions = collect($payload['question'] ?? [])->map(fn (mixed $question): array => [
-                    'index' => (int) ($question['index'] ?? 0),
-                    'text' => (string) ($question['text'] ?? ''),
-                ])->values()->all();
+                    $questions = collect($payload['question'] ?? [])->map(fn (mixed $question): array => [
+                        'index' => (int) ($question['index'] ?? 0),
+                        'text' => (string) ($question['text'] ?? ''),
+                    ])->values()->all();
 
-                $answerOptions = collect($payload['answer_option'] ?? [])->map(fn (mixed $option): array => [
-                    'value' => (int) ($option['value'] ?? 0),
-                    'name' => (string) ($option['name'] ?? ''),
-                ])->values()->all();
+                    $answerOptions = collect($payload['answer_option'] ?? [])->map(fn (mixed $option): array => [
+                        'value' => (int) ($option['value'] ?? 0),
+                        'name' => (string) ($option['name'] ?? ''),
+                    ])->values()->all();
 
-                $this->assertQuestionPayload($payload, $questions, $answerOptions);
+                    $this->assertQuestionPayload($payload, $questions, $answerOptions);
 
-                return [
-                    'instrument' => [
-                        'code' => self::INSTRUMENT_CODE,
-                        'name' => 'O*NET Interest Profiler Mini-IP',
-                        'question_count' => self::QUESTION_COUNT,
-                        'api_version' => '2.0',
-                    ],
-                    'answer_options' => $answerOptions,
-                    'questions' => $questions,
-                    'attribution' => [
-                        'text' => 'This application incorporates information from O*NET Web Services by the U.S. Department of Labor, Employment and Training Administration (USDOL/ETA). O*NET is a trademark of USDOL/ETA.',
-                        'url' => 'https://services.onetcenter.org/',
-                    ],
-                ];
+                    return [
+                        'instrument' => [
+                            'code' => self::INSTRUMENT_CODE,
+                            'name' => 'O*NET Interest Profiler Mini-IP',
+                            'question_count' => self::QUESTION_COUNT,
+                            'api_version' => '2.0',
+                        ],
+                        'answer_options' => $answerOptions,
+                        'questions' => $questions,
+                        'attribution' => self::attribution(),
+                    ];
+                } catch (OnetServiceException $exception) {
+                    Log::notice('Using the bundled official O*NET Mini-IP definition.', [
+                        'operation' => 'questions',
+                        'provider_error_code' => $exception->errorCode(),
+                    ]);
+
+                    return $this->officialInstrument->questionsPayload();
+                }
             },
         );
     }
@@ -80,26 +90,49 @@ class OnetInterestProfilerClient
      */
     public function results(array $answers): array
     {
-        $payload = $this->get('/mnm/interestprofiler/results', [
-            'answers' => implode('', $answers),
-        ]);
+        try {
+            $payload = $this->get('/mnm/interestprofiler/results', [
+                'answers' => implode('', $answers),
+            ]);
 
-        $results = self::normalizeResultEntries(
-            array_values($payload['result'] ?? []),
-        );
+            $results = self::normalizeResultEntries(
+                array_values($payload['result'] ?? []),
+            );
 
-        if (
-            count($results) !== 6
-            || array_column($results, 'area') !== self::RESULT_AREAS
-            || in_array(null, array_column($results, 'score'), true)
-        ) {
-            throw $this->invalidResponse();
+            if (
+                count($results) !== 6
+                || array_column($results, 'area') !== self::RESULT_AREAS
+                || in_array(null, array_column($results, 'score'), true)
+            ) {
+                throw $this->invalidResponse();
+            }
+
+            $scoringSource = 'onet-web-services-v2';
+        } catch (OnetServiceException $exception) {
+            Log::notice('Scoring the O*NET Mini-IP from the bundled official definition.', [
+                'operation' => 'results',
+                'provider_error_code' => $exception->errorCode(),
+            ]);
+            $results = $this->officialInstrument->score($answers);
+            $scoringSource = 'official-mini-ip-local-v1';
         }
 
         return [
             'instrument_code' => self::INSTRUMENT_CODE,
             'answer_count' => count($answers),
+            'scoring_source' => $scoringSource,
             'result' => $results,
+        ];
+    }
+
+    /**
+     * @return array{text: string, url: string}
+     */
+    public static function attribution(): array
+    {
+        return [
+            'text' => 'This application incorporates information from O*NET Web Services by the U.S. Department of Labor, Employment and Training Administration (USDOL/ETA). O*NET is a trademark of USDOL/ETA.',
+            'url' => 'https://services.onetcenter.org/',
         ];
     }
 

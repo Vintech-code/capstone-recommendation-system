@@ -73,7 +73,7 @@ class AuthenticatedSessionController extends Controller
     }
 
     /**
-     * @return array{id: int, name: string, email: string, accountStatus: string, roles: array<int, string>}
+     * @return array{id: int, name: string, email: string, accountStatus: string, mustChangePassword: bool, roles: array<int, string>}
      */
     private function userPayload(User $user): array
     {
@@ -82,6 +82,7 @@ class AuthenticatedSessionController extends Controller
             'name' => $user->name,
             'email' => $user->email,
             'accountStatus' => $user->account_status,
+            'mustChangePassword' => (bool) $user->must_change_password,
             'roles' => $user->roles->pluck('slug')->values()->all(),
         ];
     }

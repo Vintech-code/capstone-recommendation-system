@@ -11,12 +11,13 @@ use App\Services\Recommendation\ProposedGuidanceContentRepository;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Throwable;
 
 class AssessmentSessionController extends Controller
 {
     public function __construct(private ProposedGuidanceContentRepository $guidance) {}
 
-    public function current(Request $request): JsonResponse
+    public function current(Request $request, OnetInterestProfilerClient $client): JsonResponse
     {
         $session = AssessmentSession::query()
             ->whereBelongsTo($request->user())
@@ -24,6 +25,10 @@ class AssessmentSessionController extends Controller
             ->where('is_current', true)
             ->latest('attempt_number')
             ->first();
+
+        if ($session?->status === 'preparing_result') {
+            $session = $this->processResultNow($session, $client);
+        }
 
         return response()->json(['data' => $session ? $this->resource($session) : [
             'status' => 'not_started',
@@ -67,18 +72,29 @@ class AssessmentSessionController extends Controller
         AssessmentSession $assessmentSession,
     ): JsonResponse {
         $this->assertOwnedBy($request, $assessmentSession);
-        abort_if($assessmentSession->status !== 'in_progress', 409, 'Submitted assessment responses are locked.');
+        $answers = $request->validated('answers');
+        $currentQuestion = $request->integer('current_question');
+
+        if ($assessmentSession->status !== 'in_progress') {
+            return response()->json([
+                'data' => $this->resource($assessmentSession),
+                'meta' => [
+                    'save_ignored' => true,
+                    'reason' => 'submitted_responses_locked',
+                ],
+            ]);
+        }
 
         $assessmentSession->update([
-            'answers' => $request->validated('answers'),
-            'current_question' => $request->integer('current_question'),
+            'answers' => $answers,
+            'current_question' => $currentQuestion,
             'saved_at' => now(),
         ]);
 
         return response()->json(['data' => $this->resource($assessmentSession->fresh())]);
     }
 
-    public function submit(Request $request, AssessmentSession $assessmentSession): JsonResponse
+    public function submit(Request $request, AssessmentSession $assessmentSession, OnetInterestProfilerClient $client): JsonResponse
     {
         $this->assertOwnedBy($request, $assessmentSession);
 
@@ -101,12 +117,12 @@ class AssessmentSessionController extends Controller
             'saved_at' => now(),
         ]);
 
-        ProcessAssessmentResult::dispatch($assessmentSession->getKey());
+        $assessmentSession = $this->processResultNow($assessmentSession->fresh(), $client);
 
-        return response()->json(['data' => $this->resource($assessmentSession->fresh())], 202);
+        return response()->json(['data' => $this->resource($assessmentSession)]);
     }
 
-    public function retryResult(Request $request, AssessmentSession $assessmentSession): JsonResponse
+    public function retryResult(Request $request, AssessmentSession $assessmentSession, OnetInterestProfilerClient $client): JsonResponse
     {
         $this->assertOwnedBy($request, $assessmentSession);
         abort_if($assessmentSession->status !== 'result_failed', 409, 'This result is not available for retry.');
@@ -117,9 +133,9 @@ class AssessmentSessionController extends Controller
             'processing_failed_at' => null,
         ])->save();
 
-        ProcessAssessmentResult::dispatch($assessmentSession->getKey());
+        $assessmentSession = $this->processResultNow($assessmentSession->fresh(), $client);
 
-        return response()->json(['data' => $this->resource($assessmentSession->fresh())], 202);
+        return response()->json(['data' => $this->resource($assessmentSession)]);
     }
 
     public function history(Request $request): JsonResponse
@@ -155,6 +171,20 @@ class AssessmentSessionController extends Controller
     private function assertOwnedBy(Request $request, AssessmentSession $session): void
     {
         abort_unless($session->user_id === $request->user()->getKey(), 404);
+    }
+
+    private function processResultNow(AssessmentSession $session, OnetInterestProfilerClient $client): AssessmentSession
+    {
+        $job = new ProcessAssessmentResult($session->getKey());
+
+        try {
+            $job->handle($client);
+        } catch (Throwable $exception) {
+            report($exception);
+            $job->failed($exception);
+        }
+
+        return $session->fresh();
     }
 
     /** @return array<string, mixed> */

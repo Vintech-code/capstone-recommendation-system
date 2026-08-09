@@ -7,8 +7,8 @@ use App\Models\RoleSlug;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Tests\TestCase;
 
@@ -130,18 +130,21 @@ class OnetInterestProfilerTest extends TestCase
             ->assertJsonPath('error.code', 'ROLE_FORBIDDEN');
     }
 
-    public function test_missing_api_key_returns_a_safe_configuration_error(): void
+    public function test_missing_api_key_uses_the_bundled_official_instrument(): void
     {
         config()->set('services.onet.api_key');
 
         $this->actingAs($this->userWithRole(RoleSlug::Student))
             ->getJson('/api/v1/student/assessments/onet-mini-ip/questions')
-            ->assertStatus(503)
-            ->assertJsonPath('error.code', 'ONET_NOT_CONFIGURED')
-            ->assertJsonMissing(['X-API-Key']);
+            ->assertOk()
+            ->assertJsonPath('data.instrument.content_version', 'onet-mini-ip-30-v1')
+            ->assertJsonPath('data.questions.0.text', 'Build kitchen cabinets')
+            ->assertJsonPath('data.questions.29.text', 'Stamp, sort, and distribute mail for an organization')
+            ->assertJsonPath('data.answer_options.0.name', 'Strongly Dislike')
+            ->assertJsonPath('data.answer_options.4.name', 'Strongly Like');
     }
 
-    public function test_malformed_provider_response_is_rejected(): void
+    public function test_malformed_provider_response_uses_the_validated_official_instrument(): void
     {
         config()->set('services.onet.api_key', 'test-onet-key');
         Http::fake([
@@ -154,11 +157,12 @@ class OnetInterestProfilerTest extends TestCase
 
         $this->actingAs($this->userWithRole(RoleSlug::Student))
             ->getJson('/api/v1/student/assessments/onet-mini-ip/questions')
-            ->assertStatus(502)
-            ->assertJsonPath('error.code', 'ONET_INVALID_RESPONSE');
+            ->assertOk()
+            ->assertJsonPath('data.instrument.content_version', 'onet-mini-ip-30-v1')
+            ->assertJsonCount(30, 'data.questions');
     }
 
-    public function test_provider_rate_limit_returns_a_retryable_safe_error(): void
+    public function test_provider_rate_limit_uses_the_bundled_official_instrument(): void
     {
         config()->set('services.onet.api_key', 'test-onet-key');
         Http::fake([
@@ -167,13 +171,12 @@ class OnetInterestProfilerTest extends TestCase
 
         $this->actingAs($this->userWithRole(RoleSlug::Student))
             ->getJson('/api/v1/student/assessments/onet-mini-ip/questions')
-            ->assertStatus(503)
-            ->assertHeader('Retry-After', '60')
-            ->assertJsonPath('error.code', 'ONET_RATE_LIMITED')
+            ->assertOk()
+            ->assertJsonPath('data.instrument.content_version', 'onet-mini-ip-30-v1')
             ->assertJsonMissing(['test-onet-key']);
     }
 
-    public function test_provider_connection_failure_returns_a_safe_error(): void
+    public function test_provider_connection_failure_uses_the_bundled_official_instrument(): void
     {
         config()->set('services.onet.api_key', 'test-onet-key');
         Log::spy();
@@ -183,16 +186,39 @@ class OnetInterestProfilerTest extends TestCase
 
         $this->actingAs($this->userWithRole(RoleSlug::Student))
             ->getJson('/api/v1/student/assessments/onet-mini-ip/questions')
-            ->assertStatus(503)
-            ->assertHeader('Retry-After', '30')
-            ->assertJsonPath('error.code', 'ONET_SERVICE_UNAVAILABLE')
+            ->assertOk()
+            ->assertJsonPath('data.instrument.content_version', 'onet-mini-ip-30-v1')
             ->assertJsonMissing(['test-onet-key']);
 
         Log::shouldHaveReceived('warning')->once()->withArgs(
-            static fn (string $message, array $context): bool =>
-                $message === 'O*NET request failed.'
+            static fn (string $message, array $context): bool => $message === 'O*NET request failed.'
                 && ! str_contains(json_encode($context, JSON_THROW_ON_ERROR), 'test-onet-key'),
         );
+    }
+
+    public function test_results_are_scored_from_the_official_definition_when_provider_is_unavailable(): void
+    {
+        config()->set('services.onet.api_key', 'test-onet-key');
+        Http::fake([
+            'api-v2.onetcenter.org/*' => Http::failedConnection(),
+        ]);
+
+        $answers = [1, 2, 3, 4, 5, 1, 1, 2, 3, 4, 5, 1, 1, 2, 3,
+            4, 5, 1, 1, 2, 3, 4, 5, 1, 1, 2, 3, 4, 5, 1];
+
+        $this->actingAs($this->userWithRole(RoleSlug::Student))
+            ->postJson('/api/v1/student/assessments/onet-mini-ip/results', [
+                'answers' => $answers,
+            ])
+            ->assertOk()
+            ->assertJsonPath('data.scoring_source', 'official-mini-ip-local-v1')
+            ->assertJsonPath('data.result.0.area', 'Realistic')
+            ->assertJsonPath('data.result.0.score', 0)
+            ->assertJsonPath('data.result.1.score', 5)
+            ->assertJsonPath('data.result.2.score', 10)
+            ->assertJsonPath('data.result.3.score', 15)
+            ->assertJsonPath('data.result.4.score', 20)
+            ->assertJsonPath('data.result.5.score', 0);
     }
 
     /**
