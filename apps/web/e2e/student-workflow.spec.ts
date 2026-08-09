@@ -104,7 +104,7 @@ async function installStudentApi(page: Page, initiallyComplete = false) {
     }
     if (path.endsWith('/submit') && method === 'POST') {
       submitted = true
-      return json(route, { data: { ...completedAssessment(), status: 'preparing_result' } }, 202)
+      return json(route, { data: completedAssessment() })
     }
     if (path === '/api/v1/student/assessments/onet-mini-ip/history') {
       return json(route, {
@@ -126,6 +126,15 @@ async function installStudentApi(page: Page, initiallyComplete = false) {
     }
     if (path === '/api/v1/student/programmes') {
       return json(route, { data: programmeCatalogue() })
+    }
+    if (path === '/api/v1/student/guidance-appointments') {
+      return json(route, { data: [] })
+    }
+    if (path === '/api/v1/student/guidance-requests') {
+      return json(route, { data: [] })
+    }
+    if (path === '/api/v1/student/saved-programmes') {
+      return json(route, { data: { programmeIds: [] } })
     }
 
     return json(route, { message: `Unhandled browser-test endpoint: ${method} ${path}` }, 404)
@@ -236,15 +245,10 @@ test('completes the student assessment and opens a recommendation detail', async
   await expect(page.getByRole('heading', { name: 'All questions are answered' })).toBeVisible()
   await page.getByRole('button', { name: 'Submit assessment' }).click()
   await page.getByRole('alertdialog').getByRole('button', { name: 'Submit assessment' }).click()
-  await expect(page.getByRole('heading', { name: 'Responses submitted successfully' })).toBeVisible()
-  await expect(page.getByText('Responses recorded')).toBeVisible()
-  await expectNoHorizontalOverflow(page)
-
-  await page.getByRole('button', { name: 'View assessment result' }).click()
   await expect(page.getByRole('heading', { name: 'Your academic matches' })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Your profile breakdown' })).toBeVisible()
   await page.getByRole('button', { name: 'View programme' }).click()
-  await expect(page.getByRole('navigation', { name: 'Breadcrumb' })).toContainText('My Matches')
+  await expect(page.getByRole('navigation', { name: 'Breadcrumb' })).toHaveCount(0)
   await expect(page.getByRole('heading', { level: 1, name: 'BS Information Technology' })).toBeVisible()
 
   await expectNoHorizontalOverflow(page)
@@ -258,6 +262,23 @@ test('passes responsive, keyboard, contrast, and print smoke checks', async ({ p
   await expectNoHorizontalOverflow(page)
 
   const viewportWidth = page.viewportSize()?.width ?? 0
+  const primaryNavigation = page.getByRole('navigation', {
+    name: viewportWidth < 768 ? 'Mobile workspace navigation' : 'Workspace navigation',
+  })
+  const dashboardNavigation = primaryNavigation.getByRole('button', { name: 'Dashboard' })
+  await expect(dashboardNavigation).toHaveAttribute('aria-current', 'page')
+  await primaryNavigation.getByRole('button', { name: 'Explore Programs' }).click()
+  await expect(page.getByRole('heading', { level: 1, name: 'Explore TCC programmes' })).toBeVisible()
+  await dashboardNavigation.click()
+  await expect(page.getByTestId('student-guidance-summary')).toBeVisible()
+
+  await page.getByRole('button', { name: 'Assessment history' }).click()
+  await expect(page.getByRole('heading', { level: 1, name: 'Assessment history' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Your assessment timeline' })).toBeVisible()
+  await expectNoHorizontalOverflow(page)
+  await page.getByRole('button', { name: 'Go to Student dashboard' }).click()
+  await expect(page.getByTestId('student-guidance-summary')).toBeVisible()
+
   const headerPosition = await page.locator('header').first().evaluate((element) =>
     window.getComputedStyle(element).position,
   )
@@ -287,4 +308,11 @@ test('passes responsive, keyboard, contrast, and print smoke checks', async ({ p
 
   await page.emulateMedia({ media: 'print' })
   await expect(page.locator('[data-print-hidden]').first()).toBeHidden()
+  await expect(page.locator('[data-print-only]')).toBeVisible()
+  const printColumns = await page.locator('[data-print-profile] dl').evaluate((element) =>
+    window.getComputedStyle(element).gridTemplateColumns,
+  )
+  expect(printColumns.split(' ')).toHaveLength(3)
+  const printPdf = await page.pdf({ format: 'A4', printBackground: true })
+  expect(printPdf.byteLength).toBeGreaterThan(10_000)
 })

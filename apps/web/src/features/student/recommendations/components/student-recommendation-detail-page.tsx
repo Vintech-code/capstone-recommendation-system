@@ -1,16 +1,18 @@
 import {
   ArrowLeft,
   ArrowRight,
+  BadgeDollarSign,
   BookOpen,
-  Circle,
+  BriefcaseBusiness,
+  Clock3,
   Compass,
   GraduationCap,
-  Shield,
   Target,
+  TrendingUp,
 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
-import { StudentBreadcrumbs } from '@/features/student/components/student-breadcrumbs'
+import { getProgrammeImages } from '@/features/student/programmes/programme-images'
 import type { StudentRecommendedCourse } from '@/features/student/recommendations/recommendation-types'
 
 interface StudentRecommendationDetailPageProps {
@@ -31,16 +33,11 @@ const interestAreaNames: Record<string, string> = {
 
 function describeFactor(factor: string) {
   const match = factor.match(/^Profile includes ([RIASEC])$/)
-  if (!match) {
-    return { title: 'Recorded match factor', description: factor }
-  }
+  if (!match) return factor
 
   const code = match[1]
   const name = interestAreaNames[code] ?? code
-  return {
-    title: `${name} interest alignment`,
-    description: `This programme's recorded profile includes ${name}, one of the interest areas used to calculate this recommendation.`,
-  }
+  return `${name} is one of the interest areas in this programme's recorded profile.`
 }
 
 function StudentRecommendationDetailPage({
@@ -54,142 +51,101 @@ function StudentRecommendationDetailPage({
     : course.match >= 60
       ? 'Good Fit'
       : 'Developing Fit'
-  const matchText = `${course.match}%`
-  const usesCompactMatchSize = matchText.length > 5
+  const circleRadius = 43
+  const circleLength = 2 * Math.PI * circleRadius
+  const circleOffset = circleLength * (1 - Math.min(Math.max(course.match, 0), 100) / 100)
+  const fallback = getProgrammeImages(course.id)
+  const cover = course.coverImageUrl || fallback.cover
+  const logo = course.logoImageUrl || fallback.logo
   const fitReasons = course.factors.length > 0
-    ? course.factors.map(describeFactor)
-    : course.interestAreas.map((area) => describeFactor(`Profile includes ${area}`))
+    ? course.factors
+    : course.interestAreas.map((area) => `Profile includes ${area}`)
+  const facts = [
+    { label: 'Duration', value: course.duration || 'Not published', accent: false, icon: Clock3 },
+    { label: 'Degree type', value: course.degreeType || 'Not published', accent: false, icon: GraduationCap },
+    { label: 'Starting salary', value: course.salary?.display || 'Not published', accent: false, icon: BadgeDollarSign },
+    { label: 'Job growth', value: course.jobGrowth?.display || 'Not published', accent: true, icon: TrendingUp },
+  ]
 
   return (
-    <article className="pb-12">
-      <StudentBreadcrumbs
-        parentLabel="My Matches"
-        currentLabel={course.code}
-        onParentSelect={onBack}
-      />
-      <header className="bg-primary-fixed/55 py-10 shadow-sm sm:py-12">
-        <div className="student-page grid gap-7 lg:grid-cols-[minmax(0,1fr)_17rem] lg:items-center">
-          <div>
-            <div className="flex flex-wrap gap-2">
-              <span className="outcome-chip">Recommendation {course.rank}</span>
-              <span className="outcome-chip">{course.code}</span>
-              {course.duration ? <span className="outcome-chip">{course.duration}</span> : null}
-            </div>
-            <h1 className="mt-5 max-w-4xl font-display text-3xl font-bold tracking-[-0.035em] sm:text-4xl lg:text-[2.75rem] lg:leading-[1.08]">
-              {course.name}
-            </h1>
-            {course.summary ? (
-              <p className="mt-4 max-w-3xl text-base leading-7 text-foreground/75">
-                {course.summary}
-              </p>
-            ) : null}
-            <p className="mt-5 font-label text-xs text-muted-foreground">
-              Recommendation generated {generatedAt}
-            </p>
-          </div>
-
-          <section aria-labelledby="match-strength-title" className="relative isolate overflow-hidden rounded-lg bg-card p-6 shadow-[0_12px_28px_rgba(0,30,64,0.12)]">
-            <div aria-hidden="true" className="pointer-events-none absolute -right-2 top-8 z-0 flex size-36 items-center justify-center text-primary opacity-[0.09]">
-              <Shield className="absolute size-36 stroke-[3]" />
-              <Circle className="size-14 stroke-[5]" />
-            </div>
-            <div className="relative z-10">
-              <p id="match-strength-title" className="font-serif text-xl tracking-[0.04em] text-foreground/80">
-                Your match strength
-              </p>
-              <div className="mt-3 grid min-h-20 grid-cols-[minmax(0,1fr)_5rem] items-end gap-2">
-                <strong className={`min-w-0 whitespace-nowrap font-display font-bold leading-none tabular-nums tracking-[-0.06em] text-primary ${usesCompactMatchSize ? 'text-[2.65rem]' : 'text-6xl'}`}>
-                  {matchText}
-                </strong>
-                <span className="mb-1 text-right font-display text-xl font-bold leading-6 text-accent">
-                  {fitLabel}
-                </span>
+    <article className="pb-16" aria-labelledby="course-detail-title">
+      <header className="relative isolate min-h-[25rem] overflow-hidden bg-primary-fixed/45">
+        {cover ? <img src={cover} alt="" className="absolute inset-0 -z-20 size-full object-cover object-center" /> : null}
+        <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-r from-background/90 via-background/55 to-transparent" />
+        <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-t from-background via-background/25 to-transparent" />
+        <div className="student-page relative z-10 flex min-h-[25rem] items-center py-12 sm:py-16">
+          {logo ? <img src={logo} alt={`${course.name} logo`} className="absolute right-5 top-8 size-20 rounded-xl bg-white/90 object-contain p-2 shadow-sm sm:right-8 sm:size-28 lg:right-10 lg:top-12 lg:size-36" /> : null}
+          <div className="w-full">
+            <span className="inline-flex rounded bg-primary px-3 py-1.5 font-label text-xs font-medium text-primary-foreground">
+              Recommendation {course.rank} · {course.code}
+            </span>
+            <div className="mt-5 grid gap-7 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+              <div className="max-w-4xl pr-0 sm:pr-32 lg:pr-0">
+                <h1 id="course-detail-title" className="font-display text-4xl font-bold tracking-[-0.04em] sm:text-5xl lg:text-6xl">
+                  {course.name}
+                </h1>
+                {course.summary ? (
+                  <p className="mt-5 max-w-3xl text-base leading-7 text-foreground/80 sm:text-lg sm:leading-8">
+                    {course.summary}
+                  </p>
+                ) : null}
+                <p className="mt-5 font-label text-xs text-muted-foreground">
+                  Recommendation generated {generatedAt}
+                </p>
               </div>
-              <div
-                role="progressbar"
-                aria-label={`${course.name} recorded match`}
-                aria-valuemin={0}
-                aria-valuemax={100}
-                aria-valuenow={course.match}
-                className="mt-4 h-2 overflow-hidden rounded-full bg-secondary"
-              >
-                <div className="h-full rounded-full bg-primary" style={{ width: `${course.match}%` }} />
-              </div>
-              <div className="mt-5 grid gap-2">
-                <Button type="button" onClick={onBack} className="w-full rounded font-serif text-base tracking-wide">
+              <div className="flex flex-col gap-3 sm:flex-row lg:pb-8">
+                <Button type="button" variant="outline" onClick={onBack} className="min-h-12 bg-card">
                   <ArrowLeft aria-hidden="true" />
                   Back to matches
                 </Button>
-                <Button type="button" variant="outline" onClick={onExploreProgrammes} className="w-full rounded bg-card font-serif text-base tracking-wide">
+                <Button type="button" onClick={onExploreProgrammes} className="min-h-12">
                   Explore programmes
                   <ArrowRight aria-hidden="true" />
                 </Button>
               </div>
             </div>
-          </section>
+          </div>
         </div>
       </header>
 
-      <div className="student-page mt-10 grid items-start gap-6 lg:grid-cols-[minmax(0,1.55fr)_minmax(19rem,0.7fr)]">
+      <div className="student-page mt-8 grid items-start gap-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(18rem,0.72fr)]">
         <div className="space-y-10">
-          <section aria-labelledby="fit-title">
-            <div className="mb-5 flex items-center gap-3">
-              <span className="flex size-10 items-center justify-center rounded bg-primary/10 text-primary">
-                <Target aria-hidden="true" className="size-5" />
-              </span>
-              <div>
-                <p className="font-label text-xs uppercase tracking-[0.12em] text-muted-foreground">Profile connection</p>
-                <h2 id="fit-title" className="font-display text-2xl font-semibold">Why this fits you</h2>
+          <dl className="relative grid overflow-hidden rounded-xl bg-card p-6 shadow-sm sm:grid-cols-2 xl:grid-cols-4">
+            <span aria-hidden="true" className="absolute -right-12 -top-12 size-28 rounded-full bg-primary/5 blur-2xl" />
+            {facts.map((fact) => (
+              <div key={fact.label} className="relative min-w-0 py-3 sm:px-4 sm:py-1 first:pl-0 last:pr-0">
+                <dt className="flex items-center gap-2 font-label text-[11px] font-medium uppercase tracking-[0.11em] text-muted-foreground">
+                  <fact.icon aria-hidden="true" className="size-4 text-primary" />
+                  {fact.label}
+                </dt>
+                <dd className="mt-1.5">
+                  <span className={`block font-display text-xl font-semibold leading-7 ${fact.accent ? 'text-accent' : 'text-foreground'}`}>
+                    {fact.value}
+                  </span>
+                </dd>
               </div>
-            </div>
-            {fitReasons.length > 0 ? (
-              <ul className="grid gap-4 sm:grid-cols-2">
-                {fitReasons.map((reason, index) => (
-                  <li
-                    key={`${reason.title}-${index}`}
-                    className={`flex min-h-32 gap-4 rounded-lg bg-card p-5 shadow-sm ${index === 2 && fitReasons.length % 2 === 1 ? 'sm:col-span-2' : ''}`}
-                  >
-                    <span className="flex size-11 shrink-0 items-center justify-center rounded bg-primary-fixed font-label text-xs font-semibold text-primary">
-                      {String(index + 1).padStart(2, '0')}
-                    </span>
-                    <div>
-                      <h3 className="font-display text-lg font-semibold">{reason.title}</h3>
-                      <p className="mt-2 text-sm leading-6 text-muted-foreground">{reason.description}</p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="rounded-lg bg-card p-5 text-sm text-muted-foreground shadow-sm">
-                No additional match factors were supplied for this recommendation.
-              </p>
-            )}
-          </section>
+            ))}
+          </dl>
 
           <section aria-labelledby="learning-areas-title">
             <div className="mb-5 flex items-center gap-3">
-              <span className="flex size-10 items-center justify-center rounded bg-primary/10 text-primary">
-                <BookOpen aria-hidden="true" className="size-5" />
-              </span>
+              <BookOpen aria-hidden="true" className="size-7 text-primary" />
               <div>
                 <p className="font-label text-xs uppercase tracking-[0.12em] text-muted-foreground">Programme overview</p>
-                <h2 id="learning-areas-title" className="font-display text-2xl font-semibold">Learning areas</h2>
+                <h2 id="learning-areas-title" className="font-display text-2xl font-semibold sm:text-3xl">Core learning areas</h2>
               </div>
             </div>
             {course.learningAreas.length > 0 ? (
-              <ol className="space-y-4">
+              <ol className="grid gap-4 sm:grid-cols-2">
                 {course.learningAreas.map((area, index) => (
-                  <li key={area} className="grid overflow-hidden rounded-lg bg-card shadow-sm sm:grid-cols-[9rem_minmax(0,1fr)]">
-                    <div className="flex min-h-28 items-center justify-between bg-gradient-to-br from-primary via-[#174a7c] to-[#7b94b5] p-5 text-primary-foreground">
-                      <BookOpen aria-hidden="true" className="size-8 opacity-70" />
-                      <span className="font-label text-xs font-semibold">{String(index + 1).padStart(2, '0')}</span>
+                  <li key={area} className="min-h-32 rounded-lg bg-secondary p-5">
+                    <div className="flex items-start justify-between gap-4">
+                      <h3 className="font-display text-lg font-semibold leading-6">{area}</h3>
+                      <span className="font-label text-xs font-semibold text-primary">{String(index + 1).padStart(2, '0')}</span>
                     </div>
-                    <div className="flex min-h-28 items-center p-5">
-                      <div>
-                        <p className="font-label text-xs uppercase tracking-[0.1em] text-muted-foreground">Learning area {index + 1}</p>
-                        <h3 className="mt-2 font-display text-lg font-semibold">{area}</h3>
-                      </div>
-                    </div>
+                    <p className="mt-4 text-sm leading-6 text-muted-foreground">
+                      {course.learningAreaDescriptions?.[area] ?? 'A recorded learning area in the current programme catalogue.'}
+                    </p>
                   </li>
                 ))}
               </ol>
@@ -199,55 +155,117 @@ function StudentRecommendationDetailPage({
               </p>
             )}
           </section>
+
+          <section aria-labelledby="fit-reasons-title" className="overflow-hidden rounded-xl bg-brand-dark px-6 py-7 text-white shadow-sm sm:px-8 sm:py-9">
+            <div className="flex items-start gap-4">
+              <span className="flex size-11 shrink-0 items-center justify-center rounded bg-white/10">
+                <Target aria-hidden="true" className="size-5" />
+              </span>
+              <div>
+                <p className="font-label text-xs uppercase tracking-[0.12em] text-white/65">Assessment connection</p>
+                <h2 id="fit-reasons-title" className="mt-1 font-display text-2xl font-semibold sm:text-3xl">Why this fits you</h2>
+              </div>
+            </div>
+            {fitReasons.length > 0 ? (
+              <ol className="mt-7 grid gap-3 sm:grid-cols-2">
+                {fitReasons.map((reason, index) => (
+                  <li key={`${reason}-${index}`} className="flex min-h-28 items-start gap-4 rounded bg-white/[0.08] p-4">
+                    <span className="flex size-9 shrink-0 items-center justify-center rounded bg-accent font-label text-xs font-bold text-accent-foreground">
+                      {String(index + 1).padStart(2, '0')}
+                    </span>
+                    <p className="text-sm leading-6 text-white/85">{describeFactor(reason)}</p>
+                  </li>
+                ))}
+              </ol>
+            ) : (
+              <p className="mt-6 text-sm text-white/75">No additional match factors were supplied for this recommendation.</p>
+            )}
+          </section>
+
         </div>
 
-        <aside className="space-y-6">
-          {course.careerDirections.length > 0 ? (
-            <section aria-labelledby="career-directions-title" className="rounded-xl bg-secondary p-5 shadow-sm">
-              <div className="flex items-center gap-3">
-                <Compass aria-hidden="true" className="size-5 text-secondary-foreground" />
-                <h2 id="career-directions-title" className="font-display text-xl font-semibold">Career directions</h2>
+        <aside className="space-y-6 lg:sticky lg:top-24">
+          <section aria-labelledby="match-score-title" className="overflow-hidden rounded-lg bg-card shadow-[inset_0_3px_0_var(--accent),0_2px_8px_var(--shadow-primary)]">
+            <div className="p-6 text-center">
+              <h2 id="match-score-title" className="font-display text-xl font-semibold">Your match score</h2>
+              <div className="relative mx-auto mt-4 size-32" aria-hidden="true">
+                <svg viewBox="0 0 100 100" className="size-full -rotate-90">
+                  <circle cx="50" cy="50" r={circleRadius} fill="none" stroke="currentColor" strokeWidth="7" className="text-secondary" />
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r={circleRadius}
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="7"
+                    strokeLinecap="round"
+                    strokeDasharray={circleLength}
+                    strokeDashoffset={circleOffset}
+                    className="text-accent"
+                  />
+                </svg>
+                <strong className="absolute inset-0 flex items-center justify-center font-display text-3xl font-bold text-primary tabular-nums">
+                  {course.match}%
+                </strong>
               </div>
-              <ul className="mt-5 space-y-3">
-                {course.careerDirections.map((direction, index) => (
-                  <li key={direction} className="flex items-center gap-4 rounded-lg bg-card p-4 shadow-sm">
-                    <span className="flex size-10 shrink-0 items-center justify-center rounded bg-primary/10 text-primary">
-                      <GraduationCap aria-hidden="true" className="size-5" />
-                    </span>
-                    <div className="min-w-0">
-                      <p className="font-label text-[10px] uppercase tracking-[0.1em] text-muted-foreground">Direction {index + 1}</p>
-                      <p className="mt-1 text-sm font-semibold leading-5">{direction}</p>
-                    </div>
+              <p className="mt-3 text-sm font-semibold text-primary">{fitLabel}</p>
+              <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                Based on the interest profile recorded in your completed assessment.
+              </p>
+              <div
+                role="progressbar"
+                aria-label={`${course.name} recorded match`}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={course.match}
+                className="sr-only"
+              />
+              <Button type="button" onClick={onBack} className="mt-5 w-full">
+                View all matches
+              </Button>
+            </div>
+          </section>
+
+          <section aria-labelledby="career-directions-title" className="rounded-xl bg-secondary p-5">
+            <div className="flex items-center gap-3">
+              <BriefcaseBusiness aria-hidden="true" className="size-5 text-primary" />
+              <h2 id="career-directions-title" className="font-display text-xl font-semibold">Related fields</h2>
+            </div>
+            {course.careerDirections.length > 0 ? (
+              <ul className="mt-4 space-y-3">
+                {course.careerDirections.map((direction) => (
+                  <li key={direction} className="flex min-h-14 items-center justify-between gap-3 rounded-lg bg-card px-4 py-3 shadow-sm">
+                    <span className="text-sm font-semibold leading-5">{direction}</span>
+                    <ArrowRight aria-hidden="true" className="size-4 shrink-0 text-muted-foreground" />
                   </li>
                 ))}
               </ul>
-            </section>
-          ) : null}
+            ) : <p className="mt-4 text-sm text-muted-foreground">Related fields are not available.</p>}
+          </section>
 
-          <section aria-labelledby="profile-title" className="rounded-xl bg-primary-fixed/55 p-5 shadow-sm">
+          <section aria-labelledby="profile-title" className="rounded-lg bg-secondary p-5">
             <div className="flex items-center gap-3">
               <Compass aria-hidden="true" className="size-5 text-primary" />
               <h2 id="profile-title" className="font-display text-xl font-semibold">Match profile</h2>
             </div>
-            <dl className="mt-5 divide-y divide-outline-variant/50">
-              <div className="py-3 first:pt-0">
-                <dt className="font-label text-xs uppercase tracking-[0.1em] text-muted-foreground">Ranking</dt>
-                <dd className="mt-1 font-semibold">Recommendation {course.rank}</dd>
-              </div>
-              <div className="py-3">
+            <dl className="mt-5 space-y-4">
+              <div className="rounded bg-card p-4 shadow-sm">
                 <dt className="font-label text-xs uppercase tracking-[0.1em] text-muted-foreground">Programme code</dt>
                 <dd className="mt-1 font-semibold">{course.code}</dd>
               </div>
-              <div className="py-3 last:pb-0">
-                <dt className="font-label text-xs uppercase tracking-[0.1em] text-muted-foreground">Matched RIASEC areas</dt>
-                <dd className="mt-2 flex flex-wrap gap-2">
+              <div className="rounded bg-card p-4 shadow-sm">
+                <dt className="font-label text-xs uppercase tracking-[0.1em] text-muted-foreground">Matched interest areas</dt>
+                <dd className="mt-3 flex flex-wrap gap-2">
                   {course.interestAreas.length > 0
-                    ? course.interestAreas.map((area) => <span key={area} className="outcome-chip">{area}</span>)
+                    ? course.interestAreas.map((area) => (
+                        <span key={area} className="outcome-chip" title={interestAreaNames[area]}>{area}</span>
+                      ))
                     : <span className="text-sm text-muted-foreground">Not supplied</span>}
                 </dd>
               </div>
             </dl>
           </section>
+
         </aside>
       </div>
     </article>

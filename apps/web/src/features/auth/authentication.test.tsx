@@ -151,7 +151,7 @@ describe('server-backed authentication', () => {
     )
     expect(
       await screen.findByRole('heading', {
-        name: 'Dashboard',
+        name: 'My guidance',
       }),
     ).toBeVisible()
   })

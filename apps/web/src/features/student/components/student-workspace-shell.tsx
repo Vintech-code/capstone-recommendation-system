@@ -1,7 +1,7 @@
 import { Bell, ChevronDown, LogOut, Moon, Sun } from 'lucide-react'
 import type { ReactNode } from 'react'
 
-import logo from '@/assets/logo-optimized.png'
+import logo from '@/assets/logo.png'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,8 +28,13 @@ function StudentWorkspaceShell({
   onExit,
   children,
 }: StudentWorkspaceShellProps) {
-  const navigationItems = modules
-  const visibleActiveId = activeId === 'overview' ? 'programmes' : activeId
+  const navigationItems = [
+    { id: 'overview', title: 'Dashboard' },
+    ...modules
+      .filter((item) => item.id !== 'history')
+      .map(({ id, title }) => ({ id, title })),
+  ]
+  const visibleActiveId = activeId
 
   return (
     <div className="min-h-svh bg-background">
@@ -37,21 +42,18 @@ function StudentWorkspaceShell({
         <div className="mx-auto flex h-16 max-w-[1280px] items-center gap-1 px-3 sm:gap-2 sm:px-4 md:h-20 md:gap-3 md:px-6 lg:px-10">
           <button
             type="button"
-            aria-label="Open programme catalogue"
+            aria-label="Go to dashboard"
             onClick={() => onSelect('overview')}
-            className="flex min-h-11 shrink-0 items-center rounded px-0.5 text-left focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30 md:gap-3 md:px-1"
+            className="flex min-h-11 shrink-0 items-center rounded px-0.5 text-left focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30 md:px-1"
           >
-            <img src={logo} alt="" className="size-9 object-contain md:size-10" />
-            <span className="hidden font-display text-xl font-semibold md:block">
-              Pathways
-            </span>
+            <img src={logo} alt="" className="h-8 w-auto object-contain sm:h-9 md:h-10" />
           </button>
 
           <nav
             aria-label="Mobile workspace navigation"
             className="min-w-0 flex-1 md:hidden"
           >
-            <ul className="grid w-full grid-cols-[0.9fr_1.25fr_1fr] items-stretch">
+            <ul className="grid w-full grid-cols-5 items-stretch">
               {navigationItems.map((item) => (
                 <li key={item.id}>
                   <button
@@ -64,7 +66,13 @@ function StudentWorkspaceShell({
                       visibleActiveId === item.id && 'bg-secondary/70 font-semibold text-primary',
                     )}
                   >
-                    {item.title === 'Interest assessment' ? 'Assessment' : item.title}
+                    {item.id === 'assessment'
+                      ? 'Assessment'
+                      : item.id === 'programmes'
+                        ? 'Programs'
+                        : item.id === 'recommendations'
+                          ? 'Matches'
+                          : item.title}
                     {visibleActiveId === item.id ? (
                       <span className="absolute inset-x-2 bottom-0 h-0.5 bg-secondary-container" />
                     ) : null}

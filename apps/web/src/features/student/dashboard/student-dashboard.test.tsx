@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { renderAppAt } from '@/test/render-app'
 import { StudentDashboardPage } from '@/features/student/dashboard/components/student-dashboard-page'
+import { StudentAssessmentHistoryPage } from '@/features/student/assessment/components/student-assessment-history-page'
 import { testAssessmentLifecycle, testRecommendationSnapshot } from '@/test/fixtures/student-api-fixtures'
 
 describe('Student dashboard', () => {
@@ -21,6 +22,9 @@ describe('Student dashboard', () => {
       }
       if (url === '/api/v1/student/recommendations/latest') {
         return Response.json({ data: { status: 'not_available', recommendation: null } })
+      }
+      if (url === '/api/v1/student/guidance-appointments') {
+        return Response.json({ data: [{ id: 7, counselorName: 'Guidance Counselor', scheduledAt: '2096-08-20T09:00:00+08:00', endsAt: '2096-08-20T10:00:00+08:00', topic: 'Review programme matches', programmeCode: 'BSIT', status: 'scheduled', cancellationReason: null, studentConfirmedAt: null }] })
       }
       if (url === '/api/v1/student/programmes') {
         return Response.json({ data: { academicYear: '2026-2027', catalogueVersion: 1, programmes: [{ id: 'bs-information-technology', name: 'BS Information Technology', code: 'BSIT', majors: [], riasecProfile: ['I', 'C', 'R'], description: 'Technology programme', learningAreas: ['Software development'], requirements: ['Meet published admission requirements.'], readinessPrompt: 'Discuss your interest in technology.' }] } })
@@ -110,10 +114,10 @@ describe('Student dashboard', () => {
   })
 
   it.each([
-    ['not_started', 'Discover your strongest interests', 'Start assessment'],
+    ['not_started', 'Start your interest assessment', 'Start assessment'],
     ['in_progress', 'Continue your assessment', 'Resume assessment'],
-    ['preparing_result', 'Your result is being prepared', null],
-    ['result_failed', 'Your result needs another try', 'Try processing again'],
+    ['preparing_result', 'Finalizing your submission', null],
+    ['result_failed', 'Result processing needs attention', 'Try processing again'],
   ] as const)(
     'shows the truthful %s dashboard state',
     (status, heading, action) => {
@@ -132,10 +136,64 @@ describe('Student dashboard', () => {
       if (action) {
         expect(screen.getByRole('button', { name: action })).toBeVisible()
       } else {
-        expect(screen.queryByRole('button', { name: /assessment/i })).not.toBeInTheDocument()
+        expect(screen.getByRole('button', { name: 'Assessment history' })).toBeVisible()
       }
     },
   )
+
+  it('shows the redesigned guidance hub and a student-owned counselor appointment', async () => {
+    await renderAppAt('/student')
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'My guidance' })).toBeVisible()
+    expect(screen.getByRole('heading', { level: 1, name: 'My guidance' }).closest('.student-grid-page')).not.toBeNull()
+    expect(screen.getByRole('heading', { name: 'Talk with a counselor' })).toBeVisible()
+    expect(screen.getByText('Upcoming guidance appointment')).toBeVisible()
+    expect(screen.getByText('Counselor: Guidance Counselor')).toBeVisible()
+    expect(screen.getByText('Topic: Review programme matches')).toBeVisible()
+    expect(screen.getByText(/Ends .*Asia\/Manila/)).toBeVisible()
+  })
+
+  it('lets the student confirm their own appointment schedule', async () => {
+    const user = userEvent.setup()
+    const fallbackFetch = vi.mocked(fetch).getMockImplementation()
+    vi.mocked(fetch).mockImplementation(async (input, init) => {
+      if (input.toString() === '/api/v1/student/guidance-appointments/7/confirm' && init?.method === 'POST') {
+        return Response.json({ data: { id: 7, counselorName: 'Guidance Counselor', scheduledAt: '2096-08-20T09:00:00+08:00', endsAt: '2096-08-20T10:00:00+08:00', topic: 'Review programme matches', programmeCode: 'BSIT', status: 'scheduled', cancellationReason: null, studentConfirmedAt: '2096-08-10T08:00:00+08:00' } })
+      }
+      return fallbackFetch!(input, init)
+    })
+
+    await renderAppAt('/student')
+    await user.click(await screen.findByRole('button', { name: 'Confirm schedule' }))
+
+    expect(await screen.findByText('You confirmed this schedule.')).toBeVisible()
+    expect(fetch).toHaveBeenCalledWith('/api/v1/student/guidance-appointments/7/confirm', expect.objectContaining({ method: 'POST' }))
+  })
+
+  it('keeps guidance requests unavailable until course matches exist', () => {
+    render(<StudentDashboardPage onSelectModule={vi.fn()} initialLifecycle={{ status: 'not_started', question_count: 30 }} />)
+    expect(screen.getByRole('button', { name: 'Request guidance' })).toBeDisabled()
+  })
+
+  it('submits a student-owned guidance request for the current top match', async () => {
+    const user = userEvent.setup()
+    vi.mocked(fetch).mockImplementation(async (input, init) => {
+      if (input.toString() === '/api/v1/student/guidance-requests' && init?.method === 'POST') {
+        const body = JSON.parse(String(init.body)) as { programmeId: string; concernCategory: string; preferredFormat: string; preferredDate: string | null; message: string }
+        return Response.json({ data: { id: 21, programmeId: body.programmeId, programmeCode: 'TEST', programmeName: 'Test Course', concernCategory: body.concernCategory, preferredFormat: body.preferredFormat, preferredDate: body.preferredDate, message: body.message, status: 'pending', appointmentId: null, acceptedBy: null, acceptedAt: null, closedAt: null, resolutionReason: null, statusHistory: [], createdAt: '2026-08-09T10:00:00+08:00' } }, { status: 201 })
+      }
+      return Response.json({ message: 'Not found.' }, { status: 404 })
+    })
+    render(<StudentDashboardPage onSelectModule={vi.fn()} initialLifecycle={testAssessmentLifecycle} initialRecommendations={{ status: 'available', recommendation: testRecommendationSnapshot }} />)
+
+    await user.click(screen.getByRole('button', { name: 'Request guidance' }))
+    await user.click(screen.getByRole('button', { name: 'Send request' }))
+
+    expect(await screen.findByText('Guidance request')).toBeVisible()
+    expect(screen.getByText('Pending')).toBeVisible()
+    const requestCall = vi.mocked(fetch).mock.calls.find(([input, init]) => input.toString() === '/api/v1/student/guidance-requests' && init?.method === 'POST')
+    expect(JSON.parse(String(requestCall?.[1]?.body))).toMatchObject({ programmeId: 'test-course', concernCategory: 'programme_comparison', preferredFormat: 'in_person' })
+  })
 
   it.skip('does not invent recommendation generation or provenance', async () => {
     await renderAppAt('/student')
@@ -158,7 +216,7 @@ describe('Student dashboard', () => {
 
   it('opens a completed attempt with its saved result and recommendations', async () => {
     const user = userEvent.setup()
-    render(<StudentDashboardPage onSelectModule={vi.fn()} initialLifecycle={{ ...testAssessmentLifecycle, attempt_number: 1, is_current: true }} />)
+    render(<StudentAssessmentHistoryPage onBack={vi.fn()} onOpenAssessment={vi.fn()} />)
 
     await user.click(await screen.findByRole('button', { name: /Attempt 1/ }))
 
@@ -181,18 +239,52 @@ describe('Student dashboard', () => {
           policy: { status: 'proposed', version: 'RETAKE-PROPOSED-2026-01', minimum_days_between_completed_attempts: 0, completed_attempts_are_read_only: true },
         })
       }
+      if (url === '/api/v1/student/assessments/onet-mini-ip/session') {
+        return Response.json({ data: { id: 2, status: 'in_progress', question_count: 30, attempt_number: 2, is_current: true } })
+      }
       if (url === '/api/v1/student/recommendations/attempts/1') {
         return Response.json({ data: { status: 'available', recommendation: testRecommendationSnapshot } })
       }
       return Response.json({ message: 'Not found.' }, { status: 404 })
     })
 
-    render(<StudentDashboardPage onSelectModule={vi.fn()} initialLifecycle={{ id: 2, status: 'in_progress', question_count: 30, attempt_number: 2, is_current: true }} />)
+    render(<StudentAssessmentHistoryPage onBack={vi.fn()} onOpenAssessment={vi.fn()} />)
 
-    expect(screen.getByRole('heading', { name: 'Continue your assessment' })).toBeVisible()
+    expect(await screen.findByRole('heading', { name: 'Your assessment timeline' })).toBeVisible()
     await user.click(await screen.findByRole('button', { name: /Attempt 1/ }))
     expect(await screen.findByText('Attempt 1 result')).toBeVisible()
     expect(await screen.findByText('Test Course')).toBeVisible()
+  })
+
+  it('keeps the latest completed summary on the dashboard while a new result is preparing', async () => {
+    vi.mocked(fetch).mockImplementation(async (input) => {
+      const url = input.toString()
+      if (url === '/api/v1/student/assessments/onet-mini-ip/session') {
+        return Response.json({ data: { id: 2, status: 'preparing_result', question_count: 30, attempt_number: 2, is_current: true } })
+      }
+      if (url === '/api/v1/student/recommendations/latest') {
+        return Response.json({ data: { status: 'preparing', recommendation: null } })
+      }
+      if (url === '/api/v1/student/assessments/onet-mini-ip/history') {
+        return Response.json({
+          data: [
+            { id: 2, status: 'preparing_result', question_count: 30, attempt_number: 2, is_current: true },
+            { ...testAssessmentLifecycle, id: 1, attempt_number: 1, is_current: false },
+          ],
+          policy: { status: 'proposed', version: 'RETAKE-PROPOSED-2026-01', minimum_days_between_completed_attempts: 0, completed_attempts_are_read_only: true },
+        })
+      }
+      if (url === '/api/v1/student/recommendations/attempts/1') {
+        return Response.json({ data: { status: 'available', recommendation: testRecommendationSnapshot } })
+      }
+      return Response.json({ message: 'Not found.' }, { status: 404 })
+    })
+
+    render(<StudentDashboardPage onSelectModule={vi.fn()} />)
+
+    expect(await screen.findByRole('heading', { name: 'Finalizing your submission' })).toBeVisible()
+    expect(screen.getByRole('heading', { name: 'Investigative and Conventional' })).toBeVisible()
+    expect(screen.getByText('Test Course')).toBeVisible()
   })
 
   it('confirms a retake and displays a visible start failure', async () => {
@@ -205,12 +297,15 @@ describe('Student dashboard', () => {
           policy: { status: 'proposed', version: 'RETAKE-PROPOSED-2026-01', minimum_days_between_completed_attempts: 0, completed_attempts_are_read_only: true },
         })
       }
+      if (url === '/api/v1/student/assessments/onet-mini-ip/session') {
+        return Response.json({ data: { ...testAssessmentLifecycle, attempt_number: 1, is_current: true, can_retake: true } })
+      }
       if (url === '/api/v1/student/assessments/onet-mini-ip/sessions') {
         return Response.json({ message: 'Unable to start the retake.' }, { status: 503 })
       }
       return Response.json({ message: 'Not found.' }, { status: 404 })
     })
-    render(<StudentDashboardPage onSelectModule={vi.fn()} initialLifecycle={{ ...testAssessmentLifecycle, attempt_number: 1, is_current: true, can_retake: true }} />)
+    render(<StudentAssessmentHistoryPage onBack={vi.fn()} onOpenAssessment={vi.fn()} />)
 
     await user.click(await screen.findByRole('button', { name: 'Start retake' }))
     expect(screen.getByRole('alertdialog')).toBeVisible()

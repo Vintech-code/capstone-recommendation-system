@@ -28,8 +28,9 @@ function SheetOverlay({
 function SheetContent({
   className,
   children,
+  closeLabel = 'Close navigation',
   ...props
-}: ComponentProps<typeof SheetPrimitive.Content>) {
+}: ComponentProps<typeof SheetPrimitive.Content> & { closeLabel?: string }) {
   return (
     <SheetPortal>
       <SheetOverlay />
@@ -44,7 +45,7 @@ function SheetContent({
         {children}
         <SheetPrimitive.Close className="absolute right-4 top-4 inline-flex size-10 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/40">
           <X aria-hidden="true" className="size-5" />
-          <span className="sr-only">Close navigation</span>
+          <span className="sr-only">{closeLabel}</span>
         </SheetPrimitive.Close>
       </SheetPrimitive.Content>
     </SheetPortal>

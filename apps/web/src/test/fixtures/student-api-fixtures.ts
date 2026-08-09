@@ -28,7 +28,12 @@ const testRecommendationSnapshot: StudentRecommendationSnapshot = {
       { code: 'E', label: 'Enterprising', value: 17 }, { code: 'C', label: 'Conventional', value: 19 },
     ],
   },
-  courses: [{ id: 'test-course', rank: 1, code: 'TEST', name: 'Test Course', department: 'Test Department', duration: '4 years', level: 'Undergraduate', match: 90, eligibility: 'Eligible', summary: '', factors: [], interestAreas: [], learningAreas: [], careerDirections: [], reviewNotes: [] }],
+  courses: [{
+    id: 'test-course', rank: 1, code: 'TEST', name: 'Test Course', department: 'Test Department', duration: '4 years', level: 'Undergraduate', degreeType: "Bachelor's degree", match: 90, eligibility: 'Eligible', summary: '', factors: [], interestAreas: [], learningAreas: [], careerDirections: [], reviewNotes: [],
+    durationSource: { status: 'ched_psg', display: '4 years', source_name: 'CHED programme standard', source_url: 'https://ched.gov.ph/issuances/' },
+    salary: { status: 'not_published', display: 'Not published', source_name: 'Philippine Statistics Authority', source_url: 'https://psa.gov.ph/statistics/occupational-wages-survey' },
+    jobGrowth: { status: 'not_published', display: 'Not published', source_name: 'Philippine Statistics Authority OpenSTAT', source_url: 'https://openstat.psa.gov.ph/' },
+  }],
 }
 
 export { testAssessmentContent, testAssessmentLifecycle, testRecommendationSnapshot }

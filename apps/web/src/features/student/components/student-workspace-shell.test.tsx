@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react'
-import { BookOpen, ClipboardList, Target } from 'lucide-react'
+import { BookOpen, ClipboardList, History, Target, UserRound } from 'lucide-react'
 import { describe, expect, it, vi } from 'vitest'
 
 import type { DashboardModule } from '@/features/auth/workspace-definitions'
@@ -10,6 +10,8 @@ const modules: DashboardModule[] = [
   { id: 'assessment', title: 'Interest assessment', description: '', icon: ClipboardList },
   { id: 'programmes', title: 'Explore Programs', description: '', icon: BookOpen },
   { id: 'recommendations', title: 'My Matches', description: '', icon: Target },
+  { id: 'history', title: 'Assessment history', description: '', icon: History },
+  { id: 'profile', title: 'My Profile', description: '', icon: UserRound },
 ]
 
 describe('StudentWorkspaceShell', () => {
@@ -34,7 +36,9 @@ describe('StudentWorkspaceShell', () => {
     expect(logo).toHaveClass('object-contain')
     expect(logo).not.toHaveClass('bg-background', 'shadow-sm')
     expect(mobileNavigation.querySelector('ul')).toHaveClass('grid')
+    expect(mobileNavigation.querySelector('ul')).toHaveClass('grid-cols-5')
     expect(mobileNavigation.parentElement).toHaveClass('flex', 'h-16')
+    expect(screen.getAllByRole('button', { name: 'Dashboard' })).toHaveLength(2)
     expect(screen.getAllByRole('button', { name: 'My Matches' })[1]).toHaveAttribute('aria-current', 'page')
   })
 
@@ -53,5 +57,39 @@ describe('StudentWorkspaceShell', () => {
 
     fireEvent.click(screen.getAllByRole('button', { name: 'Explore Programs' })[1])
     expect(onSelect).toHaveBeenCalledWith('programmes')
+  })
+
+  it('keeps assessment history separate from the primary navigation', () => {
+    render(
+      <StudentWorkspaceShell
+        modules={modules}
+        activeId="history"
+        onSelect={vi.fn()}
+        onExit={vi.fn()}
+      >
+        <p>Assessment history page</p>
+      </StudentWorkspaceShell>,
+    )
+
+    expect(screen.queryByRole('button', { name: 'Assessment history' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { current: 'page' })).not.toBeInTheDocument()
+  })
+
+  it('provides a visible dashboard destination on desktop and mobile', () => {
+    const onSelect = vi.fn()
+    render(
+      <StudentWorkspaceShell
+        modules={modules}
+        activeId="assessment"
+        onSelect={onSelect}
+        onExit={vi.fn()}
+      >
+        <p>Assessment page</p>
+      </StudentWorkspaceShell>,
+    )
+
+    fireEvent.click(screen.getAllByRole('button', { name: 'Dashboard' })[0])
+    expect(onSelect).toHaveBeenCalledWith('overview')
+    expect(screen.getByRole('button', { name: 'Go to dashboard' })).toBeInTheDocument()
   })
 })

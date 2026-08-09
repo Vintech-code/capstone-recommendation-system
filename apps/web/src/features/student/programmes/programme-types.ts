@@ -14,6 +14,19 @@ interface StudentProgramme {
   requirements: string[]
   readinessPrompt: string
   contentVersion?: string | null
+  degreeType?: string
+  duration?: {
+    status: 'ched_psg' | 'needs_tcc_confirmation'
+    display: string
+    source_name?: string
+    source_url?: string
+    note?: string
+  } | null
+  salary?: { status: string; display?: string } | null
+  jobGrowth?: { status: string; display?: string } | null
+  outlookVersion?: string | null
+  coverImageUrl?: string | null
+  logoImageUrl?: string | null
 }
 
 interface StudentProgrammeCatalogue {
@@ -22,4 +35,10 @@ interface StudentProgrammeCatalogue {
   programmes: StudentProgramme[]
 }
 
-export type { StudentProgramme, StudentProgrammeCatalogue }
+interface StudentProgrammeMatchContext {
+  programmeId: string
+  match: number
+  factors: string[]
+}
+
+export type { StudentProgramme, StudentProgrammeCatalogue, StudentProgrammeMatchContext }

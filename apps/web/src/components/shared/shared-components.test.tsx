@@ -20,7 +20,7 @@ describe('shared frontend foundation components', () => {
     render(<SiteFooter />)
 
     const footer = screen.getByRole('contentinfo')
-    expect(within(footer).getByRole('img', { name: 'Pathways' })).toBeVisible()
+    expect(within(footer).getByRole('img', { name: 'Academic guidance system' })).toBeVisible()
     expect(
       within(footer).getByRole('heading', { name: 'Institutional' }),
     ).toBeVisible()

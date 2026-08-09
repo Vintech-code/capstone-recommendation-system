@@ -1,29 +1,39 @@
 import {
-  ArrowRight,
+  BadgeDollarSign,
+  Bookmark,
+  BookmarkCheck,
   BookOpen,
   BriefcaseBusiness,
   Building2,
   CheckCircle2,
-  Compass,
+  ChevronDown,
+  Clock3,
   GraduationCap,
+  GitCompareArrows,
   HeartHandshake,
   Laptop,
   LibraryBig,
   Route,
   Scale,
+  Search,
   School,
+  SlidersHorizontal,
   Stethoscope,
+  TrendingUp,
 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 
 import { ErrorState, LoadingState } from '@/components/shared'
 import { Button } from '@/components/ui/button'
-import { StudentBreadcrumbs } from '@/features/student/components/student-breadcrumbs'
-import { getProgrammeCatalogue } from '@/features/student/programmes/programme-api'
-import type { StudentProgramme, StudentProgrammeCatalogue } from '@/features/student/programmes/programme-types'
+import tccBanner from '@/assets/tccbanner.jpg'
+import { ProgrammeComparisonSheet } from '@/features/student/programmes/components/programme-comparison-sheet'
+import { getProgrammeCatalogue, getSavedProgrammeIds, updateSavedProgramme } from '@/features/student/programmes/programme-api'
+import { getProgrammeImages } from '@/features/student/programmes/programme-images'
+import type { StudentProgramme, StudentProgrammeCatalogue, StudentProgrammeMatchContext } from '@/features/student/programmes/programme-types'
 
 interface StudentProgrammeCataloguePageProps {
   initialCatalogue?: StudentProgrammeCatalogue
+  matchContext?: StudentProgrammeMatchContext[]
 }
 
 const categoryDefinitions = [
@@ -33,6 +43,8 @@ const categoryDefinitions = [
   { id: 'safety', title: 'Criminology & Public Safety', icon: Scale, ids: ['bs-criminology'] },
   { id: 'allied', title: 'Community, Health & Information', icon: HeartHandshake, ids: ['bs-midwifery', 'bachelor-library-information-science', 'bs-sociology', 'bs-community-development'] },
 ]
+
+const programmesPerBatch = 6
 
 const strandLabels: Record<string, string> = {
   ABM: 'Accountancy, Business and Management',
@@ -44,11 +56,36 @@ const strandLabels: Record<string, string> = {
   'TVL-ICT': 'Technical-Vocational-Livelihood – Information and Communications Technology',
 }
 
-function StudentProgrammeCataloguePage({ initialCatalogue }: StudentProgrammeCataloguePageProps) {
+function StudentProgrammeCataloguePage({ initialCatalogue, matchContext = [] }: StudentProgrammeCataloguePageProps) {
   const [catalogue, setCatalogue] = useState<StudentProgrammeCatalogue | null>(initialCatalogue ?? null)
   const [state, setState] = useState(initialCatalogue ? 'ready' : 'loading')
   const [selected, setSelected] = useState<StudentProgramme | null>(null)
   const [attempt, setAttempt] = useState(0)
+  const [query, setQuery] = useState('')
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([])
+  const [selectedStrands, setSelectedStrands] = useState<string[]>([])
+  const [selectedRiasecAreas, setSelectedRiasecAreas] = useState<string[]>([])
+  const [sortBy, setSortBy] = useState<'name' | 'category'>('name')
+  const [durationFilter, setDurationFilter] = useState('all')
+  const [visibleCount, setVisibleCount] = useState(programmesPerBatch)
+  const [savedProgrammeIds, setSavedProgrammeIds] = useState<Set<string>>(new Set())
+  const [savingProgrammeIds, setSavingProgrammeIds] = useState<Set<string>>(new Set())
+  const [saveError, setSaveError] = useState('')
+  const [savedOnly, setSavedOnly] = useState(false)
+  const [comparisonIds, setComparisonIds] = useState<Set<string>>(new Set())
+  const [comparisonOpen, setComparisonOpen] = useState(false)
+
+  const durationOptions = useMemo(() => Array.from(new Set(
+    (catalogue?.programmes ?? [])
+      .map((programme) => programme.duration?.display)
+      .filter((value): value is string => Boolean(value)),
+  )).sort((left, right) => left.localeCompare(right, undefined, { numeric: true })), [catalogue])
+  const strandOptions = useMemo(() => Array.from(new Set(
+    (catalogue?.programmes ?? []).flatMap((programme) => programme.recommendedStrands),
+  )).sort(), [catalogue])
+  const riasecOptions = useMemo(() => Array.from(new Set(
+    (catalogue?.programmes ?? []).flatMap((programme) => programme.riasecProfile),
+  )).sort(), [catalogue])
 
   useEffect(() => {
     if (initialCatalogue) return
@@ -59,12 +96,75 @@ function StudentProgrammeCataloguePage({ initialCatalogue }: StudentProgrammeCat
     return () => { active = false }
   }, [attempt, initialCatalogue])
 
-  const groups = useMemo(() => categoryDefinitions.map((category) => ({
-    ...category,
-    programmes: category.ids
-      .map((id) => catalogue?.programmes.find((programme) => programme.id === id))
-      .filter(Boolean) as StudentProgramme[],
-  })).filter((category) => category.programmes.length > 0), [catalogue])
+  useEffect(() => {
+    let active = true
+    getSavedProgrammeIds()
+      .then(({ programmeIds }) => { if (active) setSavedProgrammeIds(new Set(programmeIds)) })
+      .catch(() => { if (active) setSaveError('Saved programmes could not be loaded.') })
+    return () => { active = false }
+  }, [])
+
+  const visibleProgrammes = useMemo(() => {
+    const normalizedQuery = query.trim().toLowerCase()
+    const filtered = (catalogue?.programmes ?? []).filter((programme) => {
+      const category = categoryDefinitions.find((definition) => definition.ids.includes(programme.id))
+      const matchesCategory = selectedCategories.length === 0 || (category && selectedCategories.includes(category.id))
+      const matchesDuration = durationFilter === 'all' || programme.duration?.display === durationFilter
+      const matchesStrands = selectedStrands.length === 0 || selectedStrands.some((strand) => programme.recommendedStrands.includes(strand))
+      const matchesRiasec = selectedRiasecAreas.length === 0 || selectedRiasecAreas.some((area) => programme.riasecProfile.includes(area))
+      const matchesSaved = !savedOnly || savedProgrammeIds.has(programme.id)
+      const searchable = [programme.name, programme.code, programme.description, ...programme.learningAreas, ...programme.careerDirections]
+        .join(' ')
+        .toLowerCase()
+
+      return matchesCategory && matchesDuration && matchesStrands && matchesRiasec && matchesSaved && (!normalizedQuery || searchable.includes(normalizedQuery))
+    })
+
+    return [...filtered].sort((left, right) => {
+      if (sortBy === 'category') {
+        const leftCategory = categoryDefinitions.find((definition) => definition.ids.includes(left.id))?.title ?? ''
+        const rightCategory = categoryDefinitions.find((definition) => definition.ids.includes(right.id))?.title ?? ''
+        const categoryOrder = leftCategory.localeCompare(rightCategory)
+        if (categoryOrder !== 0) return categoryOrder
+      }
+
+      return left.name.localeCompare(right.name)
+    })
+  }, [catalogue, durationFilter, query, savedOnly, savedProgrammeIds, selectedCategories, selectedRiasecAreas, selectedStrands, sortBy])
+  const displayedProgrammes = visibleProgrammes.slice(0, visibleCount)
+  const comparisonProgrammes = (catalogue?.programmes ?? []).filter((programme) => comparisonIds.has(programme.id))
+
+  const toggleSavedProgramme = async (programmeId: string) => {
+    const nextSaved = !savedProgrammeIds.has(programmeId)
+    setSaveError('')
+    setSavingProgrammeIds((current) => new Set(current).add(programmeId))
+    try {
+      await updateSavedProgramme(programmeId, nextSaved)
+      setSavedProgrammeIds((current) => {
+        const next = new Set(current)
+        if (nextSaved) next.add(programmeId)
+        else next.delete(programmeId)
+        return next
+      })
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : 'The saved programme could not be updated.')
+    } finally {
+      setSavingProgrammeIds((current) => {
+        const next = new Set(current)
+        next.delete(programmeId)
+        return next
+      })
+    }
+  }
+
+  const toggleComparison = (programmeId: string) => {
+    setComparisonIds((current) => {
+      const next = new Set(current)
+      if (next.has(programmeId)) next.delete(programmeId)
+      else if (next.size < 3) next.add(programmeId)
+      return next
+    })
+  }
 
   if (state === 'loading') {
     return <LoadingState variant="catalogue" title="Loading academic programmes" description="Connecting to the current TCC catalogue." />
@@ -89,68 +189,328 @@ function StudentProgrammeCataloguePage({ initialCatalogue }: StudentProgrammeCat
   }
 
   return (
-    <div className="student-page pb-10">
-      <section className="catalogue-hero" aria-labelledby="catalogue-title">
-        <div className="relative z-10 max-w-3xl">
-          <p className="student-kicker"><span /> Academic catalogue</p>
-          <h1 id="catalogue-title" className="mt-4 font-display text-4xl font-bold tracking-[-0.035em] sm:text-5xl">
-            Discover your pathway to purpose
-          </h1>
-          <p className="mt-4 max-w-2xl text-base leading-7 text-foreground/70">
-            Explore the degree programmes currently covered by Pathways for Academic Year {catalogue.academicYear}.
+    <div className="pb-16">
+      <header className="relative isolate min-h-[25rem] overflow-hidden bg-primary text-primary-foreground shadow-sm lg:min-h-[30rem]">
+        <img
+          src={tccBanner}
+          alt=""
+          className="absolute inset-0 -z-20 size-full object-cover object-center"
+        />
+        <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-r from-primary/80 via-primary/35 to-transparent" />
+        <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-t from-primary/35 via-transparent to-white/5" />
+        <div className="student-page py-12 sm:py-16 lg:py-20">
+          <div className="max-w-2xl">
+          <p className="flex items-center gap-3 font-label text-xs font-semibold uppercase tracking-[0.16em] text-secondary-fixed sm:text-sm">
+            <span className="h-9 w-1 rounded-full bg-secondary-container" />
+            Academic catalogue
           </p>
+          <h1 id="catalogue-title" className="mt-6 font-display text-4xl font-bold tracking-[-0.04em] text-white sm:text-5xl lg:text-6xl">Explore TCC programmes</h1>
+          <p className="mt-5 max-w-xl text-base leading-7 text-white/85 sm:text-lg">
+            Search and filter the {catalogue.programmes.length} degree programmes covered for Academic Year {catalogue.academicYear}.
+          </p>
+          </div>
         </div>
-        <div className="catalogue-count" aria-label={`${catalogue.programmes.length} degree programmes`}>
-          <strong>{catalogue.programmes.length}</strong>
-          <span>Degree programmes</span>
-        </div>
-      </section>
+      </header>
 
-      <div className="mt-9 space-y-11">
-        {groups.map((group, groupIndex) => (
-          <section key={group.id} aria-labelledby={`${group.id}-title`} className={groupIndex % 2 ? 'catalogue-band' : ''}>
-            <div className="mb-5 flex items-center gap-3">
-              <span className="flex size-10 items-center justify-center rounded-lg bg-primary-fixed text-primary">
-                <group.icon aria-hidden="true" className="size-5" />
-              </span>
-              <h2 id={`${group.id}-title`} className="font-display text-2xl font-semibold">{group.title}</h2>
+      <div className="student-page relative z-10 -mt-10 grid items-start gap-7 sm:-mt-14 lg:grid-cols-[17rem_minmax(0,1fr)]">
+        <aside aria-labelledby="programme-filters-title" className="rounded-xl bg-secondary p-6 shadow-sm lg:sticky lg:top-24">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <SlidersHorizontal aria-hidden="true" className="size-5 text-primary" />
+              <h2 id="programme-filters-title" className="font-display text-2xl font-semibold">Filters</h2>
             </div>
-            <div className={`grid gap-4 ${group.programmes.length === 1 ? '' : 'md:grid-cols-2'} ${group.programmes.length >= 4 ? 'xl:grid-cols-4' : ''}`}>
-              {group.programmes.map((programme, index) => (
+            <button
+              type="button"
+              onClick={() => { setSelectedCategories([]); setSelectedStrands([]); setSelectedRiasecAreas([]); setDurationFilter('all'); setSavedOnly(false); setQuery(''); setVisibleCount(programmesPerBatch) }}
+              className="min-h-11 text-sm font-semibold text-primary hover:underline"
+            >
+              Clear all
+            </button>
+          </div>
+          <fieldset className="mt-6">
+            <legend className="font-label text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">Field of study</legend>
+            <div className="mt-4 space-y-3">
+              {categoryDefinitions.map((category) => {
+                const checked = selectedCategories.includes(category.id)
+                return (
+                  <label key={category.id} className="flex min-h-11 cursor-pointer items-center gap-3 text-sm font-medium">
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => {
+                        setSelectedCategories((current) => checked
+                          ? current.filter((id) => id !== category.id)
+                          : [...current, category.id])
+                        setVisibleCount(programmesPerBatch)
+                      }}
+                      className="size-5 rounded accent-primary"
+                    />
+                    <category.icon aria-hidden="true" className="size-4 text-primary" />
+                    <span>{category.title}</span>
+                  </label>
+                )
+              })}
+            </div>
+          </fieldset>
+          <fieldset className="mt-6 border-t border-outline-variant/50 pt-6">
+            <legend className="font-label text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">Duration</legend>
+            <div className="mt-4 grid gap-2">
+              {[['all', 'All durations'], ...durationOptions.map((duration) => [duration, duration])].map(([value, label]) => (
+                <label key={value} className="flex min-h-11 cursor-pointer items-center gap-3 rounded-lg px-3 text-sm font-medium hover:bg-card">
+                  <input
+                    type="radio"
+                    name="programme-duration"
+                    value={value}
+                    checked={durationFilter === value}
+                    onChange={() => { setDurationFilter(value); setVisibleCount(programmesPerBatch) }}
+                    className="size-5 accent-primary"
+                  />
+                  {label}
+                </label>
+              ))}
+            </div>
+          </fieldset>
+          <fieldset className="mt-6 border-t border-outline-variant/50 pt-6">
+            <legend className="font-label text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">Recommended SHS strand</legend>
+            <div className="mt-3 grid gap-1">
+              {strandOptions.map((strand) => (
+                <label key={strand} className="flex min-h-10 cursor-pointer items-center gap-3 rounded-lg px-3 text-sm hover:bg-card">
+                  <input
+                    type="checkbox"
+                    checked={selectedStrands.includes(strand)}
+                    onChange={() => {
+                      setSelectedStrands((current) => current.includes(strand) ? current.filter((item) => item !== strand) : [...current, strand])
+                      setVisibleCount(programmesPerBatch)
+                    }}
+                    className="size-5 rounded accent-primary"
+                  />
+                  {strand}
+                </label>
+              ))}
+            </div>
+          </fieldset>
+          <fieldset className="mt-6 border-t border-outline-variant/50 pt-6">
+            <legend className="font-label text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">RIASEC area</legend>
+            <div className="mt-3 grid grid-cols-3 gap-2">
+              {riasecOptions.map((area) => (
+                <label key={area} className="flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-lg bg-card px-2 text-sm font-semibold">
+                  <input
+                    type="checkbox"
+                    checked={selectedRiasecAreas.includes(area)}
+                    onChange={() => {
+                      setSelectedRiasecAreas((current) => current.includes(area) ? current.filter((item) => item !== area) : [...current, area])
+                      setVisibleCount(programmesPerBatch)
+                    }}
+                    className="size-4 rounded accent-primary"
+                  />
+                  {area}
+                </label>
+              ))}
+            </div>
+          </fieldset>
+          <fieldset className="mt-6 border-t border-outline-variant/50 pt-6">
+            <legend className="font-label text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">Saved programmes</legend>
+            <label className="mt-3 flex min-h-11 cursor-pointer items-center gap-3 rounded-lg px-3 text-sm font-medium hover:bg-card">
+              <input
+                type="checkbox"
+                checked={savedOnly}
+                onChange={(event) => { setSavedOnly(event.target.checked); setVisibleCount(programmesPerBatch) }}
+                className="size-5 rounded accent-primary"
+              />
+              <BookmarkCheck aria-hidden="true" className="size-4 text-primary" />
+              Show saved only
+            </label>
+          </fieldset>
+          <p className="mt-6 rounded-lg bg-card px-4 py-3 text-sm text-muted-foreground shadow-sm" role="status">
+            Showing {displayedProgrammes.length} of {visibleProgrammes.length} matching programmes
+          </p>
+        </aside>
+
+        <main aria-labelledby="catalogue-title">
+          <div className="grid gap-4 rounded-xl bg-card p-5 shadow-sm sm:grid-cols-[minmax(0,1fr)_12rem] sm:items-center">
+            <label className="relative block">
+              <span className="sr-only">Search programmes</span>
+              <Search aria-hidden="true" className="absolute left-4 top-1/2 size-5 -translate-y-1/2 text-muted-foreground" />
+              <input
+                type="search"
+                value={query}
+                onChange={(event) => { setQuery(event.target.value); setVisibleCount(programmesPerBatch) }}
+                placeholder="Search courses, skills, or careers"
+                className="min-h-12 w-full rounded-lg border border-input bg-secondary pl-12 pr-4 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/10"
+              />
+            </label>
+            <label className="grid gap-1 text-xs font-semibold text-muted-foreground">
+              Sort by
+              <select
+                value={sortBy}
+                onChange={(event) => { setSortBy(event.target.value as 'name' | 'category'); setVisibleCount(programmesPerBatch) }}
+                className="min-h-12 rounded-lg border border-input bg-secondary px-3 text-sm font-semibold text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/10"
+              >
+                <option value="name">Course name</option>
+                <option value="category">Field of study</option>
+              </select>
+            </label>
+          </div>
+
+          {visibleProgrammes.length > 0 ? (
+            <div className="mt-7 grid gap-6 md:grid-cols-2">
+              {displayedProgrammes.map((programme, index) => (
                 <ProgrammeCard
                   key={programme.id}
                   programme={programme}
-                  featured={group.programmes.length === 1 || (groupIndex === 0 && index === 0)}
+                  matchContext={matchContext.find((context) => context.programmeId === programme.id)}
+                  saved={savedProgrammeIds.has(programme.id)}
+                  saving={savingProgrammeIds.has(programme.id)}
+                  selectedForComparison={comparisonIds.has(programme.id)}
+                  comparisonDisabled={comparisonIds.size >= 3 && !comparisonIds.has(programme.id)}
+                  priority={index < 2}
                   onSelect={() => setSelected(programme)}
+                  onToggleSaved={() => void toggleSavedProgramme(programme.id)}
+                  onToggleComparison={() => toggleComparison(programme.id)}
                 />
               ))}
             </div>
-          </section>
-        ))}
+          ) : (
+            <div className="mt-7 rounded-xl bg-card p-8 text-center shadow-sm">
+              <h2 className="font-display text-xl font-semibold">No programmes match these filters</h2>
+              <p className="mt-2 text-sm text-muted-foreground">Clear a filter or try a broader search term.</p>
+            </div>
+          )}
+          {displayedProgrammes.length < visibleProgrammes.length ? (
+            <div className="mt-8 flex flex-col items-center gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                className="min-h-12 bg-card px-6"
+                onClick={() => setVisibleCount((current) => Math.min(current + programmesPerBatch, visibleProgrammes.length))}
+              >
+                Load more programmes
+                <ChevronDown aria-hidden="true" />
+              </Button>
+              <p className="text-sm text-muted-foreground" aria-live="polite">
+                {visibleProgrammes.length - displayedProgrammes.length} more programmes available
+              </p>
+            </div>
+          ) : null}
+          {saveError ? <p role="alert" className="mt-5 rounded-lg bg-destructive/10 p-4 text-sm font-medium text-destructive">{saveError}</p> : null}
+        </main>
       </div>
+
+      {comparisonIds.size > 0 ? (
+        <div className="fixed inset-x-4 bottom-4 z-40 mx-auto flex max-w-xl items-center justify-between gap-4 rounded-xl bg-primary px-5 py-4 text-primary-foreground shadow-xl" data-print-hidden>
+          <div>
+            <p className="font-semibold">{comparisonIds.size} of 3 selected</p>
+            <p className="text-xs text-primary-foreground/75">{comparisonIds.size < 2 ? 'Select one more programme to compare.' : 'Ready for side-by-side comparison.'}</p>
+          </div>
+          <div className="flex gap-2">
+            <Button type="button" variant="ghost" className="text-primary-foreground hover:bg-white/10 hover:text-primary-foreground" onClick={() => setComparisonIds(new Set())}>Clear</Button>
+            <Button type="button" className="bg-secondary-container text-on-secondary-container hover:bg-secondary-fixed-dim" disabled={comparisonIds.size < 2} onClick={() => setComparisonOpen(true)}>
+              Compare now
+            </Button>
+          </div>
+        </div>
+      ) : null}
+
+      <ProgrammeComparisonSheet open={comparisonOpen} onOpenChange={setComparisonOpen} programmes={comparisonProgrammes} />
     </div>
   )
 }
 
-function ProgrammeCard({ programme, featured, onSelect }: { programme: StudentProgramme; featured: boolean; onSelect: () => void }) {
-  const recommendedStrands = programme.recommendedStrands ?? []
+function ProgrammeCard({
+  programme,
+  matchContext,
+  saved,
+  saving,
+  selectedForComparison,
+  comparisonDisabled,
+  priority,
+  onSelect,
+  onToggleSaved,
+  onToggleComparison,
+}: {
+  programme: StudentProgramme
+  matchContext?: StudentProgrammeMatchContext
+  saved: boolean
+  saving: boolean
+  selectedForComparison: boolean
+  comparisonDisabled: boolean
+  priority: boolean
+  onSelect: () => void
+  onToggleSaved: () => void
+  onToggleComparison: () => void
+}) {
+  const fallback = getProgrammeImages(programme.id)
+  const cover = programme.coverImageUrl || fallback.cover
+  const category = categoryDefinitions.find((definition) => definition.ids.includes(programme.id))
 
   return (
-    <article className={`programme-card ${featured ? 'programme-card-featured' : ''}`}>
-      <div className="programme-visual" aria-hidden="true">
-        <span className="programme-monogram">{programme.code.slice(0, 4)}</span>
-        <Building2 className="size-16 opacity-25" />
+    <article className="group relative flex min-h-[27rem] w-full flex-col overflow-hidden rounded-xl bg-card text-left shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-md">
+      <button type="button" onClick={onSelect} aria-label={`View programme details: ${programme.name}`} className="absolute inset-0 z-10 rounded-xl focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-inset focus-visible:ring-ring/40" />
+      <div className="relative flex h-40 items-center justify-center overflow-hidden bg-secondary">
+        {cover ? (
+          <img src={cover} alt={`${programme.name} programme`} loading={priority ? 'eager' : 'lazy'} fetchPriority={priority ? 'high' : 'auto'} decoding="async" className="absolute inset-0 size-full object-cover transition-transform duration-300 group-hover:scale-105" />
+        ) : (
+          <>
+            <span className="programme-monogram">{programme.code.slice(0, 4)}</span>
+            <Building2 className="size-16 opacity-25" />
+          </>
+        )}
+        <span className="absolute left-4 top-4 rounded-full bg-primary px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-primary-foreground shadow-sm">
+          {category?.title ?? 'Degree programme'}
+        </span>
+        <button
+          type="button"
+          disabled={saving}
+          aria-pressed={saved}
+          aria-label={saved ? `Remove ${programme.name} from saved programmes` : `Save ${programme.name}`}
+          onClick={onToggleSaved}
+          className="absolute right-4 top-4 z-20 flex size-11 items-center justify-center rounded-full bg-card/95 text-primary shadow-sm focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/40"
+        >
+          {saved ? <BookmarkCheck aria-hidden="true" className="size-5" /> : <Bookmark aria-hidden="true" className="size-5" />}
+        </button>
+        <span className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/55 to-transparent" />
       </div>
-      <div className="flex min-w-0 flex-1 flex-col p-5 sm:p-6">
-        <div className="flex flex-wrap gap-2" aria-label="Helpful Senior High School preparation">
-          {recommendedStrands.map((strand) => <span key={strand} className="outcome-chip">{strand}</span>)}
-        </div>
-        <h3 className="mt-4 font-display text-xl font-semibold leading-7">
-          {programme.name} <span className="whitespace-nowrap">({programme.code})</span>
+      <div className="flex min-w-0 flex-1 flex-col p-5">
+        <h3 className="font-display text-xl font-bold leading-7 transition-colors group-hover:text-primary">
+          {programme.name}
         </h3>
-        <p className="mt-3 text-sm leading-6 text-muted-foreground">{programme.description}</p>
-        <Button type="button" onClick={onSelect} className="mt-5 w-fit rounded bg-primary px-5 font-label">
-          Explore programme <ArrowRight aria-hidden="true" />
+        <p className="mt-2 line-clamp-2 text-sm leading-6 text-muted-foreground">{programme.description}</p>
+
+        {matchContext ? (
+          <div className="mt-3 rounded-lg bg-primary-fixed/65 px-3 py-2 text-xs text-on-primary-fixed">
+            <strong>{matchContext.match}% match</strong>
+            <span className="ml-2">Why this matches me: {matchContext.factors[0] || 'Aligned with your recorded RIASEC profile.'}</span>
+          </div>
+        ) : null}
+
+        <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 text-xs">
+          <div className="min-w-0">
+            <dt className="flex items-center gap-1.5 text-muted-foreground"><BadgeDollarSign aria-hidden="true" className="size-4 text-primary" />Starting salary</dt>
+            <dd className="mt-1 truncate font-semibold">{programme.salary?.display || 'Not published'}</dd>
+          </div>
+          <div className="min-w-0">
+            <dt className="flex items-center gap-1.5 text-muted-foreground"><TrendingUp aria-hidden="true" className="size-4 text-primary" />Job growth</dt>
+            <dd className="mt-1 truncate font-semibold">{programme.jobGrowth?.display || 'Not published'}</dd>
+          </div>
+        </dl>
+
+        <div className="mt-auto grid grid-cols-2 gap-3 border-t border-outline-variant/45 pt-4 text-xs">
+          <span className="font-semibold">
+            <span className="flex items-center gap-1.5" title={programme.duration?.source_name}><Clock3 aria-hidden="true" className="size-4 text-primary" />{programme.duration?.display || 'Not published'}</span>
+            {programme.duration?.source_url ? <a href={programme.duration.source_url} target="_blank" rel="noreferrer" className="relative z-20 mt-1 inline-block text-[11px] text-primary underline underline-offset-4">CHED source</a> : null}
+          </span>
+          <span className="flex items-center justify-end gap-1.5 truncate text-right text-muted-foreground"><GraduationCap aria-hidden="true" className="size-4 shrink-0 text-primary" />{programme.degreeType || 'Not published'}</span>
+        </div>
+        <Button
+          type="button"
+          variant={selectedForComparison ? 'secondary' : 'outline'}
+          disabled={comparisonDisabled}
+          aria-pressed={selectedForComparison}
+          onClick={onToggleComparison}
+          className="relative z-20 mt-4 w-full"
+        >
+          <GitCompareArrows aria-hidden="true" />
+          {selectedForComparison ? 'Selected to compare' : 'Add to comparison'}
         </Button>
       </div>
     </article>
@@ -165,18 +525,21 @@ function StudentProgrammeDetail({ programme, academicYear, onBack }: { programme
     : programme.id.includes('library')
       ? LibraryBig
       : BookOpen
+  const fallback = getProgrammeImages(programme.id)
+  const cover = programme.coverImageUrl || fallback.cover
+  const logo = programme.logoImageUrl || fallback.logo
 
   return (
     <article className="pb-10">
-      <StudentBreadcrumbs
-        parentLabel="Explore Programs"
-        currentLabel={programme.code}
-        onParentSelect={onBack}
-      />
-
-      <div className="student-page">
-      <header className="programme-detail-hero">
-        <div>
+      <header className="relative isolate min-h-[24rem] overflow-hidden bg-primary-fixed/45">
+        {cover ? <img src={cover} alt="" className="absolute inset-0 -z-20 size-full object-cover object-center" /> : null}
+        <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-r from-background/90 via-background/50 to-transparent" />
+        <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-t from-background via-background/20 to-transparent" />
+        <div className="student-page grid min-h-[24rem] items-center gap-8 py-10 lg:grid-cols-[minmax(0,1fr)_12rem] lg:py-14">
+        <div className="pr-0 sm:pr-28 lg:pr-0">
+          <Button type="button" variant="outline" onClick={onBack} className="mb-5 bg-card/80">
+            Back to programmes
+          </Button>
           <div className="flex flex-wrap gap-2">
             <span className="outcome-chip">Academic Year {academicYear}</span>
             {recommendedStrands.map((strand) => <span key={strand} className="outcome-chip">{strand}</span>)}
@@ -184,12 +547,15 @@ function StudentProgrammeDetail({ programme, academicYear, onBack }: { programme
           <h1 className="mt-4 max-w-4xl font-display text-4xl font-bold tracking-[-0.035em] sm:text-5xl">{programme.name}</h1>
           <p className="mt-3 max-w-3xl text-base leading-7 text-foreground/70">{programme.description}</p>
         </div>
-        <div className="programme-detail-mark" aria-hidden="true">
-          <DetailIcon className="size-16" />
-          <strong>{programme.code}</strong>
+        {logo ? (
+          <img src={logo} alt={`${programme.name} logo`} className="absolute right-5 top-7 size-20 rounded-xl bg-white/90 object-contain p-2 shadow-sm sm:right-8 sm:size-28 lg:static lg:size-44 lg:justify-self-end" />
+        ) : (
+          <div className="programme-detail-mark" aria-hidden="true"><DetailIcon className="size-16" /><strong>{programme.code}</strong></div>
+        )}
         </div>
       </header>
 
+      <div className="student-page">
       <div className="mt-6 grid gap-5 lg:grid-cols-[minmax(0,1.35fr)_minmax(18rem,0.65fr)]">
         <section aria-labelledby="learning-title" className="academic-panel">
           <p className="student-kicker"><span /> Programme overview</p>
@@ -264,10 +630,6 @@ function StudentProgrammeDetail({ programme, academicYear, onBack }: { programme
               </li>
             ))}
           </ul>
-          {programme.strandGuidance ? <p className="mt-4 text-sm leading-6 text-muted-foreground">{programme.strandGuidance}</p> : null}
-          <p className="mt-4 rounded bg-primary-fixed/55 p-4 text-sm leading-6 text-foreground/80">
-            These are helpful preparation pathways, not admission requirements. Students from other tracks or strands may still explore this programme and should follow TCC&apos;s current admission guidelines.
-          </p>
         </section>
 
         <section aria-labelledby="career-title" className="academic-panel programme-info-card">
@@ -289,14 +651,6 @@ function StudentProgrammeDetail({ programme, academicYear, onBack }: { programme
         </section>
       </div>
 
-      <section aria-labelledby="readiness-title" className="programme-readiness mt-5">
-        <Compass aria-hidden="true" className="size-8 shrink-0 text-secondary-container" />
-        <div>
-          <p className="font-label text-xs font-medium uppercase tracking-[0.13em] text-primary-fixed-dim">Student guide</p>
-          <h2 id="readiness-title" className="mt-1 font-display text-2xl font-semibold text-white">Is this programme for you?</h2>
-          <p className="mt-2 max-w-4xl text-sm leading-6 text-white/80">{programme.readinessPrompt}</p>
-        </div>
-      </section>
       </div>
     </article>
   )

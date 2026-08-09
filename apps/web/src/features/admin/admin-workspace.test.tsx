@@ -1,0 +1,203 @@
+import { screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { describe, expect, it, vi } from 'vitest'
+
+import { renderAppAt } from '@/test/render-app'
+
+describe('Administration and counselor workspaces', () => {
+  it('shows real-data dashboard areas without legacy verification workflows', async () => {
+    await renderAppAt('/admin')
+
+    expect(await screen.findByRole('heading', { name: /Welcome back, Admin/i })).toBeVisible()
+    expect(screen.getByText('Results ready')).toBeVisible()
+    expect(screen.getByText('Generate reports')).toBeVisible()
+    expect(screen.getByRole('button', { name: /Manage counselors/i })).toBeVisible()
+    expect(screen.getByText('Recent assessment activity')).toBeVisible()
+    expect(screen.queryByText(/verification review/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/encode official result/i)).not.toBeInTheDocument()
+  })
+
+  it('opens a student record with its immutable result and recommendations', async () => {
+    const user = userEvent.setup()
+    await renderAppAt('/admin/students')
+
+    const row = (await screen.findByText('ana@example.test')).closest('tr')
+    expect(row).not.toBeNull()
+    await user.click(within(row as HTMLTableRowElement).getByRole('button', { name: 'Open record' }))
+
+    expect(window.location.pathname).toBe('/admin/students/10')
+    expect(await screen.findByRole('heading', { name: 'Ana Santos' })).toBeVisible()
+    expect(screen.getByRole('heading', { name: 'About Ana Santos' })).toBeVisible()
+    expect(screen.getByText('Problem-solving')).toBeVisible()
+    expect(screen.getByText('I-C interest profile')).toBeVisible()
+    expect(screen.getAllByText('BS Information Technology').length).toBeGreaterThan(0)
+    expect(screen.getByRole('heading', { name: 'Counseling activity' })).toBeVisible()
+    expect(screen.getByText(/cannot assign students/i)).toBeVisible()
+    expect(screen.queryByLabelText('Add guidance note')).not.toBeInTheDocument()
+  })
+
+  it('shows counselor account governance in the Administrator portal', async () => {
+    const user = userEvent.setup()
+    await renderAppAt('/admin/counselors')
+
+    expect(await screen.findByRole('heading', { name: 'Counselor accounts' })).toBeVisible()
+    expect(screen.getByRole('heading', { name: 'Counselor directory' })).toBeVisible()
+    await user.type(screen.getByLabelText('Full name'), 'New Counselor')
+    await user.type(screen.getByLabelText('Email address'), 'new@example.test')
+    await user.click(screen.getByRole('button', { name: /Create counselor account/i }))
+    expect(await screen.findByText(/account created/i)).toBeVisible()
+  })
+
+  it('uses the separate Counselor portal to schedule a student appointment', async () => {
+    const user = userEvent.setup()
+    await renderAppAt('/counselor')
+
+    expect(await screen.findByRole('heading', { name: /Good (morning|afternoon|evening), Counselor/i })).toBeVisible()
+    expect(screen.getAllByText('Student records').length).toBeGreaterThan(0)
+    expect(screen.getByRole('heading', { name: "Today's calendar" })).toBeVisible()
+    expect(screen.getByRole('heading', { name: 'Guidance request queue' })).toBeVisible()
+    await user.click(screen.getByRole('button', { name: /Accept.*schedule/i }))
+    expect(screen.getByLabelText('Student')).toHaveValue('10')
+    expect(screen.getByLabelText('Guidance topic')).toHaveValue('Review BSIT programme match')
+    await user.type(screen.getByLabelText('Date and time'), '2026-08-20T09:00')
+    await user.type(screen.getByLabelText('End date and time'), '2026-08-20T10:00')
+    await user.click(screen.getByRole('button', { name: /Schedule appointment/i }))
+
+    expect(await screen.findByText('Appointment scheduled successfully.')).toBeVisible()
+    expect(fetch).toHaveBeenCalledWith('/api/v1/counselor/appointments', expect.objectContaining({ method: 'POST' }))
+    const appointmentCall = vi.mocked(fetch).mock.calls.find(([input, init]) => input.toString() === '/api/v1/counselor/appointments' && init?.method === 'POST')
+    expect(JSON.parse(String(appointmentCall?.[1]?.body))).toMatchObject({ studentId: 10, guidanceRequestId: 21, programmeCode: 'BSIT', scheduledAt: '2026-08-20T09:00:00+08:00', endsAt: '2026-08-20T10:00:00+08:00' })
+  })
+
+  it('lets a counselor decline a pending request with an auditable reason', async () => {
+    const user = userEvent.setup()
+    await renderAppAt('/counselor/requests')
+
+    expect(await screen.findByText('Programme Comparison')).toBeVisible()
+    expect(screen.getByText('In Person')).toBeVisible()
+    await user.click(screen.getByRole('button', { name: 'Decline' }))
+    await user.type(screen.getByLabelText('Reason for declining'), 'The requested date is not available; please submit another date.')
+    await user.click(screen.getByRole('button', { name: 'Confirm decline' }))
+
+    expect(await screen.findByText('Guidance request declined with a recorded reason.')).toBeVisible()
+    expect(fetch).toHaveBeenCalledWith('/api/v1/counselor/guidance-requests/21/decline', expect.objectContaining({ method: 'POST' }))
+  })
+
+  it('keeps the counselor student profile focused and opens counseling work in a modal sheet', async () => {
+    const user = userEvent.setup()
+    await renderAppAt('/counselor/students/10')
+
+    expect(await screen.findByRole('heading', { name: 'Ana Santos' })).toBeVisible()
+    expect(screen.getByRole('heading', { name: 'About Ana Santos' })).toBeVisible()
+    expect(screen.getByText('Software and application development')).toBeVisible()
+    expect(screen.getByLabelText('Ana Santos profile placeholder')).toHaveTextContent('AS')
+    expect(screen.getByText('STU-000010')).toBeVisible()
+    expect(screen.getByText('ana@example.test')).toBeVisible()
+    expect(screen.getByRole('heading', { name: 'Interest profile at a glance' })).toBeVisible()
+    expect(screen.getByRole('heading', { name: 'Current programme matches' })).toBeVisible()
+    expect(screen.getByTestId('student-evidence-band')).toHaveClass('lg:grid-cols-[minmax(0,1.15fr)_minmax(22rem,.85fr)]')
+    expect(screen.queryByRole('heading', { name: 'Assessment history' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Guidance activity' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'What should happen next?' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Record summary' })).not.toBeInTheDocument()
+    expect(screen.getAllByText('BS Information Technology').length).toBeGreaterThan(0)
+    expect(fetch).not.toHaveBeenCalledWith('/api/v1/counselor/appointments', expect.any(Object))
+    expect(fetch).not.toHaveBeenCalledWith('/api/v1/counselor/guidance-requests', expect.any(Object))
+
+    await user.click(screen.getByRole('button', { name: 'Open counseling workspace' }))
+    expect(screen.getByRole('dialog', { name: 'Counseling workspace for Ana Santos' })).toBeVisible()
+    expect(screen.getByRole('heading', { name: 'Notes, progress, and next steps' })).toBeVisible()
+    expect(screen.getByRole('button', { name: 'Close counseling workspace' })).toBeVisible()
+  })
+
+  it('records an append-only guidance note through the Counselor API', async () => {
+    const user = userEvent.setup()
+    await renderAppAt('/counselor/students/10')
+
+    await user.click(await screen.findByRole('button', { name: 'Open counseling workspace' }))
+    await user.type(await screen.findByLabelText('Guidance note'), 'Discussed programme options.')
+    await user.click(screen.getByRole('button', { name: 'Add note' }))
+
+    expect(fetch).toHaveBeenCalledWith(
+      '/api/v1/counselor/students/10/guidance-notes',
+      expect.objectContaining({ method: 'POST' }),
+    )
+  })
+
+  it('gives counselors separate calendar and aggregate report views', async () => {
+    const { unmount } = await renderAppAt('/counselor/calendar')
+    expect(await screen.findByRole('heading', { name: 'Appointment calendar' })).toBeVisible()
+    unmount()
+
+    await renderAppAt('/counselor/reports')
+    expect(await screen.findByRole('heading', { name: 'Guidance reports' })).toBeVisible()
+    expect(screen.queryByText(/programme match frequency/i)).not.toBeInTheDocument()
+  })
+
+  it('provides programme monitoring and configuration without a methodology module', async () => {
+    const user = userEvent.setup()
+    const { unmount } = await renderAppAt('/admin/programmes')
+    expect(await screen.findByRole('heading', { name: 'Programme monitoring' })).toBeVisible()
+    expect(screen.getByText('BS Information Technology')).toBeVisible()
+    expect(screen.queryByText('Student saves')).not.toBeInTheDocument()
+    expect(screen.getByText('CHED duration sourced')).toBeVisible()
+    expect(screen.getByText('CHED CMO No. 25, series of 2015')).toBeVisible()
+    await user.click(screen.getByRole('button', { name: 'View details' }))
+    expect(screen.getByRole('dialog')).toBeVisible()
+    expect(screen.getByRole('heading', { name: 'Possible career directions' })).toBeVisible()
+    expect(screen.getByText('Software and application development')).toBeVisible()
+    expect(screen.queryByText('Governance metadata')).not.toBeInTheDocument()
+    expect(screen.queryByText('Student-facing requirements')).not.toBeInTheDocument()
+    expect(screen.queryByText('Readiness prompt shown to students')).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Close navigation' }))
+    await user.click(screen.getByRole('button', { name: 'Edit programme' }))
+    expect(screen.getByRole('heading', { name: 'Edit BS Information Technology' })).toBeVisible()
+    expect(screen.getByLabelText('Programme name')).toBeVisible()
+    await user.upload(screen.getByLabelText('Programme cover photo'), new File(['cover'], 'cover.webp', { type: 'image/webp' }))
+    expect(await screen.findByText(/cover photo uploaded and ready/i)).toBeVisible()
+    await user.click(screen.getByRole('button', { name: 'Publish to student pages' }))
+    await user.click(screen.getByRole('button', { name: 'Save and publish' }))
+    expect(fetch).toHaveBeenCalledWith('/api/v1/admin/configurations/versions/7', expect.objectContaining({ method: 'PUT' }))
+    expect(fetch).toHaveBeenCalledWith('/api/v1/admin/configurations/versions/7/publish', expect.objectContaining({ method: 'POST' }))
+
+    expect(screen.queryByText('Methodology')).not.toBeInTheDocument()
+    unmount()
+  })
+
+  it('presents assessment activity as a searchable lifecycle ledger', async () => {
+    const user = userEvent.setup()
+    await renderAppAt('/admin/assessments')
+
+    expect(await screen.findByRole('heading', { name: 'Assessment activity' })).toBeVisible()
+    expect(screen.getByRole('heading', { name: 'Student assessment records' })).toBeVisible()
+    expect(screen.getByText('Results available')).toBeVisible()
+    await user.type(screen.getByRole('searchbox', { name: 'Search assessment activity' }), 'Ana')
+    expect(screen.getByRole('button', { name: /Open student record/i })).toBeVisible()
+  })
+
+  it('shows privacy-aware reports and auditable Admin activity', async () => {
+    const { unmount } = await renderAppAt('/admin/reports')
+    expect(await screen.findByRole('heading', { name: 'Guidance reports' })).toBeVisible()
+    expect(screen.queryByText(/programme match frequency/i)).not.toBeInTheDocument()
+
+    unmount()
+    await renderAppAt('/admin/activity')
+    expect(await screen.findByRole('heading', { name: 'Admin activity' })).toBeVisible()
+    expect(screen.getByText('Guidance Note Created')).toBeVisible()
+  })
+
+  it('shows a retryable error when an Admin endpoint fails', async () => {
+    const defaultImplementation = vi.mocked(fetch).getMockImplementation()
+    vi.mocked(fetch).mockImplementation((input, init) => {
+      if (input.toString() === '/api/v1/admin/overview') {
+        return Promise.resolve(Response.json({ message: 'Service unavailable.' }, { status: 503 }))
+      }
+      return defaultImplementation!(input, init)
+    })
+    await renderAppAt('/admin')
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Service unavailable.')
+    expect(screen.getByRole('button', { name: 'Try again' })).toBeVisible()
+  })
+})

@@ -1,4 +1,4 @@
-import logo from '@/assets/logo-optimized.png'
+import logo from '@/assets/logo.png'
 
 function SiteFooter() {
   return (
@@ -8,8 +8,8 @@ function SiteFooter() {
           <div>
             <img
               src={logo}
-              alt="Pathways"
-              className="size-11 rounded object-cover shadow-sm"
+              alt="Academic guidance system"
+              className="h-11 w-auto object-contain"
             />
             <p className="mt-5 max-w-sm text-sm leading-6 text-muted-foreground">
               Guiding Tagoloan Community College students toward academic and

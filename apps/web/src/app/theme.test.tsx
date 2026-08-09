@@ -39,7 +39,7 @@ describe('application theme', () => {
   it('restores a saved dark theme in an authenticated workspace', async () => {
     window.localStorage.setItem(THEME_STORAGE_KEY, 'dark')
 
-    await renderAppAt('/system-admin')
+    await renderAppAt('/counselor')
 
     expect(document.documentElement).toHaveClass('dark')
     expect(

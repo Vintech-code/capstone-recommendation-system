@@ -115,6 +115,10 @@ function ProtectedRoute({ role, children }: ProtectedRouteProps) {
     return <Navigate to="/forbidden" replace />
   }
 
+  if (user.mustChangePassword && location.pathname !== '/change-password') {
+    return <Navigate to="/change-password" replace state={{ role }} />
+  }
+
   if (authorization === 'expired') {
     return <Navigate to="/session-expired" replace />
   }

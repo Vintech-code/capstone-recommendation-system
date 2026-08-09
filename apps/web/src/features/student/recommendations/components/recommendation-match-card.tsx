@@ -1,6 +1,7 @@
 import { ArrowRight, BookOpen } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
+import { getProgrammeImages } from '@/features/student/programmes/programme-images'
 import type { StudentRecommendedCourse } from '@/features/student/recommendations/recommendation-types'
 
 interface RecommendationMatchCardProps {
@@ -14,6 +15,9 @@ function RecommendationMatchCard({
   featured = false,
   onViewDetails,
 }: RecommendationMatchCardProps) {
+  const fallback = getProgrammeImages(course.id)
+  const cover = course.coverImageUrl || fallback.cover
+
   return (
     <article
       className={
@@ -36,12 +40,16 @@ function RecommendationMatchCard({
       >
         <div
           className={`relative flex min-h-32 items-center justify-center overflow-hidden rounded bg-gradient-to-br from-primary via-[#174a7c] to-[#7b94b5] text-primary-foreground ${featured ? 'sm:min-h-48' : ''}`}
-          aria-hidden="true"
         >
-          <BookOpen className="absolute -bottom-3 -right-2 size-24 opacity-15" />
-          <span className="font-display text-2xl font-bold tracking-[-0.04em]">
-            {course.code}
-          </span>
+          {cover ? (
+            <img src={cover} alt={`${course.name} programme`} loading="lazy" decoding="async" className="absolute inset-0 size-full object-cover transition-transform duration-300 group-hover:scale-105" />
+          ) : (
+            <>
+              <BookOpen aria-hidden="true" className="absolute -bottom-3 -right-2 size-24 opacity-15" />
+              <span className="font-display text-2xl font-bold tracking-[-0.04em]">{course.code}</span>
+            </>
+          )}
+          <span aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-primary/50 via-transparent to-transparent" />
           <span className="absolute right-2 top-2 rounded bg-secondary-container px-2.5 py-1 font-label text-xs font-medium text-[#221b00] shadow-sm">
             {course.match}% match
           </span>

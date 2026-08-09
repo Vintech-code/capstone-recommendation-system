@@ -1,4 +1,4 @@
-import { ArrowRight, BookOpenCheck, Network } from 'lucide-react'
+import { ArrowRight, BookOpenCheck } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 
 import { ConfirmActionDialog, EmptyState, ErrorState, LoadingState } from '@/components/shared'
@@ -23,6 +23,7 @@ type RecommendationLoadState = 'ready' | 'loading' | 'error' | 'empty' | 'pendin
 interface StudentRecommendationResultsPageProps {
   onBack: () => void
   onOpenAssessment?: () => void
+  onExploreProgrammes?: (courses: StudentRecommendedCourse[]) => void
   initialLoadState?: RecommendationLoadState
   initialSnapshot?: StudentRecommendationSnapshot | null
   initialAssessment?: AssessmentLifecycle | null
@@ -31,6 +32,7 @@ interface StudentRecommendationResultsPageProps {
 function StudentRecommendationResultsPage({
   onBack,
   onOpenAssessment,
+  onExploreProgrammes,
   initialLoadState = 'ready',
   initialSnapshot,
   initialAssessment,
@@ -136,18 +138,19 @@ function StudentRecommendationResultsPage({
         course={selectedCourse}
         generatedAt={formatAssessmentDate(snapshot.generatedAt)}
         onBack={() => setSelectedCourse(null)}
-        onExploreProgrammes={onBack}
+        onExploreProgrammes={() => (onExploreProgrammes ?? (() => onBack()))(snapshot.courses)}
       />
     )
   }
 
   return (
+    <div className="student-grid-page">
     <div className="student-page pb-16 pt-8 sm:pt-10">
       <section
-        className="relative overflow-hidden rounded-xl bg-primary-fixed p-7 shadow-sm sm:p-10 lg:grid lg:grid-cols-[minmax(0,1fr)_14rem] lg:items-center lg:gap-8"
+        className="grid gap-7 py-8 sm:py-12 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center"
         aria-labelledby="recommendation-title"
       >
-        <div className="relative z-10 max-w-3xl">
+        <div className="max-w-4xl">
           <p className="student-kicker"><span /> Assessment complete</p>
           <h1
             id="recommendation-title"
@@ -158,25 +161,20 @@ function StudentRecommendationResultsPage({
           <p className="mt-5 max-w-2xl text-base leading-7 text-foreground/75 sm:text-lg">
             Compare the TCC programmes that most closely match the interests recorded in your completed assessment.
           </p>
-          <div className="mt-7 flex flex-wrap gap-3" data-print-hidden>
-            {onOpenAssessment ? (
-              <Button type="button" onClick={() => setRetakeOpen(true)}>
-                Retake assessment
-              </Button>
-            ) : null}
-            <Button type="button" variant="outline" onClick={onBack} className="bg-card/70">
-              Explore all programmes
-            </Button>
-          </div>
-          <p className="mt-5 font-label text-xs text-muted-foreground">
+          <p className="mt-5 font-label text-sm font-medium text-muted-foreground">
             Recommendations generated {formatAssessmentDate(snapshot.generatedAt)}
           </p>
         </div>
 
-        <div className="relative z-10 mt-8 hidden min-h-48 items-center justify-center lg:flex" aria-hidden="true">
-          <span className="absolute size-44 rounded-full bg-card/55 shadow-sm" />
-          <span className="absolute size-32 rotate-12 rounded-lg bg-primary/10" />
-          <Network className="relative size-20 text-primary" />
+        <div className="flex flex-wrap gap-3 lg:max-w-sm lg:justify-end" data-print-hidden>
+            {onOpenAssessment ? (
+              <Button type="button" onClick={() => setRetakeOpen(true)} className="min-h-12">
+                Retake assessment
+              </Button>
+            ) : null}
+            <Button type="button" variant="outline" onClick={() => (onExploreProgrammes ?? (() => onBack()))(snapshot.courses)} className="min-h-12 bg-card/85">
+              Explore all programmes
+            </Button>
         </div>
       </section>
 
@@ -186,8 +184,8 @@ function StudentRecommendationResultsPage({
             <h2 id="top-recommendations-title" className="font-display text-2xl font-semibold sm:text-3xl">
               Top recommendations
             </h2>
-            <span className="font-label text-xs text-muted-foreground">
-              {snapshot.showingAll ? `${snapshot.courses.length} programmes` : `Top ${snapshot.courses.length}`}
+            <span className="inline-flex min-h-10 items-center rounded-full bg-primary px-4 font-label text-sm font-semibold text-primary-foreground shadow-sm">
+              {snapshot.showingAll ? `${snapshot.courses.length} programmes` : `Top ${snapshot.courses.length} matches`}
             </span>
           </div>
 
@@ -254,6 +252,7 @@ function StudentRecommendationResultsPage({
           }
         }}
       />
+    </div>
     </div>
   )
 }

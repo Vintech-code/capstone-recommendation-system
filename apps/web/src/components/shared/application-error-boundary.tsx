@@ -20,7 +20,7 @@ function createErrorReference() {
 
 function recoveryPath(pathname: string) {
   if (pathname.startsWith('/admin')) return '/admin'
-  if (pathname.startsWith('/system-admin')) return '/system-admin'
+  if (pathname.startsWith('/counselor')) return '/counselor'
   return '/student'
 }
 

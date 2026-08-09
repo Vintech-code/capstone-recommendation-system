@@ -6,6 +6,7 @@ interface AuthUser {
   email: string
   roles: AccessRole[]
   accountStatus?: 'active' | 'pending' | 'suspended' | 'archived'
+  mustChangePassword?: boolean
 }
 
 interface SignInCredentials {
@@ -160,6 +161,17 @@ async function resetPassword(fields: { token: string; email: string; password: s
   })
 }
 
+async function changePassword(fields: { currentPassword: string; password: string; passwordConfirmation: string }) {
+  return request<{ data: { changed: true } }>('/api/v1/auth/password', {
+    method: 'PUT',
+    body: JSON.stringify({
+      currentPassword: fields.currentPassword,
+      password: fields.password,
+      password_confirmation: fields.passwordConfirmation,
+    }),
+  })
+}
+
 export {
   AuthApiError,
   authorizePortal,
@@ -169,5 +181,6 @@ export {
   signOut,
   requestPasswordReset,
   resetPassword,
+  changePassword,
 }
 export type { AuthUser, SignInCredentials, StudentRegistrationFields }

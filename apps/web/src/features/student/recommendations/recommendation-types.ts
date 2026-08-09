@@ -1,5 +1,13 @@
 type StudentRecommendationEligibility = 'Eligible' | 'Needs review' | 'Provisional'
 
+interface PhilippineSourceFact {
+  status: 'available' | 'ched_psg' | 'not_published' | 'needs_tcc_confirmation'
+  display?: string
+  note?: string
+  source_name?: string
+  source_url?: string
+}
+
 interface StudentRecommendedCourse {
   id: string
   rank: number
@@ -7,17 +15,25 @@ interface StudentRecommendedCourse {
   name: string
   department: string
   duration: string
+  durationSource?: PhilippineSourceFact | null
   level: string
+  degreeType?: string
+  salary?: PhilippineSourceFact | null
+  jobGrowth?: PhilippineSourceFact | null
+  outlookVersion?: string | null
   match: number
   eligibility: StudentRecommendationEligibility
   summary: string
   factors: string[]
   interestAreas: string[]
   learningAreas: string[]
+  learningAreaDescriptions?: Record<string, string>
   careerDirections: string[]
   reviewNotes: string[]
   contentStatus?: 'proposed'
   contentVersion?: string
+  coverImageUrl?: string | null
+  logoImageUrl?: string | null
 }
 
 interface StudentRecommendationProfile {
@@ -54,4 +70,4 @@ interface StudentRecommendationState {
   recommendation: StudentRecommendationSnapshot | null
 }
 
-export type { StudentRecommendationEligibility, StudentRecommendationProfile, StudentRecommendedCourse, StudentRecommendationSnapshot, StudentRecommendationState }
+export type { PhilippineSourceFact, StudentRecommendationEligibility, StudentRecommendationProfile, StudentRecommendedCourse, StudentRecommendationSnapshot, StudentRecommendationState }

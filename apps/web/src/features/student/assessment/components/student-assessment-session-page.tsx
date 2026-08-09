@@ -30,6 +30,7 @@ import {
   AssessmentApiError,
   getAssessmentQuestions,
   getCurrentAssessment,
+  retryAssessmentResult,
   saveAssessment,
   startAssessment,
   submitAssessmentSession,
@@ -93,11 +94,13 @@ function StudentAssessmentSessionPage({
   )
   const [view, setView] = useState<AssessmentView>('questions')
   const [submitDialogOpen, setSubmitDialogOpen] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
   const [sessionId, setSessionId] = useState<number | null>(null)
   const [content, setContent] = useState<AssessmentSessionContent>(
     initialContent ?? { id: '', versionReference: '', questions: [], responseOptions: [] },
   )
   const saveTimer = useRef<number | undefined>(undefined)
+  const saveQueue = useRef<Promise<void>>(Promise.resolve())
   const question = content.questions[currentIndex]
   const answeredCount = content.questions.filter(
     (item) => answers[item.id],
@@ -189,7 +192,13 @@ function StudentAssessmentSessionPage({
           value,
         ]),
       )
-      await saveAssessment(sessionId, serverAnswers, currentQuestion)
+      const saveRequest = saveQueue.current
+        .catch(() => undefined)
+        .then(async () => {
+          await saveAssessment(sessionId, serverAnswers, currentQuestion)
+        })
+      saveQueue.current = saveRequest.catch(() => undefined)
+      await saveRequest
       setSaveState('saved')
     } catch {
       setSaveState(remotePersistence ? 'saved-locally' : 'unsaved')
@@ -215,15 +224,34 @@ function StudentAssessmentSessionPage({
   }
 
   async function submitAssessment() {
+    window.clearTimeout(saveTimer.current)
+    saveTimer.current = undefined
+    setSubmitError(null)
     setView('submitting')
-    if (remotePersistence && sessionId) {
-      await persistAnswers(answers)
-      await submitAssessmentSession(sessionId)
-    } else {
+    try {
+      if (remotePersistence && sessionId) {
+        await persistAnswers(answers)
+        let submitted = await submitAssessmentSession(sessionId)
+        if (submitted.status === 'result_failed') {
+          submitted = await retryAssessmentResult(sessionId)
+        }
+        if (submitted.status !== 'result_available') {
+          setSubmitError('Your answers were saved, but result processing is still unavailable. Try again shortly.')
+          setView('review')
+          return
+        }
+        window.localStorage.removeItem(storageKey)
+        onViewResult()
+        return
+      }
+
       await new Promise((resolve) => window.setTimeout(resolve, 300))
+      window.localStorage.removeItem(storageKey)
+      setView('completed')
+    } catch {
+      setSubmitError('Your assessment could not be submitted. Check your connection and try again.')
+      setView('review')
     }
-    window.localStorage.removeItem(storageKey)
-    setView('completed')
   }
 
   function retryConnection() {
@@ -395,6 +423,12 @@ function StudentAssessmentSessionPage({
 
       {view === 'review' || view === 'submitting' ? (
         <div className="student-page">
+          {submitError ? (
+            <Alert variant="destructive" className="mb-4">
+              <AlertTitle>Result unavailable</AlertTitle>
+              <AlertDescription>{submitError}</AlertDescription>
+            </Alert>
+          ) : null}
           <AssessmentReview
             content={content}
             answers={answers}
@@ -649,7 +683,7 @@ function CompletedAssessmentState({
               </h2>
               <p className="mt-4 max-w-lg text-sm leading-6 text-white/80 sm:text-base sm:leading-7">
                 Your answers are safely recorded and cannot be edited. Your
-                interest profile will appear as soon as processing is complete.
+                interest profile is ready to review.
               </p>
             </div>
           </div>
@@ -677,8 +711,8 @@ function CompletedAssessmentState({
                     <ClipboardCheck aria-hidden="true" className="size-4" />
                   </span>
                   <span>
-                    <strong className="block text-sm">Result processing</strong>
-                    <span className="mt-0.5 block text-xs text-muted-foreground">Open your result when it becomes available.</span>
+                    <strong className="block text-sm">Result ready</strong>
+                    <span className="mt-0.5 block text-xs text-muted-foreground">Open your interest profile and programme matches.</span>
                   </span>
                 </li>
               </ul>

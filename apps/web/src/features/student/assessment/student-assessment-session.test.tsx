@@ -177,6 +177,70 @@ describe('Student assessment session', () => {
     expect(screen.getByRole('status')).toHaveTextContent('Saved')
   })
 
+  it('opens the result immediately after an online submission succeeds', async () => {
+    const user = userEvent.setup()
+    const session = renderSession({ remotePersistence: true })
+
+    expect(
+      await screen.findByRole('group', { name: 'Response for question 1' }),
+    ).toBeVisible()
+    for (let questionNumber = 1; questionNumber <= 6; questionNumber += 1) {
+      await answerQuestion(user, questionNumber)
+    }
+
+    await user.click(screen.getByRole('button', { name: 'Submit assessment' }))
+    const dialog = screen.getByRole('alertdialog', {
+      name: 'Submit this assessment?',
+    })
+    await user.click(
+      within(dialog).getByRole('button', { name: 'Submit assessment' }),
+    )
+
+    await waitFor(() => expect(session.onViewResult).toHaveBeenCalledOnce())
+    const requests = vi.mocked(fetch).mock.calls
+    const submitIndex = requests.findIndex(([input]) => input.toString().endsWith('/submit'))
+    expect(submitIndex).toBeGreaterThanOrEqual(0)
+    expect(
+      requests.slice(submitIndex + 1).some(([input, init]) =>
+        input.toString().includes('/sessions/1') && init?.method === 'PATCH'),
+    ).toBe(false)
+    expect(
+      screen.queryByRole('heading', { name: 'Responses submitted successfully' }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('retries a previously failed result instead of resubmitting locked answers', async () => {
+    const fallbackFetch = vi.mocked(fetch).getMockImplementation()
+    expect(fallbackFetch).toBeDefined()
+    vi.mocked(fetch).mockImplementation(async (input, init) => {
+      const url = input.toString()
+      if (url.endsWith('/submit') && init?.method === 'POST') {
+        return Response.json({ data: { id: 1, status: 'result_failed', question_count: 6 } })
+      }
+      if (url.endsWith('/retry-result') && init?.method === 'POST') {
+        return Response.json({ data: { id: 1, status: 'result_available', question_count: 6 } })
+      }
+      return fallbackFetch!(input, init)
+    })
+
+    const user = userEvent.setup()
+    const session = renderSession({ remotePersistence: true })
+    expect(await screen.findByRole('group', { name: 'Response for question 1' })).toBeVisible()
+    for (let questionNumber = 1; questionNumber <= 6; questionNumber += 1) {
+      await answerQuestion(user, questionNumber)
+    }
+
+    await user.click(screen.getByRole('button', { name: 'Submit assessment' }))
+    await user.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Submit assessment' }))
+
+    await waitFor(() => expect(session.onViewResult).toHaveBeenCalledOnce())
+    expect(fetch).toHaveBeenCalledWith(
+      '/api/v1/student/assessments/onet-mini-ip/sessions/1/retry-result',
+      expect.objectContaining({ method: 'POST' }),
+    )
+    vi.mocked(fetch).mockImplementation(fallbackFetch!)
+  })
+
   it('keeps responses on the device while offline and supports retry', async () => {
     const user = userEvent.setup()
     renderSession({ initialConnectionState: 'offline' })

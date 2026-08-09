@@ -13,6 +13,7 @@ interface WorkspaceNavigationProps {
   activeId: string
   onSelect: (id: string) => void
   collapsed?: boolean
+  tone?: 'default' | 'staff'
 }
 
 function WorkspaceNavigation({
@@ -20,6 +21,7 @@ function WorkspaceNavigation({
   activeId,
   onSelect,
   collapsed = false,
+  tone = 'default',
 }: WorkspaceNavigationProps) {
   const items = [
     { id: 'overview', title: 'Dashboard', icon: LayoutDashboard },
@@ -41,8 +43,12 @@ function WorkspaceNavigation({
                     'flex min-h-11 w-full items-center gap-3 rounded-xl px-3 text-left text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/40',
                     collapsed && 'justify-center px-0',
                     activeId === item.id
-                      ? 'bg-foreground text-background'
-                      : 'text-muted-foreground hover:bg-secondary hover:text-foreground',
+                      ? tone === 'staff'
+                        ? 'bg-blue-50 text-blue-700 ring-1 ring-blue-100 dark:bg-gradient-to-r dark:from-violet-600 dark:to-indigo-700 dark:text-white dark:shadow-[0_0_24px_rgba(124,58,237,.38)] dark:ring-violet-400/70'
+                        : 'bg-foreground text-background'
+                      : tone === 'staff'
+                        ? 'text-slate-600 hover:bg-blue-50 hover:text-blue-700 dark:text-slate-300 dark:hover:bg-white/7 dark:hover:text-white'
+                        : 'text-muted-foreground hover:bg-secondary hover:text-foreground',
                   )}
                 >
                   <item.icon aria-hidden="true" className="size-4 shrink-0" />

@@ -15,13 +15,11 @@ async function signIn(user: ReturnType<typeof userEvent.setup>) {
 }
 
 describe('access portals and workspace shell', () => {
-  it('describes Admin as a shared role for authorized personnel', () => {
+  it('separates Administrator and Counselor responsibilities', () => {
     expect(dashboards.admin.accessFacts).toContain(
-      'Shared role for authorized counselors and psychometricians',
+      'Individual Administrator accounts',
     )
-    expect(dashboards.admin.accessFacts).not.toContain(
-      'One combined Guidance / Psychometrician / Admin role',
-    )
+    expect(dashboards.counselor.boundary).toMatch(/cannot edit programme governance/i)
   })
 
   it('opens the Student portal without exposing role selection', async () => {
@@ -96,10 +94,10 @@ describe('access portals and workspace shell', () => {
     expect(
       await screen.findByRole('heading', {
         level: 1,
-        name: 'Dashboard',
+        name: 'My guidance',
       }),
     ).toBeVisible()
-    expect(screen.getAllByText('Pathways').length).toBeGreaterThan(0)
+    expect(screen.getByRole('button', { name: 'Go to dashboard' }).querySelector('img')).toHaveAttribute('src', expect.stringMatching(/logo\.png$/))
     expect(
       screen.getByRole('navigation', { name: 'Workspace navigation' }),
     ).toBeVisible()
@@ -119,12 +117,12 @@ describe('access portals and workspace shell', () => {
     ).toBeVisible()
   }, 10_000)
 
-  it('uses a separate portal and workspace for the combined Admin role', async () => {
+  it('uses a separate portal and workspace for the Administrator role', async () => {
     const user = userEvent.setup()
     await renderAppAt('/admin/login')
 
     expect(
-      screen.getAllByText('Guidance / Psychometrician / Admin').length,
+      screen.getAllByText('Administrator').length,
     ).toBeGreaterThan(0)
 
     await signIn(user)
@@ -133,35 +131,45 @@ describe('access portals and workspace shell', () => {
     expect(
       await screen.findByRole('heading', {
         level: 1,
-        name: /insights today, guidance tomorrow/i,
+        name: /Welcome back, Admin/i,
       }, { timeout: 5_000 }),
     ).toBeVisible()
-    expect(screen.getAllByText('Applicants').length).toBeGreaterThan(0)
-    expect(
-      screen.getAllByText('Assessments & questionnaires').length,
-    ).toBeGreaterThan(0)
-    expect(screen.getAllByText('Recommendations').length).toBeGreaterThan(0)
-    expect(screen.getAllByText('Courses & rules').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Students').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Counselor accounts').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Assessments').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Programmes').length).toBeGreaterThan(0)
+    expect(screen.queryByText('Methodology')).not.toBeInTheDocument()
     expect(screen.getAllByText('Reports').length).toBeGreaterThan(0)
-  })
+    expect(screen.queryByText('Official results')).not.toBeInTheDocument()
+    expect(screen.queryByRole('contentinfo')).not.toBeInTheDocument()
 
-  it('uses a separate portal and workspace for the System Administrator', async () => {
+    const navigationToggle = screen.getByRole('button', {
+      name: 'Collapse workspace navigation',
+    })
+    await user.click(navigationToggle)
+    expect(
+      screen.getByRole('button', { name: 'Expand workspace navigation' }),
+    ).toBeVisible()
+  }, 10_000)
+
+  it('uses a separate portal and workspace for Counselors', async () => {
     const user = userEvent.setup()
-    await renderAppAt('/system-admin/login')
+    await renderAppAt('/counselor/login')
 
-    expect(screen.getAllByText('System Administrator').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Counselor').length).toBeGreaterThan(0)
 
     await signIn(user)
 
-    expect(window.location.pathname).toBe('/system-admin')
+    expect(window.location.pathname).toBe('/counselor')
     expect(
       await screen.findByRole('heading', {
         level: 1,
-        name: /secure access, visible operations/i,
+        name: /Good (morning|afternoon|evening),/,
       }),
     ).toBeVisible()
-    expect(screen.getAllByText('User access').length).toBeGreaterThan(0)
-    expect(screen.getAllByText('Role assignments').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Student records').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Appointments').length).toBeGreaterThan(0)
+    expect(screen.queryByRole('contentinfo')).not.toBeInTheDocument()
   })
 
   it('opens a role module and returns to the dashboard overview', async () => {
@@ -170,13 +178,13 @@ describe('access portals and workspace shell', () => {
 
     const main = screen.getByRole('main')
     await user.click(
-      screen.getByRole('button', { name: 'Applicants' }),
+      screen.getByRole('button', { name: 'Students' }),
     )
 
     expect(
-      within(main).getByRole('heading', { level: 1, name: 'Applicants' }),
+      within(main).getByRole('heading', { level: 1, name: 'Student records' }),
     ).toBeVisible()
-    expect(window.location.pathname).toBe('/admin/applicants')
+    expect(window.location.pathname).toBe('/admin/students')
 
     await user.click(
       screen.getByRole('button', { name: 'Dashboard' }),
@@ -185,7 +193,7 @@ describe('access portals and workspace shell', () => {
     expect(
       within(main).getByRole('heading', {
         level: 1,
-        name: /insights today, guidance tomorrow/i,
+        name: /Welcome back, Admin/i,
       }),
     ).toBeVisible()
     expect(window.location.pathname).toBe('/admin')

@@ -15,7 +15,9 @@ describe('Student recommendation results', () => {
     />)
     expect(screen.getByText('Test Course')).toBeVisible()
     expect(screen.getByText('Recommendations generated Aug 7, 2026')).toBeVisible()
+    expect(screen.getByText('Top 1 matches')).toBeVisible()
     expect(screen.getByRole('heading', { name: 'Your profile breakdown' })).toBeVisible()
+    expect(screen.getByRole('heading', { name: 'Your academic matches' }).closest('.student-grid-page')).not.toBeNull()
     expect(screen.getByText('I · Investigative')).toBeVisible()
     expect(screen.getByText('Top code: I-C')).toBeVisible()
     expect(screen.queryByText('TEST-SESSION-001')).not.toBeInTheDocument()
@@ -25,6 +27,22 @@ describe('Student recommendation results', () => {
     expect(screen.queryByText(/requirements to confirm with tcc/i)).not.toBeInTheDocument()
     expect(screen.queryByText(/counselor's note/i)).not.toBeInTheDocument()
     expect(screen.queryByText(/logical reasoning/i)).not.toBeInTheDocument()
+  })
+
+  it('uses the uploaded programme picture for a matched catalogue course', () => {
+    const picturedCourse = {
+      ...testRecommendationSnapshot.courses[0],
+      id: 'bs-information-technology',
+      name: 'BS Information Technology',
+    }
+
+    render(<StudentRecommendationResultsPage
+      onBack={vi.fn()}
+      initialAssessment={testAssessmentLifecycle}
+      initialSnapshot={{ ...testRecommendationSnapshot, courses: [picturedCourse] }}
+    />)
+
+    expect(screen.getByRole('img', { name: 'BS Information Technology programme' })).toBeVisible()
   })
 
   it('shows an honest empty state when no recommendation exists', () => {
@@ -85,7 +103,7 @@ describe('Student recommendation results', () => {
     expect(await screen.findByText('Second Course')).toBeVisible()
   })
 
-  it('opens a selected match in the screen1-style programme detail view', async () => {
+  it('opens a selected match in the reference-informed course detail view', async () => {
     const user = userEvent.setup()
     const detailedCourse = {
       ...testRecommendationSnapshot.courses[0],
@@ -93,7 +111,12 @@ describe('Student recommendation results', () => {
       factors: ['Profile includes I', 'Profile includes C'],
       interestAreas: ['I', 'C'],
       learningAreas: ['Software development', 'Information management'],
+      learningAreaDescriptions: {
+        'Software development': 'Design, build, test, and maintain software applications.',
+        'Information management': 'Organise and protect information using structured data practices.',
+      },
       careerDirections: ['Systems support'],
+      reviewNotes: ['Review the published programme guidance before deciding.'],
     }
 
     render(
@@ -105,13 +128,28 @@ describe('Student recommendation results', () => {
 
     await user.click(screen.getByRole('button', { name: 'View programme' }))
 
-    expect(screen.getByRole('navigation', { name: 'Breadcrumb' })).toHaveTextContent('My Matches')
+    expect(screen.queryByRole('navigation', { name: 'Breadcrumb' })).not.toBeInTheDocument()
     expect(screen.getByRole('heading', { level: 1, name: 'Test Course' })).toBeVisible()
     expect(screen.getByText('High Fit')).toBeVisible()
+    expect(screen.getByRole('heading', { name: 'Your match score' })).toBeVisible()
     expect(screen.getByRole('heading', { name: 'Why this fits you' })).toBeVisible()
+    expect(screen.getByRole('heading', { name: 'Core learning areas' })).toBeVisible()
+    expect(screen.getByText('Degree type')).toBeVisible()
+    expect(screen.getByText("Bachelor's degree")).toBeVisible()
+    expect(screen.getByText('Starting salary')).toBeVisible()
+    expect(screen.getByText('Job growth')).toBeVisible()
+    expect(screen.getByRole('heading', { name: 'Related fields' })).toBeVisible()
+    expect(screen.queryByRole('heading', { name: 'Career trajectory' })).not.toBeInTheDocument()
     expect(screen.getByText('Software development')).toBeVisible()
+    expect(screen.getByText('Design, build, test, and maintain software applications.')).toBeVisible()
     expect(screen.getByText('Systems support')).toBeVisible()
+    expect(screen.queryByRole('heading', { name: 'Before you decide' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Official data sources' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /apply/i })).not.toBeInTheDocument()
+
+    const detail = screen.getByRole('article', { name: 'Test Course' })
+    const accessibility = await axe.run(detail, { rules: { 'color-contrast': { enabled: false } } })
+    expect(accessibility.violations).toEqual([])
 
     await user.click(screen.getByRole('button', { name: 'Back to matches' }))
     expect(screen.getByRole('heading', { name: 'Your academic matches' })).toBeVisible()
