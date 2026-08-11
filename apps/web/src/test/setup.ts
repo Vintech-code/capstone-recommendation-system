@@ -112,7 +112,7 @@ async function defaultFetch(
       id: 10, name: 'Ana Santos', email: 'ana@example.test', accountStatus: 'active',
       profile: { student: { id: 10, name: 'Ana Santos', email: 'ana@example.test', photoUrl: null }, questionnaire: { complete: true, strengths: ['Problem-solving'], growthAreas: ['Public speaking'], learningPreferences: ['Hands-on activities'], updatedAt: '2026-08-01T09:00:00+08:00' }, options: { strengths: [], growthAreas: [], learningPreferences: [] }, riasec: { sessionReference: 'ASMT-000001', availableAt: '2026-08-01T08:20:01+08:00', primary: { code: 'I', label: 'Investigative' }, secondary: { code: 'C', label: 'Conventional' }, code: 'I-C', dimensions: [] }, careerInterests: ['Software and application development'], about: 'The latest recorded RIASEC result is I-C (Investigative and Conventional).' },
       guidanceCase: null,
-      attempts: [{ id: 1, reference: 'ASMT-000001', studentId: 10, studentName: 'Ana Santos', studentEmail: 'ana@example.test', attemptNumber: 1, status: 'result_available', topCode: 'I-C', startedAt: '2026-08-01T08:00:00+08:00', submittedAt: '2026-08-01T08:20:00+08:00', resultAvailableAt: '2026-08-01T08:20:01+08:00', processingErrorCode: null, dimensions: [{ code: 'I', label: 'Investigative', value: 19 }, { code: 'C', label: 'Conventional', value: 18 }], recommendations: [{ id: 'bs-information-technology', rank: 1, code: 'BSIT', name: 'BS Information Technology', match: 90 }] }],
+      attempts: [{ id: 1, reference: 'ASMT-000001', studentId: 10, studentName: 'Ana Santos', studentEmail: 'ana@example.test', attemptNumber: 2, retakeReason: 'I wanted to review my current course interests.', status: 'result_available', topCode: 'I-C', startedAt: '2026-08-01T08:00:00+08:00', submittedAt: '2026-08-01T08:20:00+08:00', resultAvailableAt: '2026-08-01T08:20:01+08:00', processingErrorCode: null, dimensions: [{ code: 'I', label: 'Investigative', value: 19 }, { code: 'C', label: 'Conventional', value: 18 }], recommendations: [{ id: 'bs-information-technology', rank: 1, code: 'BSIT', name: 'BS Information Technology', match: 90 }] }],
     } })
   }
 
@@ -148,6 +148,13 @@ async function defaultFetch(
   if (url === '/api/v1/counselor/availability' && init?.method === 'PUT') {
     const body = JSON.parse(String(init.body ?? '{}')) as { windows?: Array<{ weekday: number; startsAt: string; endsAt: string }> }
     return Response.json({ data: { configured: (body.windows?.length ?? 0) > 0, timezone: 'Asia/Manila', windows: (body.windows ?? []).map((window, index) => ({ id: index + 1, ...window })) } })
+  }
+
+  if (url.startsWith('/api/v1/counselor/availability/slots?')) {
+    const query = new URL(url, 'http://localhost').searchParams
+    const date = query.get('date') ?? '2026-08-20'
+    const durationMinutes = Number(query.get('durationMinutes') ?? 60)
+    return Response.json({ data: { date, durationMinutes, timezone: 'Asia/Manila', configured: true, slots: [{ startsAt: `${date}T09:00:00+08:00`, endsAt: `${date}T10:00:00+08:00` }, { startsAt: `${date}T11:00:00+08:00`, endsAt: `${date}T12:00:00+08:00` }] } })
   }
 
   if (url === '/api/v1/counselor/availability') {
@@ -211,7 +218,7 @@ async function defaultFetch(
   }
 
   if (url.startsWith('/api/v1/admin/reports')) {
-    return Response.json({ data: { generatedAt: '2026-08-08T12:00:00+08:00', from: null, to: null, studentCount: 2, completedAssessments: 2, recommendationRuns: 2 } })
+    return Response.json({ data: { generatedAt: '2026-08-08T12:00:00+08:00', from: null, to: null, scope: 'institution', studentCount: 2, assessmentActivity: 2, completedAssessments: 2, assessmentCompletionRate: 100, recommendationRuns: 2, programmeSaves: 1, guidanceRequestStatuses: { pending: 1, accepted: 0, scheduled: 1, closed: 0, declined: 0, cancelled: 0 }, appointmentStatuses: { scheduled: 1, completed: 1, cancelled: 0, no_show: 0 }, averageRequestToAppointmentMinutes: 90, openFollowUps: 1, overdueFollowUps: 0, closedGuidanceCases: 1, assessmentCompletionsByMonth: [{ month: '2026-08', count: 2 }] } })
   }
 
   if (url === '/api/v1/admin/activity') {

@@ -9,9 +9,10 @@ import { cn } from '@/lib/utils'
 interface NotificationCenterProps {
   workspaceLabel: 'Student' | 'Administrator' | 'Counselor'
   className?: string
+  onNavigate?: (moduleId: string) => void
 }
 
-function NotificationCenter({ workspaceLabel, className }: NotificationCenterProps) {
+function NotificationCenter({ workspaceLabel, className, onNavigate }: NotificationCenterProps) {
   const [open, setOpen] = useState(false)
   const [state, setState] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle')
   const [notifications, setNotifications] = useState<PathwaysNotification[]>([])
@@ -46,16 +47,28 @@ function NotificationCenter({ workspaceLabel, className }: NotificationCenterPro
   }
 
   async function markRead(notification: PathwaysNotification) {
-    if (notification.readAt !== null || markingId !== null) return
+    if (notification.readAt !== null) return true
+    if (markingId !== null) return false
     setMarkingId(notification.id)
     setInteractionError(null)
     try {
       const result = await markNotificationRead(notification.id)
       setNotifications((items) => items.map((item) => item.id === notification.id ? { ...item, readAt: result.readAt } : item))
+      return true
     } catch (reason) {
       setInteractionError(reason instanceof Error ? reason.message : 'The notification could not be updated.')
+      return false
     } finally {
       setMarkingId(null)
+    }
+  }
+
+  async function selectNotification(notification: PathwaysNotification) {
+    const destination = resolveNotificationDestination(workspaceLabel, notification)
+    const wasMarkedRead = await markRead(notification)
+    if (destination && wasMarkedRead && onNavigate) {
+      setOpen(false)
+      onNavigate(destination)
     }
   }
 
@@ -67,7 +80,7 @@ function NotificationCenter({ workspaceLabel, className }: NotificationCenterPro
           {unreadCount ? <span className="absolute -right-1 -top-1 flex min-w-5 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold leading-5 text-destructive-foreground shadow-sm" aria-hidden="true">{unreadCount > 9 ? '9+' : unreadCount}</span> : null}
         </button>
       </PopoverTrigger>
-      <PopoverContent aria-label={`${workspaceLabel} notifications`} className="flex max-h-[min(42rem,calc(100vh-5rem))] w-[calc(100vw-1rem)] max-w-[26rem] flex-col overflow-hidden p-0">
+      <PopoverContent aria-label={`${workspaceLabel} notifications`} className="flex max-h-[min(42rem,calc(100vh-5rem))] w-[calc(100vw-1rem)] max-w-104 flex-col overflow-hidden p-0">
         <div className="px-5 pb-3 pt-5">
           <div className="flex items-start justify-between gap-4">
             <div><h2 className="font-display text-2xl font-bold tracking-tight">Notifications</h2><p className="mt-1 text-xs text-muted-foreground">{workspaceLabel} activity and guidance updates</p></div>
@@ -83,7 +96,10 @@ function NotificationCenter({ workspaceLabel, className }: NotificationCenterPro
           {state === 'error' ? <div role="alert" className="m-2 rounded-xl bg-destructive/10 p-5"><p className="font-semibold text-destructive">Notifications could not be loaded.</p><p className="mt-2 text-sm text-muted-foreground">Your records were not changed. Try loading this list again.</p><Button type="button" variant="outline" size="sm" className="mt-4" onClick={load}><RefreshCw aria-hidden="true" />Try again</Button></div> : null}
           {state === 'ready' && notifications.length === 0 ? <NotificationEmpty title="You’re all caught up" description="Assessment, guidance, programme, and appointment updates will appear here." /> : null}
           {state === 'ready' && notifications.length > 0 && visibleNotifications.length === 0 ? <NotificationEmpty title="No unread notifications" description="New activity will appear here when it is recorded." /> : null}
-          {state === 'ready' && visibleNotifications.length > 0 ? <ol>{visibleNotifications.map((notification) => <NotificationRow key={notification.id} notification={notification} busy={markingId === notification.id} onMarkRead={() => void markRead(notification)} />)}</ol> : null}
+          {state === 'ready' && visibleNotifications.length > 0 ? <ol>{visibleNotifications.map((notification) => {
+            const navigable = Boolean(onNavigate && resolveNotificationDestination(workspaceLabel, notification))
+            return <NotificationRow key={notification.id} notification={notification} busy={markingId === notification.id} navigable={navigable} onSelect={() => void selectNotification(notification)} />
+          })}</ol> : null}
           {interactionError ? <p role="alert" className="m-2 rounded-lg bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive">{interactionError}</p> : null}
         </div>
       </PopoverContent>
@@ -91,11 +107,44 @@ function NotificationCenter({ workspaceLabel, className }: NotificationCenterPro
   )
 }
 
-function NotificationRow({ notification, busy, onMarkRead }: { notification: PathwaysNotification; busy: boolean; onMarkRead: () => void }) {
+function NotificationRow({ notification, busy, navigable, onSelect }: { notification: PathwaysNotification; busy: boolean; navigable: boolean; onSelect: () => void }) {
   const Icon = notification.eventType.startsWith('appointment_') || notification.eventType === 'guidance_request_scheduled' ? CalendarClock : notification.eventType === 'assessment_result_ready' ? ClipboardCheck : notification.eventType === 'programme_updated' ? BookOpenText : MessageSquareText
   const unread = notification.readAt === null
   const content = <div className="flex min-w-0 items-start gap-3"><span className={cn('relative flex size-12 shrink-0 items-center justify-center rounded-full', unread ? 'bg-primary-fixed text-on-primary-fixed' : 'bg-secondary text-muted-foreground')}><Icon aria-hidden="true" className="size-5" /><span className={cn('absolute -bottom-0.5 -right-0.5 size-4 rounded-full ring-2 ring-background', notification.eventType.startsWith('appointment_') ? 'bg-secondary-container' : notification.eventType === 'programme_updated' ? 'bg-success' : 'bg-primary')} /></span><span className="min-w-0 flex-1"><span className="block text-sm leading-5"><strong className="font-bold">{notification.title}</strong> <span className="text-muted-foreground">{notification.message}</span></span><time dateTime={notification.createdAt} className={cn('mt-1 block text-xs font-semibold', unread ? 'text-primary' : 'text-muted-foreground')}>{formatNotificationDate(notification.createdAt)}</time>{busy ? <span className="mt-1 block text-xs text-muted-foreground">Updating…</span> : null}</span>{unread ? <span className="mt-5 size-2.5 shrink-0 rounded-full bg-primary"><span className="sr-only">Unread</span></span> : null}</div>
-  return <li>{unread ? <button type="button" disabled={busy} onClick={onMarkRead} aria-label={`Mark notification as read: ${notification.title}`} className="block w-full rounded-xl px-3 py-3 text-left transition-colors duration-150 hover:bg-secondary/70 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-inset focus-visible:ring-ring/40">{content}</button> : <div className="rounded-xl px-3 py-3">{content}</div>}</li>
+  const interactive = unread || navigable
+  return <li>{interactive ? <button type="button" disabled={busy} onClick={onSelect} aria-label={navigable ? `Open notification: ${notification.title}` : `Mark notification as read: ${notification.title}`} className="block w-full rounded-xl px-3 py-3 text-left transition-colors duration-150 hover:bg-secondary/70 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-inset focus-visible:ring-ring/40">{content}</button> : <div className="rounded-xl px-3 py-3">{content}</div>}</li>
+}
+
+function resolveNotificationDestination(workspaceLabel: NotificationCenterProps['workspaceLabel'], notification: PathwaysNotification) {
+  const { eventType, context } = notification
+
+  if (workspaceLabel === 'Student') {
+    if (eventType === 'assessment_result_ready' && hasRecordId(context.assessmentSessionId)) return 'recommendations'
+    if (eventType === 'programme_updated' && hasTextId(context.programmeId)) return 'programmes'
+    if (eventType === 'guidance_summary_published' && hasRecordId(context.guidanceSummaryId)) return 'overview'
+    if (eventType.startsWith('appointment_') && hasRecordId(context.appointmentId)) return 'overview'
+    if (eventType.startsWith('guidance_request_') && hasRecordId(context.guidanceRequestId)) return 'overview'
+    return null
+  }
+
+  if (workspaceLabel === 'Counselor') {
+    if (eventType.startsWith('appointment_') && hasRecordId(context.appointmentId)) return 'appointments'
+    if (eventType.startsWith('guidance_request_') && hasRecordId(context.guidanceRequestId)) return 'requests'
+    return null
+  }
+
+  if (eventType === 'assessment_result_ready' && hasRecordId(context.assessmentSessionId)) return 'assessments'
+  if (eventType === 'programme_updated' && hasTextId(context.programmeId)) return 'programmes'
+  return null
+}
+
+function hasRecordId(value: string | number | null | undefined) {
+  if (typeof value === 'number') return Number.isInteger(value) && value > 0
+  return typeof value === 'string' && /^\d+$/.test(value) && Number(value) > 0
+}
+
+function hasTextId(value: string | number | null | undefined) {
+  return typeof value === 'string' && value.trim().length > 0
 }
 
 function NotificationLoading() {

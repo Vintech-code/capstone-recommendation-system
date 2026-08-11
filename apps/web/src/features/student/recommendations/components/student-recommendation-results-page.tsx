@@ -1,13 +1,14 @@
 import { ArrowRight, BookOpenCheck } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 
-import { ConfirmActionDialog, EmptyState, ErrorState, LoadingState } from '@/components/shared'
+import { EmptyState, ErrorState, LoadingState } from '@/components/shared'
 import { Button } from '@/components/ui/button'
 import {
   getCurrentAssessment,
   startAssessment,
   type AssessmentLifecycle,
 } from '@/features/student/assessment/assessment-api'
+import { RetakeAssessmentDialog } from '@/features/student/assessment/components/retake-assessment-dialog'
 import {
   formatAssessmentDate,
   mapAssessmentResult,
@@ -234,16 +235,14 @@ function StudentRecommendationResultsPage({
         </p>
       ) : null}
 
-      <ConfirmActionDialog
+      <RetakeAssessmentDialog
         open={retakeOpen}
         onOpenChange={setRetakeOpen}
-        title="Start a new assessment?"
         description="Your latest completed result and recommendations will remain available while the new attempt is in progress."
-        confirmLabel="Start retake"
-        onConfirm={async () => {
+        onConfirm={async (reason) => {
           try {
             setRetakeError('')
-            await startAssessment()
+            await startAssessment(reason)
             setRetakeOpen(false)
             onOpenAssessment?.()
           } catch (error) {

@@ -111,7 +111,7 @@ function StudentWorkspaceShell({
             </ul>
           </nav>
 
-          <NotificationCenter workspaceLabel="Student" />
+          <NotificationCenter workspaceLabel="Student" onNavigate={onSelect} />
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

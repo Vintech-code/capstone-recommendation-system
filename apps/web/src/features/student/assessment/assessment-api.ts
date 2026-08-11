@@ -31,6 +31,7 @@ interface AssessmentLifecycle {
   submitted_at?: string | null
   result_available_at?: string | null
   retake_available_at?: string | null
+  retake_reason?: string | null
   can_retake?: boolean
   attempt_number?: number
   is_current?: boolean
@@ -131,10 +132,13 @@ function getAssessmentQuestions() {
   )
 }
 
-function startAssessment() {
+function startAssessment(retakeReason?: string) {
   return assessmentRequest<AssessmentLifecycle>(
     '/api/v1/student/assessments/onet-mini-ip/sessions',
-    { method: 'POST' },
+    {
+      method: 'POST',
+      body: retakeReason ? JSON.stringify({ retakeReason }) : undefined,
+    },
   )
 }
 

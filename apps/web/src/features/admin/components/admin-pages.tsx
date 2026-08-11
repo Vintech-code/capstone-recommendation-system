@@ -4,7 +4,9 @@ import {
   ArrowLeft,
   ArrowRight,
   BarChart3,
+  BookmarkCheck,
   BookOpen,
+  CalendarCheck2,
   CalendarDays,
   CheckCircle2,
   ClipboardList,
@@ -17,6 +19,7 @@ import {
   Printer,
   Search,
   Target,
+  TimerReset,
   UserRound,
   UsersRound,
 } from 'lucide-react'
@@ -162,8 +165,16 @@ function StaffStudentDetailPage({ studentId, onNavigate, apiScope }: { studentId
     <AdminPageHeader eyebrow={apiScope === 'admin' ? 'Student record oversight' : 'Counselor student record'} title={student.name} description={`${student.email} · ${student.attempts.length} recorded assessment ${student.attempts.length === 1 ? 'attempt' : 'attempts'}`} action={<Button variant="secondary" className="rounded" onClick={() => onNavigate(`/${apiScope}/students`)}>Back to students</Button>} />
     <StaffStudentProfile profile={student.profile} />
     {apiScope === 'admin' ? <GuidanceRecordSummary guidanceCase={student.guidanceCase} /> : <GuidanceCasePanel studentId={studentId} guidanceCase={student.guidanceCase} onChanged={resource.retry} />}
+    <RetakeReasonSummary attempts={student.attempts} />
     {student.attempts.length ? <div className="space-y-5">{student.attempts.map((attempt) => <article key={attempt.id} className="bg-card p-5 shadow-sm"><div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"><div><p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Attempt {attempt.attemptNumber}</p><h2 className="mt-1 font-display text-2xl font-semibold">{attempt.topCode ? `${attempt.topCode} interest profile` : 'Assessment attempt'}</h2><p className="mt-1 text-sm text-muted-foreground">{attempt.reference} · {formatDate(attempt.resultAvailableAt ?? attempt.submittedAt ?? attempt.startedAt)}</p></div><StatusBadge status={attempt.status} /></div>{attempt.dimensions?.length ? <dl className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">{attempt.dimensions.map((dimension) => <div key={dimension.code} className="bg-secondary p-3"><dt className="text-xs text-muted-foreground">{dimension.code} · {dimension.label}</dt><dd className="mt-1 font-display text-2xl font-semibold">{dimension.value}</dd></div>)}</dl> : null}{attempt.recommendations?.length ? <div className="mt-6"><h3 className="font-display text-lg font-semibold">Programme matches from this attempt</h3><ol className="mt-3 grid gap-3 lg:grid-cols-3">{attempt.recommendations.slice(0, 3).map((course) => <li key={course.id} className="bg-secondary p-4"><div className="flex items-center justify-between gap-3"><span className="text-xs font-semibold uppercase tracking-[0.12em]">#{course.rank} · {course.code}</span><strong className="text-primary">{course.match}%</strong></div><p className="mt-3 font-semibold">{course.name}</p></li>)}</ol></div> : null}</article>)}</div> : <EmptyPanel title="No assessment attempts" description="This student has not started an interest assessment." />}
   </div>
+}
+
+function RetakeReasonSummary({ attempts }: { attempts: AdminAssessment[] }) {
+  const recorded = attempts.filter((attempt) => attempt.retakeReason)
+  if (!recorded.length) return null
+
+  return <section className="bg-card px-5 py-4 shadow-sm" aria-labelledby="retake-context-heading"><h2 id="retake-context-heading" className="font-display text-lg font-semibold">Student-provided retake context</h2><p className="mt-1 text-sm text-muted-foreground">Optional reasons recorded when the student started each retake.</p><dl className="mt-4 divide-y divide-border">{recorded.map((attempt) => <div key={attempt.id} className="grid gap-1 py-3 sm:grid-cols-[8rem_minmax(0,1fr)] sm:gap-4"><dt className="text-sm font-semibold">Attempt {attempt.attemptNumber}</dt><dd className="text-sm leading-6 text-muted-foreground">{attempt.retakeReason}</dd></div>)}</dl></section>
 }
 
 function AdminStudentDetailPage(props: { studentId: string; onNavigate: (path: string) => void }) { return <StaffStudentDetailPage {...props} apiScope="admin" /> }
@@ -272,10 +283,26 @@ function AdminReportsPage({ apiScope = 'admin' }: { apiScope?: StaffApiScope }) 
   if (resource.error || !resource.data) return <AdminPageError message={resource.error ?? 'No report data was returned.'} onRetry={resource.retry} />
   const data = resource.data
   const exportQuery = query || (from || to ? `?${new URLSearchParams({ ...(from ? { from } : {}), ...(to ? { to } : {}) }).toString()}` : '')
-  return <div className="space-y-5" data-report-print><AdminPageHeader eyebrow="Aggregate guidance" title="Guidance reports" description="A simple operational summary of real student, completed-assessment, and recommendation records for the selected period." action={<div className="flex flex-wrap gap-2"><Button variant="outline" className="rounded" onClick={() => window.print()}><Printer aria-hidden="true" /> Print</Button><Button className="rounded" onClick={() => { window.location.href = `/api/v1/${apiScope}/reports/export${exportQuery}` }}><Download aria-hidden="true" /> Export CSV</Button></div>} />
-    <section className="bg-card p-5 shadow-sm" aria-labelledby="report-filter-heading"><h2 id="report-filter-heading" className="font-display text-lg font-semibold">Report period</h2><div className="mt-4 grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end"><label className="text-sm font-medium">From<Input type="date" value={from} onChange={(event) => setFrom(event.target.value)} className="mt-2 rounded" /></label><label className="text-sm font-medium">To<Input type="date" value={to} min={from || undefined} onChange={(event) => setTo(event.target.value)} className="mt-2 rounded" /></label><Button className="rounded" onClick={() => setQuery(from || to ? `?${new URLSearchParams({ ...(from ? { from } : {}), ...(to ? { to } : {}) }).toString()}` : '')}>Apply dates</Button></div></section>
-    <section className="grid gap-4 sm:grid-cols-3"><ReportMetric label="Students" value={data.studentCount} icon={UsersRound} /><ReportMetric label="Students with completed results" value={data.completedAssessments} icon={CheckCircle2} /><ReportMetric label="Students with recommendations" value={data.recommendationRuns} icon={BarChart3} /></section>
-    <p className="text-xs text-muted-foreground">Generated {formatDate(data.generatedAt)}. Reports contain aggregate counts only and do not change student records.</p>
+  const invalidRange = Boolean(from && to && to < from)
+  return <div className="mx-auto w-full max-w-[1500px] space-y-5 pb-10" data-report-print><AdminPageHeader eyebrow="Aggregate guidance" title="Guidance reports" description={data.scope === 'counselor' ? 'Review aggregate activity for students and guidance records connected to your counselor account.' : 'Review aggregate student, assessment, guidance, appointment, and programme-save activity from real system records.'} action={<div className="flex flex-wrap gap-2"><Button variant="outline" className="rounded" onClick={() => window.print()}><Printer aria-hidden="true" /> Print</Button><Button className="rounded" onClick={() => { window.location.href = `/api/v1/${apiScope}/reports/export${exportQuery}` }}><Download aria-hidden="true" /> Export aggregate CSV</Button></div>} />
+    <section className="rounded-xl bg-card p-5 shadow-sm" aria-labelledby="report-filter-heading"><div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between"><div><h2 id="report-filter-heading" className="font-display text-lg font-semibold">Report period</h2><p className="mt-1 text-sm text-muted-foreground">Dates filter records by their relevant recorded event date. Leave both blank for all records.</p></div><div className="grid gap-3 sm:grid-cols-[minmax(10rem,1fr)_minmax(10rem,1fr)_auto_auto] sm:items-end"><label className="text-sm font-medium">From<Input type="date" value={from} max={to || undefined} onChange={(event) => setFrom(event.target.value)} className="mt-2 rounded" /></label><label className="text-sm font-medium">To<Input type="date" value={to} min={from || undefined} onChange={(event) => setTo(event.target.value)} className="mt-2 rounded" /></label><Button className="rounded" disabled={invalidRange} onClick={() => setQuery(from || to ? `?${new URLSearchParams({ ...(from ? { from } : {}), ...(to ? { to } : {}) }).toString()}` : '')}>Apply dates</Button><Button variant="ghost" className="rounded" onClick={() => { setFrom(''); setTo(''); setQuery('') }}>Clear</Button></div></div>{invalidRange ? <p className="mt-3 text-sm text-destructive" role="alert">The end date must be on or after the start date.</p> : null}</section>
+
+    <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-label="Assessment and programme activity">
+      <ReportMetric label="Students in scope" value={data.studentCount} note={data.scope === 'counselor' ? 'Students connected to your guidance records' : 'Registered Student Applicant accounts'} icon={UsersRound} />
+      <ReportMetric label="Assessment completion" value={`${data.assessmentCompletionRate}%`} note={`${data.completedAssessments} of ${data.assessmentActivity} students who started in the selected period now have results`} icon={CheckCircle2} />
+      <ReportMetric label="Students with recommendations" value={data.recommendationRuns} note="Distinct students with a generated recommendation run" icon={BarChart3} />
+      <ReportMetric label="Programme saves" value={data.programmeSaves} note="Save actions recorded during the selected period" icon={BookmarkCheck} />
+    </section>
+
+    <div className="grid gap-5 xl:grid-cols-[minmax(0,1.15fr)_minmax(22rem,.85fr)]">
+      <section className="rounded-xl bg-card p-5 shadow-sm" aria-labelledby="appointment-report-heading"><div className="flex items-start gap-3"><span className="flex size-10 items-center justify-center rounded-lg bg-primary-fixed text-on-primary-fixed"><CalendarCheck2 className="size-5" aria-hidden="true" /></span><div><h2 id="appointment-report-heading" className="font-display text-xl font-semibold">Appointment lifecycle</h2><p className="mt-1 text-sm text-muted-foreground">Appointments grouped by their current recorded status and scheduled date.</p></div></div><dl className="mt-5 grid gap-3 sm:grid-cols-2">{Object.entries(data.appointmentStatuses).map(([status, count]) => <ReportStatus key={status} label={humanize(status)} value={count} />)}</dl><div className="mt-5 flex items-center gap-3 rounded-lg bg-secondary p-4"><TimerReset className="size-5 shrink-0 text-primary" aria-hidden="true" /><div><p className="text-sm font-semibold">Average request-to-schedule time</p><p className="mt-1 text-sm text-muted-foreground">{formatMinutes(data.averageRequestToAppointmentMinutes)} from request submission to appointment record creation</p></div></div></section>
+
+      <section className="rounded-xl bg-card p-5 shadow-sm" aria-labelledby="request-report-heading"><h2 id="request-report-heading" className="font-display text-xl font-semibold">Guidance operations</h2><p className="mt-1 text-sm text-muted-foreground">Current request and case states; no student identities are included.</p><div className="mt-5 grid grid-cols-3 gap-3"><ReportDatum label="Open follow-ups" value={data.openFollowUps} /><ReportDatum label="Overdue" value={data.overdueFollowUps} /><ReportDatum label="Closed cases" value={data.closedGuidanceCases} /></div><dl className="mt-5 divide-y divide-border">{Object.entries(data.guidanceRequestStatuses).map(([status, count]) => <div key={status} className="flex items-center justify-between gap-4 py-2.5"><dt className="text-sm text-muted-foreground">{humanize(status)}</dt><dd className="font-display text-lg font-semibold">{count}</dd></div>)}</dl></section>
+    </div>
+
+    <section className="rounded-xl bg-card p-5 shadow-sm" aria-labelledby="monthly-completions-heading"><div className="flex items-start justify-between gap-4"><div><h2 id="monthly-completions-heading" className="font-display text-xl font-semibold">Assessment completion by month</h2><p className="mt-1 text-sm text-muted-foreground">Distinct students whose result became available in each month.</p></div><ClipboardList className="size-5 text-muted-foreground" aria-hidden="true" /></div>{data.assessmentCompletionsByMonth.length ? <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{data.assessmentCompletionsByMonth.map((entry) => { const maximum = Math.max(...data.assessmentCompletionsByMonth.map((item) => item.count), 1); return <div key={entry.month}><div className="flex items-center justify-between gap-4 text-sm"><span>{formatReportMonth(entry.month)}</span><strong>{entry.count}</strong></div><div className="mt-2 h-2 overflow-hidden rounded-full bg-secondary"><div className="h-full rounded-full bg-secondary-container" style={{ width: `${(entry.count / maximum) * 100}%` }} /></div></div> })}</div> : <div className="mt-5"><EmptyPanel title="No completed assessments in this period" description="Change the report dates or clear the filter to review all recorded completions." /></div>}</section>
+
+    <p className="text-xs leading-5 text-muted-foreground">Generated {formatDate(data.generatedAt)}. This report contains aggregate counts only. Concern-category breakdowns and identifiable exports remain unavailable until their privacy and authorization rules are approved.</p>
   </div>
 }
 
@@ -292,9 +319,14 @@ function StatusBadge({ status }: { status: AdminAssessment['status'] }) {
   return <Badge variant={variants[status]}>{labels[status]}</Badge>
 }
 
-function ReportMetric({ label, value, icon: Icon }: { label: string; value: number; icon: typeof Activity }) {
-  return <article className="flex items-center gap-4 bg-card p-5 shadow-sm"><span className="flex size-11 items-center justify-center rounded bg-secondary text-primary"><Icon className="size-5" aria-hidden="true" /></span><div><p className="text-sm text-muted-foreground">{label}</p><p className="font-display text-2xl font-semibold">{value}</p></div></article>
+function ReportMetric({ label, value, note, icon: Icon }: { label: string; value: number | string; note?: string; icon: typeof Activity }) {
+  return <article className="rounded-xl bg-card p-5 shadow-sm"><div className="flex items-start justify-between gap-4"><div><p className="text-sm font-semibold">{label}</p><p className="mt-3 font-display text-3xl font-bold">{value}</p></div><span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-secondary text-primary"><Icon className="size-5" aria-hidden="true" /></span></div>{note ? <p className="mt-3 text-xs leading-5 text-muted-foreground">{note}</p> : null}</article>
 }
+
+function ReportStatus({ label, value }: { label: string; value: number }) { return <div className="flex items-center justify-between rounded-lg bg-secondary px-4 py-3"><dt className="text-sm text-muted-foreground">{label}</dt><dd className="font-display text-xl font-semibold">{value}</dd></div> }
+function ReportDatum({ label, value }: { label: string; value: number }) { return <div className="rounded-lg bg-secondary p-3"><dt className="text-xs leading-4 text-muted-foreground">{label}</dt><dd className="mt-2 font-display text-2xl font-semibold">{value}</dd></div> }
+function formatMinutes(minutes: number | null) { if (minutes === null) return 'Not available'; if (minutes < 60) return `${minutes} minutes`; const hours = Math.floor(minutes / 60); const remainder = Math.round(minutes % 60); return remainder ? `${hours} hr ${remainder} min` : `${hours} hr` }
+function formatReportMonth(month: string) { const [year, monthNumber] = month.split('-').map(Number); return new Intl.DateTimeFormat('en-PH', { month: 'long', year: 'numeric' }).format(new Date(year, monthNumber - 1, 1)) }
 
 export {
   AdminAssessmentsPage,

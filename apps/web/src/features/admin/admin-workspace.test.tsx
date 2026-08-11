@@ -30,6 +30,8 @@ describe('Administration and counselor workspaces', () => {
     expect(screen.getByRole('heading', { name: 'About Ana Santos' })).toBeVisible()
     expect(screen.getByText('Problem-solving')).toBeVisible()
     expect(screen.getByText('I-C interest profile')).toBeVisible()
+    expect(screen.getByRole('heading', { name: 'Student-provided retake context' })).toBeVisible()
+    expect(screen.getByText('I wanted to review my current course interests.')).toBeVisible()
     expect(screen.getAllByText('BS Information Technology').length).toBeGreaterThan(0)
     expect(screen.getByRole('heading', { name: 'Counseling activity' })).toBeVisible()
     expect(screen.getByText(/cannot assign students/i)).toBeVisible()
@@ -67,6 +69,39 @@ describe('Administration and counselor workspaces', () => {
     expect(fetch).toHaveBeenCalledWith('/api/v1/counselor/appointments', expect.objectContaining({ method: 'POST' }))
     const appointmentCall = vi.mocked(fetch).mock.calls.find(([input, init]) => input.toString() === '/api/v1/counselor/appointments' && init?.method === 'POST')
     expect(JSON.parse(String(appointmentCall?.[1]?.body))).toMatchObject({ studentId: 10, guidanceRequestId: 21, programmeCode: 'BSIT', scheduledAt: '2026-08-20T09:00:00+08:00', endsAt: '2026-08-20T10:00:00+08:00' })
+  })
+
+  it('uses recorded free time and an explicit appointment length when scheduling', async () => {
+    const user = userEvent.setup()
+    await renderAppAt('/counselor/appointments')
+
+    await screen.findByRole('heading', { name: 'Schedule appointment' })
+    fireEvent.change(screen.getByLabelText('Appointment date'), { target: { value: '2026-08-20' } })
+    await user.type(screen.getByLabelText('Length in minutes'), '60')
+    await user.click(screen.getByRole('button', { name: 'Show available times' }))
+
+    const availableTime = await screen.findByRole('button', { name: /9:00.*10:00/i })
+    await user.click(availableTime)
+
+    expect(screen.getByLabelText('Date and time')).toHaveValue('2026-08-20T09:00')
+    expect(screen.getByLabelText('End date and time')).toHaveValue('2026-08-20T10:00')
+    expect(fetch).toHaveBeenCalledWith('/api/v1/counselor/availability/slots?date=2026-08-20&durationMinutes=60', expect.objectContaining({ credentials: 'include' }))
+  })
+
+  it('excludes the current appointment when selecting a reschedule time', async () => {
+    const user = userEvent.setup()
+    await renderAppAt('/counselor/appointments')
+
+    await user.click(await screen.findByRole('button', { name: 'Reschedule' }))
+    const dates = screen.getAllByLabelText('Appointment date')
+    const durations = screen.getAllByLabelText('Length in minutes')
+    const showButtons = screen.getAllByRole('button', { name: 'Show available times' })
+    fireEvent.change(dates[0], { target: { value: '2026-08-20' } })
+    await user.type(durations[0], '60')
+    await user.click(showButtons[0])
+
+    expect(await screen.findByRole('button', { name: /9:00.*10:00/i })).toBeVisible()
+    expect(fetch).toHaveBeenCalledWith('/api/v1/counselor/availability/slots?date=2026-08-20&durationMinutes=60&excludeAppointmentId=7', expect.objectContaining({ credentials: 'include' }))
   })
 
   it('lets a counselor configure Manila availability and reschedule an upcoming appointment', async () => {
@@ -231,7 +266,13 @@ describe('Administration and counselor workspaces', () => {
   it('shows privacy-aware reports and auditable Admin activity', async () => {
     const { unmount } = await renderAppAt('/admin/reports')
     expect(await screen.findByRole('heading', { name: 'Guidance reports' })).toBeVisible()
+    expect(screen.getByRole('heading', { name: 'Appointment lifecycle' })).toBeVisible()
+    expect(screen.getByRole('heading', { name: 'Guidance operations' })).toBeVisible()
+    expect(screen.getByRole('heading', { name: 'Assessment completion by month' })).toBeVisible()
+    expect(screen.getByText('100%')).toBeVisible()
+    expect(screen.getByText(/aggregate counts only/i)).toBeVisible()
     expect(screen.queryByText(/programme match frequency/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/guidance requests by concern/i)).not.toBeInTheDocument()
 
     unmount()
     await renderAppAt('/admin/activity')

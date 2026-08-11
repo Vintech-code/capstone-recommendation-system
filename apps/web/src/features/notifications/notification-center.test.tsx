@@ -70,4 +70,46 @@ describe('NotificationCenter', () => {
     expect(screen.getByText('Programme information updated')).toBeVisible()
     expect(screen.queryByText('Assessment ready')).not.toBeInTheDocument()
   })
+
+  it('marks a valid student notification as read before opening its authorized module', async () => {
+    vi.mocked(fetch)
+      .mockResolvedValueOnce(Response.json({ data: [{ id: 'notice-1', eventType: 'programme_updated', title: 'Programme information updated', message: 'BSIT has new published information.', context: { programmeId: 'bs-information-technology' }, readAt: null, createdAt: '2026-08-11T08:30:00+08:00' }] }))
+      .mockResolvedValueOnce(Response.json({ data: { id: 'notice-1', readAt: '2026-08-11T09:00:00+08:00' } }))
+    const onNavigate = vi.fn()
+    const user = userEvent.setup()
+    render(<NotificationCenter workspaceLabel="Student" onNavigate={onNavigate} />)
+
+    await user.click(screen.getByRole('button', { name: /Open student notifications/i }))
+    await user.click(await screen.findByRole('button', { name: 'Open notification: Programme information updated' }))
+
+    expect(fetch).toHaveBeenCalledWith('/api/v1/notifications/notice-1/read', expect.objectContaining({ method: 'POST' }))
+    expect(onNavigate).toHaveBeenCalledWith('programmes')
+  })
+
+  it('opens an already-read counselor appointment without issuing another read request', async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(Response.json({ data: [{ id: 'notice-2', eventType: 'appointment_student_confirmed', title: 'Student confirmed appointment', message: 'A student confirmed the schedule.', context: { appointmentId: 7, studentId: 10 }, readAt: '2026-08-11T09:00:00+08:00', createdAt: '2026-08-11T08:30:00+08:00' }] }))
+    const onNavigate = vi.fn()
+    const user = userEvent.setup()
+    render(<NotificationCenter workspaceLabel="Counselor" onNavigate={onNavigate} />)
+
+    await user.click(screen.getByRole('button', { name: /Open counselor notifications/i }))
+    await user.click(await screen.findByRole('button', { name: 'Open notification: Student confirmed appointment' }))
+
+    expect(fetch).toHaveBeenCalledTimes(1)
+    expect(onNavigate).toHaveBeenCalledWith('appointments')
+  })
+
+  it('keeps an invalid notification safely non-navigating while allowing it to be marked read', async () => {
+    vi.mocked(fetch)
+      .mockResolvedValueOnce(Response.json({ data: [{ id: 'notice-3', eventType: 'programme_updated', title: 'Programme information updated', message: 'Published information changed.', context: { programmeId: '' }, readAt: null, createdAt: '2026-08-11T08:30:00+08:00' }] }))
+      .mockResolvedValueOnce(Response.json({ data: { id: 'notice-3', readAt: '2026-08-11T09:00:00+08:00' } }))
+    const onNavigate = vi.fn()
+    const user = userEvent.setup()
+    render(<NotificationCenter workspaceLabel="Student" onNavigate={onNavigate} />)
+
+    await user.click(screen.getByRole('button', { name: /Open student notifications/i }))
+    await user.click(await screen.findByRole('button', { name: 'Mark notification as read: Programme information updated' }))
+
+    expect(onNavigate).not.toHaveBeenCalled()
+  })
 })

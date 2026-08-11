@@ -234,6 +234,7 @@ describe('Student dashboard', () => {
       id: 2,
       reference: 'TEST-SESSION-002',
       attempt_number: 2,
+      retake_reason: 'I wanted to review my recorded interests.',
       is_current: true,
       result: {
         ...testAssessmentLifecycle.result!,
@@ -264,6 +265,7 @@ describe('Student dashboard', () => {
     expect(screen.getByText('Assessment version: official-mini-ip-local-v1')).toBeVisible()
     expect(screen.getByText('Recorded score change only')).toBeVisible()
     expect(screen.getAllByText('+2')).toHaveLength(6)
+    expect(screen.getByText(/I wanted to review my recorded interests/)).toBeVisible()
   })
 
   it('preserves the latest completed result while a retake is in progress', async () => {

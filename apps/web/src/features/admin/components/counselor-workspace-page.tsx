@@ -11,11 +11,13 @@ import { formatDate, humanize } from '@/features/admin/data/admin-formatters'
 import { useAuth } from '@/features/auth/auth-context'
 import {
   mutateWorkspace,
+  requestCounselorAvailabilitySlots,
   useWorkspaceResource,
   type AdminStaff,
   type AdminGuidanceRequest,
   type AdminStudent,
   type CounselorAvailability,
+  type CounselorAvailabilitySlots,
   type GuidanceAppointment,
   type StaffApiScope,
 } from '@/features/admin/data/admin-api'
@@ -167,7 +169,7 @@ function CounselorWorkspacePage({ onNavigate, apiScope = 'admin', activeSection 
         <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Schedule</p>
         <h2 id="appointment-list-heading" className="mt-1 font-display text-xl font-semibold">Course-guidance appointments</h2>
         <p className="mt-1 text-sm text-muted-foreground">Upcoming conversations appear first. Completed, cancelled, and no-show records remain in the history.</p>
-        {appointments.data.length ? <AppointmentTable appointments={appointments.data} onNavigate={onNavigate} onStatus={updateStatus} onReschedule={rescheduleAppointment} /> : <div className="mt-5"><EmptyPanel title="No appointments scheduled" description="Use the form to schedule the first student course-guidance appointment." /></div>}
+        {appointments.data.length ? <AppointmentTable appointments={appointments.data} onNavigate={onNavigate} onStatus={updateStatus} onReschedule={rescheduleAppointment} canSelectAvailability={apiScope === 'counselor'} /> : <div className="mt-5"><EmptyPanel title="No appointments scheduled" description="Use the form to schedule the first student course-guidance appointment." /></div>}
       </section>
 
       <section className="min-w-0 bg-secondary p-5 shadow-sm" aria-labelledby="new-appointment-heading">
@@ -178,6 +180,7 @@ function CounselorWorkspacePage({ onNavigate, apiScope = 'admin', activeSection 
           <Field label="Student" id="appointment-student"><select id="appointment-student" value={draft.studentId} onChange={(event) => setDraft({ ...draft, studentId: event.target.value })} className="mt-2 h-10 w-full rounded border border-input bg-background px-3 text-sm"><option value="">Select student</option>{students.data.map((student) => <option key={student.id} value={student.id}>{student.name} · {student.email}</option>)}</select></Field>
           <Field label="Date and time" id="appointment-time"><Input id="appointment-time" type="datetime-local" value={draft.scheduledAt} onChange={(event) => setDraft({ ...draft, scheduledAt: event.target.value })} className="mt-2 rounded bg-background" /></Field>
           <Field label="End date and time" id="appointment-end"><Input id="appointment-end" type="datetime-local" value={draft.endsAt} min={draft.scheduledAt || undefined} onChange={(event) => setDraft({ ...draft, endsAt: event.target.value })} className="mt-2 rounded bg-background" /></Field>
+          {apiScope === 'counselor' ? <AvailabilitySlotPicker selectedStart={draft.scheduledAt} selectedEnd={draft.endsAt} onSelect={(startsAt, endsAt) => setDraft((current) => ({ ...current, scheduledAt: startsAt, endsAt }))} /> : null}
           <Field label="Guidance topic" id="appointment-topic"><Input id="appointment-topic" value={draft.topic} onChange={(event) => setDraft({ ...draft, topic: event.target.value })} placeholder="Example: Review programme matches" className="mt-2 rounded bg-background" /></Field>
           <Field label="Programme code (optional)" id="appointment-programme"><Input id="appointment-programme" value={draft.programmeCode} onChange={(event) => setDraft({ ...draft, programmeCode: event.target.value })} placeholder="Example: BSIT" className="mt-2 rounded bg-background" /></Field>
           <Field label="Internal notes (optional)" id="appointment-notes"><textarea id="appointment-notes" value={draft.notes} onChange={(event) => setDraft({ ...draft, notes: event.target.value })} rows={3} className="mt-2 w-full rounded border border-input bg-background px-3 py-2 text-sm" /></Field>
@@ -218,12 +221,12 @@ function CounselorDashboard({ counselorName, students, counselors, appointments,
   const totalRequests = pendingRequests.length + scheduledRequests
   const pendingShare = totalRequests ? Math.round((pendingRequests.length / totalRequests) * 100) : 0
 
-  return <div className="mx-auto w-full max-w-[1500px] space-y-4">
+  return <div className="mx-auto w-full max-w-375 space-y-4">
     <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_20rem]">
       <div className="space-y-4">
-        <header className="relative min-h-48 overflow-hidden rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 via-white to-sky-50 px-5 py-7 shadow-sm dark:border-white/6 dark:from-slate-950 dark:via-blue-950/80 dark:to-indigo-950/70 sm:px-7">
+        <header className="relative min-h-48 overflow-hidden rounded-2xl border border-blue-100 bg-linear-to-br from-blue-50 via-white to-sky-50 px-5 py-7 shadow-sm dark:border-white/6 dark:from-slate-950 dark:via-blue-950/80 dark:to-indigo-950/70 sm:px-7">
           <img src={tccBanner} alt="" className="absolute inset-y-0 right-0 h-full w-[54%] object-cover opacity-35 dark:opacity-25" />
-          <div className="absolute inset-0 bg-gradient-to-r from-white via-white/95 to-white/25 dark:from-slate-950 dark:via-slate-950/90 dark:to-slate-950/10" />
+          <div className="absolute inset-0 bg-linear-to-r from-white via-white/95 to-white/25 dark:from-slate-950 dark:via-slate-950/90 dark:to-slate-950/10" />
           <div className="relative max-w-xl"><p className="text-xs font-bold uppercase tracking-[0.18em] text-blue-600 dark:text-cyan-300">Student course guidance</p><h1 className="mt-5 font-display text-3xl font-bold tracking-tight sm:text-4xl">{manilaGreeting(now)}, {firstName}! <span aria-hidden="true">👋</span></h1><p className="mt-3 max-w-lg text-sm leading-6 text-muted-foreground dark:text-slate-300">Review student records, respond to guidance requests, and manage appointments. Assessment, programme, and account data remain read-only.</p></div>
         </header>
 
@@ -262,7 +265,7 @@ function CounselorMetric({ label, value, note, icon: Icon, tone }: { label: stri
     violet: ['bg-violet-100 text-violet-600 dark:bg-violet-500/18 dark:text-violet-300', 'text-violet-500'],
     orange: ['bg-orange-100 text-orange-600 dark:bg-orange-500/18 dark:text-orange-300', 'text-orange-500'],
   }[tone]
-  return <article className="flex min-h-44 flex-col rounded-xl border border-border bg-card/95 p-5 shadow-sm dark:border-white/6 dark:bg-card/80"><div className="flex items-center gap-3"><span className={`flex size-10 items-center justify-center rounded-xl ${colors[0]}`}><Icon className="size-5" aria-hidden="true" /></span><p className="text-[11px] font-bold uppercase tracking-[0.1em]">{label}</p></div><p className="mt-5 font-display text-3xl font-bold">{value}</p><p className="mt-1 text-xs text-muted-foreground">{note}</p><span className={`mt-auto h-0.5 w-12 rounded-full bg-current ${colors[1]}`} aria-hidden="true" /></article>
+  return <article className="flex min-h-44 flex-col rounded-xl border border-border bg-card/95 p-5 shadow-sm dark:border-white/6 dark:bg-card/80"><div className="flex items-center gap-3"><span className={`flex size-10 items-center justify-center rounded-xl ${colors[0]}`}><Icon className="size-5" aria-hidden="true" /></span><p className="text-[11px] font-bold uppercase tracking-widest">{label}</p></div><p className="mt-5 font-display text-3xl font-bold">{value}</p><p className="mt-1 text-xs text-muted-foreground">{note}</p><span className={`mt-auto h-0.5 w-12 rounded-full bg-current ${colors[1]}`} aria-hidden="true" /></article>
 }
 
 function DashboardQueueDatum({ icon: Icon, label, value }: { icon: typeof UsersRound; label: string; value: number }) {
@@ -309,20 +312,20 @@ function CounselorRecentRecords({ requests, appointments, onNavigate }: { reques
   return <section className="rounded-xl border border-border bg-card/95 p-5 shadow-sm dark:border-white/6 dark:bg-card/80" aria-labelledby="recent-records-heading"><div className="flex items-center justify-between"><h2 id="recent-records-heading" className="text-xs font-bold uppercase tracking-[0.14em]">Recent records</h2><button type="button" onClick={() => onNavigate('/admin/requests')} className="text-xs text-blue-600 dark:text-blue-300">View all</button></div>{items.length ? <ol className="mt-3 divide-y divide-border dark:divide-white/8">{items.map((item) => <li key={item.id}><button type="button" onClick={() => onNavigate(item.path)} className="flex min-h-16 w-full gap-3 py-3 text-left focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-blue-400/50"><span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-blue-100 text-blue-600 dark:bg-blue-500/18 dark:text-blue-300"><item.icon className="size-4" aria-hidden="true" /></span><span className="min-w-0"><strong className="block truncate text-xs">{item.title}</strong><span className="mt-1 block truncate text-[11px] text-muted-foreground">{item.detail}</span><span className="mt-2 block text-[10px] text-muted-foreground">{formatDate(item.date)}</span></span></button></li>)}</ol> : <p className="mt-4 rounded-lg bg-secondary p-4 text-sm text-muted-foreground">No guidance records are available.</p>}</section>
 }
 
-function AppointmentTable({ appointments, onNavigate, onStatus, onReschedule }: { appointments: GuidanceAppointment[]; onNavigate: (path: string) => void; onStatus: (appointment: GuidanceAppointment, status: GuidanceAppointment['status'], cancellationReason?: string) => Promise<void>; onReschedule: (appointment: GuidanceAppointment, scheduledAt: string, endsAt: string) => Promise<void> }) {
+function AppointmentTable({ appointments, onNavigate, onStatus, onReschedule, canSelectAvailability }: { appointments: GuidanceAppointment[]; onNavigate: (path: string) => void; onStatus: (appointment: GuidanceAppointment, status: GuidanceAppointment['status'], cancellationReason?: string) => Promise<void>; onReschedule: (appointment: GuidanceAppointment, scheduledAt: string, endsAt: string) => Promise<void>; canSelectAvailability: boolean }) {
   const [now] = useState(() => Date.now())
   const upcoming = appointments.filter((item) => item.status === 'scheduled' && new Date(item.scheduledAt).getTime() >= now)
   const history = appointments.filter((item) => !upcoming.includes(item))
 
   return (
     <div className="mt-5 space-y-7">
-      <AppointmentGroup title="Upcoming" empty="No upcoming appointments." appointments={upcoming} onNavigate={onNavigate} onStatus={onStatus} onReschedule={onReschedule} />
-      <AppointmentGroup title="Past and closed" empty="No past appointment records." appointments={history} onNavigate={onNavigate} onStatus={onStatus} onReschedule={onReschedule} />
+      <AppointmentGroup title="Upcoming" empty="No upcoming appointments." appointments={upcoming} onNavigate={onNavigate} onStatus={onStatus} onReschedule={onReschedule} canSelectAvailability={canSelectAvailability} />
+      <AppointmentGroup title="Past and closed" empty="No past appointment records." appointments={history} onNavigate={onNavigate} onStatus={onStatus} onReschedule={onReschedule} canSelectAvailability={canSelectAvailability} />
     </div>
   )
 }
 
-function AppointmentGroup({ title, empty, appointments, onNavigate, onStatus, onReschedule }: { title: string; empty: string; appointments: GuidanceAppointment[]; onNavigate: (path: string) => void; onStatus: (appointment: GuidanceAppointment, status: GuidanceAppointment['status'], cancellationReason?: string) => Promise<void>; onReschedule: (appointment: GuidanceAppointment, scheduledAt: string, endsAt: string) => Promise<void> }) {
+function AppointmentGroup({ title, empty, appointments, onNavigate, onStatus, onReschedule, canSelectAvailability }: { title: string; empty: string; appointments: GuidanceAppointment[]; onNavigate: (path: string) => void; onStatus: (appointment: GuidanceAppointment, status: GuidanceAppointment['status'], cancellationReason?: string) => Promise<void>; onReschedule: (appointment: GuidanceAppointment, scheduledAt: string, endsAt: string) => Promise<void>; canSelectAvailability: boolean }) {
   const [cancellingId, setCancellingId] = useState<number | null>(null)
   const [reschedulingId, setReschedulingId] = useState<number | null>(null)
   const [reason, setReason] = useState('')
@@ -335,8 +338,8 @@ function AppointmentGroup({ title, empty, appointments, onNavigate, onStatus, on
     <section aria-label={title}>
       <h3 className="text-sm font-bold">{title}</h3>
       <div className="mt-2 overflow-x-auto">
-        <table className="w-full min-w-[58rem] text-left text-sm">
-          <thead className="bg-secondary text-xs uppercase tracking-[0.1em] text-muted-foreground"><tr><th className="px-4 py-3">Student</th><th className="px-4 py-3">Schedule</th><th className="px-4 py-3">Topic</th><th className="px-4 py-3">Status</th><th className="px-4 py-3"><span className="sr-only">Actions</span></th></tr></thead>
+        <table className="w-full min-w-232 text-left text-sm">
+          <thead className="bg-secondary text-xs uppercase tracking-widest text-muted-foreground"><tr><th className="px-4 py-3">Student</th><th className="px-4 py-3">Schedule</th><th className="px-4 py-3">Topic</th><th className="px-4 py-3">Status</th><th className="px-4 py-3"><span className="sr-only">Actions</span></th></tr></thead>
           <tbody className="divide-y">{appointments.map((appointment) => (
             <tr key={appointment.id}>
               <td className="px-4 py-4"><strong className="block">{appointment.studentName}</strong><button type="button" onClick={() => onNavigate(`/admin/students/${appointment.studentId}`)} className="mt-1 text-xs text-primary underline-offset-4 hover:underline">Open student record</button></td>
@@ -344,7 +347,7 @@ function AppointmentGroup({ title, empty, appointments, onNavigate, onStatus, on
               <td className="px-4 py-4"><strong className="block">{appointment.topic}</strong>{appointment.programmeCode ? <span className="mt-1 block text-xs text-muted-foreground">Programme: {appointment.programmeCode}</span> : null}{appointment.studentConfirmedAt ? <span className="mt-2 block text-xs font-semibold text-success">Confirmed by student</span> : appointment.status === 'scheduled' ? <span className="mt-2 block text-xs text-warning">Awaiting student confirmation</span> : null}</td>
               <td className="px-4 py-4"><Badge variant={appointment.status === 'scheduled' ? 'secondary' : appointment.status === 'completed' ? 'success' : 'outline'}>{humanize(appointment.status)}</Badge>{appointment.cancellationReason ? <span className="mt-2 block max-w-52 text-xs text-muted-foreground">{appointment.cancellationReason}</span> : null}</td>
               <td className="px-4 py-4">
-                {appointment.status === 'scheduled' && reschedulingId === appointment.id ? <div className="min-w-64 space-y-2"><Field label="New start" id={`reschedule-start-${appointment.id}`}><Input id={`reschedule-start-${appointment.id}`} type="datetime-local" value={schedule.startsAt} onChange={(event) => setSchedule({ ...schedule, startsAt: event.target.value })} /></Field><Field label="New end" id={`reschedule-end-${appointment.id}`}><Input id={`reschedule-end-${appointment.id}`} type="datetime-local" min={schedule.startsAt || undefined} value={schedule.endsAt} onChange={(event) => setSchedule({ ...schedule, endsAt: event.target.value })} /></Field><div className="flex gap-2"><Button size="sm" disabled={busy || !schedule.startsAt || !schedule.endsAt || schedule.endsAt <= schedule.startsAt} onClick={async () => { setBusy(true); try { await onReschedule(appointment, schedule.startsAt, schedule.endsAt); setReschedulingId(null) } finally { setBusy(false) } }}>Save schedule</Button><Button size="sm" variant="ghost" disabled={busy} onClick={() => setReschedulingId(null)}>Keep current</Button></div></div> : null}
+                {appointment.status === 'scheduled' && reschedulingId === appointment.id ? <div className="min-w-64 space-y-2"><Field label="New start" id={`reschedule-start-${appointment.id}`}><Input id={`reschedule-start-${appointment.id}`} type="datetime-local" value={schedule.startsAt} onChange={(event) => setSchedule({ ...schedule, startsAt: event.target.value })} /></Field><Field label="New end" id={`reschedule-end-${appointment.id}`}><Input id={`reschedule-end-${appointment.id}`} type="datetime-local" min={schedule.startsAt || undefined} value={schedule.endsAt} onChange={(event) => setSchedule({ ...schedule, endsAt: event.target.value })} /></Field>{canSelectAvailability ? <AvailabilitySlotPicker selectedStart={schedule.startsAt} selectedEnd={schedule.endsAt} excludeAppointmentId={appointment.id} onSelect={(startsAt, endsAt) => setSchedule({ startsAt, endsAt })} compact /> : null}<div className="flex gap-2"><Button size="sm" disabled={busy || !schedule.startsAt || !schedule.endsAt || schedule.endsAt <= schedule.startsAt} onClick={async () => { setBusy(true); try { await onReschedule(appointment, schedule.startsAt, schedule.endsAt); setReschedulingId(null) } finally { setBusy(false) } }}>Save schedule</Button><Button size="sm" variant="ghost" disabled={busy} onClick={() => setReschedulingId(null)}>Keep current</Button></div></div> : null}
                 {appointment.status === 'scheduled' && cancellingId === appointment.id ? <div className="min-w-56 space-y-2"><Label htmlFor={`cancel-reason-${appointment.id}`}>Cancellation reason</Label><textarea id={`cancel-reason-${appointment.id}`} value={reason} onChange={(event) => setReason(event.target.value)} rows={2} className="w-full rounded border border-input bg-background px-3 py-2 text-xs" /><div className="flex gap-2"><Button size="sm" variant="destructive" disabled={reason.trim().length < 3} onClick={() => { void onStatus(appointment, 'cancelled', reason.trim()); setCancellingId(null); setReason('') }}>Confirm cancellation</Button><Button size="sm" variant="ghost" onClick={() => { setCancellingId(null); setReason('') }}>Keep</Button></div></div> : null}
                 {appointment.status === 'scheduled' && cancellingId !== appointment.id && reschedulingId !== appointment.id ? <div className="flex flex-wrap gap-2"><Button size="sm" variant="outline" onClick={() => { setReschedulingId(appointment.id); setSchedule({ startsAt: toManilaLocalInput(appointment.scheduledAt), endsAt: appointment.endsAt ? toManilaLocalInput(appointment.endsAt) : '' }) }}><Pencil aria-hidden="true" />Reschedule</Button><Button size="sm" className="rounded" onClick={() => void onStatus(appointment, 'completed')}>Complete</Button><Button size="sm" variant="outline" className="rounded" onClick={() => void onStatus(appointment, 'no_show')}>No-show</Button><Button size="sm" variant="outline" className="rounded" onClick={() => setCancellingId(appointment.id)}>Cancel</Button></div> : null}
               </td>
@@ -352,6 +355,65 @@ function AppointmentGroup({ title, empty, appointments, onNavigate, onStatus, on
           ))}</tbody>
         </table>
       </div>
+    </section>
+  )
+}
+
+function AvailabilitySlotPicker({ selectedStart, selectedEnd, excludeAppointmentId, onSelect, compact = false }: {
+  selectedStart: string
+  selectedEnd: string
+  excludeAppointmentId?: number
+  onSelect: (startsAt: string, endsAt: string) => void
+  compact?: boolean
+}) {
+  const [date, setDate] = useState(() => selectedStart.slice(0, 10))
+  const [today] = useState(() => manilaDateKey(new Date()))
+  const [durationMinutes, setDurationMinutes] = useState(() => durationBetweenLocalValues(selectedStart, selectedEnd))
+  const [result, setResult] = useState<CounselorAvailabilitySlots | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+
+  const loadSlots = async () => {
+    setError('')
+    setResult(null)
+    const duration = Number(durationMinutes)
+    if (!date || !Number.isInteger(duration) || duration < 1 || duration > 1440) {
+      setError('Choose a date and enter the appointment length in minutes.')
+      return
+    }
+    setLoading(true)
+    try {
+      setResult(await requestCounselorAvailabilitySlots(date, duration, excludeAppointmentId))
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : 'Available times could not be loaded.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <section className={`rounded-lg bg-primary-fixed/55 ${compact ? 'p-3' : 'p-4'}`} aria-label="Available appointment times">
+      <div className="flex items-start gap-3">
+        <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-background text-primary"><Clock3 className="size-4" aria-hidden="true" /></span>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-bold">Choose from your available times</p>
+          <p className="mt-1 text-xs leading-5 text-muted-foreground">Enter the length for this conversation. Times come from your recurring schedule after existing bookings are removed.</p>
+        </div>
+      </div>
+      <div className={`mt-3 grid gap-3 ${compact ? '' : 'sm:grid-cols-[1fr_1fr_auto] sm:items-end'}`}>
+        <Field label="Appointment date" id={`slot-date-${excludeAppointmentId ?? 'new'}`}><Input id={`slot-date-${excludeAppointmentId ?? 'new'}`} type="date" min={today} value={date} onChange={(event) => { setDate(event.target.value); setResult(null) }} className="mt-2 bg-background" /></Field>
+        <Field label="Length in minutes" id={`slot-duration-${excludeAppointmentId ?? 'new'}`}><Input id={`slot-duration-${excludeAppointmentId ?? 'new'}`} type="number" min={1} max={1440} inputMode="numeric" value={durationMinutes} onChange={(event) => { setDurationMinutes(event.target.value); setResult(null) }} placeholder="Enter minutes" className="mt-2 bg-background" /></Field>
+        <Button type="button" variant="outline" disabled={loading || !date || !durationMinutes} onClick={() => void loadSlots()}>{loading ? 'Checking…' : 'Show available times'}</Button>
+      </div>
+      {error ? <p role="alert" className="mt-3 text-sm font-medium text-destructive">{error}</p> : null}
+      {result && !result.configured ? <p className="mt-3 rounded bg-background px-3 py-2 text-sm text-muted-foreground">Your recurring availability is not configured yet.</p> : null}
+      {result?.configured && result.slots.length === 0 ? <p className="mt-3 rounded bg-background px-3 py-2 text-sm text-muted-foreground">No free time fits this date and length. Choose another date or appointment length.</p> : null}
+      {result && result.slots.length > 0 ? <div className="mt-3"><p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">Available in Asia/Manila</p><div className="mt-2 flex flex-wrap gap-2">{result.slots.map((slot) => {
+        const localStart = toManilaLocalInput(slot.startsAt)
+        const localEnd = toManilaLocalInput(slot.endsAt)
+        const selected = selectedStart === localStart && selectedEnd === localEnd
+        return <Button key={`${slot.startsAt}-${slot.endsAt}`} type="button" size="sm" variant={selected ? 'default' : 'outline'} aria-pressed={selected} onClick={() => onSelect(localStart, localEnd)}>{formatTime(slot.startsAt)}–{formatTime(slot.endsAt)}</Button>
+      })}</div></div> : null}
     </section>
   )
 }
@@ -409,7 +471,7 @@ function CounselorAvailabilityForm({ availability }: { availability: CounselorAv
 }
 
 function StudentMonitoring({ students, onNavigate }: { students: AdminStudent[]; onNavigate: (path: string) => void }) {
-  return <section className="min-w-0 bg-card p-5 shadow-sm" aria-labelledby="monitored-students-heading"><div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Student monitoring</p><h2 id="monitored-students-heading" className="mt-1 font-display text-xl font-semibold">Students and latest assessment activity</h2></div><Button variant="outline" className="rounded" onClick={() => onNavigate('/admin/students')}>Open full directory <ArrowRight aria-hidden="true" /></Button></div>{students.length ? <div className="mt-5 max-w-full overflow-x-auto"><table className="w-full min-w-[42rem] text-left text-sm"><thead className="bg-secondary text-xs uppercase tracking-[0.1em] text-muted-foreground"><tr><th className="px-4 py-3">Student</th><th className="px-4 py-3">Attempts</th><th className="px-4 py-3">Latest profile</th><th className="px-4 py-3">Latest result</th><th className="px-4 py-3"><span className="sr-only">Open</span></th></tr></thead><tbody className="divide-y">{students.map((student) => <tr key={student.id}><td className="px-4 py-4"><strong>{student.name}</strong><span className="block text-xs text-muted-foreground">{student.email}</span></td><td className="px-4 py-4">{student.attemptCount}</td><td className="px-4 py-4 font-semibold">{student.latestTopCode ?? '—'}</td><td className="px-4 py-4">{formatDate(student.latestResultAt)}</td><td className="px-4 py-4 text-right"><Button variant="ghost" className="rounded" onClick={() => onNavigate(`/admin/students/${student.id}`)}>Open <ArrowRight aria-hidden="true" /></Button></td></tr>)}</tbody></table></div> : <div className="mt-5"><EmptyPanel title="No students available" description="Student accounts will appear after registration." /></div>}</section>
+  return <section className="min-w-0 bg-card p-5 shadow-sm" aria-labelledby="monitored-students-heading"><div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Student monitoring</p><h2 id="monitored-students-heading" className="mt-1 font-display text-xl font-semibold">Students and latest assessment activity</h2></div><Button variant="outline" className="rounded" onClick={() => onNavigate('/admin/students')}>Open full directory <ArrowRight aria-hidden="true" /></Button></div>{students.length ? <div className="mt-5 max-w-full overflow-x-auto"><table className="w-full min-w-2xl text-left text-sm"><thead className="bg-secondary text-xs uppercase tracking-widest text-muted-foreground"><tr><th className="px-4 py-3">Student</th><th className="px-4 py-3">Attempts</th><th className="px-4 py-3">Latest profile</th><th className="px-4 py-3">Latest result</th><th className="px-4 py-3"><span className="sr-only">Open</span></th></tr></thead><tbody className="divide-y">{students.map((student) => <tr key={student.id}><td className="px-4 py-4"><strong>{student.name}</strong><span className="block text-xs text-muted-foreground">{student.email}</span></td><td className="px-4 py-4">{student.attemptCount}</td><td className="px-4 py-4 font-semibold">{student.latestTopCode ?? '—'}</td><td className="px-4 py-4">{formatDate(student.latestResultAt)}</td><td className="px-4 py-4 text-right"><Button variant="ghost" className="rounded" onClick={() => onNavigate(`/admin/students/${student.id}`)}>Open <ArrowRight aria-hidden="true" /></Button></td></tr>)}</tbody></table></div> : <div className="mt-5"><EmptyPanel title="No students available" description="Student accounts will appear after registration." /></div>}</section>
 }
 
 function GuidanceRequestQueue({ requests, onPrepare, onDecline, compact = false }: { requests: AdminGuidanceRequest[]; onPrepare: (request: AdminGuidanceRequest) => void; onDecline: (request: AdminGuidanceRequest, reason: string) => Promise<void>; compact?: boolean }) {
@@ -447,6 +509,7 @@ function Field({ label, id, children }: { label: string; id: string; children: R
 function formatDateTime(value: string) { return new Intl.DateTimeFormat('en-PH', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Manila' }).format(new Date(value)) }
 function manilaLocalToIso(value: string) { return `${value.length === 16 ? `${value}:00` : value}+08:00` }
 function toManilaLocalInput(value: string) { const entries = Object.fromEntries(new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Manila', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(new Date(value)).map((part) => [part.type, part.value])); return `${entries.year}-${entries.month}-${entries.day}T${entries.hour}:${entries.minute}` }
+function durationBetweenLocalValues(startsAt: string, endsAt: string) { if (!startsAt || !endsAt) return ''; const difference = (new Date(`${endsAt}:00+08:00`).getTime() - new Date(`${startsAt}:00+08:00`).getTime()) / 60000; return Number.isInteger(difference) && difference > 0 ? String(difference) : '' }
 function formatTime(value: string) { return new Intl.DateTimeFormat('en-PH', { hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Manila' }).format(new Date(value)) }
 function manilaDateParts(value: Date) { const entries = Object.fromEntries(new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Manila', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(value).map((part) => [part.type, part.value])); return { year: Number(entries.year), month: Number(entries.month), day: Number(entries.day) } }
 function manilaDateKey(value: Date) { const parts = manilaDateParts(value); return `${parts.year}-${String(parts.month).padStart(2, '0')}-${String(parts.day).padStart(2, '0')}` }

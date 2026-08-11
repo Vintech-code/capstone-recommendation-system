@@ -37,6 +37,7 @@ interface AdminAssessment {
   studentEmail: string | null
   attemptNumber: number
   attemptCount?: number
+  retakeReason?: string | null
   status: 'in_progress' | 'preparing_result' | 'result_available' | 'result_failed'
   topCode: string | null
   startedAt: string | null
@@ -135,6 +136,17 @@ interface CounselorAvailability {
   }>
 }
 
+interface CounselorAvailabilitySlots {
+  date: string
+  durationMinutes: number
+  timezone: 'Asia/Manila'
+  configured: boolean
+  slots: Array<{
+    startsAt: string
+    endsAt: string
+  }>
+}
+
 interface AdminGuidanceRequest {
   id: number
   studentId: number
@@ -226,9 +238,20 @@ interface AdminReport {
   generatedAt: string
   from: string | null
   to: string | null
+  scope: 'institution' | 'counselor'
   studentCount: number
+  assessmentActivity: number
   completedAssessments: number
+  assessmentCompletionRate: number
   recommendationRuns: number
+  programmeSaves: number
+  guidanceRequestStatuses: Record<'pending' | 'accepted' | 'scheduled' | 'closed' | 'declined' | 'cancelled', number>
+  appointmentStatuses: Record<'scheduled' | 'completed' | 'cancelled' | 'no_show', number>
+  averageRequestToAppointmentMinutes: number | null
+  openFollowUps: number
+  overdueFollowUps: number
+  closedGuidanceCases: number
+  assessmentCompletionsByMonth: Array<{ month: string; count: number }>
 }
 
 interface ConfigurationVersion {
@@ -314,6 +337,12 @@ async function requestWorkspace<T>(scope: StaffApiScope, path: string, signal?: 
 
 function requestAdmin<T>(path: string, signal?: AbortSignal): Promise<T> {
   return requestWorkspace<T>('admin', path, signal)
+}
+
+function requestCounselorAvailabilitySlots(date: string, durationMinutes: number, excludeAppointmentId?: number): Promise<CounselorAvailabilitySlots> {
+  const query = new URLSearchParams({ date, durationMinutes: String(durationMinutes) })
+  if (excludeAppointmentId !== undefined) query.set('excludeAppointmentId', String(excludeAppointmentId))
+  return requestWorkspace<CounselorAvailabilitySlots>('counselor', `/availability/slots?${query.toString()}`)
 }
 
 function csrfToken() {
@@ -410,7 +439,7 @@ function useWorkspaceResource<T>(scope: StaffApiScope, path: string) {
   return { data, error, loading, retry }
 }
 
-export { mutateAdmin, mutateWorkspace, requestAdmin, requestWorkspace, uploadProgrammeMedia, useAdminResource, useWorkspaceResource }
+export { mutateAdmin, mutateWorkspace, requestAdmin, requestCounselorAvailabilitySlots, requestWorkspace, uploadProgrammeMedia, useAdminResource, useWorkspaceResource }
 export type {
   AdminActivity,
   AdminAssessment,
@@ -429,6 +458,7 @@ export type {
   ProgrammeSourceRegistryEntry,
   GuidanceAppointment,
   CounselorAvailability,
+  CounselorAvailabilitySlots,
   AdminGuidanceRequest,
   GuidanceNote,
   GuidanceSummary,

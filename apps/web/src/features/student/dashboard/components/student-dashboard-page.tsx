@@ -13,10 +13,11 @@ import {
 } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 
-import { ConfirmActionDialog, ErrorState, LoadingState, StatusBadge } from '@/components/shared'
+import { ErrorState, LoadingState, StatusBadge } from '@/components/shared'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { getAssessmentHistory, getCurrentAssessment, retryAssessmentResult, type AssessmentHistoryResponse, type AssessmentLifecycle } from '@/features/student/assessment/assessment-api'
+import { RetakeAssessmentDialog } from '@/features/student/assessment/components/retake-assessment-dialog'
 import { formatAssessmentDate, mapAssessmentResult } from '@/features/student/assessment/assessment-result-mapper'
 import { cancelStudentGuidanceAppointment, cancelStudentGuidanceRequest, confirmStudentGuidanceAppointment, createStudentGuidanceRequest, getStudentGuidanceAppointments, getStudentGuidanceRequests, getStudentGuidanceSummaries, type StudentGuidanceAppointment, type StudentGuidanceRequest, type StudentGuidanceSummary } from '@/features/student/guidance/guidance-api'
 import { getProgrammeImages } from '@/features/student/programmes/programme-images'
@@ -199,7 +200,7 @@ interface AssessmentHistorySummaryProps {
   selectedRecommendationState: 'idle' | 'loading' | 'error'
   onSelectAttempt: (assessmentSessionId: number) => Promise<void>
   onRetryHistory: () => void
-  onStartRetake: () => Promise<void>
+  onStartRetake: (reason?: string) => Promise<void>
 }
 
 function AssessmentHistorySummary({ history, historyError, lifecycle, selectedAttemptId, selectedRecommendation, selectedRecommendationState, onSelectAttempt, onRetryHistory, onStartRetake }: AssessmentHistorySummaryProps) {
@@ -226,11 +227,11 @@ function AssessmentHistorySummary({ history, historyError, lifecycle, selectedAt
       .sort((left, right) => (right.attempt_number ?? 0) - (left.attempt_number ?? 0))[0] ?? null
     : null
 
-  async function startRetake() {
+  async function startRetake(reason?: string) {
     setRetakeError(false)
     setStarting(true)
     try {
-      await onStartRetake()
+      await onStartRetake(reason)
     } catch {
       setRetakeError(true)
     } finally {
@@ -265,6 +266,7 @@ function AssessmentHistorySummary({ history, historyError, lifecycle, selectedAt
                   <button type="button" disabled={item.status !== 'result_available'} aria-pressed={isSelected} onClick={() => item.id && void onSelectAttempt(item.id)} className={`group min-h-32 w-full rounded-xl p-4 text-left shadow-sm transition duration-200 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/40 motion-reduce:transform-none motion-reduce:transition-none ${isSelected ? 'bg-brand-dark text-white' : 'bg-secondary/55 hover:bg-primary-fixed/55 disabled:cursor-default disabled:hover:bg-secondary/55'}`}>
                     <span className="flex items-start justify-between gap-3"><span><span className={`text-xs font-extrabold uppercase tracking-[0.12em] ${isSelected ? 'text-white/70' : 'text-primary'}`}>Attempt {item.attempt_number}</span><span className="mt-2 block text-xl font-extrabold">{result?.topCode ?? assessmentStatusLabel(item.status)}</span></span>{item.status === 'result_available' ? <ChevronRight aria-hidden="true" className="size-5 transition-transform group-hover:translate-x-0.5" /> : <Clock3 aria-hidden="true" className="size-5 text-muted-foreground" />}</span>
                     <span className={`mt-5 flex items-center gap-2 text-xs ${isSelected ? 'text-white/70' : 'text-muted-foreground'}`}><CalendarDays aria-hidden="true" className="size-4" />{formatAssessmentDate(item.result_available_at ?? item.started_at)}</span>
+                    {item.retake_reason ? <span className={`mt-3 line-clamp-2 block text-xs leading-5 ${isSelected ? 'text-white/80' : 'text-muted-foreground'}`}><strong>Reason:</strong> {item.retake_reason}</span> : null}
                     <span className="mt-3 flex flex-wrap gap-2">{isCurrent && item.status !== 'result_available' ? <span className={`rounded-full px-2.5 py-1 text-[10px] font-extrabold ${isSelected ? 'bg-white/15' : 'bg-primary/10 text-primary'}`}>Current attempt</span> : null}{isCurrentResult ? <span className={`rounded-full px-2.5 py-1 text-[10px] font-extrabold ${isSelected ? 'bg-white/15' : 'bg-success/15 text-foreground'}`}>Current result</span> : null}{!isCurrentResult && item.status === 'result_available' ? <span className="rounded-full bg-background px-2.5 py-1 text-[10px] font-bold text-muted-foreground">Previous result</span> : null}</span>
                   </button>
                 </li>
@@ -279,7 +281,7 @@ function AssessmentHistorySummary({ history, historyError, lifecycle, selectedAt
         </div>
       </div>
 
-      <ConfirmActionDialog open={confirmingRetake} onOpenChange={setConfirmingRetake} title="Start a new assessment?" description="Your completed results will stay available in Assessment history. The new attempt starts with no answers and becomes your current assessment." confirmLabel="Start retake" onConfirm={startRetake} />
+      <RetakeAssessmentDialog open={confirmingRetake} onOpenChange={setConfirmingRetake} description="Your completed results will stay available in Assessment history. The new attempt starts with no answers and becomes your current assessment." onConfirm={startRetake} />
     </section>
   )
 }

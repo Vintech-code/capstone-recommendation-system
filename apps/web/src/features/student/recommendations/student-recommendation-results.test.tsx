@@ -182,11 +182,15 @@ describe('Student recommendation results', () => {
 
     await user.click(screen.getByRole('button', { name: 'Retake assessment' }))
     expect(screen.getByRole('alertdialog', { name: 'Start a new assessment?' })).toBeVisible()
+    await user.type(screen.getByRole('textbox', { name: 'Reason for retaking (optional)' }), 'I want to reconsider my programme options.')
     await user.click(screen.getByRole('button', { name: 'Start retake' }))
 
     expect(fetchMock).toHaveBeenCalledWith(
       '/api/v1/student/assessments/onet-mini-ip/sessions',
-      expect.objectContaining({ method: 'POST' }),
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({ retakeReason: 'I want to reconsider my programme options.' }),
+      }),
     )
     expect(onOpenAssessment).toHaveBeenCalledOnce()
   })

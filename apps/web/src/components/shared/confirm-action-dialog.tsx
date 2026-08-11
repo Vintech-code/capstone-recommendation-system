@@ -1,4 +1,4 @@
-import { useState, type MouseEvent } from 'react'
+import { useState, type MouseEvent, type ReactNode } from 'react'
 
 import {
   AlertDialog,
@@ -22,6 +22,7 @@ interface ConfirmActionDialogProps {
   cancelLabel?: string
   onConfirm: () => void | Promise<void>
   destructive?: boolean
+  children?: ReactNode
 }
 
 function ConfirmActionDialog({
@@ -33,6 +34,7 @@ function ConfirmActionDialog({
   cancelLabel = 'Cancel',
   onConfirm,
   destructive = false,
+  children,
 }: ConfirmActionDialogProps) {
   const [isConfirming, setIsConfirming] = useState(false)
 
@@ -55,6 +57,7 @@ function ConfirmActionDialog({
           <AlertDialogTitle>{title}</AlertDialogTitle>
           <AlertDialogDescription>{description}</AlertDialogDescription>
         </AlertDialogHeader>
+        {children}
         <AlertDialogFooter>
           <AlertDialogCancel disabled={isConfirming}>
             {cancelLabel}

@@ -87,8 +87,8 @@ function StudentAssessmentHistoryPage({ onBack, onOpenAssessment }: StudentAsses
             onRetryHistory={() => {
               void loadHistory().catch(() => setHistoryError(true))
             }}
-            onStartRetake={async () => {
-              const next = await startAssessment()
+            onStartRetake={async (reason) => {
+              const next = await startAssessment(reason)
               setLifecycle(next)
               await loadHistory()
               onOpenAssessment()

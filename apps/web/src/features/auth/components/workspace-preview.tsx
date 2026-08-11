@@ -375,7 +375,7 @@ function WorkspacePreview({
               </div>
             ) : null}
 
-            {isStaff ? <NotificationCenter workspaceLabel={isAdmin ? 'Administrator' : 'Counselor'} className="rounded-xl dark:hover:bg-white/8" /> : null}
+            {isStaff ? <NotificationCenter workspaceLabel={isAdmin ? 'Administrator' : 'Counselor'} className="rounded-xl dark:hover:bg-white/8" onNavigate={selectModule} /> : null}
             <ThemeToggle />
 
             <DropdownMenu>
