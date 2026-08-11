@@ -154,6 +154,7 @@ Route::prefix('v1/admin')
 Route::prefix('v1/counselor')
     ->middleware(['auth:sanctum', 'active', 'role:counselor'])
     ->group(function (): void {
+        Route::get('/availability/slots', [CounselorAvailabilityController::class, 'slots']);
         Route::get('/availability', [CounselorAvailabilityController::class, 'show']);
         Route::put('/availability', [CounselorAvailabilityController::class, 'update']);
         Route::get('/overview', [AdminWorkspaceController::class, 'overview']);

@@ -301,15 +301,19 @@ class AssessmentSessionPersistenceTest extends TestCase
         ]);
 
         $second = $this->actingAs($student)
-            ->postJson('/api/v1/student/assessments/onet-mini-ip/sessions')
+            ->postJson('/api/v1/student/assessments/onet-mini-ip/sessions', [
+                'retakeReason' => 'I want to review how my recorded interests changed.',
+            ])
             ->assertCreated()
             ->assertJsonPath('data.attempt_number', 2)
+            ->assertJsonPath('data.retake_reason', 'I want to review how my recorded interests changed.')
             ->json('data');
 
         $this->assertFalse($first->fresh()->is_current);
         $this->assertDatabaseHas('assessment_sessions', [
             'id' => $second['id'],
             'previous_session_id' => $first->getKey(),
+            'retake_reason' => 'I want to review how my recorded interests changed.',
             'is_current' => true,
         ]);
 
@@ -317,8 +321,46 @@ class AssessmentSessionPersistenceTest extends TestCase
             ->assertOk()
             ->assertJsonCount(2, 'data')
             ->assertJsonPath('policy.status', 'proposed')
+            ->assertJsonPath('data.0.retake_reason', 'I want to review how my recorded interests changed.')
             ->assertJsonPath('policy.version', 'RETAKE-PROPOSED-2026-01')
             ->assertJsonPath('policy.minimum_days_between_completed_attempts', 0);
+    }
+
+    public function test_retake_reason_is_optional_validated_and_cannot_change_after_creation(): void
+    {
+        $student = $this->student();
+        $first = AssessmentSession::query()->create([
+            'user_id' => $student->getKey(),
+            'instrument_code' => 'onet-mini-ip-30',
+            'attempt_number' => 1,
+            'is_current' => true,
+            'status' => 'result_available',
+            'answers' => [],
+            'current_question' => 30,
+            'started_at' => now()->subDay(),
+            'result_available_at' => now(),
+        ]);
+
+        $this->actingAs($student)
+            ->postJson('/api/v1/student/assessments/onet-mini-ip/sessions', [
+                'retakeReason' => str_repeat('x', 501),
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('retakeReason');
+
+        $second = $this->postJson('/api/v1/student/assessments/onet-mini-ip/sessions')
+            ->assertCreated()
+            ->assertJsonPath('data.retake_reason', null)
+            ->json('data');
+
+        $this->patchJson("/api/v1/student/assessments/onet-mini-ip/sessions/{$second['id']}", [
+            'answers' => [1 => 3],
+            'current_question' => 1,
+            'retakeReason' => 'Late change',
+        ])->assertOk();
+
+        $this->assertNull(AssessmentSession::query()->findOrFail($second['id'])->retake_reason);
+        $this->assertFalse($first->fresh()->is_current);
     }
 
     public function test_retake_is_available_without_a_waiting_period(): void

@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 #[Fillable([
     'user_id',
     'previous_session_id',
+    'retake_reason',
     'instrument_code',
     'attempt_number',
     'status',

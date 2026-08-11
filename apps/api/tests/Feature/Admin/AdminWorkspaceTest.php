@@ -6,6 +6,7 @@ use App\Models\AdminAuditEvent;
 use App\Models\AssessmentSession;
 use App\Models\ConfigurationVersion;
 use App\Models\CounselorAvailabilityWindow;
+use App\Models\GuidanceAppointment;
 use App\Models\GuidanceCase;
 use App\Models\GuidanceRequest;
 use App\Models\RecommendationRun;
@@ -13,6 +14,7 @@ use App\Models\Role;
 use App\Models\RoleSlug;
 use App\Models\StudentSavedProgramme;
 use App\Models\User;
+use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -81,6 +83,39 @@ class AdminWorkspaceTest extends TestCase
             ->assertJsonPath('data.attempts.0.dimensions.0.label', 'Realistic')
             ->assertJsonPath('data.attempts.0.dimensions.1.label', 'Investigative')
             ->assertJsonPath('data.attempts.0.topCode', 'I-S');
+    }
+
+    public function test_counselor_student_record_access_is_audited_without_logging_student_identity(): void
+    {
+        [$admin, $student] = $this->createAdminAndStudent();
+        $counselor = User::factory()->create(['account_status' => 'active']);
+        $counselor->roles()->attach($this->counselorRole());
+
+        $this->actingAs($counselor)
+            ->getJson("/api/v1/counselor/students/{$student->getKey()}")
+            ->assertOk();
+
+        $this->assertDatabaseHas('admin_audit_events', [
+            'actor_id' => $counselor->getKey(),
+            'action' => 'counselor.student_record.viewed',
+            'subject_type' => 'student',
+            'subject_reference' => (string) $student->getKey(),
+        ]);
+        $event = AdminAuditEvent::query()->where('action', 'counselor.student_record.viewed')->firstOrFail();
+        $this->assertSame(['portal' => 'counselor'], $event->metadata);
+
+        $this->actingAs($admin)
+            ->getJson('/api/v1/admin/activity')
+            ->assertOk()
+            ->assertJsonFragment([
+                'actor' => $counselor->name,
+                'action' => 'counselor.student_record.viewed',
+                'subjectType' => 'student',
+                'subjectReference' => (string) $student->getKey(),
+            ]);
+
+        $this->getJson("/api/v1/admin/students/{$student->getKey()}")->assertOk();
+        $this->assertSame(1, AdminAuditEvent::query()->where('action', 'counselor.student_record.viewed')->count());
     }
 
     public function test_admin_can_review_programme_monitoring_and_aggregate_reports(): void
@@ -422,6 +457,65 @@ class AdminWorkspaceTest extends TestCase
 
         $this->assertDatabaseHas('admin_audit_events', ['action' => 'counselor_availability.updated']);
         $this->actingAs($admin)->getJson('/api/v1/counselor/availability')->assertForbidden();
+        $this->getJson('/api/v1/counselor/availability/slots?date=2026-08-20&durationMinutes=30')->assertForbidden();
+    }
+
+    public function test_counselor_can_select_duration_based_slots_from_their_real_free_time(): void
+    {
+        [, $student] = $this->createAdminAndStudent();
+        $counselor = User::factory()->create(['name' => 'Slot Owner', 'account_status' => 'active']);
+        $counselor->roles()->attach($this->counselorRole());
+
+        $this->actingAs($counselor)->putJson('/api/v1/counselor/availability', [
+            'timezone' => 'Asia/Manila',
+            'windows' => [['weekday' => 4, 'startsAt' => '09:00', 'endsAt' => '12:00']],
+        ])->assertOk();
+
+        $appointment = $this->postJson('/api/v1/counselor/appointments', [
+            'studentId' => $student->getKey(),
+            'counselorId' => $counselor->getKey(),
+            'scheduledAt' => '2026-08-20T10:00:00+08:00',
+            'endsAt' => '2026-08-20T11:00:00+08:00',
+            'topic' => 'Review course choices',
+        ])->assertCreated()->json('data');
+
+        $this->getJson('/api/v1/counselor/availability/slots?date=2026-08-20&durationMinutes=30')
+            ->assertOk()
+            ->assertJsonPath('data.timezone', 'Asia/Manila')
+            ->assertJsonPath('data.durationMinutes', 30)
+            ->assertJsonCount(4, 'data.slots')
+            ->assertJsonPath('data.slots.0.startsAt', '2026-08-20T09:00:00+08:00')
+            ->assertJsonPath('data.slots.1.endsAt', '2026-08-20T10:00:00+08:00')
+            ->assertJsonPath('data.slots.2.startsAt', '2026-08-20T11:00:00+08:00');
+
+        $this->getJson("/api/v1/counselor/availability/slots?date=2026-08-20&durationMinutes=30&excludeAppointmentId={$appointment['id']}")
+            ->assertOk()
+            ->assertJsonCount(6, 'data.slots');
+
+        $this->getJson('/api/v1/counselor/availability/slots?date=2026-08-21&durationMinutes=30')
+            ->assertOk()
+            ->assertJsonCount(0, 'data.slots');
+    }
+
+    public function test_available_time_selection_never_offers_elapsed_manila_times(): void
+    {
+        $this->createAdminAndStudent();
+        $counselor = User::factory()->create(['name' => 'Current Day Counselor', 'account_status' => 'active']);
+        $counselor->roles()->attach($this->counselorRole());
+        $this->actingAs($counselor)->putJson('/api/v1/counselor/availability', [
+            'timezone' => 'Asia/Manila',
+            'windows' => [['weekday' => 4, 'startsAt' => '09:00', 'endsAt' => '12:00']],
+        ])->assertOk();
+
+        $this->travelTo(CarbonImmutable::parse('2026-08-20T10:15:00+08:00'));
+        try {
+            $this->getJson('/api/v1/counselor/availability/slots?date=2026-08-20&durationMinutes=30')
+                ->assertOk()
+                ->assertJsonCount(3, 'data.slots')
+                ->assertJsonPath('data.slots.0.startsAt', '2026-08-20T10:30:00+08:00');
+        } finally {
+            $this->travelBack();
+        }
     }
 
     public function test_student_guidance_request_enters_the_admin_queue_and_is_linked_to_an_appointment(): void
@@ -654,6 +748,8 @@ class AdminWorkspaceTest extends TestCase
     public function test_admin_and_counselor_can_export_aggregate_reports_without_student_details(): void
     {
         [$admin, $student] = $this->createAdminAndStudent();
+        $counselor = User::factory()->create();
+        $counselor->roles()->attach($this->counselorRole());
         $session = $this->completedSession($student);
         RecommendationRun::query()->create([
             'user_id' => $student->getKey(), 'assessment_session_id' => $session->getKey(),
@@ -662,20 +758,93 @@ class AdminWorkspaceTest extends TestCase
             'ranked_courses' => [['id' => 'bsit', 'rank' => 1, 'code' => 'BSIT', 'name' => 'BS Information Technology', 'match' => 90]],
             'generated_at' => now(),
         ]);
+        StudentSavedProgramme::query()->create(['user_id' => $student->getKey(), 'programme_id' => 'bs-information-technology']);
+        GuidanceCase::query()->create([
+            'student_id' => $student->getKey(),
+            'assigned_to_id' => $counselor->getKey(),
+            'status' => 'follow_up',
+            'follow_up_on' => today()->subDay(),
+        ]);
+        $appointment = GuidanceAppointment::query()->create([
+            'student_id' => $student->getKey(),
+            'counselor_id' => $counselor->getKey(),
+            'created_by' => $counselor->getKey(),
+            'scheduled_at' => now()->addDay(),
+            'ends_at' => now()->addDay()->addHour(),
+            'topic' => 'Review programme options',
+            'status' => 'scheduled',
+        ]);
+        GuidanceRequest::query()->create([
+            'student_id' => $student->getKey(),
+            'concern_category' => 'general_guidance',
+            'message' => 'Please help me review my options.',
+            'preferred_format' => 'in_person',
+            'status' => 'scheduled',
+            'accepted_by' => $counselor->getKey(),
+            'accepted_at' => now(),
+            'appointment_id' => $appointment->getKey(),
+            'created_at' => now()->subHour(),
+        ]);
 
         $this->actingAs($admin)->getJson('/api/v1/admin/reports')
             ->assertOk()
             ->assertJsonPath('data.completedAssessments', 1)
+            ->assertJsonPath('data.assessmentCompletionRate', 100)
+            ->assertJsonPath('data.programmeSaves', 1)
+            ->assertJsonPath('data.appointmentStatuses.scheduled', 1)
+            ->assertJsonPath('data.guidanceRequestStatuses.scheduled', 1)
+            ->assertJsonPath('data.openFollowUps', 1)
+            ->assertJsonPath('data.overdueFollowUps', 1)
+            ->assertJsonCount(1, 'data.assessmentCompletionsByMonth')
             ->assertJsonMissingPath('data.topMatchFrequency');
 
         $response = $this->actingAs($admin)->get('/api/v1/admin/reports/export');
         $response->assertOk()->assertHeader('content-type', 'text/csv; charset=UTF-8');
-        $this->assertStringNotContainsString($student->email, $response->streamedContent());
+        $export = $response->streamedContent();
+        $this->assertStringNotContainsString($student->email, $export);
+        $this->assertStringContainsString('Appointment lifecycle', $export);
         $this->assertDatabaseHas('admin_audit_events', ['action' => 'report.exported']);
 
-        $counselor = User::factory()->create();
-        $counselor->roles()->attach($this->counselorRole());
-        $this->actingAs($counselor)->getJson('/api/v1/counselor/reports')->assertOk();
+        $this->actingAs($counselor)->getJson('/api/v1/counselor/reports')
+            ->assertOk()
+            ->assertJsonPath('data.scope', 'counselor')
+            ->assertJsonPath('data.studentCount', 1)
+            ->assertJsonPath('data.appointmentStatuses.scheduled', 1);
+
+        $counselorExport = $this->actingAs($counselor)->get('/api/v1/counselor/reports/export');
+        $counselorExport->assertOk();
+        $this->assertStringNotContainsString($student->email, $counselorExport->streamedContent());
+    }
+
+    public function test_assessment_completion_rate_uses_the_same_started_student_cohort_for_its_numerator_and_denominator(): void
+    {
+        [$admin, $student] = $this->createAdminAndStudent();
+        $completedBeforePeriod = $this->completedSession($student);
+        $completedBeforePeriod->update([
+            'started_at' => today()->subDay()->addHours(9),
+            'result_available_at' => today()->addHours(9),
+        ]);
+
+        $secondStudent = User::factory()->create();
+        $secondStudent->roles()->attach(Role::query()->where('slug', RoleSlug::Student->value)->firstOrFail());
+        AssessmentSession::query()->create([
+            'user_id' => $secondStudent->getKey(),
+            'instrument_code' => 'onet-mini-ip-30',
+            'attempt_number' => 1,
+            'status' => 'in_progress',
+            'is_current' => true,
+            'answers' => [],
+            'current_question' => 1,
+            'started_at' => today()->addHours(10),
+        ]);
+
+        $this->actingAs($admin)
+            ->getJson('/api/v1/admin/reports?from='.today()->toDateString().'&to='.today()->toDateString())
+            ->assertOk()
+            ->assertJsonPath('data.assessmentActivity', 1)
+            ->assertJsonPath('data.completedAssessments', 0)
+            ->assertJsonPath('data.assessmentCompletionRate', 0)
+            ->assertJsonPath('data.assessmentCompletionsByMonth.0.count', 1);
     }
 
     public function test_counselor_can_load_every_read_only_dashboard_resource(): void

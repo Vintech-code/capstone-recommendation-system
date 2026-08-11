@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\AdminAuditEvent;
 use App\Models\AssessmentSession;
+use App\Models\GuidanceAppointment;
 use App\Models\GuidanceCase;
 use App\Models\GuidanceRequest;
 use App\Models\RecommendationRun;
@@ -89,9 +90,19 @@ final class AdminWorkspaceController extends Controller
         return response()->json(['data' => $students]);
     }
 
-    public function student(User $student, StudentProfilePresenter $profiles): JsonResponse
+    public function student(Request $request, User $student, StudentProfilePresenter $profiles): JsonResponse
     {
         abort_unless($student->roles()->where('slug', RoleSlug::Student->value)->exists(), 404);
+
+        if ($request->user()->hasRole(RoleSlug::Counselor)) {
+            AdminAuditEvent::query()->create([
+                'actor_id' => $request->user()->getKey(),
+                'action' => 'counselor.student_record.viewed',
+                'subject_type' => 'student',
+                'subject_reference' => (string) $student->getKey(),
+                'metadata' => ['portal' => 'counselor'],
+            ]);
+        }
 
         $attempts = $student->assessmentSessions()
             ->with('recommendationRun')
@@ -290,12 +301,36 @@ final class AdminWorkspaceController extends Controller
 
         return response()->streamDownload(static function () use ($report): void {
             $stream = fopen('php://output', 'w');
-            fputcsv($stream, ['Pathways aggregate guidance report']);
-            fputcsv($stream, ['From', $report['from'] ?: 'All records']);
-            fputcsv($stream, ['To', $report['to'] ?: 'All records']);
-            fputcsv($stream, ['Students', $report['studentCount']]);
-            fputcsv($stream, ['Students with completed results', $report['completedAssessments']]);
-            fputcsv($stream, ['Students with recommendations', $report['recommendationRuns']]);
+            $write = static fn (array $row) => fputcsv($stream, array_map(self::csvCell(...), $row));
+            $write(['Pathways aggregate guidance report']);
+            $write(['Scope', $report['scope'] === 'counselor' ? 'Signed-in counselor records' : 'Institution records']);
+            $write(['From', $report['from'] ?: 'All records']);
+            $write(['To', $report['to'] ?: 'All records']);
+            $write(['Students in report scope', $report['studentCount']]);
+            $write(['Students with assessment activity', $report['assessmentActivity']]);
+            $write(['Students who started in period and now have results', $report['completedAssessments']]);
+            $write(['Completion rate for students who started in period', $report['assessmentCompletionRate'].'%']);
+            $write(['Students with generated recommendations', $report['recommendationRuns']]);
+            $write(['Programme saves recorded', $report['programmeSaves']]);
+            $write([]);
+            $write(['Appointment lifecycle', 'Count']);
+            foreach ($report['appointmentStatuses'] as $status => $count) {
+                $write([str_replace('_', ' ', ucfirst($status)), $count]);
+            }
+            $write(['Average minutes from request submission to appointment creation', $report['averageRequestToAppointmentMinutes'] ?? 'Not available']);
+            $write(['Open guidance cases with a follow-up date', $report['openFollowUps']]);
+            $write(['Overdue open follow-ups', $report['overdueFollowUps']]);
+            $write(['Closed guidance cases', $report['closedGuidanceCases']]);
+            $write([]);
+            $write(['Guidance request lifecycle', 'Count']);
+            foreach ($report['guidanceRequestStatuses'] as $status => $count) {
+                $write([str_replace('_', ' ', ucfirst($status)), $count]);
+            }
+            $write([]);
+            $write(['Assessment completion month', 'Completed students']);
+            foreach ($report['assessmentCompletionsByMonth'] as $month) {
+                $write([$month['month'], $month['count']]);
+            }
             fclose($stream);
         }, 'pathways-guidance-report-'.now()->format('Y-m-d').'.csv', ['Content-Type' => 'text/csv']);
     }
@@ -329,24 +364,116 @@ final class AdminWorkspaceController extends Controller
         ]);
         $from = $validated['from'] ?? null;
         $to = $validated['to'] ?? null;
-        $runs = RecommendationRun::query()
+        $isCounselor = $request->user()->hasRole(RoleSlug::Counselor);
+        $studentIds = $isCounselor
+            ? collect()
+                ->merge(GuidanceCase::query()->where('assigned_to_id', $request->user()->getKey())->pluck('student_id'))
+                ->merge(GuidanceRequest::query()->where('accepted_by', $request->user()->getKey())->pluck('student_id'))
+                ->merge(GuidanceAppointment::query()->where('counselor_id', $request->user()->getKey())->pluck('student_id'))
+                ->map(static fn ($id): int => (int) $id)
+                ->unique()
+                ->values()
+            : null;
+        $studentScope = fn (Builder $query): Builder => $isCounselor
+            ? $query->whereIn('user_id', $studentIds)
+            : $query;
+        $period = static function (Builder $query, string $column) use ($from, $to): Builder {
+            return $query
+                ->when($from, fn (Builder $builder) => $builder->whereDate($column, '>=', $from))
+                ->when($to, fn (Builder $builder) => $builder->whereDate($column, '<=', $to));
+        };
+
+        $assessmentActivityQuery = $studentScope(AssessmentSession::query());
+        $period($assessmentActivityQuery, 'started_at');
+        $completedStudents = (clone $assessmentActivityQuery)
+            ->where('status', 'result_available')
+            ->distinct()
+            ->count('user_id');
+        $assessmentActivity = (clone $assessmentActivityQuery)->distinct()->count('user_id');
+
+        $completionEventQuery = $studentScope(AssessmentSession::query()->where('status', 'result_available'));
+        $period($completionEventQuery, 'result_available_at');
+
+        $runs = $studentScope(RecommendationRun::query())
             ->when($from, fn (Builder $query) => $query->whereDate('generated_at', '>=', $from))
             ->when($to, fn (Builder $query) => $query->whereDate('generated_at', '<=', $to))
             ->get(['user_id']);
+
+        $requestQuery = GuidanceRequest::query()
+            ->when($isCounselor, fn (Builder $query) => $query->where('accepted_by', $request->user()->getKey()));
+        $period($requestQuery, 'created_at');
+        $requestStatuses = (clone $requestQuery)->selectRaw('status, count(*) as aggregate')->groupBy('status')->pluck('aggregate', 'status');
+
+        $appointmentQuery = GuidanceAppointment::query()
+            ->when($isCounselor, fn (Builder $query) => $query->where('counselor_id', $request->user()->getKey()));
+        $period($appointmentQuery, 'scheduled_at');
+        $appointmentStatuses = (clone $appointmentQuery)->selectRaw('status, count(*) as aggregate')->groupBy('status')->pluck('aggregate', 'status');
+
+        $linkedRequests = (clone $requestQuery)->with('appointment:id,created_at')->whereNotNull('appointment_id')->get(['id', 'appointment_id', 'created_at']);
+        $waitMinutes = $linkedRequests->map(static function (GuidanceRequest $guidanceRequest): ?int {
+            if ($guidanceRequest->appointment?->created_at === null || $guidanceRequest->created_at === null) {
+                return null;
+            }
+
+            return max(0, (int) $guidanceRequest->created_at->diffInMinutes($guidanceRequest->appointment->created_at, false));
+        })->filter(static fn (?int $minutes): bool => $minutes !== null);
+
+        $caseQuery = GuidanceCase::query()
+            ->when($isCounselor, fn (Builder $query) => $query->where('assigned_to_id', $request->user()->getKey()));
+        $followUpQuery = (clone $caseQuery)->where('status', '!=', 'closed')->whereNotNull('follow_up_on');
+        if ($from) {
+            $followUpQuery->whereDate('follow_up_on', '>=', $from);
+        }
+        if ($to) {
+            $followUpQuery->whereDate('follow_up_on', '<=', $to);
+        }
+
+        $savedProgrammeQuery = $studentScope(StudentSavedProgramme::query());
+        $period($savedProgrammeQuery, 'created_at');
+
+        $completionMonths = (clone $completionEventQuery)
+            ->get(['user_id', 'result_available_at'])
+            ->groupBy(static fn (AssessmentSession $session): string => $session->result_available_at->format('Y-m'))
+            ->sortKeys()
+            ->map(static fn ($sessions, string $month): array => [
+                'month' => $month,
+                'count' => $sessions->pluck('user_id')->unique()->count(),
+            ])
+            ->values()
+            ->all();
 
         return [
             'generatedAt' => now()->toAtomString(),
             'from' => $from,
             'to' => $to,
-            'studentCount' => $this->studentQuery()->count(),
-            'completedAssessments' => AssessmentSession::query()
-                ->where('status', 'result_available')
-                ->when($from, fn (Builder $query) => $query->whereDate('result_available_at', '>=', $from))
-                ->when($to, fn (Builder $query) => $query->whereDate('result_available_at', '<=', $to))
-                ->distinct()
-                ->count('user_id'),
+            'scope' => $isCounselor ? 'counselor' : 'institution',
+            'studentCount' => $isCounselor ? $studentIds->count() : $this->studentQuery()->count(),
+            'assessmentActivity' => $assessmentActivity,
+            'completedAssessments' => $completedStudents,
+            'assessmentCompletionRate' => $assessmentActivity > 0 ? round(($completedStudents / $assessmentActivity) * 100, 1) : 0,
             'recommendationRuns' => $runs->pluck('user_id')->filter()->unique()->count(),
+            'programmeSaves' => $savedProgrammeQuery->count(),
+            'guidanceRequestStatuses' => collect(['pending', 'accepted', 'scheduled', 'closed', 'declined', 'cancelled'])
+                ->mapWithKeys(static fn (string $status): array => [$status => (int) ($requestStatuses[$status] ?? 0)])
+                ->all(),
+            'appointmentStatuses' => collect(['scheduled', 'completed', 'cancelled', 'no_show'])
+                ->mapWithKeys(static fn (string $status): array => [$status => (int) ($appointmentStatuses[$status] ?? 0)])
+                ->all(),
+            'averageRequestToAppointmentMinutes' => $waitMinutes->isEmpty() ? null : round($waitMinutes->average(), 1),
+            'openFollowUps' => (clone $followUpQuery)->count(),
+            'overdueFollowUps' => (clone $followUpQuery)->whereDate('follow_up_on', '<', today())->count(),
+            'closedGuidanceCases' => (clone $caseQuery)->where('status', 'closed')->count(),
+            'assessmentCompletionsByMonth' => $completionMonths,
         ];
+    }
+
+    private static function csvCell(mixed $value): string|int|float
+    {
+        if (! is_string($value)) {
+            return $value;
+        }
+
+        return preg_match('/^[=+\-@\t\r]/', $value) === 1 ? "'".$value : $value;
     }
 
     /** @return Builder<User> */
@@ -366,6 +493,7 @@ final class AdminWorkspaceController extends Controller
             'studentEmail' => $session->user?->email,
             'attemptNumber' => $session->attempt_number,
             'attemptCount' => (int) ($session->user?->assessment_sessions_count ?? $session->attempt_number),
+            'retakeReason' => $session->retake_reason,
             'status' => $session->status,
             'topCode' => $this->topCode($session),
             'startedAt' => $session->started_at?->toAtomString(),

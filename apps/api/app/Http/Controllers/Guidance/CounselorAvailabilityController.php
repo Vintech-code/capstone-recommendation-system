@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\AdminAuditEvent;
 use App\Models\CounselorAvailabilityWindow;
 use App\Models\GuidanceAppointment;
+use App\Services\Guidance\CounselorAvailabilitySlotService;
 use App\Services\Notifications\NotificationPolicyScheduler;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -17,6 +19,44 @@ final class CounselorAvailabilityController extends Controller
     public function show(Request $request): JsonResponse
     {
         return response()->json(['data' => $this->payload($request->user()->getKey())]);
+    }
+
+    public function slots(Request $request, CounselorAvailabilitySlotService $slotService): JsonResponse
+    {
+        $validated = $request->validate([
+            'date' => ['required', 'date_format:Y-m-d'],
+            'durationMinutes' => ['required', 'integer', 'between:1,1440'],
+            'excludeAppointmentId' => ['nullable', 'integer', 'exists:guidance_appointments,id'],
+        ]);
+
+        $counselorId = $request->user()->getKey();
+        $exceptAppointmentId = isset($validated['excludeAppointmentId'])
+            ? (int) $validated['excludeAppointmentId']
+            : null;
+
+        if ($exceptAppointmentId !== null) {
+            $ownedAppointment = GuidanceAppointment::query()
+                ->whereKey($exceptAppointmentId)
+                ->where('counselor_id', $counselorId)
+                ->exists();
+            abort_unless($ownedAppointment, 404);
+        }
+
+        $date = CarbonImmutable::createFromFormat('!Y-m-d', $validated['date'], 'Asia/Manila');
+        $slots = $slotService->slotsFor(
+            $counselorId,
+            $date,
+            (int) $validated['durationMinutes'],
+            $exceptAppointmentId,
+        );
+
+        return response()->json(['data' => [
+            'date' => $validated['date'],
+            'durationMinutes' => (int) $validated['durationMinutes'],
+            'timezone' => 'Asia/Manila',
+            'configured' => CounselorAvailabilityWindow::query()->where('counselor_id', $counselorId)->exists(),
+            'slots' => $slots,
+        ]]);
     }
 
     public function update(Request $request, NotificationPolicyScheduler $notificationPolicies): JsonResponse

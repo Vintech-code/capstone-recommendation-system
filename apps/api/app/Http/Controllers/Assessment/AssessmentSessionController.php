@@ -38,8 +38,12 @@ class AssessmentSessionController extends Controller
 
     public function store(Request $request): JsonResponse
     {
+        $validated = $request->validate([
+            'retakeReason' => ['nullable', 'string', 'max:500'],
+        ]);
+        $retakeReason = trim((string) ($validated['retakeReason'] ?? ''));
         $created = false;
-        $session = DB::transaction(function () use ($request, &$created): AssessmentSession {
+        $session = DB::transaction(function () use ($request, $retakeReason, &$created): AssessmentSession {
             $current = AssessmentSession::query()
                 ->whereBelongsTo($request->user())
                 ->where('instrument_code', OnetInterestProfilerClient::INSTRUMENT_CODE)
@@ -61,7 +65,12 @@ class AssessmentSessionController extends Controller
             $current->update(['is_current' => false]);
             $created = true;
 
-            return $this->createAttempt($request->user()->getKey(), $current->attempt_number + 1, $current->getKey());
+            return $this->createAttempt(
+                $request->user()->getKey(),
+                $current->attempt_number + 1,
+                $current->getKey(),
+                $retakeReason !== '' ? $retakeReason : null,
+            );
         });
 
         return response()->json(['data' => $this->resource($session)], $created ? 201 : 200);
@@ -153,11 +162,16 @@ class AssessmentSessionController extends Controller
         ]);
     }
 
-    private function createAttempt(int $userId, int $attemptNumber, ?int $previousSessionId = null): AssessmentSession
-    {
+    private function createAttempt(
+        int $userId,
+        int $attemptNumber,
+        ?int $previousSessionId = null,
+        ?string $retakeReason = null,
+    ): AssessmentSession {
         return AssessmentSession::query()->create([
             'user_id' => $userId,
             'previous_session_id' => $previousSessionId,
+            'retake_reason' => $retakeReason,
             'instrument_code' => OnetInterestProfilerClient::INSTRUMENT_CODE,
             'attempt_number' => $attemptNumber,
             'is_current' => true,
@@ -220,6 +234,7 @@ class AssessmentSessionController extends Controller
             'submitted_at' => $session->submitted_at?->toAtomString(),
             'result_available_at' => $session->result_available_at?->toAtomString(),
             'retake_available_at' => $session->retake_available_at?->toAtomString(),
+            'retake_reason' => $session->retake_reason,
             'can_retake' => $session->status === 'result_available'
                 && $session->is_current,
             'processing_error_code' => $session->processing_error_code,
