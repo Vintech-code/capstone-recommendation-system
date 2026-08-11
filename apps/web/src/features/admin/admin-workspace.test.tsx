@@ -1,4 +1,4 @@
-import { screen, within } from '@testing-library/react'
+import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
@@ -67,6 +67,33 @@ describe('Administration and counselor workspaces', () => {
     expect(fetch).toHaveBeenCalledWith('/api/v1/counselor/appointments', expect.objectContaining({ method: 'POST' }))
     const appointmentCall = vi.mocked(fetch).mock.calls.find(([input, init]) => input.toString() === '/api/v1/counselor/appointments' && init?.method === 'POST')
     expect(JSON.parse(String(appointmentCall?.[1]?.body))).toMatchObject({ studentId: 10, guidanceRequestId: 21, programmeCode: 'BSIT', scheduledAt: '2026-08-20T09:00:00+08:00', endsAt: '2026-08-20T10:00:00+08:00' })
+  })
+
+  it('lets a counselor configure Manila availability and reschedule an upcoming appointment', async () => {
+    const user = userEvent.setup()
+    await renderAppAt('/counselor/appointments')
+
+    expect(await screen.findByRole('heading', { name: 'Your recurring availability' })).toBeVisible()
+    expect(screen.getByText('Not configured')).toBeVisible()
+    await user.click(screen.getByRole('button', { name: 'Add time window' }))
+    await user.selectOptions(screen.getByLabelText('Day'), '4')
+    await user.type(screen.getByLabelText('Start'), '08:00')
+    await user.type(screen.getByLabelText('End'), '12:00')
+    await user.click(screen.getByRole('button', { name: 'Save availability' }))
+
+    expect(await screen.findByText('Availability saved.')).toBeVisible()
+    const availabilityCall = vi.mocked(fetch).mock.calls.find(([input, init]) => input.toString() === '/api/v1/counselor/availability' && init?.method === 'PUT')
+    expect(JSON.parse(String(availabilityCall?.[1]?.body))).toEqual({ timezone: 'Asia/Manila', windows: [{ weekday: 4, startsAt: '08:00', endsAt: '12:00' }] })
+
+    expect(screen.getByRole('heading', { name: 'Upcoming' })).toBeVisible()
+    await user.click(screen.getByRole('button', { name: 'Reschedule' }))
+    fireEvent.change(screen.getByLabelText('New start'), { target: { value: '2026-08-20T10:00' } })
+    fireEvent.change(screen.getByLabelText('New end'), { target: { value: '2026-08-20T11:00' } })
+    await user.click(screen.getByRole('button', { name: 'Save schedule' }))
+
+    expect(await screen.findByText(/Appointment rescheduled/)).toBeVisible()
+    const rescheduleCall = vi.mocked(fetch).mock.calls.find(([input, init]) => input.toString() === '/api/v1/counselor/appointments/7' && init?.method === 'PUT')
+    expect(JSON.parse(String(rescheduleCall?.[1]?.body))).toMatchObject({ scheduledAt: '2026-08-20T10:00:00+08:00', endsAt: '2026-08-20T11:00:00+08:00', status: 'scheduled' })
   })
 
   it('lets a counselor decline a pending request with an auditable reason', async () => {
@@ -141,7 +168,11 @@ describe('Administration and counselor workspaces', () => {
     expect(screen.getByText('BS Information Technology')).toBeVisible()
     expect(screen.queryByText('Student saves')).not.toBeInTheDocument()
     expect(screen.getByText('CHED duration sourced')).toBeVisible()
-    expect(screen.getByText('CHED CMO No. 25, series of 2015')).toBeVisible()
+    expect(screen.getAllByText('CHED CMO No. 25, series of 2015').length).toBeGreaterThan(0)
+    expect(await screen.findByRole('heading', { name: 'Catalogue evidence' })).toBeVisible()
+    await user.type(screen.getByLabelText('Verification date'), '2026-08-11')
+    await user.click(screen.getByRole('button', { name: 'Record verification' }))
+    expect(await screen.findByText(/verification recorded/i)).toBeVisible()
     await user.click(screen.getByRole('button', { name: 'View details' }))
     expect(screen.getByRole('dialog')).toBeVisible()
     expect(screen.getByRole('heading', { name: 'Possible career directions' })).toBeVisible()
@@ -154,8 +185,19 @@ describe('Administration and counselor workspaces', () => {
     await user.click(screen.getByRole('button', { name: 'Edit programme' }))
     expect(screen.getByRole('heading', { name: 'Edit BS Information Technology' })).toBeVisible()
     expect(screen.getByLabelText('Programme name')).toBeVisible()
+    fireEvent.change(screen.getAllByRole('slider', { name: /Horizontal position/ })[0], { target: { value: '65' } })
+    await waitFor(() => expect(screen.getByText('Draft autosaved')).toBeVisible())
+    expect(vi.mocked(fetch).mock.calls.some(([input, init]) => {
+      if (input.toString() !== '/api/v1/admin/configurations/versions/7' || init?.method !== 'PUT') return false
+      const saved = JSON.parse(String(init.body)) as { payload?: { programmes?: Array<{ cover_image_position?: { x?: number } }> } }
+      return saved.payload?.programmes?.[0]?.cover_image_position?.x === 65
+    })).toBe(true)
+    await user.click(screen.getByRole('button', { name: 'Preview before and after' }))
+    expect(await screen.findByRole('heading', { name: 'Publication preview' })).toBeVisible()
     await user.upload(screen.getByLabelText('Programme cover photo'), new File(['cover'], 'cover.webp', { type: 'image/webp' }))
+    expect(await screen.findByRole('status', { name: 'Uploading image 50%' })).toBeVisible()
     expect(await screen.findByText(/cover photo uploaded and ready/i)).toBeVisible()
+    expect(screen.getByAltText('Cover photo framing preview')).toHaveStyle({ objectPosition: '65% 50%' })
     await user.click(screen.getByRole('button', { name: 'Publish to student pages' }))
     await user.click(screen.getByRole('button', { name: 'Save and publish' }))
     expect(fetch).toHaveBeenCalledWith('/api/v1/admin/configurations/versions/7', expect.objectContaining({ method: 'PUT' }))
@@ -163,6 +205,16 @@ describe('Administration and counselor workspaces', () => {
 
     expect(screen.queryByText('Methodology')).not.toBeInTheDocument()
     unmount()
+  })
+
+  it('keeps a failed programme upload available for retry', async () => {
+    const user = userEvent.setup()
+    await renderAppAt('/admin/programmes')
+    await user.click(await screen.findByRole('button', { name: 'Edit programme' }))
+    await user.upload(screen.getByLabelText('Programme cover photo'), new File(['broken'], 'fail.webp', { type: 'image/webp' }))
+
+    expect(await screen.findByText('The image upload failed.')).toBeVisible()
+    expect(screen.getByRole('button', { name: 'Retry upload' })).toBeVisible()
   })
 
   it('presents assessment activity as a searchable lifecycle ledger', async () => {

@@ -1,5 +1,4 @@
 import {
-  Bell,
   ChartNoAxesCombined,
   ChevronDown,
   LogOut,
@@ -52,6 +51,7 @@ import {
   type DashboardModule,
 } from '@/features/auth/workspace-definitions'
 import { StudentWorkspaceShell } from '@/features/student/components/student-workspace-shell'
+import { NotificationCenter } from '@/features/notifications/components/notification-center'
 import { cn } from '@/lib/utils'
 
 interface WorkspacePreviewProps {
@@ -375,7 +375,7 @@ function WorkspacePreview({
               </div>
             ) : null}
 
-            {isStaff ? <Button type="button" variant="ghost" size="icon" className="rounded-xl text-muted-foreground hover:bg-secondary hover:text-foreground dark:hover:bg-white/8" aria-label={isAdmin ? 'Open recent activity' : 'Open guidance requests'} onClick={() => selectModule(isAdmin ? 'activity' : 'requests')}><Bell aria-hidden="true" /></Button> : null}
+            {isStaff ? <NotificationCenter workspaceLabel={isAdmin ? 'Administrator' : 'Counselor'} className="rounded-xl dark:hover:bg-white/8" /> : null}
             <ThemeToggle />
 
             <DropdownMenu>

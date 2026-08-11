@@ -59,6 +59,24 @@ describe('Student programme catalogue', () => {
     expect(screen.queryByRole('button', { name: 'Load more programmes' })).not.toBeInTheDocument()
   })
 
+  it('uses published framing only for a published custom programme image', () => {
+    const framedCatalogue = {
+      ...catalogue,
+      programmes: [{
+        ...catalogue.programmes[0],
+        coverImageUrl: '/storage/programme-media/bs-information-technology/cover/published.webp',
+        coverImagePosition: { x: 65, y: 40, zoom: 1.3 },
+      }],
+    }
+
+    render(<StudentProgrammeCataloguePage initialCatalogue={framedCatalogue} />)
+
+    expect(screen.getByRole('img', { name: 'BS Information Technology programme' })).toHaveStyle({
+      objectPosition: '65% 40%',
+      transform: 'scale(1.3)',
+    })
+  })
+
   it('filters the catalogue by field and search text and can clear the filters', async () => {
     const user = userEvent.setup()
     render(<StudentProgrammeCataloguePage initialCatalogue={catalogue} />)
@@ -77,7 +95,7 @@ describe('Student programme catalogue', () => {
     expect(screen.getByRole('heading', { name: 'No programmes match these filters' })).toBeVisible()
   })
 
-  it('filters using API-provided SHS strands and RIASEC areas', async () => {
+  it('filters using API-provided SHS strands without exposing a RIASEC-area filter', async () => {
     const user = userEvent.setup()
     const mixedCatalogue = {
       ...catalogue,
@@ -92,10 +110,7 @@ describe('Student programme catalogue', () => {
     expect(screen.getByText('Business Option')).toBeVisible()
     expect(screen.queryByText('BS Information Technology')).not.toBeInTheDocument()
 
-    await user.click(screen.getByRole('button', { name: 'Clear all' }))
-    await user.click(screen.getByRole('checkbox', { name: 'I' }))
-    expect(screen.getByText('BS Information Technology')).toBeVisible()
-    expect(screen.queryByText('Business Option')).not.toBeInTheDocument()
+    expect(screen.queryByRole('group', { name: 'RIASEC area' })).not.toBeInTheDocument()
   })
 
   it('persists filters while opening and returning from programme details', async () => {

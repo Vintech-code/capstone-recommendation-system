@@ -28,6 +28,14 @@ interface StudentGuidanceRequest {
   createdAt: string
 }
 
+interface StudentGuidanceSummary {
+  id: number
+  body: string
+  counselor: string | null
+  publishedBy: string | null
+  publishedAt: string
+}
+
 interface CreateGuidanceRequestFields {
   programmeId: string | null
   concernCategory: StudentGuidanceRequest['concernCategory']
@@ -53,6 +61,16 @@ async function getStudentGuidanceRequests(): Promise<StudentGuidanceRequest[]> {
   })
   if (!response.ok) throw new Error('Guidance requests could not be loaded.')
   const body = await response.json() as { data: StudentGuidanceRequest[] }
+  return body.data
+}
+
+async function getStudentGuidanceSummaries(): Promise<StudentGuidanceSummary[]> {
+  const response = await fetch('/api/v1/student/guidance-summaries', {
+    credentials: 'include',
+    headers: { Accept: 'application/json' },
+  })
+  if (!response.ok) throw new Error('Published guidance summaries could not be loaded.')
+  const body = await response.json() as { data: StudentGuidanceSummary[] }
   return body.data
 }
 
@@ -107,5 +125,5 @@ async function cancelStudentGuidanceRequest(requestId: number, reason: string): 
   return payload.data
 }
 
-export { cancelStudentGuidanceAppointment, cancelStudentGuidanceRequest, confirmStudentGuidanceAppointment, createStudentGuidanceRequest, getStudentGuidanceAppointments, getStudentGuidanceRequests }
-export type { CreateGuidanceRequestFields, StudentGuidanceAppointment, StudentGuidanceRequest }
+export { cancelStudentGuidanceAppointment, cancelStudentGuidanceRequest, confirmStudentGuidanceAppointment, createStudentGuidanceRequest, getStudentGuidanceAppointments, getStudentGuidanceRequests, getStudentGuidanceSummaries }
+export type { CreateGuidanceRequestFields, StudentGuidanceAppointment, StudentGuidanceRequest, StudentGuidanceSummary }

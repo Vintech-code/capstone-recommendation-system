@@ -13,6 +13,7 @@ import {
 
 import { Button } from '@/components/ui/button'
 import { getProgrammeImages } from '@/features/student/programmes/programme-images'
+import { programmeMediaStyle } from '@/features/student/programmes/programme-media-position'
 import type { StudentRecommendedCourse } from '@/features/student/recommendations/recommendation-types'
 
 interface StudentRecommendationDetailPageProps {
@@ -57,9 +58,18 @@ function StudentRecommendationDetailPage({
   const fallback = getProgrammeImages(course.id)
   const cover = course.coverImageUrl || fallback.cover
   const logo = course.logoImageUrl || fallback.logo
-  const fitReasons = course.factors.length > 0
-    ? course.factors
-    : course.interestAreas.map((area) => `Profile includes ${area}`)
+  const coverStyle = course.coverImageUrl ? programmeMediaStyle(course.coverImagePosition) : undefined
+  const logoStyle = course.logoImageUrl ? programmeMediaStyle(course.logoImagePosition) : undefined
+  const fitReasons = course.explanation
+    ? [
+        ...course.explanation.recordedProgrammeAreas.map((area) => `${area.label} recorded score: ${area.score}`),
+        ...(course.explanation.learningAreas.length > 0
+          ? [`Catalogue learning areas: ${course.explanation.learningAreas.join(', ')}`]
+          : []),
+      ]
+    : course.factors.length > 0
+      ? course.factors
+      : course.interestAreas.map((area) => `Profile includes ${area}`)
   const facts = [
     { label: 'Duration', value: course.duration || 'Not published', accent: false, icon: Clock3 },
     { label: 'Degree type', value: course.degreeType || 'Not published', accent: false, icon: GraduationCap },
@@ -70,11 +80,11 @@ function StudentRecommendationDetailPage({
   return (
     <article className="pb-16" aria-labelledby="course-detail-title">
       <header className="relative isolate min-h-[25rem] overflow-hidden bg-primary-fixed/45">
-        {cover ? <img src={cover} alt="" className="absolute inset-0 -z-20 size-full object-cover object-center" /> : null}
+        {cover ? <img src={cover} alt="" style={coverStyle} className="absolute inset-0 -z-20 size-full object-cover object-center" /> : null}
         <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-r from-background/90 via-background/55 to-transparent" />
         <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-t from-background via-background/25 to-transparent" />
         <div className="student-page relative z-10 flex min-h-[25rem] items-center py-12 sm:py-16">
-          {logo ? <img src={logo} alt={`${course.name} logo`} className="absolute right-5 top-8 size-20 rounded-xl bg-white/90 object-contain p-2 shadow-sm sm:right-8 sm:size-28 lg:right-10 lg:top-12 lg:size-36" /> : null}
+          {logo ? <img src={logo} alt={`${course.name} logo`} style={logoStyle} className={`absolute right-5 top-8 size-20 rounded-xl bg-white/90 p-2 shadow-sm sm:right-8 sm:size-28 lg:right-10 lg:top-12 lg:size-36 ${logoStyle ? 'object-cover' : 'object-contain'}`} /> : null}
           <div className="w-full">
             <span className="inline-flex rounded bg-primary px-3 py-1.5 font-label text-xs font-medium text-primary-foreground">
               Recommendation {course.rank} · {course.code}

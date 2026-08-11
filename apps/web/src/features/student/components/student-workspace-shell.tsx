@@ -1,4 +1,4 @@
-import { Bell, ChevronDown, LogOut, Moon, Sun } from 'lucide-react'
+import { ChevronDown, LogOut, Moon, Sun } from 'lucide-react'
 import type { ReactNode } from 'react'
 
 import logo from '@/assets/logo.png'
@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import type { DashboardModule } from '@/features/auth/workspace-definitions'
+import { NotificationCenter } from '@/features/notifications/components/notification-center'
 import { cn } from '@/lib/utils'
 
 interface StudentWorkspaceShellProps {
@@ -110,7 +111,7 @@ function StudentWorkspaceShell({
             </ul>
           </nav>
 
-          <button type="button" aria-label="Notifications" className="hidden size-11 items-center justify-center rounded text-muted-foreground hover:bg-secondary md:flex"><Bell aria-hidden="true" className="size-5" /></button>
+          <NotificationCenter workspaceLabel="Student" />
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

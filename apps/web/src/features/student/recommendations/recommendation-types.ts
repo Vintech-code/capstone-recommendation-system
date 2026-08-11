@@ -1,3 +1,5 @@
+import type { ProgrammeMediaPosition } from '@/features/student/programmes/programme-types'
+
 type StudentRecommendationEligibility = 'Eligible' | 'Needs review' | 'Provisional'
 
 interface PhilippineSourceFact {
@@ -34,6 +36,24 @@ interface StudentRecommendedCourse {
   contentVersion?: string
   coverImageUrl?: string | null
   logoImageUrl?: string | null
+  coverImagePosition?: ProgrammeMediaPosition | null
+  logoImagePosition?: ProgrammeMediaPosition | null
+  explanation?: StudentRecommendationExplanation
+}
+
+interface StudentRecommendationExplanation {
+  assessmentReference: string | null
+  recordedProfileCode: string
+  programmeInterestAreas: string[]
+  sharedTopAreas: StudentRecommendationEvidenceArea[]
+  recordedProgrammeAreas: StudentRecommendationEvidenceArea[]
+  learningAreas: string[]
+}
+
+interface StudentRecommendationEvidenceArea {
+  code: string
+  label: string
+  score: number
 }
 
 interface StudentRecommendationProfile {
@@ -70,4 +90,4 @@ interface StudentRecommendationState {
   recommendation: StudentRecommendationSnapshot | null
 }
 
-export type { PhilippineSourceFact, StudentRecommendationEligibility, StudentRecommendationProfile, StudentRecommendedCourse, StudentRecommendationSnapshot, StudentRecommendationState }
+export type { PhilippineSourceFact, StudentRecommendationEligibility, StudentRecommendationEvidenceArea, StudentRecommendationExplanation, StudentRecommendationProfile, StudentRecommendedCourse, StudentRecommendationSnapshot, StudentRecommendationState }

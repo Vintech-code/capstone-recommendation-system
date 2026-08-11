@@ -26,6 +26,9 @@ describe('Student dashboard', () => {
       if (url === '/api/v1/student/guidance-appointments') {
         return Response.json({ data: [{ id: 7, counselorName: 'Guidance Counselor', scheduledAt: '2096-08-20T09:00:00+08:00', endsAt: '2096-08-20T10:00:00+08:00', topic: 'Review programme matches', programmeCode: 'BSIT', status: 'scheduled', cancellationReason: null, studentConfirmedAt: null }] })
       }
+      if (url === '/api/v1/student/guidance-summaries') {
+        return Response.json({ data: [{ id: 3, body: 'Compare your shortlisted programmes and record your remaining questions.', counselor: 'Guidance Counselor', publishedBy: 'Guidance Counselor', publishedAt: '2026-08-10T10:00:00+08:00' }] })
+      }
       if (url === '/api/v1/student/programmes') {
         return Response.json({ data: { academicYear: '2026-2027', catalogueVersion: 1, programmes: [{ id: 'bs-information-technology', name: 'BS Information Technology', code: 'BSIT', majors: [], riasecProfile: ['I', 'C', 'R'], description: 'Technology programme', learningAreas: ['Software development'], requirements: ['Meet published admission requirements.'], readinessPrompt: 'Discuss your interest in technology.' }] } })
       }
@@ -57,9 +60,6 @@ describe('Student dashboard', () => {
     )
     expect(screen.getByTestId('student-guidance-summary')).not.toHaveClass('max-w-[96rem]')
     expect(screen.queryByText('TEST-SESSION-001')).not.toBeInTheDocument()
-    expect(
-      screen.getByRole('link', { name: 'O*NET® Web Services' }),
-    ).toHaveAttribute('href', 'https://services.onetcenter.org/')
     expect(screen.queryByText('Profile & application')).not.toBeInTheDocument()
     expect(screen.queryByText('Official result')).not.toBeInTheDocument()
     expect(screen.queryByText('My decision')).not.toBeInTheDocument()
@@ -144,13 +144,23 @@ describe('Student dashboard', () => {
   it('shows the redesigned guidance hub and a student-owned counselor appointment', async () => {
     await renderAppAt('/student')
 
-    expect(await screen.findByRole('heading', { level: 1, name: 'My guidance' })).toBeVisible()
-    expect(screen.getByRole('heading', { level: 1, name: 'My guidance' }).closest('.student-grid-page')).not.toBeNull()
+    expect(await screen.findByText('Your academic journey')).toBeVisible()
+    expect(screen.getByRole('heading', { level: 1, name: 'Turn your assessment into a confident course choice.' })).toBeVisible()
+    expect(screen.queryByRole('heading', { name: 'My guidance' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Print summary' })).not.toBeInTheDocument()
+    expect(screen.getByTestId('student-guidance-summary')).toHaveClass('space-y-6')
+    expect(screen.getByTestId('student-guidance-summary')).not.toHaveClass('mt-6')
+    expect(screen.getByTestId('student-guidance-summary').parentElement).toHaveClass('pt-4', 'sm:pt-6')
+    expect(screen.getByTestId('student-journey-grid')).toHaveClass('lg:grid-cols-12')
+    expect(screen.queryByText('This guidance does not guarantee admission or enrolment.')).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'O*NET® Web Services' })).not.toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Talk with a counselor' })).toBeVisible()
     expect(screen.getByText('Upcoming guidance appointment')).toBeVisible()
     expect(screen.getByText('Counselor: Guidance Counselor')).toBeVisible()
     expect(screen.getByText('Topic: Review programme matches')).toBeVisible()
     expect(screen.getByText(/Ends .*Asia\/Manila/)).toBeVisible()
+    expect(screen.getByText('Latest counselor summary')).toBeVisible()
+    expect(screen.getByText('Compare your shortlisted programmes and record your remaining questions.')).toBeVisible()
   })
 
   it('lets the student confirm their own appointment schedule', async () => {
@@ -203,17 +213,6 @@ describe('Student dashboard', () => {
     expect(screen.queryByText(/Based on assessment:/)).not.toBeInTheDocument()
   })
 
-  it.skip('prints the dashboard summary directly', async () => {
-    const user = userEvent.setup()
-    const print = vi.spyOn(window, 'print').mockImplementation(() => undefined)
-    await renderAppAt('/student')
-
-    await user.click(await screen.findByRole('button', { name: 'Print summary' }))
-
-    expect(print).toHaveBeenCalledOnce()
-    print.mockRestore()
-  })
-
   it('opens a completed attempt with its saved result and recommendations', async () => {
     const user = userEvent.setup()
     render(<StudentAssessmentHistoryPage onBack={vi.fn()} onOpenAssessment={vi.fn()} />)
@@ -221,9 +220,50 @@ describe('Student dashboard', () => {
     await user.click(await screen.findByRole('button', { name: /Attempt 1/ }))
 
     expect(await screen.findByText('Attempt 1 result')).toBeVisible()
+    expect(screen.getByText('Assessment version: test-instrument')).toBeVisible()
+    expect(screen.getByText('Current result')).toBeVisible()
     expect(screen.getByText('Programme matches from this attempt')).toBeVisible()
     expect(await screen.findByText('Test Course')).toBeVisible()
     expect(fetch).toHaveBeenCalledWith('/api/v1/student/recommendations/attempts/1', expect.any(Object))
+  })
+
+  it('compares a completed retake with the previous completed attempt using recorded values only', async () => {
+    const user = userEvent.setup()
+    const secondAttempt = {
+      ...testAssessmentLifecycle,
+      id: 2,
+      reference: 'TEST-SESSION-002',
+      attempt_number: 2,
+      is_current: true,
+      result: {
+        ...testAssessmentLifecycle.result!,
+        scoring_source: 'official-mini-ip-local-v1',
+        result: testAssessmentLifecycle.result!.result.map((dimension) => ({
+          ...dimension,
+          score: dimension.score + 2,
+        })),
+      },
+    }
+    vi.mocked(fetch).mockImplementation(async (input) => {
+      const url = input.toString()
+      if (url === '/api/v1/student/assessments/onet-mini-ip/history') {
+        return Response.json({
+          data: [secondAttempt, { ...testAssessmentLifecycle, id: 1, attempt_number: 1, is_current: false }],
+          policy: { status: 'proposed', version: 'RETAKE-PROPOSED-2026-01', minimum_days_between_completed_attempts: 0, completed_attempts_are_read_only: true },
+        })
+      }
+      if (url === '/api/v1/student/assessments/onet-mini-ip/session') return Response.json({ data: secondAttempt })
+      if (url === '/api/v1/student/recommendations/attempts/2') return Response.json({ data: { status: 'available', recommendation: testRecommendationSnapshot } })
+      return Response.json({ message: 'Not found.' }, { status: 404 })
+    })
+
+    render(<StudentAssessmentHistoryPage onBack={vi.fn()} onOpenAssessment={vi.fn()} />)
+    await user.click(await screen.findByRole('button', { name: /Attempt 2/ }))
+
+    expect(await screen.findByRole('heading', { name: 'Compared with Attempt 1' })).toBeVisible()
+    expect(screen.getByText('Assessment version: official-mini-ip-local-v1')).toBeVisible()
+    expect(screen.getByText('Recorded score change only')).toBeVisible()
+    expect(screen.getAllByText('+2')).toHaveLength(6)
   })
 
   it('preserves the latest completed result while a retake is in progress', async () => {
@@ -251,6 +291,7 @@ describe('Student dashboard', () => {
     render(<StudentAssessmentHistoryPage onBack={vi.fn()} onOpenAssessment={vi.fn()} />)
 
     expect(await screen.findByRole('heading', { name: 'Your assessment timeline' })).toBeVisible()
+    expect(screen.getByText('Select a completed attempt')).toBeVisible()
     await user.click(await screen.findByRole('button', { name: /Attempt 1/ }))
     expect(await screen.findByText('Attempt 1 result')).toBeVisible()
     expect(await screen.findByText('Test Course')).toBeVisible()

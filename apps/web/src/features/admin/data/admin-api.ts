@@ -68,6 +68,7 @@ interface GuidanceCase {
   assignedTo: string | null
   assignedToId: number | null
   notes: GuidanceNote[]
+  summaries: GuidanceSummary[]
 }
 
 interface AdminStaffAssignment {
@@ -123,6 +124,17 @@ interface GuidanceAppointment {
   }>
 }
 
+interface CounselorAvailability {
+  configured: boolean
+  timezone: 'Asia/Manila'
+  windows: Array<{
+    id: number
+    weekday: number
+    startsAt: string
+    endsAt: string
+  }>
+}
+
 interface AdminGuidanceRequest {
   id: number
   studentId: number
@@ -151,6 +163,17 @@ interface GuidanceNote {
   body: string
   author: string
   createdAt: string
+}
+
+interface GuidanceSummary {
+  id: number
+  body: string
+  author: string
+  status: 'draft' | 'published'
+  publishedBy: string | null
+  publishedAt: string | null
+  createdAt: string
+  updatedAt: string
 }
 
 interface AdminProgramme {
@@ -221,10 +244,40 @@ interface ConfigurationVersion {
   publishedAt: string | null
 }
 
+interface ConfigurationDiffField {
+  field: string
+  before: unknown
+  after: unknown
+}
+
+interface ConfigurationPreview {
+  hasChanges: boolean
+  changedSections: string[]
+  changedProgrammeCount: number
+  programmeChanges: Array<{
+    programmeId: string
+    code: string | null
+    name: string | null
+    fields: ConfigurationDiffField[]
+  }>
+}
+
+interface ProgrammeSourceRegistryEntry {
+  reference: string
+  sourceName: string
+  sourceUrl: string
+  programmeIds: string[]
+  fields: Array<'duration' | 'salary' | 'job_growth'>
+  recordedStatuses: string[]
+  lastVerifiedAt: string | null
+  verifiedBy: string | null
+}
+
 interface ConfigurationWorkspace {
   kind: 'catalogue' | 'methodology'
   runtime: Record<string, unknown>
   versions: ConfigurationVersion[]
+  sourceRegistry?: ProgrammeSourceRegistryEntry[]
 }
 
 interface AdminActivity {
@@ -290,17 +343,36 @@ function mutateAdmin<T>(path: string, method: 'POST' | 'PUT', body?: unknown): P
   return mutateWorkspace<T>('admin', path, method, body)
 }
 
-async function uploadProgrammeMedia(programmeId: string, kind: 'cover' | 'logo', image: File): Promise<{ kind: 'cover' | 'logo'; url: string }> {
+async function uploadProgrammeMedia(programmeId: string, kind: 'cover' | 'logo', image: File, onProgress?: (percentage: number) => void): Promise<{ kind: 'cover' | 'logo'; url: string }> {
   const body = new FormData()
   body.append('kind', kind)
   body.append('image', image)
-  const headers = new Headers({ Accept: 'application/json' })
   const token = csrfToken()
-  if (token) headers.set('X-XSRF-TOKEN', token)
-  const response = await fetch(`/api/v1/admin/programmes/${encodeURIComponent(programmeId)}/media`, { method: 'POST', headers, credentials: 'include', body })
-  const payload = (await response.json().catch(() => ({}))) as { data?: { kind: 'cover' | 'logo'; url: string }; message?: string }
-  if (!response.ok || !payload.data) throw new AdminApiError(payload.message ?? 'The image could not be uploaded.')
-  return payload.data
+
+  return new Promise((resolve, reject) => {
+    const request = new XMLHttpRequest()
+    request.open('POST', `/api/v1/admin/programmes/${encodeURIComponent(programmeId)}/media`)
+    request.withCredentials = true
+    request.setRequestHeader('Accept', 'application/json')
+    if (token) request.setRequestHeader('X-XSRF-TOKEN', token)
+    request.upload.addEventListener('progress', (event) => {
+      if (event.lengthComputable) onProgress?.(Math.round((event.loaded / event.total) * 100))
+    })
+    request.addEventListener('load', () => {
+      let payload: { data?: { kind: 'cover' | 'logo'; url: string }; message?: string } = {}
+      try { payload = JSON.parse(request.responseText) as typeof payload } catch { /* The shared error below covers an invalid response. */ }
+      if (request.status < 200 || request.status >= 300 || !payload.data) {
+        reject(new AdminApiError(payload.message ?? 'The image could not be uploaded.'))
+        return
+      }
+      onProgress?.(100)
+      resolve(payload.data)
+    })
+    request.addEventListener('error', () => reject(new AdminApiError('The image upload was interrupted. Try again.')))
+    request.addEventListener('abort', () => reject(new AdminApiError('The image upload was cancelled.')))
+    onProgress?.(0)
+    request.send(body)
+  })
 }
 
 function useAdminResource<T>(path: string) {
@@ -351,11 +423,15 @@ export type {
   AdminStaff,
   AdminStaffAssignment,
   ConfigurationVersion,
+  ConfigurationPreview,
   ConfigurationWorkspace,
   GuidanceCase,
+  ProgrammeSourceRegistryEntry,
   GuidanceAppointment,
+  CounselorAvailability,
   AdminGuidanceRequest,
   GuidanceNote,
+  GuidanceSummary,
   RiasecDimension,
   StaffApiScope,
 }

@@ -68,14 +68,14 @@ function StudentAssessmentHistoryPage({ onBack, onOpenAssessment }: StudentAsses
   }
 
   return (
-    <div className="bg-secondary/35 py-6 sm:py-10">
+    <div className="student-grid-page min-h-[calc(100vh-5rem)] py-4 sm:py-6">
       <div className="student-page">
         <StudentPageHeader
           title="Assessment history"
           description="Review your completed assessment attempts."
           onBack={onBack}
         />
-        <div className="mt-6">
+        <div className="mt-4 sm:mt-6">
           <AssessmentHistorySummary
             history={history}
             historyError={historyError}

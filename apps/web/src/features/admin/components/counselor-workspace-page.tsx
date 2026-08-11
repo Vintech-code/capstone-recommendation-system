@@ -1,4 +1,4 @@
-import { ArrowRight, BarChart3, CalendarCheck2, CalendarDays, CalendarPlus, ChevronLeft, ChevronRight, Clock3, MessageCircleMore, UsersRound } from 'lucide-react'
+import { ArrowRight, BarChart3, CalendarCheck2, CalendarDays, CalendarPlus, ChevronLeft, ChevronRight, Clock3, MessageCircleMore, Pencil, Plus, Trash2, UsersRound } from 'lucide-react'
 import { useMemo, useState, type ReactNode } from 'react'
 
 import tccBanner from '@/assets/tccbanner.jpg'
@@ -15,14 +15,17 @@ import {
   type AdminStaff,
   type AdminGuidanceRequest,
   type AdminStudent,
+  type CounselorAvailability,
   type GuidanceAppointment,
   type StaffApiScope,
 } from '@/features/admin/data/admin-api'
 
 interface CounselorWorkspacePageProps { onNavigate: (path: string) => void; apiScope?: StaffApiScope; activeSection?: string }
 interface AppointmentDraft { studentId: string; counselorId: string; scheduledAt: string; endsAt: string; topic: string; programmeCode: string; notes: string; guidanceRequestId: string }
+interface AvailabilityDraftWindow { key: string; weekday: string; startsAt: string; endsAt: string }
 
 const emptyDraft: AppointmentDraft = { studentId: '', counselorId: '', scheduledAt: '', endsAt: '', topic: '', programmeCode: '', notes: '', guidanceRequestId: '' }
+const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 
 function CounselorWorkspacePage({ onNavigate, apiScope = 'admin', activeSection = 'overview' }: CounselorWorkspacePageProps) {
   const { user } = useAuth()
@@ -90,6 +93,22 @@ function CounselorWorkspacePage({ onNavigate, apiScope = 'admin', activeSection 
     }
   }
 
+  const rescheduleAppointment = async (appointment: GuidanceAppointment, scheduledAt: string, endsAt: string) => {
+    setMessage(null); setError(null)
+    try {
+      await mutateWorkspace<GuidanceAppointment>(apiScope, `/appointments/${appointment.id}`, 'PUT', {
+        studentId: appointment.studentId, counselorId: appointment.counselorId,
+        scheduledAt: manilaLocalToIso(scheduledAt), endsAt: manilaLocalToIso(endsAt), topic: appointment.topic,
+        programmeCode: appointment.programmeCode, notes: appointment.notes, status: 'scheduled', cancellationReason: null,
+      })
+      setMessage('Appointment rescheduled. The student can review and confirm the new schedule.')
+      appointments.retry()
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : 'The appointment could not be rescheduled.')
+      throw reason
+    }
+  }
+
   const isOverview = activeSection === 'overview'
   const prepareRequest = (request: AdminGuidanceRequest) => {
     setDraft({
@@ -141,12 +160,14 @@ function CounselorWorkspacePage({ onNavigate, apiScope = 'admin', activeSection 
     {message ? <p role="status" className="bg-success/10 px-4 py-3 text-sm font-medium text-success">{message}</p> : null}
     {error ? <p role="alert" className="bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive">{error}</p> : null}
 
-    {activeSection === 'appointments' ? <div className="grid gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(20rem,.65fr)]">
+    {activeSection === 'appointments' ? <div className="space-y-5">
+      {apiScope === 'counselor' ? <CounselorAvailabilityEditor /> : null}
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(20rem,.65fr)]">
       <section className="min-w-0 bg-card p-5 shadow-sm" aria-labelledby="appointment-list-heading">
         <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Schedule</p>
         <h2 id="appointment-list-heading" className="mt-1 font-display text-xl font-semibold">Course-guidance appointments</h2>
         <p className="mt-1 text-sm text-muted-foreground">Upcoming conversations appear first. Completed, cancelled, and no-show records remain in the history.</p>
-        {appointments.data.length ? <AppointmentTable appointments={appointments.data} onNavigate={onNavigate} onStatus={updateStatus} /> : <div className="mt-5"><EmptyPanel title="No appointments scheduled" description="Use the form to schedule the first student course-guidance appointment." /></div>}
+        {appointments.data.length ? <AppointmentTable appointments={appointments.data} onNavigate={onNavigate} onStatus={updateStatus} onReschedule={rescheduleAppointment} /> : <div className="mt-5"><EmptyPanel title="No appointments scheduled" description="Use the form to schedule the first student course-guidance appointment." /></div>}
       </section>
 
       <section className="min-w-0 bg-secondary p-5 shadow-sm" aria-labelledby="new-appointment-heading">
@@ -163,6 +184,7 @@ function CounselorWorkspacePage({ onNavigate, apiScope = 'admin', activeSection 
           <Button type="button" disabled={saving} onClick={() => void saveAppointment()} className="w-full rounded">{saving ? 'Scheduling…' : 'Schedule appointment'} <ArrowRight aria-hidden="true" /></Button>
         </div>
       </section>
+      </div>
     </div> : null}
 
     {activeSection === 'students' ? <div className="min-w-0 overflow-hidden">
@@ -287,10 +309,103 @@ function CounselorRecentRecords({ requests, appointments, onNavigate }: { reques
   return <section className="rounded-xl border border-border bg-card/95 p-5 shadow-sm dark:border-white/6 dark:bg-card/80" aria-labelledby="recent-records-heading"><div className="flex items-center justify-between"><h2 id="recent-records-heading" className="text-xs font-bold uppercase tracking-[0.14em]">Recent records</h2><button type="button" onClick={() => onNavigate('/admin/requests')} className="text-xs text-blue-600 dark:text-blue-300">View all</button></div>{items.length ? <ol className="mt-3 divide-y divide-border dark:divide-white/8">{items.map((item) => <li key={item.id}><button type="button" onClick={() => onNavigate(item.path)} className="flex min-h-16 w-full gap-3 py-3 text-left focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-blue-400/50"><span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-blue-100 text-blue-600 dark:bg-blue-500/18 dark:text-blue-300"><item.icon className="size-4" aria-hidden="true" /></span><span className="min-w-0"><strong className="block truncate text-xs">{item.title}</strong><span className="mt-1 block truncate text-[11px] text-muted-foreground">{item.detail}</span><span className="mt-2 block text-[10px] text-muted-foreground">{formatDate(item.date)}</span></span></button></li>)}</ol> : <p className="mt-4 rounded-lg bg-secondary p-4 text-sm text-muted-foreground">No guidance records are available.</p>}</section>
 }
 
-function AppointmentTable({ appointments, onNavigate, onStatus }: { appointments: GuidanceAppointment[]; onNavigate: (path: string) => void; onStatus: (appointment: GuidanceAppointment, status: GuidanceAppointment['status'], cancellationReason?: string) => Promise<void> }) {
+function AppointmentTable({ appointments, onNavigate, onStatus, onReschedule }: { appointments: GuidanceAppointment[]; onNavigate: (path: string) => void; onStatus: (appointment: GuidanceAppointment, status: GuidanceAppointment['status'], cancellationReason?: string) => Promise<void>; onReschedule: (appointment: GuidanceAppointment, scheduledAt: string, endsAt: string) => Promise<void> }) {
+  const [now] = useState(() => Date.now())
+  const upcoming = appointments.filter((item) => item.status === 'scheduled' && new Date(item.scheduledAt).getTime() >= now)
+  const history = appointments.filter((item) => !upcoming.includes(item))
+
+  return (
+    <div className="mt-5 space-y-7">
+      <AppointmentGroup title="Upcoming" empty="No upcoming appointments." appointments={upcoming} onNavigate={onNavigate} onStatus={onStatus} onReschedule={onReschedule} />
+      <AppointmentGroup title="Past and closed" empty="No past appointment records." appointments={history} onNavigate={onNavigate} onStatus={onStatus} onReschedule={onReschedule} />
+    </div>
+  )
+}
+
+function AppointmentGroup({ title, empty, appointments, onNavigate, onStatus, onReschedule }: { title: string; empty: string; appointments: GuidanceAppointment[]; onNavigate: (path: string) => void; onStatus: (appointment: GuidanceAppointment, status: GuidanceAppointment['status'], cancellationReason?: string) => Promise<void>; onReschedule: (appointment: GuidanceAppointment, scheduledAt: string, endsAt: string) => Promise<void> }) {
   const [cancellingId, setCancellingId] = useState<number | null>(null)
+  const [reschedulingId, setReschedulingId] = useState<number | null>(null)
   const [reason, setReason] = useState('')
-  return <div className="mt-5 overflow-x-auto"><table className="w-full min-w-[58rem] text-left text-sm"><thead className="bg-secondary text-xs uppercase tracking-[0.1em] text-muted-foreground"><tr><th className="px-4 py-3">Student</th><th className="px-4 py-3">Schedule</th><th className="px-4 py-3">Topic</th><th className="px-4 py-3">Counselor</th><th className="px-4 py-3">Status</th><th className="px-4 py-3"><span className="sr-only">Actions</span></th></tr></thead><tbody className="divide-y">{appointments.map((appointment) => <tr key={appointment.id}><td className="px-4 py-4"><strong className="block">{appointment.studentName}</strong><button type="button" onClick={() => onNavigate(`/admin/students/${appointment.studentId}`)} className="mt-1 text-xs text-primary underline-offset-4 hover:underline">Open student record</button></td><td className="px-4 py-4"><span className="block">{formatDateTime(appointment.scheduledAt)}</span>{appointment.endsAt ? <span className="mt-1 block text-xs text-muted-foreground">to {formatDateTime(appointment.endsAt)}</span> : <span className="mt-1 block text-xs text-warning">Legacy record: end time unavailable</span>}</td><td className="px-4 py-4"><strong className="block">{appointment.topic}</strong>{appointment.programmeCode ? <span className="mt-1 block text-xs text-muted-foreground">Programme: {appointment.programmeCode}</span> : null}{appointment.studentConfirmedAt ? <span className="mt-2 block text-xs font-semibold text-success">Confirmed by student</span> : null}</td><td className="px-4 py-4">{appointment.counselorName}</td><td className="px-4 py-4"><Badge variant={appointment.status === 'scheduled' ? 'secondary' : appointment.status === 'completed' ? 'success' : 'outline'}>{humanize(appointment.status)}</Badge>{appointment.cancellationReason ? <span className="mt-2 block max-w-52 text-xs text-muted-foreground">{appointment.cancellationReason}</span> : null}</td><td className="px-4 py-4">{appointment.status === 'scheduled' ? cancellingId === appointment.id ? <div className="min-w-56 space-y-2"><Label htmlFor={`cancel-reason-${appointment.id}`}>Cancellation reason</Label><textarea id={`cancel-reason-${appointment.id}`} value={reason} onChange={(event) => setReason(event.target.value)} rows={2} className="w-full rounded border border-input bg-background px-3 py-2 text-xs" /><div className="flex gap-2"><Button size="sm" variant="destructive" disabled={reason.trim().length < 3} onClick={() => { void onStatus(appointment, 'cancelled', reason.trim()); setCancellingId(null); setReason('') }}>Confirm cancellation</Button><Button size="sm" variant="ghost" onClick={() => { setCancellingId(null); setReason('') }}>Keep</Button></div></div> : <div className="flex flex-wrap gap-2"><Button size="sm" className="rounded" onClick={() => void onStatus(appointment, 'completed')}>Complete</Button><Button size="sm" variant="outline" className="rounded" onClick={() => void onStatus(appointment, 'no_show')}>No-show</Button><Button size="sm" variant="outline" className="rounded" onClick={() => setCancellingId(appointment.id)}>Cancel</Button></div> : null}</td></tr>)}</tbody></table></div>
+  const [schedule, setSchedule] = useState({ startsAt: '', endsAt: '' })
+  const [busy, setBusy] = useState(false)
+
+  if (appointments.length === 0) return <section aria-label={title}><h3 className="text-sm font-bold">{title}</h3><p className="mt-2 rounded bg-secondary px-4 py-3 text-sm text-muted-foreground">{empty}</p></section>
+
+  return (
+    <section aria-label={title}>
+      <h3 className="text-sm font-bold">{title}</h3>
+      <div className="mt-2 overflow-x-auto">
+        <table className="w-full min-w-[58rem] text-left text-sm">
+          <thead className="bg-secondary text-xs uppercase tracking-[0.1em] text-muted-foreground"><tr><th className="px-4 py-3">Student</th><th className="px-4 py-3">Schedule</th><th className="px-4 py-3">Topic</th><th className="px-4 py-3">Status</th><th className="px-4 py-3"><span className="sr-only">Actions</span></th></tr></thead>
+          <tbody className="divide-y">{appointments.map((appointment) => (
+            <tr key={appointment.id}>
+              <td className="px-4 py-4"><strong className="block">{appointment.studentName}</strong><button type="button" onClick={() => onNavigate(`/admin/students/${appointment.studentId}`)} className="mt-1 text-xs text-primary underline-offset-4 hover:underline">Open student record</button></td>
+              <td className="px-4 py-4"><span className="block">{formatDateTime(appointment.scheduledAt)}</span>{appointment.endsAt ? <span className="mt-1 block text-xs text-muted-foreground">to {formatDateTime(appointment.endsAt)}</span> : <span className="mt-1 block text-xs text-warning">End time unavailable</span>}<span className="mt-1 block text-[11px] text-muted-foreground">Asia/Manila</span></td>
+              <td className="px-4 py-4"><strong className="block">{appointment.topic}</strong>{appointment.programmeCode ? <span className="mt-1 block text-xs text-muted-foreground">Programme: {appointment.programmeCode}</span> : null}{appointment.studentConfirmedAt ? <span className="mt-2 block text-xs font-semibold text-success">Confirmed by student</span> : appointment.status === 'scheduled' ? <span className="mt-2 block text-xs text-warning">Awaiting student confirmation</span> : null}</td>
+              <td className="px-4 py-4"><Badge variant={appointment.status === 'scheduled' ? 'secondary' : appointment.status === 'completed' ? 'success' : 'outline'}>{humanize(appointment.status)}</Badge>{appointment.cancellationReason ? <span className="mt-2 block max-w-52 text-xs text-muted-foreground">{appointment.cancellationReason}</span> : null}</td>
+              <td className="px-4 py-4">
+                {appointment.status === 'scheduled' && reschedulingId === appointment.id ? <div className="min-w-64 space-y-2"><Field label="New start" id={`reschedule-start-${appointment.id}`}><Input id={`reschedule-start-${appointment.id}`} type="datetime-local" value={schedule.startsAt} onChange={(event) => setSchedule({ ...schedule, startsAt: event.target.value })} /></Field><Field label="New end" id={`reschedule-end-${appointment.id}`}><Input id={`reschedule-end-${appointment.id}`} type="datetime-local" min={schedule.startsAt || undefined} value={schedule.endsAt} onChange={(event) => setSchedule({ ...schedule, endsAt: event.target.value })} /></Field><div className="flex gap-2"><Button size="sm" disabled={busy || !schedule.startsAt || !schedule.endsAt || schedule.endsAt <= schedule.startsAt} onClick={async () => { setBusy(true); try { await onReschedule(appointment, schedule.startsAt, schedule.endsAt); setReschedulingId(null) } finally { setBusy(false) } }}>Save schedule</Button><Button size="sm" variant="ghost" disabled={busy} onClick={() => setReschedulingId(null)}>Keep current</Button></div></div> : null}
+                {appointment.status === 'scheduled' && cancellingId === appointment.id ? <div className="min-w-56 space-y-2"><Label htmlFor={`cancel-reason-${appointment.id}`}>Cancellation reason</Label><textarea id={`cancel-reason-${appointment.id}`} value={reason} onChange={(event) => setReason(event.target.value)} rows={2} className="w-full rounded border border-input bg-background px-3 py-2 text-xs" /><div className="flex gap-2"><Button size="sm" variant="destructive" disabled={reason.trim().length < 3} onClick={() => { void onStatus(appointment, 'cancelled', reason.trim()); setCancellingId(null); setReason('') }}>Confirm cancellation</Button><Button size="sm" variant="ghost" onClick={() => { setCancellingId(null); setReason('') }}>Keep</Button></div></div> : null}
+                {appointment.status === 'scheduled' && cancellingId !== appointment.id && reschedulingId !== appointment.id ? <div className="flex flex-wrap gap-2"><Button size="sm" variant="outline" onClick={() => { setReschedulingId(appointment.id); setSchedule({ startsAt: toManilaLocalInput(appointment.scheduledAt), endsAt: appointment.endsAt ? toManilaLocalInput(appointment.endsAt) : '' }) }}><Pencil aria-hidden="true" />Reschedule</Button><Button size="sm" className="rounded" onClick={() => void onStatus(appointment, 'completed')}>Complete</Button><Button size="sm" variant="outline" className="rounded" onClick={() => void onStatus(appointment, 'no_show')}>No-show</Button><Button size="sm" variant="outline" className="rounded" onClick={() => setCancellingId(appointment.id)}>Cancel</Button></div> : null}
+              </td>
+            </tr>
+          ))}</tbody>
+        </table>
+      </div>
+    </section>
+  )
+}
+
+function CounselorAvailabilityEditor() {
+  const availability = useWorkspaceResource<CounselorAvailability>('counselor', '/availability')
+
+  if (availability.loading) return <section className="bg-card p-5 shadow-sm" aria-label="Counselor availability"><p className="text-sm text-muted-foreground">Loading your recorded availability…</p></section>
+  if (availability.error || !availability.data) return <section className="bg-card p-5 shadow-sm" aria-label="Counselor availability"><p role="alert" className="text-sm text-destructive">{availability.error ?? 'Availability could not be loaded.'}</p><Button type="button" variant="outline" className="mt-3" onClick={availability.retry}>Try again</Button></section>
+
+  return <CounselorAvailabilityForm key={availability.data.windows.map((window) => window.id).join('-')} availability={availability.data} />
+}
+
+function CounselorAvailabilityForm({ availability }: { availability: CounselorAvailability }) {
+  const [windows, setWindows] = useState<AvailabilityDraftWindow[]>(() => availability.windows.map((window) => ({ key: String(window.id), weekday: String(window.weekday), startsAt: window.startsAt, endsAt: window.endsAt })))
+  const [configured, setConfigured] = useState(availability.configured)
+  const [saving, setSaving] = useState(false)
+  const [message, setMessage] = useState('')
+  const [error, setError] = useState('')
+
+  const save = async () => {
+    setMessage(''); setError('')
+    if (windows.some((window) => window.weekday === '' || !window.startsAt || !window.endsAt || window.endsAt <= window.startsAt)) {
+      setError('Choose a day and enter a valid start and end time for every window.')
+      return
+    }
+    setSaving(true)
+    try {
+      await mutateWorkspace<CounselorAvailability>('counselor', '/availability', 'PUT', {
+        timezone: 'Asia/Manila',
+        windows: windows.map((window) => ({ weekday: Number(window.weekday), startsAt: window.startsAt, endsAt: window.endsAt })),
+      })
+      setMessage(windows.length > 0 ? 'Availability saved.' : 'Availability cleared. Scheduling is now unconfigured.')
+      setConfigured(windows.length > 0)
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : 'Availability could not be saved.')
+    } finally { setSaving(false) }
+  }
+
+  return (
+    <section className="bg-card p-5 shadow-sm" aria-labelledby="availability-heading">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Asia/Manila schedule</p><h2 id="availability-heading" className="mt-1 font-display text-xl font-semibold">Your recurring availability</h2><p className="mt-1 max-w-2xl text-sm text-muted-foreground">Appointments must fit completely inside one recorded window. No hours are assumed when this is unconfigured.</p></div>
+        <Badge variant={configured ? 'success' : 'outline'}>{configured ? 'Configured' : 'Not configured'}</Badge>
+      </div>
+      <div className="mt-5 space-y-3">
+        {windows.map((window, index) => <div key={window.key} className="grid gap-3 rounded bg-secondary p-4 sm:grid-cols-[minmax(10rem,1fr)_1fr_1fr_auto] sm:items-end"><Field label="Day" id={`availability-day-${window.key}`}><select id={`availability-day-${window.key}`} className="mt-2 h-10 w-full rounded border border-input bg-background px-3 text-sm" value={window.weekday} onChange={(event) => setWindows((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, weekday: event.target.value } : item))}><option value="">Select day</option>{weekdays.map((day, dayIndex) => <option key={day} value={dayIndex}>{day}</option>)}</select></Field><Field label="Start" id={`availability-start-${window.key}`}><Input id={`availability-start-${window.key}`} type="time" value={window.startsAt} onChange={(event) => setWindows((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, startsAt: event.target.value } : item))} /></Field><Field label="End" id={`availability-end-${window.key}`}><Input id={`availability-end-${window.key}`} type="time" value={window.endsAt} onChange={(event) => setWindows((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, endsAt: event.target.value } : item))} /></Field><Button type="button" variant="ghost" size="icon" aria-label={`Remove availability window ${index + 1}`} onClick={() => setWindows((current) => current.filter((_, itemIndex) => itemIndex !== index))}><Trash2 aria-hidden="true" /></Button></div>)}
+        {windows.length === 0 ? <p className="rounded bg-secondary px-4 py-3 text-sm text-muted-foreground">Availability is not configured. Add your actual counseling hours before scheduling students.</p> : null}
+      </div>
+      {message ? <p role="status" className="mt-4 text-sm font-medium text-success">{message}</p> : null}
+      {error ? <p role="alert" className="mt-4 text-sm font-medium text-destructive">{error}</p> : null}
+      <div className="mt-4 flex flex-wrap gap-2"><Button type="button" variant="outline" onClick={() => setWindows((current) => [...current, { key: `new-${Date.now()}-${current.length}`, weekday: '', startsAt: '', endsAt: '' }])}><Plus aria-hidden="true" />Add time window</Button><Button type="button" disabled={saving} onClick={() => void save()}>{saving ? 'Saving…' : 'Save availability'}</Button></div>
+    </section>
+  )
 }
 
 function StudentMonitoring({ students, onNavigate }: { students: AdminStudent[]; onNavigate: (path: string) => void }) {
@@ -331,6 +446,7 @@ function sectionTitle(section: string) { return ({ students: 'Student records', 
 function Field({ label, id, children }: { label: string; id: string; children: ReactNode }) { return <div><Label htmlFor={id}>{label}</Label>{children}</div> }
 function formatDateTime(value: string) { return new Intl.DateTimeFormat('en-PH', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Manila' }).format(new Date(value)) }
 function manilaLocalToIso(value: string) { return `${value.length === 16 ? `${value}:00` : value}+08:00` }
+function toManilaLocalInput(value: string) { const entries = Object.fromEntries(new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Manila', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(new Date(value)).map((part) => [part.type, part.value])); return `${entries.year}-${entries.month}-${entries.day}T${entries.hour}:${entries.minute}` }
 function formatTime(value: string) { return new Intl.DateTimeFormat('en-PH', { hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Manila' }).format(new Date(value)) }
 function manilaDateParts(value: Date) { const entries = Object.fromEntries(new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Manila', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(value).map((part) => [part.type, part.value])); return { year: Number(entries.year), month: Number(entries.month), day: Number(entries.day) } }
 function manilaDateKey(value: Date) { const parts = manilaDateParts(value); return `${parts.year}-${String(parts.month).padStart(2, '0')}-${String(parts.day).padStart(2, '0')}` }

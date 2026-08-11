@@ -29,7 +29,8 @@ const testRecommendationSnapshot: StudentRecommendationSnapshot = {
     ],
   },
   courses: [{
-    id: 'test-course', rank: 1, code: 'TEST', name: 'Test Course', department: 'Test Department', duration: '4 years', level: 'Undergraduate', degreeType: "Bachelor's degree", match: 90, eligibility: 'Eligible', summary: '', factors: [], interestAreas: [], learningAreas: [], careerDirections: [], reviewNotes: [],
+    id: 'test-course', rank: 1, code: 'TEST', name: 'Test Course', department: 'Test Department', duration: '4 years', level: 'Undergraduate', degreeType: "Bachelor's degree", match: 90, eligibility: 'Eligible', summary: '', factors: [], interestAreas: ['I', 'C'], learningAreas: ['Software development'], careerDirections: [], reviewNotes: [],
+    explanation: { assessmentReference: 'TEST-SESSION-001', recordedProfileCode: 'I-C', programmeInterestAreas: ['I', 'C'], sharedTopAreas: [{ code: 'I', label: 'Investigative', score: 19 }, { code: 'C', label: 'Conventional', score: 19 }], recordedProgrammeAreas: [{ code: 'I', label: 'Investigative', score: 19 }, { code: 'C', label: 'Conventional', score: 19 }], learningAreas: ['Software development'] },
     durationSource: { status: 'ched_psg', display: '4 years', source_name: 'CHED programme standard', source_url: 'https://ched.gov.ph/issuances/' },
     salary: { status: 'not_published', display: 'Not published', source_name: 'Philippine Statistics Authority', source_url: 'https://psa.gov.ph/statistics/occupational-wages-survey' },
     jobGrowth: { status: 'not_published', display: 'Not published', source_name: 'Philippine Statistics Authority OpenSTAT', source_url: 'https://openstat.psa.gov.ph/' },

@@ -20,6 +20,7 @@ describe('Student recommendation results', () => {
     expect(screen.getByRole('heading', { name: 'Your academic matches' }).closest('.student-grid-page')).not.toBeNull()
     expect(screen.getByText('I · Investigative')).toBeVisible()
     expect(screen.getByText('Top code: I-C')).toBeVisible()
+    expect(screen.getByText(/recorded Investigative \(19\) and Conventional \(19\) scores/)).toBeVisible()
     expect(screen.queryByText('TEST-SESSION-001')).not.toBeInTheDocument()
     expect(screen.queryByText(/temporary methodology/i)).not.toBeInTheDocument()
     expect(screen.queryByText(/programme guidance for review/i)).not.toBeInTheDocument()
@@ -34,6 +35,8 @@ describe('Student recommendation results', () => {
       ...testRecommendationSnapshot.courses[0],
       id: 'bs-information-technology',
       name: 'BS Information Technology',
+      coverImageUrl: '/storage/programme-media/bs-information-technology/cover/published.webp',
+      coverImagePosition: { x: 30, y: 70, zoom: 1.4 },
     }
 
     render(<StudentRecommendationResultsPage
@@ -42,7 +45,10 @@ describe('Student recommendation results', () => {
       initialSnapshot={{ ...testRecommendationSnapshot, courses: [picturedCourse] }}
     />)
 
-    expect(screen.getByRole('img', { name: 'BS Information Technology programme' })).toBeVisible()
+    expect(screen.getByRole('img', { name: 'BS Information Technology programme' })).toHaveStyle({
+      objectPosition: '30% 70%',
+      transform: 'scale(1.4)',
+    })
   })
 
   it('shows an honest empty state when no recommendation exists', () => {
@@ -133,6 +139,8 @@ describe('Student recommendation results', () => {
     expect(screen.getByText('High Fit')).toBeVisible()
     expect(screen.getByRole('heading', { name: 'Your match score' })).toBeVisible()
     expect(screen.getByRole('heading', { name: 'Why this fits you' })).toBeVisible()
+    expect(screen.getByText('Investigative recorded score: 19')).toBeVisible()
+    expect(screen.getByText('Catalogue learning areas: Software development')).toBeVisible()
     expect(screen.getByRole('heading', { name: 'Core learning areas' })).toBeVisible()
     expect(screen.getByText('Degree type')).toBeVisible()
     expect(screen.getByText("Bachelor's degree")).toBeVisible()

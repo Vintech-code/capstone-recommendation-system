@@ -39,6 +39,7 @@ interface AssessmentLifecycle {
   result?: {
     instrument_code: string
     answer_count: number
+    scoring_source?: string
     result: AssessmentResultEntry[]
     guidance?: ProposedRiasecGuidance
   } | null

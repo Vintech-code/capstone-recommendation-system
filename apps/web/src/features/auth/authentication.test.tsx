@@ -151,7 +151,8 @@ describe('server-backed authentication', () => {
     )
     expect(
       await screen.findByRole('heading', {
-        name: 'My guidance',
+        level: 1,
+        name: /Turn your assessment into a confident course choice|Start with what genuinely interests you/,
       }),
     ).toBeVisible()
   })

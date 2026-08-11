@@ -9,7 +9,6 @@ import {
   Clock3,
   History,
   MessageCircleMore,
-  Printer,
   RotateCcw,
 } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
@@ -19,7 +18,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { getAssessmentHistory, getCurrentAssessment, retryAssessmentResult, type AssessmentHistoryResponse, type AssessmentLifecycle } from '@/features/student/assessment/assessment-api'
 import { formatAssessmentDate, mapAssessmentResult } from '@/features/student/assessment/assessment-result-mapper'
-import { cancelStudentGuidanceAppointment, cancelStudentGuidanceRequest, confirmStudentGuidanceAppointment, createStudentGuidanceRequest, getStudentGuidanceAppointments, getStudentGuidanceRequests, type StudentGuidanceAppointment, type StudentGuidanceRequest } from '@/features/student/guidance/guidance-api'
+import { cancelStudentGuidanceAppointment, cancelStudentGuidanceRequest, confirmStudentGuidanceAppointment, createStudentGuidanceRequest, getStudentGuidanceAppointments, getStudentGuidanceRequests, getStudentGuidanceSummaries, type StudentGuidanceAppointment, type StudentGuidanceRequest, type StudentGuidanceSummary } from '@/features/student/guidance/guidance-api'
 import { getProgrammeImages } from '@/features/student/programmes/programme-images'
 import { getLatestRecommendation, getRecommendationForAttempt } from '@/features/student/recommendations/recommendation-api'
 import type { StudentRecommendedCourse, StudentRecommendationState } from '@/features/student/recommendations/recommendation-types'
@@ -47,6 +46,7 @@ function StudentDashboardPage({ onSelectModule, initialLifecycle, initialRecomme
   const [attempt, setAttempt] = useState(0)
   const [appointments, setAppointments] = useState<StudentGuidanceAppointment[]>([])
   const [guidanceRequests, setGuidanceRequests] = useState<StudentGuidanceRequest[]>([])
+  const [guidanceSummaries, setGuidanceSummaries] = useState<StudentGuidanceSummary[]>([])
 
   useEffect(() => {
     if (initialLifecycle) return
@@ -57,8 +57,9 @@ function StudentDashboardPage({ onSelectModule, initialLifecycle, initialRecomme
       getAssessmentHistory().catch(() => null),
       getStudentGuidanceAppointments().catch(() => []),
       getStudentGuidanceRequests().catch(() => []),
+      getStudentGuidanceSummaries().catch(() => []),
     ])
-      .then(async ([assessment, currentRecommendation, history, guidanceAppointments, studentGuidanceRequests]) => {
+      .then(async ([assessment, currentRecommendation, history, guidanceAppointments, studentGuidanceRequests, studentGuidanceSummaries]) => {
         if (!active) return
         const latestCompleted = assessment.status === 'result_available'
           ? assessment
@@ -73,6 +74,7 @@ function StudentDashboardPage({ onSelectModule, initialLifecycle, initialRecomme
         setRecommendations(recommendation)
         setAppointments(guidanceAppointments)
         setGuidanceRequests(studentGuidanceRequests)
+        setGuidanceSummaries(studentGuidanceSummaries)
         setLoadState('ready')
       })
       .catch(() => active && setLoadState('error'))
@@ -109,11 +111,11 @@ function StudentDashboardPage({ onSelectModule, initialLifecycle, initialRecomme
   const latestGuidanceRequest = guidanceRequests[0] ?? null
 
   return (
-    <DashboardFrame status={lifecycle.status} onPrint={result ? () => window.print() : undefined}>
+    <DashboardFrame>
       <article
         data-report-print={result ? true : undefined}
         data-testid="student-guidance-summary"
-        className="mt-6 w-full space-y-7"
+        className="w-full space-y-6"
       >
         {result ? (
           <header data-print-only className="hidden">
@@ -125,12 +127,12 @@ function StudentDashboardPage({ onSelectModule, initialLifecycle, initialRecomme
             </div>
           </header>
         ) : null}
-        <section className="py-8 sm:py-12" aria-labelledby="dashboard-guidance-title">
+        <section className="pb-6 pt-0 sm:pb-8" aria-labelledby="dashboard-guidance-title">
           <div className="max-w-4xl">
-            <p className="font-label text-xs font-semibold uppercase tracking-[0.16em] text-primary">Student guidance hub</p>
-            <h2 id="dashboard-guidance-title" className="mt-3 font-display text-3xl font-bold tracking-[-0.035em] sm:text-5xl">
+            <p className="font-label text-xs font-semibold uppercase tracking-[0.16em] text-primary">Your academic journey</p>
+            <h1 id="dashboard-guidance-title" className="mt-3 font-display text-3xl font-bold tracking-[-0.035em] sm:text-5xl">
               {result ? 'Turn your assessment into a confident course choice.' : 'Start with what genuinely interests you.'}
-            </h2>
+            </h1>
             <p className="mt-4 max-w-2xl text-base leading-7 text-muted-foreground">
               {result
                 ? `Your strongest recorded interests are ${result.topLabels.join(' and ')}. Review your matches, compare programmes, and seek guidance when you need another perspective.`
@@ -139,12 +141,12 @@ function StudentDashboardPage({ onSelectModule, initialLifecycle, initialRecomme
           </div>
         </section>
 
-        <div data-print-summary-grid className="grid items-start gap-7 lg:grid-cols-[minmax(0,1.3fr)_minmax(19rem,.7fr)]">
-          <div className="space-y-7">
+        <div data-print-summary-grid data-testid="student-journey-grid" className="grid items-start gap-6 lg:grid-cols-12">
+          <div className="contents">
             <CourseDirectionPanel course={topCourse} generatedAt={snapshot?.generatedAt} onOpen={() => onSelectModule('recommendations')} />
 
             {result ? (
-              <section data-print-profile aria-labelledby="interest-scores-title" className="rounded-xl bg-card p-6 shadow-sm sm:p-8">
+              <section data-print-profile aria-labelledby="interest-scores-title" className="rounded-xl bg-card p-6 shadow-sm lg:col-span-7 lg:row-start-2 sm:p-8">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                   <div>
                     <p className="font-label text-xs font-semibold uppercase tracking-[0.14em] text-primary">Your interest pattern</p>
@@ -166,10 +168,11 @@ function StudentDashboardPage({ onSelectModule, initialLifecycle, initialRecomme
             ) : null}
           </div>
 
-          <div className="space-y-7">
+          <div className="contents">
             <GuidanceAppointmentPanel
               appointments={appointments}
               request={latestGuidanceRequest}
+              summary={guidanceSummaries[0] ?? null}
               topCourse={topCourse}
               onRequested={(request) => setGuidanceRequests((current) => [request, ...current.filter((item) => item.id !== request.id)])}
               onRequestChanged={(request) => setGuidanceRequests((current) => [request, ...current.filter((item) => item.id !== request.id)])}
@@ -182,10 +185,6 @@ function StudentDashboardPage({ onSelectModule, initialLifecycle, initialRecomme
           </div>
         </div>
 
-        <footer data-print-footer className="flex flex-col gap-3 rounded bg-card px-5 py-4 text-sm leading-6 text-muted-foreground shadow-sm sm:flex-row sm:items-center sm:justify-between">
-          <p>This guidance does not guarantee admission or enrolment.</p>
-          <p>Interest data source: <a href="https://services.onetcenter.org/" target="_blank" rel="noreferrer" className="font-bold text-primary underline underline-offset-4">O*NET® Web Services</a></p>
-        </footer>
       </article>
     </DashboardFrame>
   )
@@ -221,6 +220,11 @@ function AssessmentHistorySummary({ history, historyError, lifecycle, selectedAt
             : 'Retake unavailable'
   const latestCompletedId = history?.attempts.find((item) => item.status === 'result_available')?.id
   const selectedAttempt = history?.attempts.find((item) => item.id === selectedAttemptId) ?? null
+  const previousCompletedAttempt = selectedAttempt
+    ? history?.attempts
+      .filter((item) => item.status === 'result_available' && (item.attempt_number ?? 0) < (selectedAttempt.attempt_number ?? 0))
+      .sort((left, right) => (right.attempt_number ?? 0) - (left.attempt_number ?? 0))[0] ?? null
+    : null
 
   async function startRetake() {
     setRetakeError(false)
@@ -234,8 +238,8 @@ function AssessmentHistorySummary({ history, historyError, lifecycle, selectedAt
     }
   }
   return (
-    <section data-print-hidden aria-labelledby="assessment-history-title" className="overflow-hidden rounded-lg bg-card shadow-sm">
-      <div className="flex flex-col gap-5 bg-primary-fixed/60 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-7">
+    <section data-print-hidden aria-labelledby="assessment-history-title" className="overflow-hidden rounded-xl bg-card shadow-sm">
+      <div className="flex flex-col gap-5 bg-card p-5 sm:flex-row sm:items-center sm:justify-between sm:p-7">
         <div className="flex items-start gap-3">
           <span className="flex size-11 shrink-0 items-center justify-center rounded bg-background text-primary shadow-sm"><History className="size-5" aria-hidden="true" /></span>
           <div><p className="text-xs font-bold uppercase tracking-[0.12em] text-primary">Recorded attempts</p><h3 id="assessment-history-title" className="mt-1 font-display text-2xl font-semibold">Your assessment timeline</h3><p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">Choose a completed attempt to open its interest profile and saved programme matches.</p></div>
@@ -244,23 +248,24 @@ function AssessmentHistorySummary({ history, historyError, lifecycle, selectedAt
           <RotateCcw aria-hidden="true" />{starting ? 'Starting retake…' : retakeLabel}
         </Button>
       </div>
-      <div className="p-5 sm:p-7">
+      <div className="p-5 pt-0 sm:p-7 sm:pt-0">
         {retakeError ? <Alert variant="destructive" className="mb-5"><AlertCircle aria-hidden="true" /><AlertTitle>Retake could not be started</AlertTitle><AlertDescription>Your previous result is unchanged. Check your connection and try again.</AlertDescription></Alert> : null}
+        <div className="grid items-start gap-6 lg:grid-cols-[20rem_minmax(0,1fr)]">
         {historyError ? (
           <ErrorState title="Assessment history could not be loaded" description="Your current result is unchanged. Try loading your attempts again." onRetry={onRetryHistory} />
         ) : history ? (
-          <ol className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          <ol className="relative space-y-2 border-l border-outline-variant pl-5">
             {history.attempts.map((item) => {
               const result = mapAssessmentResult(item)
               const isSelected = selectedAttemptId === item.id
               const isCurrent = item.is_current
-              const isLatestResult = item.id === latestCompletedId
+              const isCurrentResult = item.id === latestCompletedId
               return (
-                <li key={item.id}>
-                  <button type="button" disabled={item.status !== 'result_available'} aria-pressed={isSelected} onClick={() => item.id && void onSelectAttempt(item.id)} className={`group min-h-40 w-full rounded-2xl p-5 text-left shadow-sm transition-transform duration-200 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/40 motion-reduce:transform-none motion-reduce:transition-none ${isSelected ? 'bg-brand-dark text-white' : 'bg-secondary/60 hover:-translate-y-0.5 disabled:cursor-default disabled:hover:translate-y-0'}`}>
+                <li key={item.id} className="relative before:absolute before:-left-[1.55rem] before:top-6 before:size-2 before:rounded-full before:bg-primary">
+                  <button type="button" disabled={item.status !== 'result_available'} aria-pressed={isSelected} onClick={() => item.id && void onSelectAttempt(item.id)} className={`group min-h-32 w-full rounded-xl p-4 text-left shadow-sm transition duration-200 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/40 motion-reduce:transform-none motion-reduce:transition-none ${isSelected ? 'bg-brand-dark text-white' : 'bg-secondary/55 hover:bg-primary-fixed/55 disabled:cursor-default disabled:hover:bg-secondary/55'}`}>
                     <span className="flex items-start justify-between gap-3"><span><span className={`text-xs font-extrabold uppercase tracking-[0.12em] ${isSelected ? 'text-white/70' : 'text-primary'}`}>Attempt {item.attempt_number}</span><span className="mt-2 block text-xl font-extrabold">{result?.topCode ?? assessmentStatusLabel(item.status)}</span></span>{item.status === 'result_available' ? <ChevronRight aria-hidden="true" className="size-5 transition-transform group-hover:translate-x-0.5" /> : <Clock3 aria-hidden="true" className="size-5 text-muted-foreground" />}</span>
                     <span className={`mt-5 flex items-center gap-2 text-xs ${isSelected ? 'text-white/70' : 'text-muted-foreground'}`}><CalendarDays aria-hidden="true" className="size-4" />{formatAssessmentDate(item.result_available_at ?? item.started_at)}</span>
-                    <span className="mt-3 flex flex-wrap gap-2">{isCurrent ? <span className={`rounded-full px-2.5 py-1 text-[10px] font-extrabold ${isSelected ? 'bg-white/15' : 'bg-primary/10 text-primary'}`}>Current attempt</span> : null}{isLatestResult ? <span className={`rounded-full px-2.5 py-1 text-[10px] font-extrabold ${isSelected ? 'bg-white/15' : 'bg-success/15 text-foreground'}`}>Latest result</span> : null}{!isCurrent && !isLatestResult ? <span className="rounded-full bg-background px-2.5 py-1 text-[10px] font-bold text-muted-foreground">Completed</span> : null}</span>
+                    <span className="mt-3 flex flex-wrap gap-2">{isCurrent && item.status !== 'result_available' ? <span className={`rounded-full px-2.5 py-1 text-[10px] font-extrabold ${isSelected ? 'bg-white/15' : 'bg-primary/10 text-primary'}`}>Current attempt</span> : null}{isCurrentResult ? <span className={`rounded-full px-2.5 py-1 text-[10px] font-extrabold ${isSelected ? 'bg-white/15' : 'bg-success/15 text-foreground'}`}>Current result</span> : null}{!isCurrentResult && item.status === 'result_available' ? <span className="rounded-full bg-background px-2.5 py-1 text-[10px] font-bold text-muted-foreground">Previous result</span> : null}</span>
                   </button>
                 </li>
               )
@@ -268,7 +273,10 @@ function AssessmentHistorySummary({ history, historyError, lifecycle, selectedAt
           </ol>
         ) : <LoadingState title="Loading assessment history" description="Restoring your recorded attempts." />}
 
-        {selectedAttempt ? <HistoricalAttemptDetails attempt={selectedAttempt} recommendation={selectedRecommendation} recommendationState={selectedRecommendationState} /> : null}
+        <div className="min-w-0 lg:sticky lg:top-24">
+          {selectedAttempt ? <HistoricalAttemptDetails attempt={selectedAttempt} previousAttempt={previousCompletedAttempt} recommendation={selectedRecommendation} recommendationState={selectedRecommendationState} /> : <div className="flex min-h-72 flex-col justify-between rounded-2xl bg-primary-fixed/45 p-6 sm:p-8"><span className="flex size-12 items-center justify-center rounded-xl bg-primary text-primary-foreground"><History className="size-5" aria-hidden="true" /></span><div className="mt-12"><p className="text-xs font-bold uppercase tracking-[0.13em] text-primary">Recorded evidence</p><h4 className="mt-2 font-display text-2xl font-bold">Select a completed attempt</h4><p className="mt-3 max-w-xl text-sm leading-6 text-muted-foreground">Open an attempt from the timeline to review its recorded interest profile and programme matches here.</p>{history ? <p className="mt-5 text-sm font-semibold text-primary">{history.attempts.length} recorded {history.attempts.length === 1 ? 'attempt' : 'attempts'}</p> : null}</div></div>}
+        </div>
+        </div>
       </div>
 
       <ConfirmActionDialog open={confirmingRetake} onOpenChange={setConfirmingRetake} title="Start a new assessment?" description="Your completed results will stay available in Assessment history. The new attempt starts with no answers and becomes your current assessment." confirmLabel="Start retake" onConfirm={startRetake} />
@@ -276,15 +284,37 @@ function AssessmentHistorySummary({ history, historyError, lifecycle, selectedAt
   )
 }
 
-function HistoricalAttemptDetails({ attempt, recommendation, recommendationState }: { attempt: AssessmentLifecycle; recommendation: StudentRecommendationState | null; recommendationState: 'idle' | 'loading' | 'error' }) {
+function HistoricalAttemptDetails({ attempt, previousAttempt, recommendation, recommendationState }: { attempt: AssessmentLifecycle; previousAttempt: AssessmentLifecycle | null; recommendation: StudentRecommendationState | null; recommendationState: 'idle' | 'loading' | 'error' }) {
   const result = mapAssessmentResult(attempt)
   if (!result) return null
+  const previousResult = previousAttempt ? mapAssessmentResult(previousAttempt) : null
+  const previousValues = new Map(previousResult?.dimensions.map((dimension) => [dimension.code, dimension.value]) ?? [])
   const courses = recommendation?.status === 'available' ? recommendation.recommendation?.courses ?? [] : []
 
   return (
-    <div className="mt-6 rounded-3xl bg-secondary/55 p-5 sm:p-7" aria-live="polite">
-      <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between"><div><p className="text-xs font-extrabold uppercase tracking-[0.12em] text-primary">Attempt {attempt.attempt_number} result</p><h4 className="mt-2 text-2xl font-extrabold">{result.topLabels.join(' and ')}</h4><p className="mt-2 text-sm text-muted-foreground">Completed {result.availableAt}</p></div><div className="rounded-2xl bg-brand-dark px-5 py-4 text-white"><p className="text-[10px] font-bold uppercase tracking-[0.12em] text-brand-soft">Top code</p><p className="mt-1 text-3xl font-extrabold">{result.topCode}</p></div></div>
+    <div className="rounded-2xl bg-secondary/55 p-5 sm:p-7" aria-live="polite">
+      <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between"><div><p className="text-xs font-extrabold uppercase tracking-[0.12em] text-primary">Attempt {attempt.attempt_number} result</p><h4 className="mt-2 text-2xl font-extrabold">{result.topLabels.join(' and ')}</h4><p className="mt-2 text-sm text-muted-foreground">Completed {result.availableAt}</p><p className="mt-1 text-xs text-muted-foreground">Assessment version: {result.assessmentVersion}</p></div><div className="rounded-2xl bg-brand-dark px-5 py-4 text-white"><p className="text-[10px] font-bold uppercase tracking-[0.12em] text-brand-soft">Top code</p><p className="mt-1 text-3xl font-extrabold">{result.topCode}</p></div></div>
       <dl className="mt-5 grid grid-cols-3 gap-2 sm:grid-cols-6">{result.dimensions.map((dimension) => <div key={dimension.code} className="rounded-xl bg-background p-3 text-center shadow-sm"><dt className="text-xs font-bold text-muted-foreground">{dimension.code}</dt><dd className="mt-1 text-xl font-extrabold">{dimension.value}</dd></div>)}</dl>
+      {previousResult ? (
+        <section aria-labelledby={`attempt-${attempt.id}-comparison`} className="mt-6">
+          <div className="flex flex-wrap items-end justify-between gap-2">
+            <h5 id={`attempt-${attempt.id}-comparison`} className="font-extrabold">Compared with Attempt {previousAttempt?.attempt_number}</h5>
+            <p className="text-xs text-muted-foreground">Recorded score change only</p>
+          </div>
+          <dl className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-6">
+            {result.dimensions.map((dimension) => {
+              const previousValue = previousValues.get(dimension.code)
+              const change = previousValue === undefined ? null : dimension.value - previousValue
+              return (
+                <div key={dimension.code} className="rounded-xl bg-background p-3 text-center shadow-sm">
+                  <dt className="text-xs font-bold text-muted-foreground">{dimension.code}</dt>
+                  <dd className="mt-1 text-sm font-extrabold">{change === null ? 'N/A' : change > 0 ? `+${change}` : String(change)}</dd>
+                </div>
+              )
+            })}
+          </dl>
+        </section>
+      ) : null}
       <div className="mt-6"><h5 className="font-extrabold">Programme matches from this attempt</h5>{recommendationState === 'loading' ? <LoadingState className="mt-3" title="Loading saved matches" description="Connecting this attempt to its recommendation record." /> : null}{recommendationState === 'error' ? <p role="alert" className="mt-3 rounded-xl bg-destructive/10 p-4 text-sm font-bold text-destructive">The saved programme matches could not be loaded.</p> : null}{recommendationState === 'idle' && courses.length > 0 ? <ol className="mt-3 grid gap-3 md:grid-cols-3">{courses.map((course) => <li key={course.id} className="rounded-2xl bg-background p-4 shadow-sm"><div className="flex items-center justify-between gap-3"><span className="text-xs font-extrabold text-primary">#{course.rank} · {course.code}</span><span className="text-lg font-extrabold text-primary">{course.match}%</span></div><p className="mt-2 font-extrabold">{course.name}</p></li>)}</ol> : null}{recommendationState === 'idle' && courses.length === 0 ? <p className="mt-3 text-sm text-muted-foreground">No saved programme matches are available for this attempt.</p> : null}</div>
     </div>
   )
@@ -297,7 +327,7 @@ function assessmentStatusLabel(status: AssessmentLifecycle['status']) {
 function CourseDirectionPanel({ course, generatedAt, onOpen }: { course: StudentRecommendedCourse | null; generatedAt?: string; onOpen: () => void }) {
   const { cover } = getProgrammeImages(course?.id ?? '')
   return (
-    <section data-print-recommendations aria-labelledby="course-direction-title" className="overflow-hidden rounded-xl bg-card shadow-sm">
+    <section data-print-recommendations aria-labelledby="course-direction-title" className="overflow-hidden rounded-xl bg-card shadow-sm lg:col-span-7 lg:row-start-1">
       {course ? (
         <div className="grid min-h-72 sm:grid-cols-[minmax(0,1fr)_15rem]">
           <div className="flex flex-col p-6 sm:p-8">
@@ -329,7 +359,7 @@ function CourseDirectionPanel({ course, generatedAt, onOpen }: { course: Student
   )
 }
 
-function GuidanceAppointmentPanel({ appointments, request, topCourse, onRequested, onRequestChanged, onAppointmentChanged }: { appointments: StudentGuidanceAppointment[]; request: StudentGuidanceRequest | null; topCourse: StudentRecommendedCourse | null; onRequested: (request: StudentGuidanceRequest) => void; onRequestChanged: (request: StudentGuidanceRequest) => void; onAppointmentChanged: (appointment: StudentGuidanceAppointment) => void }) {
+function GuidanceAppointmentPanel({ appointments, request, summary, topCourse, onRequested, onRequestChanged, onAppointmentChanged }: { appointments: StudentGuidanceAppointment[]; request: StudentGuidanceRequest | null; summary: StudentGuidanceSummary | null; topCourse: StudentRecommendedCourse | null; onRequested: (request: StudentGuidanceRequest) => void; onRequestChanged: (request: StudentGuidanceRequest) => void; onAppointmentChanged: (appointment: StudentGuidanceAppointment) => void }) {
   const [showRequestForm, setShowRequestForm] = useState(false)
   const [message, setMessage] = useState('I would like guidance comparing my matched programmes before I decide.')
   const [concernCategory, setConcernCategory] = useState<StudentGuidanceRequest['concernCategory']>('programme_comparison')
@@ -392,11 +422,12 @@ function GuidanceAppointmentPanel({ appointments, request, topCourse, onRequeste
   }
 
   return (
-    <section aria-labelledby="counselor-guidance-title" className="overflow-hidden rounded-xl bg-primary-fixed text-on-primary-fixed shadow-sm">
+    <section aria-labelledby="counselor-guidance-title" className="overflow-hidden rounded-xl bg-primary-fixed text-on-primary-fixed shadow-sm lg:col-span-5 lg:row-start-2">
       <div className="p-6">
         <span className="flex size-11 items-center justify-center rounded-lg bg-primary text-primary-foreground"><MessageCircleMore aria-hidden="true" className="size-5" /></span>
         <p className="mt-5 font-label text-xs font-semibold uppercase tracking-[0.14em] text-on-primary-fixed">Course advice</p>
         <h2 id="counselor-guidance-title" className="mt-2 font-display text-2xl font-semibold">Talk with a counselor</h2>
+        {summary ? <div className="mt-5 rounded-lg bg-card p-4 text-card-foreground shadow-sm"><p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary">Latest counselor summary</p><p className="mt-3 whitespace-pre-wrap text-sm leading-6">{summary.body}</p><p className="mt-3 text-xs text-muted-foreground">Published {formatAppointmentDate(summary.publishedAt)}{summary.counselor ? ` by ${summary.counselor}` : ''}</p></div> : null}
         {appointment ? (
           <div className="mt-5 rounded-lg bg-card p-4 text-card-foreground shadow-sm">
             <div className="flex items-start gap-3">
@@ -481,30 +512,14 @@ function guidanceStatusMessage(request: StudentGuidanceRequest) {
   return messages[request.status]
 }
 
-function DashboardFrame({ children, status, onPrint }: { children: ReactNode; status?: AssessmentLifecycle['status']; onPrint?: () => void }) {
+function DashboardFrame({ children }: { children: ReactNode }) {
   return (
     <div className="student-grid-page">
-    <div className="student-page pb-12 pt-6 sm:pt-8">
-      <div data-print-hidden className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <p className="font-label text-xs font-semibold uppercase tracking-[0.14em] text-primary">Your academic journey</p>
-          <h1 className="mt-1 font-display text-3xl font-semibold tracking-[-0.03em]">My guidance</h1>
-        </div>
-        <div className="flex items-center gap-2">
-          {status ? <DashboardStatus status={status} /> : null}
-          {onPrint ? <Button type="button" variant="outline" onClick={onPrint}><Printer aria-hidden="true" />Print summary</Button> : null}
-        </div>
-      </div>
+    <div className="student-page pb-12 pt-4 sm:pt-6">
       {children}
     </div>
     </div>
   )
-}
-
-function DashboardStatus({ status }: { status: AssessmentLifecycle['status'] }) {
-  const states = { not_started: ['Start assessment', 'neutral'], in_progress: ['In progress', 'warning'], preparing_result: ['Finalizing submission', 'info'], result_failed: ['Result unavailable', 'danger'], result_available: ['Result available', 'success'] } as const
-  const [label, tone] = states[status]
-  return <StatusBadge label={label} tone={tone} />
 }
 
 function AssessmentLifecycleCard({ lifecycle, onOpenAssessment, onOpenHistory, onRetryResult }: { lifecycle: AssessmentLifecycle; onOpenAssessment: () => void; onOpenHistory: () => void; onRetryResult: () => Promise<void> }) {
@@ -514,7 +529,7 @@ function AssessmentLifecycleCard({ lifecycle, onOpenAssessment, onOpenHistory, o
   const isFailed = lifecycle.status === 'result_failed'
   const isAvailable = lifecycle.status === 'result_available'
   return (
-    <section data-print-hidden aria-labelledby="current-assessment-title" className="flex h-full flex-col overflow-hidden rounded-lg bg-card shadow-sm">
+    <section data-print-hidden aria-labelledby="current-assessment-title" className="flex h-full flex-col overflow-hidden rounded-lg bg-card shadow-sm lg:col-span-5 lg:row-start-1">
       <div className="bg-primary-fixed/70 p-5 dark:bg-brand-dark dark:text-white sm:p-6">
         <span className="flex size-11 items-center justify-center rounded bg-background text-primary shadow-sm dark:bg-white/10 dark:text-brand-soft">{isPreparing ? <Clock3 className="size-5" /> : <ClipboardList className="size-5" />}</span>
         <p className="mt-5 font-label text-xs font-semibold uppercase tracking-[0.12em] text-primary dark:text-brand-soft">Current assessment</p>

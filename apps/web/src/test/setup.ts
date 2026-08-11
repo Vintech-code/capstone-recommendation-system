@@ -145,6 +145,15 @@ async function defaultFetch(
     return Response.json({ data: { id, studentId: 10, studentName: 'Ana Santos', studentEmail: 'ana@example.test', programmeId: 'bs-information-technology', programmeCode: 'BSIT', programmeName: 'BS Information Technology', concernCategory: 'programme_comparison', preferredFormat: 'in_person', preferredDate: '2026-08-20', message: 'I would like help comparing my matched programmes before deciding.', status: 'declined', appointmentId: null, acceptedBy: null, acceptedAt: null, closedAt: '2026-08-09T11:00:00+08:00', resolutionReason: body.reason, statusHistory: [{ id: 1, eventType: 'submitted', fromStatus: null, toStatus: 'pending', reason: null, actor: 'Ana Santos', createdAt: '2026-08-09T10:00:00+08:00' }, { id: 2, eventType: 'declined', fromStatus: 'pending', toStatus: 'declined', reason: body.reason, actor: 'Guidance Counselor', createdAt: '2026-08-09T11:00:00+08:00' }], createdAt: '2026-08-09T10:00:00+08:00' } })
   }
 
+  if (url === '/api/v1/counselor/availability' && init?.method === 'PUT') {
+    const body = JSON.parse(String(init.body ?? '{}')) as { windows?: Array<{ weekday: number; startsAt: string; endsAt: string }> }
+    return Response.json({ data: { configured: (body.windows?.length ?? 0) > 0, timezone: 'Asia/Manila', windows: (body.windows ?? []).map((window, index) => ({ id: index + 1, ...window })) } })
+  }
+
+  if (url === '/api/v1/counselor/availability') {
+    return Response.json({ data: { configured: false, timezone: 'Asia/Manila', windows: [] } })
+  }
+
   if (url.startsWith('/api/v1/counselor/')) {
     const adminUrl = url.replace('/api/v1/counselor/', '/api/v1/admin/')
     return defaultFetch(adminUrl, init)
@@ -174,6 +183,15 @@ async function defaultFetch(
     return Response.json({ data: { kind: 'cover', url: '/storage/programme-media/bs-information-technology/cover/new-cover.webp' } }, { status: 201 })
   }
 
+  if (url === '/api/v1/admin/programme-sources' && (!init?.method || init.method === 'GET')) {
+    return Response.json({ data: [{ reference: 'source-reference', sourceName: 'CHED CMO No. 25, series of 2015', sourceUrl: 'https://legacy.ched.gov.ph/2015-ched-memorandum-orders/', programmeIds: ['bs-information-technology'], fields: ['duration'], recordedStatuses: ['ched_psg'], lastVerifiedAt: null, verifiedBy: null }] })
+  }
+
+  if (url === '/api/v1/admin/programme-sources/source-reference' && init?.method === 'PUT') {
+    const body = JSON.parse(String(init.body)) as { lastVerifiedAt: string }
+    return Response.json({ data: { reference: 'source-reference', sourceName: 'CHED CMO No. 25, series of 2015', sourceUrl: 'https://legacy.ched.gov.ph/2015-ched-memorandum-orders/', programmeIds: ['bs-information-technology'], fields: ['duration'], recordedStatuses: ['ched_psg'], lastVerifiedAt: body.lastVerifiedAt, verifiedBy: 'Authenticated User' } })
+  }
+
   if (url === '/api/v1/admin/configurations/catalogue' && (!init?.method || init.method === 'GET')) {
     const programme = { id: 'bs-information-technology', short_label: 'BSIT', display_name: 'BS Information Technology', description: 'Applies computing technologies to organisational needs.', majors: [], riasec_profile: ['I', 'C', 'R'], learning_areas: ['Software development'], learning_area_descriptions: { 'Software development': 'Design, build, test, and maintain applications.' }, learning_area_topics: { 'Software development': ['Programming fundamentals'] }, career_directions: ['Software and application development'], recommended_strands: ['STEM', 'TVL-ICT'], strand_guidance: 'STEM and TVL-ICT may be helpful preparation.', requirements: ['Meet published admission requirements.'], readiness_prompt: 'Discuss your interest in technology.', degree_type: "Bachelor's degree", duration: { display: '4 years' }, salary: { display: 'Not published' }, job_growth: { display: 'Not published' } }
     return Response.json({ data: { kind: 'catalogue', runtime: { programmes: [programme] }, versions: [{ id: 7, kind: 'catalogue', version: 2, status: 'draft', academicYear: '2026-2027', payload: { programmes: [programme] }, createdBy: 'Authenticated User', publishedBy: null, createdAt: '2026-08-08T12:00:00+08:00', publishedAt: null }] } })
@@ -182,6 +200,10 @@ async function defaultFetch(
   if (url.match(/\/api\/v1\/admin\/configurations\/(catalogue|methodology)$/) && init?.method === 'POST') {
     const kind = url.endsWith('catalogue') ? 'catalogue' : 'methodology'
     return Response.json({ data: { id: 1, kind, version: 2, status: 'draft', academicYear: '2026-2027', payload: {}, createdBy: 'Authenticated User', publishedBy: null, createdAt: '2026-08-08T12:00:00+08:00', publishedAt: null } }, { status: 201 })
+  }
+
+  if (url === '/api/v1/admin/configurations/versions/7/preview' && init?.method === 'POST') {
+    return Response.json({ data: { hasChanges: true, changedSections: ['programmes'], changedProgrammeCount: 1, programmeChanges: [{ programmeId: 'bs-information-technology', code: 'BSIT', name: 'BS Information Technology', fields: [{ field: 'description', before: 'Applies computing technologies to organisational needs.', after: 'Updated description.' }] }] } })
   }
 
   if (url.match(/\/api\/v1\/admin\/configurations\/versions\/\d+(\/publish)?$/) && ['PUT', 'POST'].includes(init?.method ?? '')) {
@@ -354,6 +376,43 @@ async function defaultFetch(
 }
 
 vi.stubGlobal('fetch', vi.fn(defaultFetch))
+
+class XMLHttpRequestMock {
+  status = 0
+  responseText = ''
+  withCredentials = false
+  private url = ''
+  private listeners: Record<string, Array<() => void>> = {}
+  private uploadListeners: Record<string, Array<(event: ProgressEvent) => void>> = {}
+  upload = {
+    addEventListener: (type: string, listener: (event: ProgressEvent) => void) => {
+      this.uploadListeners[type] = [...(this.uploadListeners[type] ?? []), listener]
+    },
+  }
+
+  open(_method: string, url: string) { this.url = url }
+  setRequestHeader() {}
+  addEventListener(type: string, listener: () => void) { this.listeners[type] = [...(this.listeners[type] ?? []), listener] }
+  send(body: Document | XMLHttpRequestBodyInit | null) {
+    const image = body instanceof FormData ? body.get('image') : null
+    queueMicrotask(() => {
+      this.uploadListeners.progress?.forEach((listener) => listener({ lengthComputable: true, loaded: 1, total: 2 } as ProgressEvent))
+      window.setTimeout(() => {
+        if (image instanceof File && image.name.startsWith('fail')) {
+          this.status = 500
+          this.responseText = JSON.stringify({ message: 'The image upload failed.' })
+        } else {
+          this.status = 201
+          const kind = body instanceof FormData ? body.get('kind') : 'cover'
+          this.responseText = JSON.stringify({ data: { kind, url: `${this.url}/${String(kind)}.webp` } })
+        }
+        this.listeners.load?.forEach((listener) => listener())
+      }, 100)
+    })
+  }
+}
+
+vi.stubGlobal('XMLHttpRequest', XMLHttpRequestMock)
 
 class ResizeObserverMock {
   observe(): void {}

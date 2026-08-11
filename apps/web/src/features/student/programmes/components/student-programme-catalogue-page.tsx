@@ -29,6 +29,7 @@ import tccBanner from '@/assets/tccbanner.jpg'
 import { ProgrammeComparisonSheet } from '@/features/student/programmes/components/programme-comparison-sheet'
 import { getProgrammeCatalogue, getSavedProgrammeIds, updateSavedProgramme } from '@/features/student/programmes/programme-api'
 import { getProgrammeImages } from '@/features/student/programmes/programme-images'
+import { programmeMediaStyle } from '@/features/student/programmes/programme-media-position'
 import type { StudentProgramme, StudentProgrammeCatalogue, StudentProgrammeMatchContext } from '@/features/student/programmes/programme-types'
 
 interface StudentProgrammeCataloguePageProps {
@@ -64,7 +65,6 @@ function StudentProgrammeCataloguePage({ initialCatalogue, matchContext = [] }: 
   const [query, setQuery] = useState('')
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const [selectedStrands, setSelectedStrands] = useState<string[]>([])
-  const [selectedRiasecAreas, setSelectedRiasecAreas] = useState<string[]>([])
   const [sortBy, setSortBy] = useState<'name' | 'category'>('name')
   const [durationFilter, setDurationFilter] = useState('all')
   const [visibleCount, setVisibleCount] = useState(programmesPerBatch)
@@ -83,10 +83,6 @@ function StudentProgrammeCataloguePage({ initialCatalogue, matchContext = [] }: 
   const strandOptions = useMemo(() => Array.from(new Set(
     (catalogue?.programmes ?? []).flatMap((programme) => programme.recommendedStrands),
   )).sort(), [catalogue])
-  const riasecOptions = useMemo(() => Array.from(new Set(
-    (catalogue?.programmes ?? []).flatMap((programme) => programme.riasecProfile),
-  )).sort(), [catalogue])
-
   useEffect(() => {
     if (initialCatalogue) return
     let active = true
@@ -111,13 +107,12 @@ function StudentProgrammeCataloguePage({ initialCatalogue, matchContext = [] }: 
       const matchesCategory = selectedCategories.length === 0 || (category && selectedCategories.includes(category.id))
       const matchesDuration = durationFilter === 'all' || programme.duration?.display === durationFilter
       const matchesStrands = selectedStrands.length === 0 || selectedStrands.some((strand) => programme.recommendedStrands.includes(strand))
-      const matchesRiasec = selectedRiasecAreas.length === 0 || selectedRiasecAreas.some((area) => programme.riasecProfile.includes(area))
       const matchesSaved = !savedOnly || savedProgrammeIds.has(programme.id)
       const searchable = [programme.name, programme.code, programme.description, ...programme.learningAreas, ...programme.careerDirections]
         .join(' ')
         .toLowerCase()
 
-      return matchesCategory && matchesDuration && matchesStrands && matchesRiasec && matchesSaved && (!normalizedQuery || searchable.includes(normalizedQuery))
+      return matchesCategory && matchesDuration && matchesStrands && matchesSaved && (!normalizedQuery || searchable.includes(normalizedQuery))
     })
 
     return [...filtered].sort((left, right) => {
@@ -130,7 +125,7 @@ function StudentProgrammeCataloguePage({ initialCatalogue, matchContext = [] }: 
 
       return left.name.localeCompare(right.name)
     })
-  }, [catalogue, durationFilter, query, savedOnly, savedProgrammeIds, selectedCategories, selectedRiasecAreas, selectedStrands, sortBy])
+  }, [catalogue, durationFilter, query, savedOnly, savedProgrammeIds, selectedCategories, selectedStrands, sortBy])
   const displayedProgrammes = visibleProgrammes.slice(0, visibleCount)
   const comparisonProgrammes = (catalogue?.programmes ?? []).filter((programme) => comparisonIds.has(programme.id))
 
@@ -221,7 +216,7 @@ function StudentProgrammeCataloguePage({ initialCatalogue, matchContext = [] }: 
             </div>
             <button
               type="button"
-              onClick={() => { setSelectedCategories([]); setSelectedStrands([]); setSelectedRiasecAreas([]); setDurationFilter('all'); setSavedOnly(false); setQuery(''); setVisibleCount(programmesPerBatch) }}
+              onClick={() => { setSelectedCategories([]); setSelectedStrands([]); setDurationFilter('all'); setSavedOnly(false); setQuery(''); setVisibleCount(programmesPerBatch) }}
               className="min-h-11 text-sm font-semibold text-primary hover:underline"
             >
               Clear all
@@ -285,25 +280,6 @@ function StudentProgrammeCataloguePage({ initialCatalogue, matchContext = [] }: 
                     className="size-5 rounded accent-primary"
                   />
                   {strand}
-                </label>
-              ))}
-            </div>
-          </fieldset>
-          <fieldset className="mt-6 border-t border-outline-variant/50 pt-6">
-            <legend className="font-label text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">RIASEC area</legend>
-            <div className="mt-3 grid grid-cols-3 gap-2">
-              {riasecOptions.map((area) => (
-                <label key={area} className="flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-lg bg-card px-2 text-sm font-semibold">
-                  <input
-                    type="checkbox"
-                    checked={selectedRiasecAreas.includes(area)}
-                    onChange={() => {
-                      setSelectedRiasecAreas((current) => current.includes(area) ? current.filter((item) => item !== area) : [...current, area])
-                      setVisibleCount(programmesPerBatch)
-                    }}
-                    className="size-4 rounded accent-primary"
-                  />
-                  {area}
                 </label>
               ))}
             </div>
@@ -441,6 +417,7 @@ function ProgrammeCard({
 }) {
   const fallback = getProgrammeImages(programme.id)
   const cover = programme.coverImageUrl || fallback.cover
+  const coverStyle = programme.coverImageUrl ? programmeMediaStyle(programme.coverImagePosition) : undefined
   const category = categoryDefinitions.find((definition) => definition.ids.includes(programme.id))
 
   return (
@@ -448,7 +425,7 @@ function ProgrammeCard({
       <button type="button" onClick={onSelect} aria-label={`View programme details: ${programme.name}`} className="absolute inset-0 z-10 rounded-xl focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-inset focus-visible:ring-ring/40" />
       <div className="relative flex h-40 items-center justify-center overflow-hidden bg-secondary">
         {cover ? (
-          <img src={cover} alt={`${programme.name} programme`} loading={priority ? 'eager' : 'lazy'} fetchPriority={priority ? 'high' : 'auto'} decoding="async" className="absolute inset-0 size-full object-cover transition-transform duration-300 group-hover:scale-105" />
+          <img src={cover} alt={`${programme.name} programme`} loading={priority ? 'eager' : 'lazy'} fetchPriority={priority ? 'high' : 'auto'} decoding="async" style={coverStyle} className={`absolute inset-0 size-full object-cover transition-transform duration-300 ${coverStyle ? '' : 'group-hover:scale-105'}`} />
         ) : (
           <>
             <span className="programme-monogram">{programme.code.slice(0, 4)}</span>
@@ -528,11 +505,13 @@ function StudentProgrammeDetail({ programme, academicYear, onBack }: { programme
   const fallback = getProgrammeImages(programme.id)
   const cover = programme.coverImageUrl || fallback.cover
   const logo = programme.logoImageUrl || fallback.logo
+  const coverStyle = programme.coverImageUrl ? programmeMediaStyle(programme.coverImagePosition) : undefined
+  const logoStyle = programme.logoImageUrl ? programmeMediaStyle(programme.logoImagePosition) : undefined
 
   return (
     <article className="pb-10">
       <header className="relative isolate min-h-[24rem] overflow-hidden bg-primary-fixed/45">
-        {cover ? <img src={cover} alt="" className="absolute inset-0 -z-20 size-full object-cover object-center" /> : null}
+        {cover ? <img src={cover} alt="" style={coverStyle} className="absolute inset-0 -z-20 size-full object-cover object-center" /> : null}
         <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-r from-background/90 via-background/50 to-transparent" />
         <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-t from-background via-background/20 to-transparent" />
         <div className="student-page grid min-h-[24rem] items-center gap-8 py-10 lg:grid-cols-[minmax(0,1fr)_12rem] lg:py-14">
@@ -548,7 +527,7 @@ function StudentProgrammeDetail({ programme, academicYear, onBack }: { programme
           <p className="mt-3 max-w-3xl text-base leading-7 text-foreground/70">{programme.description}</p>
         </div>
         {logo ? (
-          <img src={logo} alt={`${programme.name} logo`} className="absolute right-5 top-7 size-20 rounded-xl bg-white/90 object-contain p-2 shadow-sm sm:right-8 sm:size-28 lg:static lg:size-44 lg:justify-self-end" />
+          <img src={logo} alt={`${programme.name} logo`} style={logoStyle} className={`absolute right-5 top-7 size-20 rounded-xl bg-white/90 p-2 shadow-sm sm:right-8 sm:size-28 lg:static lg:size-44 lg:justify-self-end ${logoStyle ? 'object-cover' : 'object-contain'}`} />
         ) : (
           <div className="programme-detail-mark" aria-hidden="true"><DetailIcon className="size-16" /><strong>{programme.code}</strong></div>
         )}

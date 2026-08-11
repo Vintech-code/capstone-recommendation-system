@@ -28,7 +28,7 @@ function mapAssessmentResult(lifecycle: AssessmentLifecycle): AssessmentDisplayR
   return {
     id: `result-${lifecycle.reference ?? lifecycle.id ?? 'current'}`,
     sessionReference: lifecycle.reference ?? String(lifecycle.id ?? 'Unavailable'),
-    assessmentVersion: payload.instrument_code,
+    assessmentVersion: payload.scoring_source ?? payload.instrument_code,
     availableAt: formatAssessmentDate(lifecycle.result_available_at),
     status: 'Available',
     topCode: leading.map((dimension) => dimension.code).join('-'),

@@ -94,7 +94,7 @@ describe('access portals and workspace shell', () => {
     expect(
       await screen.findByRole('heading', {
         level: 1,
-        name: 'My guidance',
+        name: /Turn your assessment into a confident course choice|Start with what genuinely interests you/,
       }),
     ).toBeVisible()
     expect(screen.getByRole('button', { name: 'Go to dashboard' }).querySelector('img')).toHaveAttribute('src', expect.stringMatching(/logo\.png$/))

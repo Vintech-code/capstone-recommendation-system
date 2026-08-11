@@ -1,3 +1,9 @@
+interface ProgrammeMediaPosition {
+  x: number
+  y: number
+  zoom: number
+}
+
 interface StudentProgramme {
   id: string
   name: string
@@ -27,6 +33,8 @@ interface StudentProgramme {
   outlookVersion?: string | null
   coverImageUrl?: string | null
   logoImageUrl?: string | null
+  coverImagePosition?: ProgrammeMediaPosition | null
+  logoImagePosition?: ProgrammeMediaPosition | null
 }
 
 interface StudentProgrammeCatalogue {
@@ -41,4 +49,4 @@ interface StudentProgrammeMatchContext {
   factors: string[]
 }
 
-export type { StudentProgramme, StudentProgrammeCatalogue, StudentProgrammeMatchContext }
+export type { ProgrammeMediaPosition, StudentProgramme, StudentProgrammeCatalogue, StudentProgrammeMatchContext }

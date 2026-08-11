@@ -77,7 +77,7 @@ function RecommendationCourseCard({
       <div className="mt-5">
         <p className="text-xs font-extrabold">Why this option appears</p>
         <ul className="mt-3 space-y-2">
-          {course.factors.map((factor) => (
+          {(course.explanation?.recordedProgrammeAreas.map((area) => `${area.label} recorded score: ${area.score}`) ?? course.factors).map((factor) => (
             <li
               key={factor}
               className="flex items-start gap-2 text-xs leading-5 text-muted-foreground"
