@@ -68,6 +68,8 @@ class CounselorAccountAndProgrammeGovernanceTest extends TestCase
 
         $draft['payload']['programmes'][0]['description'] = 'Updated student-facing programme description.';
         $draft['payload']['programmes'][0]['cover_image_url'] = $media['url'];
+        $draft['payload']['programmes'][0]['cover_image_position'] = ['x' => 65, 'y' => 40, 'zoom' => 1.3];
+        $draft['payload']['programmes'][0]['logo_image_position'] = ['x' => 50, 'y' => 30, 'zoom' => 1.1];
         $draft['payload']['programmes'][0]['degree_type'] = 'Tampered value';
         $draft['payload']['programmes'][0]['duration'] = ['display' => '99 years'];
 
@@ -83,6 +85,10 @@ class CounselorAccountAndProgrammeGovernanceTest extends TestCase
             ->assertOk()
             ->assertJsonPath('data.description', 'Updated student-facing programme description.')
             ->assertJsonPath('data.coverImageUrl', $media['url'])
+            ->assertJsonPath('data.coverImagePosition.x', 65)
+            ->assertJsonPath('data.coverImagePosition.y', 40)
+            ->assertJsonPath('data.coverImagePosition.zoom', 1.3)
+            ->assertJsonPath('data.logoImagePosition.y', 30)
             ->assertJsonPath('data.degreeType', "Bachelor's degree")
             ->assertJsonPath('data.duration.display', '4 years');
     }

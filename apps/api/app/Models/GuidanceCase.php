@@ -25,6 +25,11 @@ class GuidanceCase extends Model
         return $this->hasMany(GuidanceNote::class);
     }
 
+    public function summaries(): HasMany
+    {
+        return $this->hasMany(GuidanceSummary::class);
+    }
+
     protected function casts(): array
     {
         return ['follow_up_on' => 'date'];

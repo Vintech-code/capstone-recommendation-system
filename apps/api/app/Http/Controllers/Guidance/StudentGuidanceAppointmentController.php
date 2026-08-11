@@ -7,6 +7,8 @@ use App\Models\AdminAuditEvent;
 use App\Models\GuidanceAppointment;
 use App\Models\GuidanceAppointmentEvent;
 use App\Models\GuidanceRequest;
+use App\Services\Notifications\NotificationPolicyScheduler;
+use App\Services\Notifications\PathwaysNotifier;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -27,15 +29,17 @@ final class StudentGuidanceAppointmentController extends Controller
         return response()->json(['data' => $appointments]);
     }
 
-    public function confirm(Request $request, GuidanceAppointment $guidanceAppointment): JsonResponse
+    public function confirm(Request $request, GuidanceAppointment $guidanceAppointment, PathwaysNotifier $notifier, NotificationPolicyScheduler $notificationPolicies): JsonResponse
     {
         $this->assertOwnedBy($request, $guidanceAppointment);
 
-        $appointment = DB::transaction(function () use ($request, $guidanceAppointment): GuidanceAppointment {
+        $newlyConfirmed = false;
+        $appointment = DB::transaction(function () use ($request, $guidanceAppointment, &$newlyConfirmed): GuidanceAppointment {
             $appointment = GuidanceAppointment::query()->lockForUpdate()->findOrFail($guidanceAppointment->getKey());
             abort_unless($appointment->status === 'scheduled', 409, 'Only a scheduled appointment can be confirmed.');
 
             if ($appointment->student_confirmed_at === null) {
+                $newlyConfirmed = true;
                 $appointment->update(['student_confirmed_at' => now()]);
                 $appointment->events()->create([
                     'actor_id' => $request->user()->getKey(),
@@ -51,10 +55,22 @@ final class StudentGuidanceAppointmentController extends Controller
             return $appointment;
         });
 
+        $appointment->loadMissing('counselor:id,name,email');
+        $notificationPolicies->refreshAppointmentReminders($appointment);
+        if ($newlyConfirmed && $appointment->counselor !== null) {
+            $notifier->notify(
+                $appointment->counselor,
+                'appointment_student_confirmed',
+                'Student confirmed appointment',
+                'A student confirmed the guidance appointment schedule.',
+                ['appointmentId' => $appointment->getKey(), 'studentId' => $appointment->student_id],
+            );
+        }
+
         return response()->json(['data' => $this->payload($appointment->load(['counselor:id,name', 'events.actor:id,name']))]);
     }
 
-    public function cancel(Request $request, GuidanceAppointment $guidanceAppointment): JsonResponse
+    public function cancel(Request $request, GuidanceAppointment $guidanceAppointment, PathwaysNotifier $notifier, NotificationPolicyScheduler $notificationPolicies): JsonResponse
     {
         $this->assertOwnedBy($request, $guidanceAppointment);
         $validated = $request->validate(['reason' => ['required', 'string', 'min:3', 'max:1000']]);
@@ -99,6 +115,18 @@ final class StudentGuidanceAppointmentController extends Controller
 
             return $appointment;
         });
+
+        $appointment->loadMissing('counselor:id,name,email');
+        $notificationPolicies->refreshAppointmentReminders($appointment);
+        if ($appointment->counselor !== null) {
+            $notifier->notify(
+                $appointment->counselor,
+                'appointment_cancelled_by_student',
+                'Student cancelled appointment',
+                'A student cancelled a scheduled guidance appointment. Review the recorded reason.',
+                ['appointmentId' => $appointment->getKey(), 'studentId' => $appointment->student_id],
+            );
+        }
 
         return response()->json(['data' => $this->payload($appointment->load(['counselor:id,name', 'events.actor:id,name']))]);
     }

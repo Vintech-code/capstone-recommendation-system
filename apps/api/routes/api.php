@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\AdminCounselorAccountController;
 use App\Http\Controllers\Admin\AdminGuidanceController;
 use App\Http\Controllers\Admin\AdminGuidanceRequestController;
 use App\Http\Controllers\Admin\AdminProgrammeMediaController;
+use App\Http\Controllers\Admin\AdminProgrammeSourceController;
 use App\Http\Controllers\Admin\AdminWorkspaceController;
 use App\Http\Controllers\Assessment\AssessmentSessionController;
 use App\Http\Controllers\Assessment\OnetInterestProfilerController;
@@ -14,8 +15,11 @@ use App\Http\Controllers\Auth\PasswordChangeController;
 use App\Http\Controllers\Auth\PasswordRecoveryController;
 use App\Http\Controllers\Auth\PortalAccessController;
 use App\Http\Controllers\Auth\RegisteredStudentController;
+use App\Http\Controllers\Guidance\CounselorAvailabilityController;
 use App\Http\Controllers\Guidance\StudentGuidanceAppointmentController;
 use App\Http\Controllers\Guidance\StudentGuidanceRequestController;
+use App\Http\Controllers\Guidance\StudentGuidanceSummaryController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Recommendation\StudentProgrammeController;
 use App\Http\Controllers\Recommendation\StudentRecommendationController;
 use App\Http\Controllers\Recommendation\StudentSavedProgrammeController;
@@ -109,6 +113,16 @@ Route::prefix('v1/student/profile')
 Route::get('v1/profile-photos/{student}', [StudentProfileController::class, 'showPhoto'])
     ->middleware(['auth:sanctum', 'active']);
 
+Route::prefix('v1/notifications')
+    ->middleware(['auth:sanctum', 'active'])
+    ->group(function (): void {
+        Route::get('/', [NotificationController::class, 'index']);
+        Route::post('/{notification}/read', [NotificationController::class, 'markRead']);
+    });
+
+Route::get('v1/student/guidance-summaries', [StudentGuidanceSummaryController::class, 'index'])
+    ->middleware(['auth:sanctum', 'active', 'role:student']);
+
 Route::prefix('v1/admin')
     ->middleware(['auth:sanctum', 'active', 'role:admin'])
     ->group(function (): void {
@@ -130,17 +144,26 @@ Route::prefix('v1/admin')
         Route::get('/configurations/{kind}', [AdminConfigurationController::class, 'index']);
         Route::post('/configurations/{kind}', [AdminConfigurationController::class, 'store']);
         Route::put('/configurations/versions/{configurationVersion}', [AdminConfigurationController::class, 'update']);
+        Route::post('/configurations/versions/{configurationVersion}/preview', [AdminConfigurationController::class, 'preview']);
         Route::post('/configurations/versions/{configurationVersion}/publish', [AdminConfigurationController::class, 'publish']);
+        Route::post('/configurations/versions/{configurationVersion}/rollback', [AdminConfigurationController::class, 'rollback']);
+        Route::get('/programme-sources', [AdminProgrammeSourceController::class, 'index']);
+        Route::put('/programme-sources/{sourceReference}', [AdminProgrammeSourceController::class, 'update']);
     });
 
 Route::prefix('v1/counselor')
     ->middleware(['auth:sanctum', 'active', 'role:counselor'])
     ->group(function (): void {
+        Route::get('/availability', [CounselorAvailabilityController::class, 'show']);
+        Route::put('/availability', [CounselorAvailabilityController::class, 'update']);
         Route::get('/overview', [AdminWorkspaceController::class, 'overview']);
         Route::get('/students', [AdminWorkspaceController::class, 'students']);
         Route::get('/students/{student}', [AdminWorkspaceController::class, 'student']);
         Route::put('/students/{student}/guidance-case', [AdminGuidanceController::class, 'updateCase']);
         Route::post('/students/{student}/guidance-notes', [AdminGuidanceController::class, 'storeNote']);
+        Route::post('/students/{student}/guidance-summaries', [AdminGuidanceController::class, 'storeSummary']);
+        Route::put('/students/{student}/guidance-summaries/{guidanceSummary}', [AdminGuidanceController::class, 'updateSummary']);
+        Route::post('/students/{student}/guidance-summaries/{guidanceSummary}/publish', [AdminGuidanceController::class, 'publishSummary']);
         Route::get('/counselors', [AdminWorkspaceController::class, 'counselors']);
         Route::get('/appointments', [AdminAppointmentController::class, 'index']);
         Route::get('/guidance-requests', [AdminGuidanceRequestController::class, 'index']);

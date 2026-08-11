@@ -51,6 +51,7 @@ class TccProgrammeCatalogueRepository
                 'learning_areas', 'learning_area_descriptions', 'learning_area_topics',
                 'career_directions', 'recommended_strands', 'strand_guidance',
                 'requirements', 'readiness_prompt', 'cover_image_url', 'logo_image_url',
+                'cover_image_position', 'logo_image_position',
             ]));
 
             $merged = array_merge($programme, $details, $editable, [

@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\AdminAuditEvent;
 use App\Models\ConfigurationVersion;
+use App\Services\Notifications\NotificationPolicyScheduler;
+use App\Services\Recommendation\ProgrammeSourceRegistry;
 use App\Services\Recommendation\TccProgrammeCatalogueRepository;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -13,8 +15,11 @@ use Illuminate\Validation\ValidationException;
 
 final class AdminConfigurationController extends Controller
 {
-    public function index(string $kind, TccProgrammeCatalogueRepository $catalogues): JsonResponse
-    {
+    public function index(
+        string $kind,
+        TccProgrammeCatalogueRepository $catalogues,
+        ProgrammeSourceRegistry $sources,
+    ): JsonResponse {
         $this->ensureKind($kind);
         $current = $catalogues->current();
         $versions = ConfigurationVersion::query()
@@ -24,11 +29,16 @@ final class AdminConfigurationController extends Controller
             ->get()
             ->map(fn (ConfigurationVersion $version): array => $this->payload($version));
 
-        return response()->json(['data' => [
+        $workspace = [
             'kind' => $kind,
             'runtime' => $kind === 'catalogue' ? $current : $current['matching_policy'],
             'versions' => $versions,
-        ]]);
+        ];
+        if ($kind === 'catalogue') {
+            $workspace['sourceRegistry'] = $sources->entries($current);
+        }
+
+        return response()->json(['data' => $workspace]);
     }
 
     public function store(Request $request, string $kind, TccProgrammeCatalogueRepository $catalogues): JsonResponse
@@ -79,10 +89,15 @@ final class AdminConfigurationController extends Controller
         return response()->json(['data' => $this->payload($configurationVersion->fresh('creator:id,name'))]);
     }
 
-    public function publish(Request $request, ConfigurationVersion $configurationVersion): JsonResponse
+    public function publish(Request $request, ConfigurationVersion $configurationVersion, NotificationPolicyScheduler $notificationPolicies): JsonResponse
     {
         abort_unless($configurationVersion->status === 'draft', 409, 'Only a draft configuration can be published.');
         $this->validatePayload($configurationVersion->kind, $configurationVersion->payload);
+
+        $previousPayload = ConfigurationVersion::query()
+            ->where('kind', $configurationVersion->kind)
+            ->where('status', 'published')
+            ->value('payload');
 
         DB::transaction(function () use ($configurationVersion, $request): void {
             ConfigurationVersion::query()
@@ -97,7 +112,62 @@ final class AdminConfigurationController extends Controller
             $this->audit($request, 'configuration.published', $configurationVersion);
         });
 
+        try {
+            $notificationPolicies->queuePublishedProgrammeUpdates(
+                $configurationVersion->fresh(),
+                is_array($previousPayload) ? $previousPayload : null,
+            );
+        } catch (\Throwable $exception) {
+            report($exception);
+        }
+
         return response()->json(['data' => $this->payload($configurationVersion->fresh(['creator:id,name', 'publisher:id,name']))]);
+    }
+
+    public function preview(
+        Request $request,
+        ConfigurationVersion $configurationVersion,
+        TccProgrammeCatalogueRepository $catalogues,
+    ): JsonResponse {
+        abort_unless($configurationVersion->status === 'draft', 409, 'Only a draft configuration can be previewed.');
+        $validated = $request->validate(['payload' => ['sometimes', 'array']]);
+        $payload = $validated['payload'] ?? $configurationVersion->payload;
+        if ($configurationVersion->kind === 'catalogue') {
+            $payload = $this->preserveApiFields($payload, $catalogues->current());
+        }
+        $this->validatePayload($configurationVersion->kind, $payload);
+
+        return response()->json(['data' => $this->diff(
+            $configurationVersion->kind === 'catalogue' ? $catalogues->current() : $catalogues->current()['matching_policy'],
+            $payload,
+        )]);
+    }
+
+    public function rollback(Request $request, ConfigurationVersion $configurationVersion): JsonResponse
+    {
+        abort_unless(in_array($configurationVersion->status, ['published', 'archived'], true), 409, 'Only a published or archived version can be restored.');
+        abort_if(
+            ConfigurationVersion::query()->where('kind', $configurationVersion->kind)->where('status', 'draft')->exists(),
+            409,
+            'Resolve the existing draft before restoring a historical version.',
+        );
+        $currentPublished = ConfigurationVersion::query()
+            ->where('kind', $configurationVersion->kind)
+            ->where('status', 'published')
+            ->value('id');
+        abort_if($currentPublished === $configurationVersion->getKey(), 409, 'This version is already published.');
+
+        $draft = ConfigurationVersion::query()->create([
+            'kind' => $configurationVersion->kind,
+            'version' => ((int) ConfigurationVersion::query()->where('kind', $configurationVersion->kind)->max('version')) + 1,
+            'status' => 'draft',
+            'academic_year' => $configurationVersion->academic_year,
+            'payload' => $configurationVersion->payload,
+            'created_by' => $request->user()->getKey(),
+        ]);
+        $this->audit($request, 'configuration.rollback_draft_created', $draft, $configurationVersion->version);
+
+        return response()->json(['data' => $this->payload($draft->load('creator:id,name'))], 201);
     }
 
     private function ensureKind(string $kind): void
@@ -134,10 +204,29 @@ final class AdminConfigurationController extends Controller
                 if (! is_array($profile) || $profile === [] || array_diff($profile, ['R', 'I', 'A', 'S', 'E', 'C']) !== []) {
                     throw ValidationException::withMessages(['payload.programmes' => 'Every programme requires a valid RIASEC profile.']);
                 }
+                foreach (['cover_image_position', 'logo_image_position'] as $field) {
+                    if (isset($programme[$field]) && ! $this->validMediaPosition($programme[$field])) {
+                        throw ValidationException::withMessages(["payload.programmes.{$field}" => 'Image framing requires x and y values from 0 to 100 and zoom from 1 to 2.5.']);
+                    }
+                }
             }
         } elseif (! isset($payload['method'], $payload['normalization'], $payload['tie_break'], $payload['display'])) {
             throw ValidationException::withMessages(['payload' => 'The methodology payload is incomplete.']);
         }
+    }
+
+    private function validMediaPosition(mixed $position): bool
+    {
+        return is_array($position)
+            && is_numeric($position['x'] ?? null)
+            && is_numeric($position['y'] ?? null)
+            && is_numeric($position['zoom'] ?? null)
+            && (float) $position['x'] >= 0
+            && (float) $position['x'] <= 100
+            && (float) $position['y'] >= 0
+            && (float) $position['y'] <= 100
+            && (float) $position['zoom'] >= 1
+            && (float) $position['zoom'] <= 2.5;
     }
 
     /** @return array<string, mixed> */
@@ -155,6 +244,46 @@ final class AdminConfigurationController extends Controller
             'createdAt' => $version->created_at?->toAtomString(),
             'publishedAt' => $version->published_at?->toAtomString(),
         ];
+    }
+
+    /** @param array<string, mixed> $baseline @param array<string, mixed> $candidate @return array<string, mixed> */
+    private function diff(array $baseline, array $candidate): array
+    {
+        $changedSections = collect(array_unique([...array_keys($baseline), ...array_keys($candidate)]))
+            ->filter(fn (string $key): bool => $this->different($baseline[$key] ?? null, $candidate[$key] ?? null))
+            ->values()
+            ->all();
+        $baselineProgrammes = collect($baseline['programmes'] ?? [])->keyBy('id');
+        $candidateProgrammes = collect($candidate['programmes'] ?? [])->keyBy('id');
+        $programmeChanges = $candidateProgrammes->map(function (array $programme, string $id) use ($baselineProgrammes): array {
+            $before = $baselineProgrammes->get($id, []);
+            $fields = collect(array_unique([...array_keys($before), ...array_keys($programme)]))
+                ->filter(fn (string $field): bool => $this->different($before[$field] ?? null, $programme[$field] ?? null))
+                ->map(fn (string $field): array => [
+                    'field' => $field,
+                    'before' => $before[$field] ?? null,
+                    'after' => $programme[$field] ?? null,
+                ])->values()->all();
+
+            return [
+                'programmeId' => $id,
+                'code' => $programme['short_label'] ?? null,
+                'name' => $programme['display_name'] ?? null,
+                'fields' => $fields,
+            ];
+        })->filter(fn (array $change): bool => $change['fields'] !== [])->values()->all();
+
+        return [
+            'hasChanges' => $changedSections !== [],
+            'changedSections' => $changedSections,
+            'changedProgrammeCount' => count($programmeChanges),
+            'programmeChanges' => $programmeChanges,
+        ];
+    }
+
+    private function different(mixed $before, mixed $after): bool
+    {
+        return json_encode($before, JSON_THROW_ON_ERROR) !== json_encode($after, JSON_THROW_ON_ERROR);
     }
 
     private function audit(Request $request, string $action, ConfigurationVersion $version, ?int $sourceVersion = null): void

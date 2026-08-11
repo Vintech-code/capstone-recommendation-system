@@ -143,6 +143,8 @@ final class StudentRecommendationController extends Controller
             'outlookVersion' => $course['outlook_version'] ?? null,
             'coverImageUrl' => $course['cover_image_url'] ?? null,
             'logoImageUrl' => $course['logo_image_url'] ?? null,
+            'coverImagePosition' => $course['cover_image_position'] ?? null,
+            'logoImagePosition' => $course['logo_image_position'] ?? null,
             'catalogueSnapshotVersion' => 1,
         ];
     }
@@ -179,9 +181,18 @@ final class StudentRecommendationController extends Controller
                 'outlookVersion' => $programme['outlook_version'] ?? null,
                 'coverImageUrl' => $programme['cover_image_url'] ?? null,
                 'logoImageUrl' => $programme['logo_image_url'] ?? null,
+                'coverImagePosition' => $programme['cover_image_position'] ?? null,
+                'logoImagePosition' => $programme['logo_image_position'] ?? null,
             ]);
         }, $courses);
         $visibleCourses = $viewAll ? $courses : array_slice($courses, 0, $run->default_count);
+        $profile = $this->profilePayload($session, $entries);
+        $visibleCourses = array_map(
+            fn (array $course): array => array_merge($course, [
+                'explanation' => $this->explanationPayload($course, $profile),
+            ]),
+            $visibleCourses,
+        );
 
         return [
             'id' => 'REC-'.str_pad((string) $run->getKey(), 6, '0', STR_PAD_LEFT),
@@ -195,8 +206,56 @@ final class StudentRecommendationController extends Controller
             'canViewAll' => $run->total_eligible > $run->default_count,
             'showingAll' => $viewAll,
             'guidanceContentStatus' => 'proposed',
-            'profile' => $this->profilePayload($session, $entries),
+            'profile' => $profile,
             'courses' => $visibleCourses,
+        ];
+    }
+
+    /**
+     * Build an explanation from recorded assessment values and the versioned
+     * programme catalogue only. No additional interpretation or threshold is
+     * introduced here.
+     *
+     * @param  array<string, mixed>  $course
+     * @param  array<string, mixed>  $profile
+     * @return array<string, mixed>
+     */
+    private function explanationPayload(array $course, array $profile): array
+    {
+        $dimensions = collect($profile['dimensions'] ?? [])->keyBy('code');
+        $programmeAreas = array_values(array_filter(
+            $course['interestAreas'] ?? [],
+            static fn (mixed $area): bool => is_string($area) && $area !== '',
+        ));
+        $recordedProgrammeAreas = collect($programmeAreas)
+            ->map(function (string $code) use ($dimensions): ?array {
+                $dimension = $dimensions->get($code);
+
+                return is_array($dimension) ? [
+                    'code' => $code,
+                    'label' => $dimension['label'],
+                    'score' => $dimension['value'],
+                ] : null;
+            })
+            ->filter()
+            ->values()
+            ->all();
+        $topCodes = collect(explode('-', (string) ($profile['topCode'] ?? '')))
+            ->filter();
+
+        return [
+            'assessmentReference' => $profile['sessionReference'] ?? null,
+            'recordedProfileCode' => $profile['topCode'] ?? '',
+            'programmeInterestAreas' => $programmeAreas,
+            'sharedTopAreas' => collect($recordedProgrammeAreas)
+                ->filter(fn (array $area): bool => $topCodes->contains($area['code']))
+                ->values()
+                ->all(),
+            'recordedProgrammeAreas' => $recordedProgrammeAreas,
+            'learningAreas' => array_values(array_filter(
+                $course['learningAreas'] ?? [],
+                static fn (mixed $area): bool => is_string($area) && $area !== '',
+            )),
         ];
     }
 

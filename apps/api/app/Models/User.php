@@ -76,6 +76,12 @@ class User extends Authenticatable
         return $this->hasMany(GuidanceRequest::class, 'student_id');
     }
 
+    /** @return HasMany<GuidanceCase, $this> */
+    public function guidanceCases(): HasMany
+    {
+        return $this->hasMany(GuidanceCase::class, 'student_id');
+    }
+
     public function hasRole(RoleSlug $role): bool
     {
         return $this->roles->contains('slug', $role->value);

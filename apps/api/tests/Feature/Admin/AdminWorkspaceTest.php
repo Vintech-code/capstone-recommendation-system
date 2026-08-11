@@ -5,6 +5,7 @@ namespace Tests\Feature\Admin;
 use App\Models\AdminAuditEvent;
 use App\Models\AssessmentSession;
 use App\Models\ConfigurationVersion;
+use App\Models\CounselorAvailabilityWindow;
 use App\Models\GuidanceCase;
 use App\Models\GuidanceRequest;
 use App\Models\RecommendationRun;
@@ -250,6 +251,7 @@ class AdminWorkspaceTest extends TestCase
         [$admin, $student] = $this->createAdminAndStudent();
         $counselor = User::factory()->create(['name' => 'Course Counselor']);
         $counselor->roles()->attach($this->counselorRole());
+        $this->configureAvailability($counselor);
 
         $this->actingAs($admin)->postJson('/api/v1/admin/appointments', [])->assertStatus(405);
 
@@ -304,6 +306,7 @@ class AdminWorkspaceTest extends TestCase
         [, $student] = $this->createAdminAndStudent();
         $counselor = User::factory()->create(['name' => 'Schedule Owner']);
         $counselor->roles()->attach($this->counselorRole());
+        $this->configureAvailability($counselor);
         $payload = [
             'studentId' => $student->getKey(),
             'counselorId' => $counselor->getKey(),
@@ -350,11 +353,83 @@ class AdminWorkspaceTest extends TestCase
             ->assertJsonPath('message', 'Completed, cancelled, and no-show appointments are immutable.');
     }
 
+    public function test_counselor_configures_availability_before_scheduling_and_rescheduling(): void
+    {
+        [$admin, $student] = $this->createAdminAndStudent();
+        $counselor = User::factory()->create(['name' => 'Availability Owner', 'account_status' => 'active']);
+        $counselor->roles()->attach($this->counselorRole());
+        $payload = [
+            'studentId' => $student->getKey(),
+            'counselorId' => $counselor->getKey(),
+            'scheduledAt' => '2026-08-20T09:30:00+08:00',
+            'endsAt' => '2026-08-20T10:30:00+08:00',
+            'topic' => 'Review course choices',
+        ];
+
+        $this->actingAs($counselor)
+            ->getJson('/api/v1/counselor/availability')
+            ->assertOk()
+            ->assertJsonPath('data.configured', false)
+            ->assertJsonPath('data.timezone', 'Asia/Manila')
+            ->assertJsonCount(0, 'data.windows');
+
+        $this->postJson('/api/v1/counselor/appointments', $payload)
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('scheduledAt');
+
+        $this->putJson('/api/v1/counselor/availability', [
+            'timezone' => 'Asia/Manila',
+            'windows' => [
+                ['weekday' => 4, 'startsAt' => '09:00', 'endsAt' => '12:00'],
+                ['weekday' => 4, 'startsAt' => '11:00', 'endsAt' => '13:00'],
+            ],
+        ])->assertUnprocessable()->assertJsonValidationErrors('windows');
+
+        $this->putJson('/api/v1/counselor/availability', [
+            'timezone' => 'Asia/Manila',
+            'windows' => [['weekday' => 4, 'startsAt' => '09:00', 'endsAt' => '12:00']],
+        ])
+            ->assertOk()
+            ->assertJsonPath('data.configured', true)
+            ->assertJsonPath('data.windows.0.weekday', 4)
+            ->assertJsonPath('data.windows.0.startsAt', '09:00');
+
+        $this->postJson('/api/v1/counselor/appointments', [
+            ...$payload,
+            'scheduledAt' => '2026-08-20T08:00:00+08:00',
+            'endsAt' => '2026-08-20T09:00:00+08:00',
+        ])->assertUnprocessable()->assertJsonValidationErrors('scheduledAt');
+
+        $appointment = $this->postJson('/api/v1/counselor/appointments', $payload)
+            ->assertCreated()
+            ->json('data');
+
+        $this->putJson("/api/v1/counselor/appointments/{$appointment['id']}", [
+            ...$payload,
+            'scheduledAt' => '2026-08-20T12:00:00+08:00',
+            'endsAt' => '2026-08-20T13:00:00+08:00',
+            'status' => 'scheduled',
+        ])->assertUnprocessable()->assertJsonValidationErrors('scheduledAt');
+
+        $this->putJson("/api/v1/counselor/appointments/{$appointment['id']}", [
+            ...$payload,
+            'scheduledAt' => '2026-08-20T10:00:00+08:00',
+            'endsAt' => '2026-08-20T11:00:00+08:00',
+            'status' => 'scheduled',
+        ])
+            ->assertOk()
+            ->assertJsonPath('data.statusHistory.1.eventType', 'rescheduled');
+
+        $this->assertDatabaseHas('admin_audit_events', ['action' => 'counselor_availability.updated']);
+        $this->actingAs($admin)->getJson('/api/v1/counselor/availability')->assertForbidden();
+    }
+
     public function test_student_guidance_request_enters_the_admin_queue_and_is_linked_to_an_appointment(): void
     {
         [$admin, $student] = $this->createAdminAndStudent();
         $counselor = User::factory()->create(['name' => 'Course Counselor']);
         $counselor->roles()->attach($this->counselorRole());
+        $this->configureAvailability($counselor);
 
         $request = $this->actingAs($student)->postJson('/api/v1/student/guidance-requests', [
             'programmeId' => 'bs-information-technology',
@@ -427,6 +502,8 @@ class AdminWorkspaceTest extends TestCase
         $secondCounselor = User::factory()->create(['name' => 'Second Counselor']);
         $firstCounselor->roles()->attach($this->counselorRole());
         $secondCounselor->roles()->attach($this->counselorRole());
+        $this->configureAvailability($firstCounselor);
+        $this->configureAvailability($secondCounselor);
 
         $request = $this->actingAs($student)->postJson('/api/v1/student/guidance-requests', [
             'concernCategory' => 'course_requirements',
@@ -536,6 +613,7 @@ class AdminWorkspaceTest extends TestCase
         $otherStudent->roles()->attach(Role::query()->where('slug', RoleSlug::Student->value)->firstOrFail());
         $counselor = User::factory()->create(['name' => 'Student Appointment Counselor']);
         $counselor->roles()->attach($this->counselorRole());
+        $this->configureAvailability($counselor);
         $startsAt = now()->addDays(7)->setTime(9, 0);
         $endsAt = $startsAt->copy()->addHour();
 
@@ -656,5 +734,18 @@ class AdminWorkspaceTest extends TestCase
             ['slug' => RoleSlug::Counselor->value],
             ['name' => 'Counselor'],
         );
+    }
+
+    private function configureAvailability(User $counselor): void
+    {
+        foreach (range(0, 6) as $weekday) {
+            CounselorAvailabilityWindow::query()->create([
+                'counselor_id' => $counselor->getKey(),
+                'weekday' => $weekday,
+                'starts_at' => '00:00',
+                'ends_at' => '23:59',
+                'timezone' => 'Asia/Manila',
+            ]);
+        }
     }
 }

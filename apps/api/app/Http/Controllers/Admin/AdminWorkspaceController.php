@@ -106,7 +106,11 @@ final class AdminWorkspaceController extends Controller
             ));
         $guidanceCase = GuidanceCase::query()
             ->where('student_id', $student->getKey())
-            ->with(['assignedTo:id,name', 'notes' => static fn ($query) => $query->with('author:id,name')->latest()])
+            ->with([
+                'assignedTo:id,name',
+                'notes' => static fn ($query) => $query->with('author:id,name')->latest(),
+                'summaries' => static fn ($query) => $query->with(['author:id,name', 'publishedBy:id,name'])->latest(),
+            ])
             ->first();
 
         return response()->json(['data' => [
@@ -127,6 +131,16 @@ final class AdminWorkspaceController extends Controller
                     'body' => $note->body,
                     'author' => $note->author?->name,
                     'createdAt' => $note->created_at?->toAtomString(),
+                ]),
+                'summaries' => $guidanceCase->summaries->map(static fn ($summary): array => [
+                    'id' => $summary->getKey(),
+                    'body' => $summary->body,
+                    'author' => $summary->author?->name,
+                    'status' => $summary->published_at === null ? 'draft' : 'published',
+                    'publishedBy' => $summary->publishedBy?->name,
+                    'publishedAt' => $summary->published_at?->toAtomString(),
+                    'createdAt' => $summary->created_at?->toAtomString(),
+                    'updatedAt' => $summary->updated_at?->toAtomString(),
                 ]),
             ] : null,
         ]]);

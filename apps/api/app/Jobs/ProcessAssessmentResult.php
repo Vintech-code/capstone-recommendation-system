@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\AssessmentSession;
+use App\Services\Notifications\PathwaysNotifier;
 use App\Services\Onet\OnetInterestProfilerClient;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -36,6 +37,17 @@ class ProcessAssessmentResult implements ShouldQueue
             'processing_error_code' => null,
             'processing_failed_at' => null,
         ])->save();
+
+        $session->loadMissing('user:id,name,email');
+        if ($session->user !== null) {
+            app(PathwaysNotifier::class)->notify(
+                $session->user,
+                'assessment_result_ready',
+                'Assessment result ready',
+                'Your completed interest assessment result and programme matches are ready to review.',
+                ['assessmentSessionId' => $session->getKey(), 'attemptNumber' => $session->attempt_number],
+            );
+        }
     }
 
     public function failed(?Throwable $exception): void

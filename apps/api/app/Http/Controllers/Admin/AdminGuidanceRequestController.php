@@ -7,6 +7,7 @@ use App\Models\AdminAuditEvent;
 use App\Models\GuidanceRequest;
 use App\Models\GuidanceRequestEvent;
 use App\Models\RoleSlug;
+use App\Services\Notifications\PathwaysNotifier;
 use App\Services\Recommendation\TccProgrammeCatalogueRepository;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -64,7 +65,7 @@ final class AdminGuidanceRequestController extends Controller
         return response()->json(['data' => $requests]);
     }
 
-    public function decline(Request $request, GuidanceRequest $guidanceRequest): JsonResponse
+    public function decline(Request $request, GuidanceRequest $guidanceRequest, PathwaysNotifier $notifier): JsonResponse
     {
         $validated = $request->validate(['reason' => ['required', 'string', 'min:3', 'max:1000']]);
 
@@ -95,6 +96,15 @@ final class AdminGuidanceRequestController extends Controller
         });
 
         $guidanceRequest->load(['student:id,name,email', 'acceptedBy:id,name', 'events.actor:id,name']);
+        if ($guidanceRequest->student !== null) {
+            $notifier->notify(
+                $guidanceRequest->student,
+                'guidance_request_declined',
+                'Guidance request update',
+                'Your guidance request was declined. Review the recorded reason in your guidance request.',
+                ['guidanceRequestId' => $guidanceRequest->getKey()],
+            );
+        }
 
         return response()->json(['data' => [
             'id' => $guidanceRequest->getKey(),

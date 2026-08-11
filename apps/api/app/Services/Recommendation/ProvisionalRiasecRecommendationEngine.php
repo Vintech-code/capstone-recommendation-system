@@ -94,6 +94,8 @@ final class ProvisionalRiasecRecommendationEngine
                 'outlook_version' => $programme['outlook_version'] ?? null,
                 'cover_image_url' => $programme['cover_image_url'] ?? null,
                 'logo_image_url' => $programme['logo_image_url'] ?? null,
+                'cover_image_position' => $programme['cover_image_position'] ?? null,
+                'logo_image_position' => $programme['logo_image_position'] ?? null,
                 'raw_match' => $match,
                 'match' => round($match, 2),
             ];

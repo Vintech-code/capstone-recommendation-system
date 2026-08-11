@@ -4,11 +4,14 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\AdminAuditEvent;
+use App\Models\CounselorAvailabilityWindow;
 use App\Models\GuidanceAppointment;
 use App\Models\GuidanceAppointmentEvent;
 use App\Models\GuidanceRequest;
 use App\Models\RoleSlug;
 use App\Models\User;
+use App\Services\Notifications\NotificationPolicyScheduler;
+use App\Services\Notifications\PathwaysNotifier;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -30,7 +33,7 @@ final class AdminAppointmentController extends Controller
         return response()->json(['data' => $appointments]);
     }
 
-    public function store(Request $request): JsonResponse
+    public function store(Request $request, PathwaysNotifier $notifier, NotificationPolicyScheduler $notificationPolicies): JsonResponse
     {
         $validated = $request->validate($this->rules(true));
         if ($request->user()->hasRole(RoleSlug::Counselor)) {
@@ -60,8 +63,8 @@ final class AdminAppointmentController extends Controller
                 ]);
             }
 
-            $scheduledAt = CarbonImmutable::parse($validated['scheduledAt']);
-            $endsAt = CarbonImmutable::parse($validated['endsAt']);
+            $scheduledAt = CarbonImmutable::parse($validated['scheduledAt'])->utc();
+            $endsAt = CarbonImmutable::parse($validated['endsAt'])->utc();
             $this->ensureScheduleIsAvailable((int) $validated['counselorId'], $scheduledAt, $endsAt);
 
             $appointment = GuidanceAppointment::query()->create([
@@ -100,11 +103,32 @@ final class AdminAppointmentController extends Controller
         });
 
         $this->audit($request, 'guidance_appointment.created', $appointment);
+        $notificationPolicies->refreshAppointmentReminders($appointment);
+
+        $appointment->loadMissing(['student:id,name,email', 'counselor:id,name,email']);
+        if ($appointment->student !== null) {
+            if (isset($validated['guidanceRequestId'])) {
+                $notifier->notify(
+                    $appointment->student,
+                    'guidance_request_accepted',
+                    'Guidance request accepted',
+                    'A counselor accepted your guidance request.',
+                    ['guidanceRequestId' => (int) $validated['guidanceRequestId']],
+                );
+            }
+            $notifier->notify(
+                $appointment->student,
+                'guidance_request_scheduled',
+                'Guidance appointment scheduled',
+                'A schedule is available for your guidance request. Review the appointment details and confirm it.',
+                ['appointmentId' => $appointment->getKey(), 'guidanceRequestId' => $validated['guidanceRequestId'] ?? null],
+            );
+        }
 
         return response()->json(['data' => $this->payload($appointment->load(['student:id,name,email', 'counselor:id,name,email', 'events.actor:id,name']))], 201);
     }
 
-    public function update(Request $request, GuidanceAppointment $guidanceAppointment): JsonResponse
+    public function update(Request $request, GuidanceAppointment $guidanceAppointment, PathwaysNotifier $notifier, NotificationPolicyScheduler $notificationPolicies): JsonResponse
     {
         abort_if($request->user()->hasRole(RoleSlug::Counselor) && $guidanceAppointment->counselor_id !== $request->user()->getKey(), 403);
         $validated = $request->validate([
@@ -117,12 +141,13 @@ final class AdminAppointmentController extends Controller
         }
         $this->ensureStudentAndCounselor((int) $validated['studentId'], (int) $validated['counselorId']);
 
-        $guidanceAppointment = DB::transaction(function () use ($guidanceAppointment, $request, $validated): GuidanceAppointment {
+        $notificationEvent = null;
+        $guidanceAppointment = DB::transaction(function () use ($guidanceAppointment, $request, $validated, &$notificationEvent): GuidanceAppointment {
             $appointment = GuidanceAppointment::query()->lockForUpdate()->findOrFail($guidanceAppointment->getKey());
             $fromStatus = $appointment->status;
             $toStatus = $validated['status'];
-            $nextScheduledAt = CarbonImmutable::parse($validated['scheduledAt']);
-            $nextEndsAt = isset($validated['endsAt']) ? CarbonImmutable::parse($validated['endsAt']) : $appointment->ends_at;
+            $nextScheduledAt = CarbonImmutable::parse($validated['scheduledAt'])->utc();
+            $nextEndsAt = isset($validated['endsAt']) ? CarbonImmutable::parse($validated['endsAt'])->utc() : $appointment->ends_at;
 
             if ($fromStatus !== 'scheduled') {
                 abort(409, 'Completed, cancelled, and no-show appointments are immutable.');
@@ -154,8 +179,14 @@ final class AdminAppointmentController extends Controller
             ]);
 
             if ($wasRescheduled && $toStatus === 'scheduled') {
+                $notificationEvent = 'appointment_rescheduled';
                 $this->recordEvent($appointment, $request->user()->getKey(), 'rescheduled', $fromStatus, $toStatus, $previousScheduledAt, $nextScheduledAt, null, $previousEndsAt, $nextEndsAt);
             } elseif ($fromStatus !== $toStatus) {
+                $notificationEvent = match ($toStatus) {
+                    'completed' => 'appointment_completed',
+                    'cancelled' => 'appointment_cancelled',
+                    default => null,
+                };
                 $this->recordEvent(
                     $appointment,
                     $request->user()->getKey(),
@@ -198,6 +229,23 @@ final class AdminAppointmentController extends Controller
         });
 
         $this->audit($request, 'guidance_appointment.updated', $guidanceAppointment);
+        $notificationPolicies->refreshAppointmentReminders($guidanceAppointment);
+
+        $guidanceAppointment->loadMissing('student:id,name,email');
+        if ($notificationEvent !== null && $guidanceAppointment->student !== null) {
+            [$title, $message] = match ($notificationEvent) {
+                'appointment_rescheduled' => ['Guidance appointment rescheduled', 'Your counselor changed the appointment schedule. Review the updated date and time.'],
+                'appointment_completed' => ['Guidance appointment completed', 'Your guidance appointment was marked completed.'],
+                default => ['Guidance appointment cancelled', 'Your guidance appointment was cancelled. Review the recorded reason in the appointment details.'],
+            };
+            $notifier->notify(
+                $guidanceAppointment->student,
+                $notificationEvent,
+                $title,
+                $message,
+                ['appointmentId' => $guidanceAppointment->getKey()],
+            );
+        }
 
         return response()->json(['data' => $this->payload($guidanceAppointment->load(['student:id,name,email', 'counselor:id,name,email', 'events.actor:id,name']))]);
     }
@@ -219,6 +267,8 @@ final class AdminAppointmentController extends Controller
 
     private function ensureScheduleIsAvailable(int $counselorId, CarbonImmutable $scheduledAt, CarbonImmutable $endsAt, ?int $exceptAppointmentId = null): void
     {
+        $this->ensureWithinCounselorAvailability($counselorId, $scheduledAt, $endsAt);
+
         $conflict = GuidanceAppointment::query()
             ->where('counselor_id', $counselorId)
             ->where('status', 'scheduled')
@@ -238,6 +288,38 @@ final class AdminAppointmentController extends Controller
             ->exists();
 
         abort_if($conflict, 409, 'This appointment overlaps another active appointment for the counselor.');
+    }
+
+    private function ensureWithinCounselorAvailability(int $counselorId, CarbonImmutable $scheduledAt, CarbonImmutable $endsAt): void
+    {
+        $availability = CounselorAvailabilityWindow::query()
+            ->where('counselor_id', $counselorId);
+
+        if (! (clone $availability)->exists()) {
+            throw ValidationException::withMessages([
+                'scheduledAt' => 'Configure your counselor availability before scheduling an appointment.',
+            ]);
+        }
+
+        $manilaStart = $scheduledAt->setTimezone('Asia/Manila');
+        $manilaEnd = $endsAt->setTimezone('Asia/Manila');
+        if (! $manilaStart->isSameDay($manilaEnd)) {
+            throw ValidationException::withMessages([
+                'scheduledAt' => 'Appointments must start and end on the same date in Asia/Manila.',
+            ]);
+        }
+
+        $withinWindow = $availability
+            ->where('weekday', $manilaStart->dayOfWeek)
+            ->where('starts_at', '<=', $manilaStart->format('H:i:s'))
+            ->where('ends_at', '>=', $manilaEnd->format('H:i:s'))
+            ->exists();
+
+        if (! $withinWindow) {
+            throw ValidationException::withMessages([
+                'scheduledAt' => 'Select a time inside your recorded Asia/Manila availability.',
+            ]);
+        }
     }
 
     private function ensureStudentAndCounselor(int $studentId, int $counselorId): void

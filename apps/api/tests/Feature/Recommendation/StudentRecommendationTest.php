@@ -241,7 +241,14 @@ class StudentRecommendationTest extends TestCase
             ->assertJsonPath('data.recommendation.canViewAll', true)
             ->assertJsonCount(3, 'data.recommendation.courses')
             ->assertJsonPath('data.recommendation.courses.0.name', 'Alpha Programme')
-            ->assertJsonPath('data.recommendation.courses.0.match', 75);
+            ->assertJsonPath('data.recommendation.courses.0.match', 75)
+            ->assertJsonPath('data.recommendation.courses.0.explanation.assessmentReference', 'ASMT-'.str_pad((string) $session->getKey(), 6, '0', STR_PAD_LEFT))
+            ->assertJsonPath('data.recommendation.courses.0.explanation.recordedProfileCode', 'I-E')
+            ->assertJsonPath('data.recommendation.courses.0.explanation.recordedProgrammeAreas.0.label', 'Investigative')
+            ->assertJsonPath('data.recommendation.courses.0.explanation.recordedProgrammeAreas.0.score', 25)
+            ->assertJsonPath('data.recommendation.courses.0.explanation.recordedProgrammeAreas.1.label', 'Conventional')
+            ->assertJsonPath('data.recommendation.courses.0.explanation.recordedProgrammeAreas.1.score', 15)
+            ->assertJsonCount(1, 'data.recommendation.courses.0.explanation.sharedTopAreas');
 
         $this->getJson('/api/v1/student/recommendations/latest?view=all')
             ->assertOk()
@@ -305,6 +312,9 @@ class StudentRecommendationTest extends TestCase
             ->assertJsonPath('data.recommendation.courses.0.degreeType', "Bachelor's degree")
             ->assertJsonPath('data.recommendation.courses.0.duration', '4 years')
             ->assertJsonPath('data.recommendation.courses.0.learningAreaDescriptions.Management', 'Develop skills in planning, organising, leading teams, and evaluating organisational performance.')
+            ->assertJsonPath('data.recommendation.courses.0.explanation.recordedProgrammeAreas.0.label', 'Enterprising')
+            ->assertJsonPath('data.recommendation.courses.0.explanation.recordedProgrammeAreas.0.score', 14)
+            ->assertJsonPath('data.recommendation.courses.0.explanation.learningAreas.0', 'Management')
             ->assertJsonPath('data.recommendation.courses.0.careerDirections.0', 'Business and operations administration');
     }
 

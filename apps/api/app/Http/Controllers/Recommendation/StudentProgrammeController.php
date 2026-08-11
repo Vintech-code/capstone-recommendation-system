@@ -57,6 +57,8 @@ class StudentProgrammeController extends Controller
             'outlookVersion' => $programme['outlook_version'] ?? null,
             'coverImageUrl' => $programme['cover_image_url'] ?? null,
             'logoImageUrl' => $programme['logo_image_url'] ?? null,
+            'coverImagePosition' => $programme['cover_image_position'] ?? null,
+            'logoImagePosition' => $programme['logo_image_position'] ?? null,
         ];
     }
 }
