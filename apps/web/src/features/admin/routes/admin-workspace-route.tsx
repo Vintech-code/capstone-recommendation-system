@@ -9,6 +9,7 @@ import {
   AdminStudentsPage,
 } from '@/features/admin/components/admin-pages'
 import { AdminProgrammesPage } from '@/features/admin/components/admin-programmes-page'
+import { AdminProgrammeSourcesPage } from '@/features/admin/components/admin-programme-sources-page'
 import { AdminCounselorAccountsPage } from '@/features/admin/components/admin-counselor-accounts-page'
 import { useAuth } from '@/features/auth/auth-context'
 import { ProtectedRoute } from '@/features/auth/components/protected-route'
@@ -56,7 +57,7 @@ function resolveContent(activeId: string, recordId: string | undefined, navigate
   }
   if (activeId === 'assessments') return <AdminAssessmentsPage onNavigate={navigate} />
   if (activeId === 'counselors') return <AdminCounselorAccountsPage />
-  if (activeId === 'programmes') return <AdminProgrammesPage />
+  if (activeId === 'programmes') return recordId === 'sources' ? <AdminProgrammeSourcesPage onNavigate={navigate} /> : <AdminProgrammesPage onNavigate={navigate} />
   if (activeId === 'reports') return <AdminReportsPage />
   if (activeId === 'activity') return <AdminActivityPage />
   return <AdminDashboardPage onNavigate={navigate} />

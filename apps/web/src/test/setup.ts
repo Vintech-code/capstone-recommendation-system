@@ -96,6 +96,7 @@ async function defaultFetch(
     return Response.json({ data: {
       students: 2, assessments: 3, completed: 2, inProgress: 1,
       needsAttention: 0, recommendations: 2, pendingGuidanceRequests: 1,
+      operationalAttention: { processingFailures: 0, unverifiedSources: 3, unpublishedDrafts: 1, suspendedCounselors: 0, scheduledAppointments: 1, pendingGuidanceRequests: 1 },
       recentActivity: [{ id: 1, reference: 'ASMT-000001', studentId: 10, studentName: 'Ana Santos', studentEmail: 'ana@example.test', attemptNumber: 1, status: 'result_available', topCode: 'I-C', startedAt: '2026-08-01T08:00:00+08:00', submittedAt: '2026-08-01T08:20:00+08:00', resultAvailableAt: '2026-08-01T08:20:01+08:00', processingErrorCode: null }],
     } })
   }
@@ -191,12 +192,12 @@ async function defaultFetch(
   }
 
   if (url === '/api/v1/admin/programme-sources' && (!init?.method || init.method === 'GET')) {
-    return Response.json({ data: [{ reference: 'source-reference', sourceName: 'CHED CMO No. 25, series of 2015', sourceUrl: 'https://legacy.ched.gov.ph/2015-ched-memorandum-orders/', programmeIds: ['bs-information-technology'], fields: ['duration'], recordedStatuses: ['ched_psg'], lastVerifiedAt: null, verifiedBy: null }] })
+    return Response.json({ data: [{ reference: 'source-reference', sourceName: 'CHED CMO No. 25, series of 2015', sourceUrl: 'https://legacy.ched.gov.ph/2015-ched-memorandum-orders/', programmeIds: ['bs-information-technology'], fields: ['duration'], recordedStatuses: ['ched_psg'], lastVerifiedAt: null, verifiedBy: null, reviewIntervalDays: 180, nextReviewAt: null, reviewStatus: 'not_verified' }] })
   }
 
   if (url === '/api/v1/admin/programme-sources/source-reference' && init?.method === 'PUT') {
     const body = JSON.parse(String(init.body)) as { lastVerifiedAt: string }
-    return Response.json({ data: { reference: 'source-reference', sourceName: 'CHED CMO No. 25, series of 2015', sourceUrl: 'https://legacy.ched.gov.ph/2015-ched-memorandum-orders/', programmeIds: ['bs-information-technology'], fields: ['duration'], recordedStatuses: ['ched_psg'], lastVerifiedAt: body.lastVerifiedAt, verifiedBy: 'Authenticated User' } })
+    return Response.json({ data: { reference: 'source-reference', sourceName: 'CHED CMO No. 25, series of 2015', sourceUrl: 'https://legacy.ched.gov.ph/2015-ched-memorandum-orders/', programmeIds: ['bs-information-technology'], fields: ['duration'], recordedStatuses: ['ched_psg'], lastVerifiedAt: body.lastVerifiedAt, verifiedBy: 'Authenticated User', reviewIntervalDays: 180, nextReviewAt: '2027-02-08', reviewStatus: 'current' } })
   }
 
   if (url === '/api/v1/admin/configurations/catalogue' && (!init?.method || init.method === 'GET')) {

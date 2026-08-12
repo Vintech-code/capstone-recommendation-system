@@ -10,6 +10,14 @@ interface AdminOverview {
   needsAttention: number
   recommendations: number
   pendingGuidanceRequests: number
+  operationalAttention: {
+    processingFailures: number
+    unverifiedSources: number
+    unpublishedDrafts: number
+    suspendedCounselors: number
+    scheduledAppointments: number
+    pendingGuidanceRequests: number
+  }
   recentActivity: AdminAssessment[]
 }
 
@@ -294,6 +302,9 @@ interface ProgrammeSourceRegistryEntry {
   recordedStatuses: string[]
   lastVerifiedAt: string | null
   verifiedBy: string | null
+  reviewIntervalDays: number
+  nextReviewAt: string | null
+  reviewStatus: 'not_verified' | 'review_due' | 'current'
 }
 
 interface ConfigurationWorkspace {

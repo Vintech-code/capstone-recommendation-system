@@ -1,5 +1,6 @@
 import {
   AlertTriangle,
+  ArrowRight,
   BadgeDollarSign,
   BookOpen,
   Clock3,
@@ -19,7 +20,7 @@ import { Input } from '@/components/ui/input'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { AdminPageError, AdminPageHeader, AdminPageSkeleton, EmptyPanel } from '@/features/admin/components/admin-shared'
 import { ConfigurationWorkflow } from '@/features/admin/components/configuration-workflow'
-import { mutateAdmin, useAdminResource, type AdminProgramme, type AdminProgrammeCatalogue, type ProgrammeSourceRegistryEntry } from '@/features/admin/data/admin-api'
+import { useAdminResource, type AdminProgramme, type AdminProgrammeCatalogue } from '@/features/admin/data/admin-api'
 import { getProgrammeImages } from '@/features/student/programmes/programme-images'
 
 const programmeGroups = [
@@ -34,7 +35,7 @@ function programmeGroup(programmeId: string) {
   return programmeGroups.find((group) => group.ids.includes(programmeId))?.label ?? 'Academic programme'
 }
 
-function AdminProgrammesPage() {
+function AdminProgrammesPage({ onNavigate }: { onNavigate: (path: string) => void }) {
   const resource = useAdminResource<AdminProgrammeCatalogue>('/programmes')
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState<'all' | 'confirmed' | 'review'>('all')
@@ -63,6 +64,7 @@ function AdminProgrammesPage() {
       eyebrow={`Academic Year ${catalogue.academicYear}`}
       title="Programme monitoring"
       description="Monitor the same catalogue content students see, its official-source coverage, and how programmes appear across saved choices, recommendations, and guidance requests."
+      action={<Button type="button" variant="outline" className="rounded-lg" onClick={() => onNavigate('/admin/programmes/sources')}><Database aria-hidden="true" />Open catalogue evidence <ArrowRight aria-hidden="true" /></Button>}
     />
 
     <section className="grid gap-4 rounded-xl bg-card p-5 shadow-sm sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-center" aria-labelledby="catalogue-monitoring-heading">
@@ -76,8 +78,6 @@ function AdminProgrammesPage() {
       <label className="grid gap-1 text-xs font-semibold text-muted-foreground">Source status<select value={filter} onChange={(event) => setFilter(event.target.value as typeof filter)} className="min-h-12 rounded-lg border border-input bg-background px-3 text-sm font-semibold text-foreground"><option value="all">All programmes</option><option value="confirmed">CHED duration confirmed</option><option value="review">Needs source review</option></select></label>
     </section>
 
-    <SourceRegistryPanel />
-
     <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Student-view parity</p><h2 className="mt-1 font-display text-2xl font-semibold">Active programme cards</h2></div><p className="text-sm text-muted-foreground">Showing {visibleProgrammes.length} of {catalogue.programmes.length}</p></div>
 
     {visibleProgrammes.length ? <section className="grid gap-6 xl:grid-cols-2" aria-label="Programme catalogue monitoring cards">{visibleProgrammes.map((programme) => <AdminProgrammeCard key={programme.id} programme={programme} onInspect={() => setSelected(programme)} onEdit={() => setEditing(programme)} />)}</section> : <EmptyPanel title="No programmes match this view" description="Clear the search or choose another monitoring filter." />}
@@ -85,35 +85,6 @@ function AdminProgrammesPage() {
     <AdminProgrammeSheet programme={selected} onOpenChange={(open) => { if (!open) setSelected(null) }} />
     <ProgrammeEditorSheet programme={editing} onOpenChange={(open) => { if (!open) setEditing(null) }} onPublished={resource.retry} />
   </div>
-}
-
-function SourceRegistryPanel() {
-  const resource = useAdminResource<ProgrammeSourceRegistryEntry[]>('/programme-sources')
-  const [dates, setDates] = useState<Record<string, string>>({})
-  const [busy, setBusy] = useState<string | null>(null)
-  const [message, setMessage] = useState<string | null>(null)
-  const [error, setError] = useState<string | null>(null)
-
-  async function recordVerification(source: ProgrammeSourceRegistryEntry) {
-    const date = dates[source.reference]
-    if (!date) { setError('Choose the date on which you verified the official source.'); return }
-    setBusy(source.reference); setError(null); setMessage(null)
-    try {
-      await mutateAdmin(`/programme-sources/${source.reference}`, 'PUT', { lastVerifiedAt: date })
-      setMessage(`Verification recorded for ${source.sourceName}.`)
-      resource.retry()
-    } catch (reason) { setError(reason instanceof Error ? reason.message : 'The source verification could not be recorded.') }
-    finally { setBusy(null) }
-  }
-
-  if (resource.loading) return <div className="h-32 animate-pulse rounded-xl bg-muted" role="status"><span className="sr-only">Loading official source registry</span></div>
-  if (resource.error || !resource.data) return <p role="alert" className="rounded-xl bg-destructive/8 p-4 text-sm text-destructive">{resource.error ?? 'The official source registry is unavailable.'}</p>
-
-  return <section className="rounded-xl bg-card p-5 shadow-sm" aria-labelledby="source-registry-heading"><div className="flex items-start gap-3"><span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary-fixed text-on-primary-fixed"><Database aria-hidden="true" className="size-5" /></span><div><p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">Official source registry</p><h2 id="source-registry-heading" className="mt-1 font-display text-xl font-semibold">Catalogue evidence</h2><p className="mt-1 text-sm text-muted-foreground">Source titles and links come directly from the recorded catalogue. Verification dates are entered only after an Administrator checks the source.</p></div></div>{message ? <p role="status" className="mt-4 text-sm font-semibold text-success">{message}</p> : null}{error ? <p role="alert" className="mt-4 text-sm font-semibold text-destructive">{error}</p> : null}<div className="mt-4 divide-y">{resource.data.map((source) => <article key={source.reference} className="grid gap-3 py-4 lg:grid-cols-[minmax(0,1fr)_12rem_auto] lg:items-end"><div><a href={source.sourceUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 font-semibold text-primary underline underline-offset-4">{source.sourceName}<ExternalLink aria-hidden="true" className="size-4" /></a><p className="mt-1 text-xs text-muted-foreground">Used for {source.fields.map(humanizeSourceField).join(', ')} across {source.programmeIds.length} programme{source.programmeIds.length === 1 ? '' : 's'}.</p><p className="mt-1 text-xs text-muted-foreground">Last verified: {source.lastVerifiedAt ?? 'Not recorded'}{source.verifiedBy ? ` by ${source.verifiedBy}` : ''}</p></div><label className="grid gap-1 text-xs font-semibold text-muted-foreground">Verification date<input type="date" value={dates[source.reference] ?? ''} onChange={(event) => setDates((current) => ({ ...current, [source.reference]: event.target.value }))} className="min-h-11 rounded-lg border border-input bg-background px-3 text-sm text-foreground" /></label><Button type="button" variant="outline" className="min-h-11 rounded-lg" disabled={busy === source.reference} onClick={() => void recordVerification(source)}>Record verification</Button></article>)}</div></section>
-}
-
-function humanizeSourceField(field: ProgrammeSourceRegistryEntry['fields'][number]) {
-  return field === 'job_growth' ? 'job growth' : field
 }
 
 function AdminProgrammeCard({ programme, onInspect, onEdit }: { programme: AdminProgramme; onInspect: () => void; onEdit: () => void }) {

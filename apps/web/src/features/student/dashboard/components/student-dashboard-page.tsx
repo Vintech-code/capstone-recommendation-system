@@ -437,7 +437,7 @@ function GuidanceAppointmentPanel({ appointments, request, summary, topCourse, o
               <div>
                 <p className="font-semibold">Upcoming guidance appointment</p>
                 <p className="mt-2 text-sm text-muted-foreground">{formatAppointmentDate(appointment.scheduledAt)}</p>
-                {appointment.endsAt ? <p className="mt-1 text-sm text-muted-foreground">Ends {formatAppointmentTime(appointment.endsAt)} · Asia/Manila</p> : null}
+                {appointment.endsAt ? <p className="mt-1 text-sm text-muted-foreground">Ends {formatAppointmentTime(appointment.endsAt)}</p> : null}
                 <p className="mt-1 text-sm text-muted-foreground">Counselor: {appointment.counselorName || 'Assigned guidance staff'}</p>
                 <p className="mt-1 text-sm text-muted-foreground">Topic: {appointment.topic}</p>
                 {appointment.programmeCode ? <p className="mt-1 text-sm text-muted-foreground">Programme: {appointment.programmeCode}</p> : null}
