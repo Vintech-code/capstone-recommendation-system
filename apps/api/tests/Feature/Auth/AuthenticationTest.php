@@ -7,6 +7,7 @@ use App\Models\RoleSlug;
 use App\Models\User;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
@@ -152,6 +153,44 @@ class AuthenticationTest extends TestCase
         $this->assertGuest();
     }
 
+    public function test_suspending_an_authenticated_account_invalidates_its_existing_session(): void
+    {
+        $user = $this->adminUser();
+
+        $this->postJson('/api/v1/auth/login', [
+            'email' => $user->email,
+            'password' => 'correct-password',
+            'portal' => RoleSlug::Admin->value,
+        ])->assertOk();
+
+        $user->update(['account_status' => 'suspended', 'status_changed_at' => now()]);
+
+        $this->getJson('/api/v1/auth/me')
+            ->assertForbidden()
+            ->assertJsonPath('error.code', 'ACCOUNT_NOT_ACTIVE');
+
+        $this->assertGuest();
+        $this->getJson('/api/v1/auth/me')->assertUnauthorized();
+    }
+
+    public function test_login_is_rate_limited_after_repeated_failed_attempts(): void
+    {
+        $user = $this->adminUser();
+        $payload = [
+            'email' => $user->email,
+            'password' => 'incorrect-password',
+            'portal' => RoleSlug::Admin->value,
+        ];
+
+        foreach (range(1, 5) as $attempt) {
+            $this->postJson('/api/v1/auth/login', $payload)
+                ->assertUnprocessable();
+        }
+
+        $this->postJson('/api/v1/auth/login', $payload)
+            ->assertTooManyRequests();
+    }
+
     public function test_password_recovery_is_non_enumerating_and_resets_an_active_account(): void
     {
         Notification::fake();
@@ -171,6 +210,13 @@ class AuthenticationTest extends TestCase
             return true;
         });
 
+        DB::table('sessions')->insert([
+            'id' => 'existing-browser-session',
+            'user_id' => $user->getKey(),
+            'payload' => 'encrypted-session-payload',
+            'last_activity' => now()->timestamp,
+        ]);
+
         $this->postJson('/api/v1/auth/reset-password', [
             'token' => $token,
             'email' => $user->email,
@@ -179,6 +225,7 @@ class AuthenticationTest extends TestCase
         ])->assertOk();
 
         $this->assertTrue(Hash::check('new-secure-password', $user->fresh()->password));
+        $this->assertDatabaseMissing('sessions', ['id' => 'existing-browser-session']);
     }
 
     private function adminUser(): User

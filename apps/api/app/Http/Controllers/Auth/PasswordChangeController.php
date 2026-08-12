@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Services\Auth\UserSessionRevoker;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -11,7 +12,7 @@ use Illuminate\Validation\ValidationException;
 
 final class PasswordChangeController extends Controller
 {
-    public function __invoke(Request $request): JsonResponse
+    public function __invoke(Request $request, UserSessionRevoker $sessions): JsonResponse
     {
         $validated = $request->validate([
             'currentPassword' => ['required', 'string'],
@@ -22,7 +23,7 @@ final class PasswordChangeController extends Controller
             throw ValidationException::withMessages(['currentPassword' => ['The current password is incorrect.']]);
         }
         $user->update(['password' => $validated['password'], 'must_change_password' => false]);
-        $user->tokens()->delete();
+        $sessions->revoke($user, $request->hasSession() ? $request->session()->getId() : null);
 
         return response()->json(['data' => ['changed' => true]]);
     }

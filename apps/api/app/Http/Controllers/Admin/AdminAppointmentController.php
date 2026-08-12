@@ -156,7 +156,8 @@ final class AdminAppointmentController extends Controller
                 abort(409, 'This appointment status transition is not allowed.');
             }
 
-            $wasRescheduled = ! $appointment->scheduled_at?->equalTo($nextScheduledAt);
+            $wasRescheduled = ! $appointment->scheduled_at?->equalTo($nextScheduledAt)
+                || ! $appointment->ends_at?->equalTo($nextEndsAt);
             if ($toStatus === 'scheduled') {
                 if ($nextEndsAt === null) {
                     throw ValidationException::withMessages(['endsAt' => 'Enter an end time before scheduling or rescheduling this appointment.']);
@@ -176,6 +177,9 @@ final class AdminAppointmentController extends Controller
                 'status' => $toStatus,
                 'notes' => isset($validated['notes']) ? trim($validated['notes']) : null,
                 'cancellation_reason' => $toStatus === 'cancelled' ? trim((string) $validated['cancellationReason']) : null,
+                'student_confirmed_at' => $wasRescheduled && $toStatus === 'scheduled'
+                    ? null
+                    : $appointment->student_confirmed_at,
             ]);
 
             if ($wasRescheduled && $toStatus === 'scheduled') {
@@ -234,7 +238,7 @@ final class AdminAppointmentController extends Controller
         $guidanceAppointment->loadMissing('student:id,name,email');
         if ($notificationEvent !== null && $guidanceAppointment->student !== null) {
             [$title, $message] = match ($notificationEvent) {
-                'appointment_rescheduled' => ['Guidance appointment rescheduled', 'Your counselor changed the appointment schedule. Review the updated date and time.'],
+                'appointment_rescheduled' => ['Guidance appointment rescheduled', 'Your counselor changed the appointment schedule. Review and confirm the new date and time.'],
                 'appointment_completed' => ['Guidance appointment completed', 'Your guidance appointment was marked completed.'],
                 default => ['Guidance appointment cancelled', 'Your guidance appointment was cancelled. Review the recorded reason in the appointment details.'],
             };

@@ -86,12 +86,17 @@ class ProgrammePublishingWorkflowTest extends TestCase
             ->assertJsonFragment(['sourceName' => 'CHED CMO No. 25, series of 2015'])
             ->json('data');
         $source = collect($sources)->firstWhere('sourceName', 'CHED CMO No. 25, series of 2015');
+        $this->assertSame('not_verified', $source['reviewStatus']);
+        $this->assertSame(180, $source['reviewIntervalDays']);
 
         $this->actingAs($admin)->putJson("/api/v1/admin/programme-sources/{$source['reference']}", [
             'lastVerifiedAt' => '2026-08-11',
         ])->assertOk()
             ->assertJsonPath('data.lastVerifiedAt', '2026-08-11')
-            ->assertJsonPath('data.verifiedBy', $admin->name);
+            ->assertJsonPath('data.verifiedBy', $admin->name)
+            ->assertJsonPath('data.reviewIntervalDays', 180)
+            ->assertJsonPath('data.reviewStatus', 'current')
+            ->assertJsonPath('data.nextReviewAt', '2027-02-07');
 
         $this->assertDatabaseHas('programme_source_records', [
             'reference' => $source['reference'],

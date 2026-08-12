@@ -43,12 +43,26 @@ class AdminWorkspaceTest extends TestCase
             ]],
             'generated_at' => now(),
         ]);
+        ConfigurationVersion::query()->create([
+            'kind' => 'catalogue',
+            'version' => 2,
+            'status' => 'draft',
+            'academic_year' => '2026-2027',
+            'payload' => ['programmes' => []],
+            'created_by' => $admin->getKey(),
+        ]);
+        $suspendedCounselor = User::factory()->create(['account_status' => 'suspended']);
+        $suspendedCounselor->roles()->attach($this->counselorRole());
 
-        $this->actingAs($admin)->getJson('/api/v1/admin/overview')
+        $overview = $this->actingAs($admin)->getJson('/api/v1/admin/overview')
             ->assertOk()
             ->assertJsonPath('data.students', 1)
             ->assertJsonPath('data.completed', 1)
-            ->assertJsonPath('data.recommendations', 1);
+            ->assertJsonPath('data.recommendations', 1)
+            ->assertJsonPath('data.operationalAttention.processingFailures', 0)
+            ->assertJsonPath('data.operationalAttention.unpublishedDrafts', 1)
+            ->assertJsonPath('data.operationalAttention.suspendedCounselors', 1);
+        $this->assertGreaterThan(0, $overview->json('data.operationalAttention.unverifiedSources'));
 
         $this->actingAs($admin)->getJson('/api/v1/admin/students')
             ->assertOk()
@@ -439,6 +453,8 @@ class AdminWorkspaceTest extends TestCase
             ->assertCreated()
             ->json('data');
 
+        GuidanceAppointment::query()->findOrFail($appointment['id'])->update(['student_confirmed_at' => now()]);
+
         $this->putJson("/api/v1/counselor/appointments/{$appointment['id']}", [
             ...$payload,
             'scheduledAt' => '2026-08-20T12:00:00+08:00',
@@ -453,6 +469,7 @@ class AdminWorkspaceTest extends TestCase
             'status' => 'scheduled',
         ])
             ->assertOk()
+            ->assertJsonPath('data.studentConfirmedAt', null)
             ->assertJsonPath('data.statusHistory.1.eventType', 'rescheduled');
 
         $this->assertDatabaseHas('admin_audit_events', ['action' => 'counselor_availability.updated']);

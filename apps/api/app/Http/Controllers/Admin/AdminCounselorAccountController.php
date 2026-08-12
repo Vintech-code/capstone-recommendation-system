@@ -7,6 +7,7 @@ use App\Models\AdminAuditEvent;
 use App\Models\Role;
 use App\Models\RoleSlug;
 use App\Models\User;
+use App\Services\Auth\UserSessionRevoker;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -44,7 +45,7 @@ final class AdminCounselorAccountController extends Controller
         ]], 201);
     }
 
-    public function update(Request $request, User $counselor): JsonResponse
+    public function update(Request $request, User $counselor, UserSessionRevoker $sessions): JsonResponse
     {
         $this->ensureCounselor($counselor);
         $validated = $request->validate([
@@ -58,17 +59,20 @@ final class AdminCounselorAccountController extends Controller
             'account_status' => $validated['accountStatus'],
             'status_changed_at' => now(),
         ]);
+        if ($counselor->account_status !== 'active') {
+            $sessions->revoke($counselor);
+        }
         $this->audit($request, 'counselor_account.updated', $counselor);
 
         return response()->json(['data' => $this->payload($counselor)]);
     }
 
-    public function resetPassword(Request $request, User $counselor): JsonResponse
+    public function resetPassword(Request $request, User $counselor, UserSessionRevoker $sessions): JsonResponse
     {
         $this->ensureCounselor($counselor);
         $temporaryPassword = Str::password(16, symbols: true);
         $counselor->update(['password' => $temporaryPassword, 'must_change_password' => true]);
-        $counselor->tokens()->delete();
+        $sessions->revoke($counselor);
         $this->audit($request, 'counselor_account.password_reset', $counselor);
 
         return response()->json(['data' => [

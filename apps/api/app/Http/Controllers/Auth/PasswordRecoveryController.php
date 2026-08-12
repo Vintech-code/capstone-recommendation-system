@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\Auth\UserSessionRevoker;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -30,7 +31,7 @@ class PasswordRecoveryController extends Controller
         ]);
     }
 
-    public function reset(Request $request): JsonResponse
+    public function reset(Request $request, UserSessionRevoker $sessions): JsonResponse
     {
         $validated = $request->validate([
             'token' => ['required', 'string'],
@@ -45,11 +46,12 @@ class PasswordRecoveryController extends Controller
             ], 422);
         }
 
-        $status = Password::reset($validated, function (User $user, string $password): void {
+        $status = Password::reset($validated, function (User $user, string $password) use ($sessions): void {
             $user->forceFill([
                 'password' => Hash::make($password),
                 'remember_token' => Str::random(60),
             ])->save();
+            $sessions->revoke($user);
             event(new PasswordReset($user));
         });
 

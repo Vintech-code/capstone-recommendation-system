@@ -189,9 +189,14 @@ class GuidanceSummaryAndNotificationTest extends TestCase
         $appointment->update([
             'scheduled_at' => CarbonImmutable::parse('2026-08-13 10:00:00 Asia/Manila')->utc(),
             'ends_at' => CarbonImmutable::parse('2026-08-13 11:00:00 Asia/Manila')->utc(),
+            'student_confirmed_at' => null,
         ]);
         $policies->refreshAppointmentReminders($appointment);
         $this->assertSame(2, NotificationDispatch::query()->where('status', 'invalidated')->count());
+        $this->assertSame(0, NotificationDispatch::query()->where('status', 'pending')->count());
+
+        $appointment->update(['student_confirmed_at' => now()]);
+        $policies->refreshAppointmentReminders($appointment);
         $this->assertSame(2, NotificationDispatch::query()->where('status', 'pending')->count());
 
         $appointment->update(['status' => 'cancelled']);

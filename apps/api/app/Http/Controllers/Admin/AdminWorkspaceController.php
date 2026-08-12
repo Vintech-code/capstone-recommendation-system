@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\AdminAuditEvent;
 use App\Models\AssessmentSession;
+use App\Models\ConfigurationVersion;
 use App\Models\GuidanceAppointment;
 use App\Models\GuidanceCase;
 use App\Models\GuidanceRequest;
@@ -12,6 +13,7 @@ use App\Models\RecommendationRun;
 use App\Models\RoleSlug;
 use App\Models\StudentSavedProgramme;
 use App\Models\User;
+use App\Services\Recommendation\ProgrammeSourceRegistry;
 use App\Services\Recommendation\TccProgrammeCatalogueRepository;
 use App\Services\Student\StudentProfilePresenter;
 use Illuminate\Database\Eloquent\Builder;
@@ -21,7 +23,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 final class AdminWorkspaceController extends Controller
 {
-    public function overview(): JsonResponse
+    public function overview(Request $request, TccProgrammeCatalogueRepository $catalogues, ProgrammeSourceRegistry $sourceRegistry): JsonResponse
     {
         $students = $this->studentQuery()->count();
         $currentSessions = AssessmentSession::query()
@@ -38,6 +40,25 @@ final class AdminWorkspaceController extends Controller
             ->limit(6)
             ->get()
             ->map(fn (AssessmentSession $session): array => $this->sessionSummary($session));
+        $operationalAttention = null;
+        if ($request->user()->hasRole(RoleSlug::Admin)) {
+            $operationalAttention = [
+                'processingFailures' => (int) ($statusCounts['result_failed'] ?? 0),
+                'unverifiedSources' => collect($sourceRegistry->entries($catalogues->current()))
+                    ->whereIn('reviewStatus', ['not_verified', 'review_due'])
+                    ->count(),
+                'unpublishedDrafts' => ConfigurationVersion::query()->where('status', 'draft')->count(),
+                'suspendedCounselors' => User::query()
+                    ->where('account_status', 'suspended')
+                    ->whereHas('roles', static fn (Builder $query) => $query->where('slug', RoleSlug::Counselor->value))
+                    ->count(),
+                'scheduledAppointments' => GuidanceAppointment::query()
+                    ->where('status', 'scheduled')
+                    ->where('scheduled_at', '>=', now())
+                    ->count(),
+                'pendingGuidanceRequests' => GuidanceRequest::query()->where('status', 'pending')->count(),
+            ];
+        }
 
         return response()->json(['data' => [
             'students' => $students,
@@ -47,6 +68,7 @@ final class AdminWorkspaceController extends Controller
             'needsAttention' => (int) ($statusCounts['result_failed'] ?? 0),
             'recommendations' => RecommendationRun::query()->distinct()->count('user_id'),
             'pendingGuidanceRequests' => GuidanceRequest::query()->where('status', 'pending')->count(),
+            ...($operationalAttention === null ? [] : ['operationalAttention' => $operationalAttention]),
             'recentActivity' => $recent,
         ]]);
     }
@@ -290,13 +312,14 @@ final class AdminWorkspaceController extends Controller
 
     public function exportReports(Request $request): StreamedResponse
     {
+        abort_if((bool) config('pathways.identifiable_exports_enabled'), 500, 'Identifiable exports must remain disabled for the current MVP.');
         $report = $this->reportPayload($request);
         AdminAuditEvent::query()->create([
             'actor_id' => $request->user()->getKey(),
             'action' => 'report.exported',
             'subject_type' => 'aggregate_report',
             'subject_reference' => now()->format('Ymd-His'),
-            'metadata' => ['from' => $report['from'], 'to' => $report['to'], 'format' => 'csv'],
+            'metadata' => ['from' => $report['from'], 'to' => $report['to'], 'format' => 'csv', 'dataClassification' => 'aggregate_only'],
         ]);
 
         return response()->streamDownload(static function () use ($report): void {

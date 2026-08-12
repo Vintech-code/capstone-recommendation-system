@@ -7,6 +7,7 @@ use App\Models\RoleSlug;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
@@ -44,11 +45,33 @@ class CounselorAccountAndProgrammeGovernanceTest extends TestCase
         $this->assertFalse((bool) $counselor->fresh()->must_change_password);
         $this->actingAs($counselor->fresh())->getJson('/api/v1/counselor/overview')->assertOk();
 
+        DB::table('sessions')->insert([
+            'id' => 'counselor-browser-session',
+            'user_id' => $counselor->getKey(),
+            'payload' => 'encrypted-session-payload',
+            'last_activity' => now()->timestamp,
+        ]);
+
         $reset = $this->actingAs($admin)->postJson("/api/v1/admin/counselors/{$counselor->getKey()}/reset-password")
             ->assertOk()
             ->assertJsonPath('data.mustChangePassword', true)
             ->json('data');
         $this->assertTrue(Hash::check($reset['temporaryPassword'], $counselor->fresh()->password));
+        $this->assertDatabaseMissing('sessions', ['id' => 'counselor-browser-session']);
+
+        DB::table('sessions')->insert([
+            'id' => 'session-before-suspension',
+            'user_id' => $counselor->getKey(),
+            'payload' => 'encrypted-session-payload',
+            'last_activity' => now()->timestamp,
+        ]);
+        $this->actingAs($admin)->putJson("/api/v1/admin/counselors/{$counselor->getKey()}", [
+            'name' => $counselor->name,
+            'email' => $counselor->email,
+            'accountStatus' => 'suspended',
+        ])->assertOk()->assertJsonPath('data.accountStatus', 'suspended');
+        $this->assertDatabaseMissing('sessions', ['id' => 'session-before-suspension']);
+
         $this->assertDatabaseHas('admin_audit_events', ['action' => 'counselor_account.created']);
         $this->assertDatabaseHas('admin_audit_events', ['action' => 'counselor_account.password_reset']);
     }

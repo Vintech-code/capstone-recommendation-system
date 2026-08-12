@@ -3,6 +3,7 @@
 namespace App\Services\Recommendation;
 
 use App\Models\ProgrammeSourceRecord;
+use Carbon\CarbonImmutable;
 
 final class ProgrammeSourceRegistry
 {
@@ -47,6 +48,13 @@ final class ProgrammeSourceRegistry
             $source['recordedStatuses'] = array_values(array_unique($source['recordedStatuses']));
             $source['lastVerifiedAt'] = $record?->last_verified_at?->toDateString();
             $source['verifiedBy'] = $record?->verifier?->name;
+            $reviewDays = max(1, (int) config('pathways.source_review_days', 180));
+            $nextReviewAt = $record?->last_verified_at?->addDays($reviewDays);
+            $source['reviewIntervalDays'] = $reviewDays;
+            $source['nextReviewAt'] = $nextReviewAt?->toDateString();
+            $source['reviewStatus'] = $record === null
+                ? 'not_verified'
+                : ($nextReviewAt->lessThanOrEqualTo(CarbonImmutable::today()) ? 'review_due' : 'current');
 
             return $source;
         })->values()->all();
