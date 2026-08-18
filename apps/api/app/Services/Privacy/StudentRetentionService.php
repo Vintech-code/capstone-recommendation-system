@@ -46,7 +46,6 @@ final class StudentRetentionService
             DB::table('guidance_notes')->whereIn('guidance_case_id', $caseIds)->update(['body' => '[Removed under the approved retention policy]']);
             DB::table('guidance_summaries')->whereIn('guidance_case_id', $caseIds)->update(['body' => '[Removed under the approved retention policy]']);
             DB::table('guidance_requests')->where('student_id', $student->getKey())->update(['message' => '[Removed under the approved retention policy]']);
-            DB::table('guidance_appointments')->where('student_id', $student->getKey())->update(['topic' => 'Archived guidance appointment', 'notes' => null]);
             DB::table('notifications')->where('notifiable_type', User::class)->where('notifiable_id', $student->getKey())->delete();
             DB::table('sessions')->where('user_id', $student->getKey())->delete();
             $student->tokens()->delete();
@@ -66,7 +65,7 @@ final class StudentRetentionService
     private function lastActivityAt(User $student): CarbonImmutable
     {
         $timestamps = collect([$student->updated_at, $student->created_at]);
-        foreach (['assessment_sessions' => 'user_id', 'recommendation_runs' => 'user_id', 'student_saved_programmes' => 'user_id', 'student_profiles' => 'user_id', 'guidance_cases' => 'student_id', 'guidance_requests' => 'student_id', 'guidance_appointments' => 'student_id'] as $table => $column) {
+        foreach (['assessment_sessions' => 'user_id', 'recommendation_runs' => 'user_id', 'student_saved_programmes' => 'user_id', 'student_profiles' => 'user_id', 'guidance_cases' => 'student_id', 'guidance_requests' => 'student_id'] as $table => $column) {
             $timestamps->push(DB::table($table)->where($column, $student->getKey())->max('updated_at'));
         }
 

@@ -64,12 +64,6 @@ class User extends Authenticatable
         return $this->hasMany(GuidanceCase::class, 'assigned_to_id');
     }
 
-    /** @return HasMany<GuidanceAppointment, $this> */
-    public function counselingAppointments(): HasMany
-    {
-        return $this->hasMany(GuidanceAppointment::class, 'counselor_id');
-    }
-
     /** @return HasMany<GuidanceRequest, $this> */
     public function guidanceRequests(): HasMany
     {

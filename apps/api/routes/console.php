@@ -16,7 +16,7 @@ Artisan::command('inspire', function () {
 Artisan::command('notifications:dispatch-due', function (NotificationPolicyScheduler $notificationPolicies): void {
     $count = $notificationPolicies->dispatchDue();
     $this->info("Dispatched {$count} due in-app notification(s).");
-})->purpose('Dispatch due appointment reminders and batched programme updates');
+})->purpose('Dispatch due batched programme update notifications');
 
 Schedule::command('notifications:dispatch-due')
     ->everyMinute()

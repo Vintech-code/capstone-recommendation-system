@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\AdminAuditEvent;
 use App\Models\AssessmentSession;
 use App\Models\ConfigurationVersion;
-use App\Models\GuidanceAppointment;
 use App\Models\GuidanceCase;
 use App\Models\GuidanceRequest;
 use App\Models\RecommendationRun;
@@ -51,10 +50,6 @@ final class AdminWorkspaceController extends Controller
                 'suspendedCounselors' => User::query()
                     ->where('account_status', 'suspended')
                     ->whereHas('roles', static fn (Builder $query) => $query->where('slug', RoleSlug::Counselor->value))
-                    ->count(),
-                'scheduledAppointments' => GuidanceAppointment::query()
-                    ->where('status', 'scheduled')
-                    ->where('scheduled_at', '>=', now())
                     ->count(),
                 'pendingGuidanceRequests' => GuidanceRequest::query()->where('status', 'pending')->count(),
             ];
@@ -335,12 +330,6 @@ final class AdminWorkspaceController extends Controller
             $write(['Completion rate for students who started in period', $report['assessmentCompletionRate'].'%']);
             $write(['Students with generated recommendations', $report['recommendationRuns']]);
             $write(['Programme saves recorded', $report['programmeSaves']]);
-            $write([]);
-            $write(['Appointment lifecycle', 'Count']);
-            foreach ($report['appointmentStatuses'] as $status => $count) {
-                $write([str_replace('_', ' ', ucfirst($status)), $count]);
-            }
-            $write(['Average minutes from request submission to appointment creation', $report['averageRequestToAppointmentMinutes'] ?? 'Not available']);
             $write(['Open guidance cases with a follow-up date', $report['openFollowUps']]);
             $write(['Overdue open follow-ups', $report['overdueFollowUps']]);
             $write(['Closed guidance cases', $report['closedGuidanceCases']]);
@@ -392,7 +381,6 @@ final class AdminWorkspaceController extends Controller
             ? collect()
                 ->merge(GuidanceCase::query()->where('assigned_to_id', $request->user()->getKey())->pluck('student_id'))
                 ->merge(GuidanceRequest::query()->where('accepted_by', $request->user()->getKey())->pluck('student_id'))
-                ->merge(GuidanceAppointment::query()->where('counselor_id', $request->user()->getKey())->pluck('student_id'))
                 ->map(static fn ($id): int => (int) $id)
                 ->unique()
                 ->values()
@@ -426,20 +414,6 @@ final class AdminWorkspaceController extends Controller
             ->when($isCounselor, fn (Builder $query) => $query->where('accepted_by', $request->user()->getKey()));
         $period($requestQuery, 'created_at');
         $requestStatuses = (clone $requestQuery)->selectRaw('status, count(*) as aggregate')->groupBy('status')->pluck('aggregate', 'status');
-
-        $appointmentQuery = GuidanceAppointment::query()
-            ->when($isCounselor, fn (Builder $query) => $query->where('counselor_id', $request->user()->getKey()));
-        $period($appointmentQuery, 'scheduled_at');
-        $appointmentStatuses = (clone $appointmentQuery)->selectRaw('status, count(*) as aggregate')->groupBy('status')->pluck('aggregate', 'status');
-
-        $linkedRequests = (clone $requestQuery)->with('appointment:id,created_at')->whereNotNull('appointment_id')->get(['id', 'appointment_id', 'created_at']);
-        $waitMinutes = $linkedRequests->map(static function (GuidanceRequest $guidanceRequest): ?int {
-            if ($guidanceRequest->appointment?->created_at === null || $guidanceRequest->created_at === null) {
-                return null;
-            }
-
-            return max(0, (int) $guidanceRequest->created_at->diffInMinutes($guidanceRequest->appointment->created_at, false));
-        })->filter(static fn (?int $minutes): bool => $minutes !== null);
 
         $caseQuery = GuidanceCase::query()
             ->when($isCounselor, fn (Builder $query) => $query->where('assigned_to_id', $request->user()->getKey()));
@@ -476,13 +450,9 @@ final class AdminWorkspaceController extends Controller
             'assessmentCompletionRate' => $assessmentActivity > 0 ? round(($completedStudents / $assessmentActivity) * 100, 1) : 0,
             'recommendationRuns' => $runs->pluck('user_id')->filter()->unique()->count(),
             'programmeSaves' => $savedProgrammeQuery->count(),
-            'guidanceRequestStatuses' => collect(['pending', 'accepted', 'scheduled', 'closed', 'declined', 'cancelled'])
+            'guidanceRequestStatuses' => collect(['pending', 'accepted', 'closed', 'declined', 'cancelled'])
                 ->mapWithKeys(static fn (string $status): array => [$status => (int) ($requestStatuses[$status] ?? 0)])
                 ->all(),
-            'appointmentStatuses' => collect(['scheduled', 'completed', 'cancelled', 'no_show'])
-                ->mapWithKeys(static fn (string $status): array => [$status => (int) ($appointmentStatuses[$status] ?? 0)])
-                ->all(),
-            'averageRequestToAppointmentMinutes' => $waitMinutes->isEmpty() ? null : round($waitMinutes->average(), 1),
             'openFollowUps' => (clone $followUpQuery)->count(),
             'overdueFollowUps' => (clone $followUpQuery)->whereDate('follow_up_on', '<', today())->count(),
             'closedGuidanceCases' => (clone $caseQuery)->where('status', 'closed')->count(),

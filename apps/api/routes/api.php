@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\Admin\AdminAppointmentController;
 use App\Http\Controllers\Admin\AdminConfigurationController;
 use App\Http\Controllers\Admin\AdminCounselorAccountController;
 use App\Http\Controllers\Admin\AdminGuidanceController;
@@ -15,8 +14,6 @@ use App\Http\Controllers\Auth\PasswordChangeController;
 use App\Http\Controllers\Auth\PasswordRecoveryController;
 use App\Http\Controllers\Auth\PortalAccessController;
 use App\Http\Controllers\Auth\RegisteredStudentController;
-use App\Http\Controllers\Guidance\CounselorAvailabilityController;
-use App\Http\Controllers\Guidance\StudentGuidanceAppointmentController;
 use App\Http\Controllers\Guidance\StudentGuidanceRequestController;
 use App\Http\Controllers\Guidance\StudentGuidanceSummaryController;
 use App\Http\Controllers\NotificationController;
@@ -78,13 +75,6 @@ Route::prefix('v1/student/programmes')
         Route::get('/{programme}', [StudentProgrammeController::class, 'show']);
     });
 
-Route::get('v1/student/guidance-appointments', [StudentGuidanceAppointmentController::class, 'index'])
-    ->middleware(['auth:sanctum', 'active', 'role:student']);
-Route::post('v1/student/guidance-appointments/{guidanceAppointment}/confirm', [StudentGuidanceAppointmentController::class, 'confirm'])
-    ->middleware(['auth:sanctum', 'active', 'role:student']);
-Route::post('v1/student/guidance-appointments/{guidanceAppointment}/cancel', [StudentGuidanceAppointmentController::class, 'cancel'])
-    ->middleware(['auth:sanctum', 'active', 'role:student']);
-
 Route::prefix('v1/student/guidance-requests')
     ->middleware(['auth:sanctum', 'active', 'role:student'])
     ->group(function (): void {
@@ -134,7 +124,6 @@ Route::prefix('v1/admin')
         Route::post('/counselors', [AdminCounselorAccountController::class, 'store']);
         Route::put('/counselors/{counselor}', [AdminCounselorAccountController::class, 'update']);
         Route::post('/counselors/{counselor}/reset-password', [AdminCounselorAccountController::class, 'resetPassword']);
-        Route::get('/appointments', [AdminAppointmentController::class, 'index']);
         Route::get('/guidance-requests', [AdminGuidanceRequestController::class, 'index']);
         Route::get('/programmes', [AdminWorkspaceController::class, 'programmes']);
         Route::post('/programmes/{programme}/media', [AdminProgrammeMediaController::class, 'store']);
@@ -154,9 +143,6 @@ Route::prefix('v1/admin')
 Route::prefix('v1/counselor')
     ->middleware(['auth:sanctum', 'active', 'role:counselor'])
     ->group(function (): void {
-        Route::get('/availability/slots', [CounselorAvailabilityController::class, 'slots']);
-        Route::get('/availability', [CounselorAvailabilityController::class, 'show']);
-        Route::put('/availability', [CounselorAvailabilityController::class, 'update']);
         Route::get('/overview', [AdminWorkspaceController::class, 'overview']);
         Route::get('/students', [AdminWorkspaceController::class, 'students']);
         Route::get('/students/{student}', [AdminWorkspaceController::class, 'student']);
@@ -166,11 +152,10 @@ Route::prefix('v1/counselor')
         Route::put('/students/{student}/guidance-summaries/{guidanceSummary}', [AdminGuidanceController::class, 'updateSummary']);
         Route::post('/students/{student}/guidance-summaries/{guidanceSummary}/publish', [AdminGuidanceController::class, 'publishSummary']);
         Route::get('/counselors', [AdminWorkspaceController::class, 'counselors']);
-        Route::get('/appointments', [AdminAppointmentController::class, 'index']);
         Route::get('/guidance-requests', [AdminGuidanceRequestController::class, 'index']);
+        Route::post('/guidance-requests/{guidanceRequest}/accept', [AdminGuidanceRequestController::class, 'accept']);
         Route::post('/guidance-requests/{guidanceRequest}/decline', [AdminGuidanceRequestController::class, 'decline']);
-        Route::post('/appointments', [AdminAppointmentController::class, 'store']);
-        Route::put('/appointments/{guidanceAppointment}', [AdminAppointmentController::class, 'update']);
+        Route::post('/guidance-requests/{guidanceRequest}/resolve', [AdminGuidanceRequestController::class, 'resolve']);
         Route::get('/reports', [AdminWorkspaceController::class, 'reports']);
         Route::get('/reports/export', [AdminWorkspaceController::class, 'exportReports']);
     });

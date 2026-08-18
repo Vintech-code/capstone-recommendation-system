@@ -7,8 +7,6 @@ use App\Http\Controllers\Guidance\StudentGuidanceSummaryController;
 use App\Jobs\ProcessAssessmentResult;
 use App\Models\AssessmentSession;
 use App\Models\ConfigurationVersion;
-use App\Models\CounselorAvailabilityWindow;
-use App\Models\GuidanceAppointment;
 use App\Models\GuidanceSummary;
 use App\Models\NotificationDispatch;
 use App\Models\RecommendationRun;
@@ -94,42 +92,6 @@ class GuidanceSummaryAndNotificationTest extends TestCase
             ->assertOk()->assertJsonPath('data.id', $notificationId);
     }
 
-    public function test_existing_appointment_lifecycle_creates_database_notifications(): void
-    {
-        [$student, $counselor] = $this->studentAndCounselor();
-        $request = $this->actingAs($student)->postJson('/api/v1/student/guidance-requests', [
-            'concernCategory' => 'general_guidance',
-            'message' => 'I would like advice about my recorded programme matches.',
-            'preferredFormat' => 'in_person',
-        ])->assertCreated()->json('data');
-        $startsAt = now()->addDays(5)->setTime(10, 0);
-        $endsAt = $startsAt->copy()->addHour();
-        CounselorAvailabilityWindow::query()->create([
-            'counselor_id' => $counselor->getKey(),
-            'weekday' => $startsAt->copy()->setTimezone('Asia/Manila')->dayOfWeek,
-            'starts_at' => '00:00',
-            'ends_at' => '23:59',
-            'timezone' => 'Asia/Manila',
-        ]);
-
-        $appointment = $this->actingAs($counselor)->postJson('/api/v1/counselor/appointments', [
-            'studentId' => $student->getKey(),
-            'counselorId' => $counselor->getKey(),
-            'guidanceRequestId' => $request['id'],
-            'scheduledAt' => $startsAt->toAtomString(),
-            'endsAt' => $endsAt->toAtomString(),
-            'topic' => 'Review programme matches',
-        ])->assertCreated()->json('data');
-
-        $this->assertSame(
-            ['guidance_request_accepted', 'guidance_request_scheduled'],
-            $student->notifications()->oldest()->get()->pluck('data')->pluck('eventType')->all(),
-        );
-
-        $this->actingAs($student)->postJson("/api/v1/student/guidance-appointments/{$appointment['id']}/confirm")->assertOk();
-        $this->assertSame('appointment_student_confirmed', $counselor->notifications()->firstOrFail()->data['eventType']);
-    }
-
     public function test_result_processing_notifies_the_student_once_result_is_available(): void
     {
         [$student] = $this->studentAndCounselor();
@@ -152,95 +114,6 @@ class GuidanceSummaryAndNotificationTest extends TestCase
         (new ProcessAssessmentResult($session->getKey()))->handle(app(OnetInterestProfilerClient::class));
 
         $this->assertSame('assessment_result_ready', $student->notifications()->firstOrFail()->data['eventType']);
-    }
-
-    public function test_confirmed_appointments_schedule_deduplicated_reminders_and_rescheduling_invalidates_obsolete_records(): void
-    {
-        CarbonImmutable::setTestNow('2026-08-10 00:00:00 UTC');
-        [$student, $counselor] = $this->studentAndCounselor();
-        foreach (range(0, 6) as $weekday) {
-            CounselorAvailabilityWindow::query()->create([
-                'counselor_id' => $counselor->getKey(),
-                'weekday' => $weekday,
-                'starts_at' => '08:00',
-                'ends_at' => '17:00',
-                'timezone' => 'Asia/Manila',
-            ]);
-        }
-        $appointment = GuidanceAppointment::query()->create([
-            'student_id' => $student->getKey(),
-            'counselor_id' => $counselor->getKey(),
-            'created_by' => $counselor->getKey(),
-            'scheduled_at' => CarbonImmutable::parse('2026-08-12 10:00:00 Asia/Manila')->utc(),
-            'ends_at' => CarbonImmutable::parse('2026-08-12 11:00:00 Asia/Manila')->utc(),
-            'topic' => 'Review programme matches',
-            'status' => 'scheduled',
-        ]);
-        $policies = app(NotificationPolicyScheduler::class);
-
-        $policies->refreshAppointmentReminders($appointment);
-        $this->assertDatabaseCount('notification_dispatches', 0);
-
-        $appointment->update(['student_confirmed_at' => now()]);
-        $policies->refreshAppointmentReminders($appointment);
-        $policies->refreshAppointmentReminders($appointment);
-        $this->assertSame(2, NotificationDispatch::query()->where('status', 'pending')->count());
-
-        $appointment->update([
-            'scheduled_at' => CarbonImmutable::parse('2026-08-13 10:00:00 Asia/Manila')->utc(),
-            'ends_at' => CarbonImmutable::parse('2026-08-13 11:00:00 Asia/Manila')->utc(),
-            'student_confirmed_at' => null,
-        ]);
-        $policies->refreshAppointmentReminders($appointment);
-        $this->assertSame(2, NotificationDispatch::query()->where('status', 'invalidated')->count());
-        $this->assertSame(0, NotificationDispatch::query()->where('status', 'pending')->count());
-
-        $appointment->update(['student_confirmed_at' => now()]);
-        $policies->refreshAppointmentReminders($appointment);
-        $this->assertSame(2, NotificationDispatch::query()->where('status', 'pending')->count());
-
-        $appointment->update(['status' => 'cancelled']);
-        $policies->refreshAppointmentReminders($appointment);
-        $this->assertSame(4, NotificationDispatch::query()->where('status', 'invalidated')->count());
-        $this->assertSame(0, NotificationDispatch::query()->where('status', 'pending')->count());
-        CarbonImmutable::setTestNow();
-    }
-
-    public function test_due_reminder_is_shifted_into_office_hours_and_dispatched_only_once(): void
-    {
-        CarbonImmutable::setTestNow('2026-08-10 00:00:00 UTC');
-        [$student, $counselor] = $this->studentAndCounselor();
-        $appointmentAt = CarbonImmutable::parse('2026-08-12 09:30:00 Asia/Manila');
-        foreach ([$appointmentAt->dayOfWeek, $appointmentAt->subDay()->dayOfWeek] as $weekday) {
-            CounselorAvailabilityWindow::query()->firstOrCreate([
-                'counselor_id' => $counselor->getKey(),
-                'weekday' => $weekday,
-                'starts_at' => '09:00',
-                'ends_at' => '17:00',
-                'timezone' => 'Asia/Manila',
-            ]);
-        }
-        $appointment = GuidanceAppointment::query()->create([
-            'student_id' => $student->getKey(),
-            'counselor_id' => $counselor->getKey(),
-            'created_by' => $counselor->getKey(),
-            'scheduled_at' => $appointmentAt->utc(),
-            'ends_at' => $appointmentAt->addHour()->utc(),
-            'topic' => 'Course guidance',
-            'status' => 'scheduled',
-            'student_confirmed_at' => now(),
-        ]);
-        $policies = app(NotificationPolicyScheduler::class);
-        $policies->refreshAppointmentReminders($appointment);
-
-        $oneHour = NotificationDispatch::query()->whereJsonContains('payload->intervalMinutes', 60)->firstOrFail();
-        $this->assertSame('2026-08-12 09:00', $oneHour->scheduled_for->setTimezone('Asia/Manila')->format('Y-m-d H:i'));
-
-        $dispatchAt = CarbonImmutable::parse('2026-08-11 09:30:00 Asia/Manila');
-        $this->assertSame(1, $policies->dispatchDue($dispatchAt));
-        $this->assertSame(0, $policies->dispatchDue($dispatchAt));
-        $this->assertSame(1, $student->notifications()->where('data->eventType', 'appointment_reminder')->count());
-        CarbonImmutable::setTestNow();
     }
 
     public function test_published_programme_changes_are_batched_only_for_affected_students(): void

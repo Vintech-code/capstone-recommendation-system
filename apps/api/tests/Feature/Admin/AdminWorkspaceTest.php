@@ -5,8 +5,6 @@ namespace Tests\Feature\Admin;
 use App\Models\AdminAuditEvent;
 use App\Models\AssessmentSession;
 use App\Models\ConfigurationVersion;
-use App\Models\CounselorAvailabilityWindow;
-use App\Models\GuidanceAppointment;
 use App\Models\GuidanceCase;
 use App\Models\GuidanceRequest;
 use App\Models\RecommendationRun;
@@ -14,7 +12,6 @@ use App\Models\Role;
 use App\Models\RoleSlug;
 use App\Models\StudentSavedProgramme;
 use App\Models\User;
-use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -295,370 +292,43 @@ class AdminWorkspaceTest extends TestCase
         $this->assertDatabaseCount('configuration_versions', 1);
     }
 
-    public function test_counselor_can_schedule_and_complete_a_course_guidance_appointment_while_admin_monitors(): void
-    {
-        [$admin, $student] = $this->createAdminAndStudent();
-        $counselor = User::factory()->create(['name' => 'Course Counselor']);
-        $counselor->roles()->attach($this->counselorRole());
-        $this->configureAvailability($counselor);
-
-        $this->actingAs($admin)->postJson('/api/v1/admin/appointments', [])->assertStatus(405);
-
-        $appointment = $this->actingAs($counselor)->postJson('/api/v1/counselor/appointments', [
-            'studentId' => $student->getKey(),
-            'counselorId' => $counselor->getKey(),
-            'scheduledAt' => '2026-08-20T09:00:00+08:00',
-            'endsAt' => '2026-08-20T10:00:00+08:00',
-            'topic' => 'Review programme matches',
-            'programmeCode' => 'BSIT',
-            'notes' => 'Discuss the student’s current top three matches.',
-        ])->assertCreated()
-            ->assertJsonPath('data.studentId', $student->getKey())
-            ->assertJsonPath('data.counselorId', $counselor->getKey())
-            ->assertJsonPath('data.status', 'scheduled')
-            ->json('data');
-
-        $this->actingAs($admin)->getJson('/api/v1/admin/appointments')
-            ->assertOk()
-            ->assertJsonPath('data.0.topic', 'Review programme matches');
-
-        $this->actingAs($counselor)->putJson("/api/v1/counselor/appointments/{$appointment['id']}", [
-            'studentId' => $student->getKey(),
-            'counselorId' => $counselor->getKey(),
-            'scheduledAt' => '2026-08-20T09:00:00+08:00',
-            'endsAt' => '2026-08-20T10:00:00+08:00',
-            'topic' => 'Review programme matches',
-            'programmeCode' => 'BSIT',
-            'notes' => 'Guidance conversation completed.',
-            'status' => 'completed',
-        ])->assertOk()->assertJsonPath('data.status', 'completed');
-
-        $this->assertDatabaseHas('guidance_appointments', ['id' => $appointment['id'], 'status' => 'completed']);
-        $this->assertDatabaseHas('guidance_appointment_events', [
-            'guidance_appointment_id' => $appointment['id'],
-            'event_type' => 'created',
-            'from_status' => null,
-            'to_status' => 'scheduled',
-        ]);
-        $this->assertDatabaseHas('guidance_appointment_events', [
-            'guidance_appointment_id' => $appointment['id'],
-            'event_type' => 'status_changed',
-            'from_status' => 'scheduled',
-            'to_status' => 'completed',
-        ]);
-        $this->assertDatabaseHas('admin_audit_events', ['action' => 'guidance_appointment.created']);
-        $this->assertDatabaseHas('admin_audit_events', ['action' => 'guidance_appointment.updated']);
-    }
-
-    public function test_appointment_lifecycle_rejects_conflicts_and_terminal_record_changes(): void
+    public function test_counselor_accepts_and_resolves_an_owned_guidance_concern(): void
     {
         [, $student] = $this->createAdminAndStudent();
-        $counselor = User::factory()->create(['name' => 'Schedule Owner']);
+        $counselor = User::factory()->create(['name' => 'Guidance Counselor']);
+        $otherCounselor = User::factory()->create(['name' => 'Other Counselor']);
         $counselor->roles()->attach($this->counselorRole());
-        $this->configureAvailability($counselor);
-        $payload = [
-            'studentId' => $student->getKey(),
-            'counselorId' => $counselor->getKey(),
-            'scheduledAt' => '2026-08-22T09:00:00+08:00',
-            'endsAt' => '2026-08-22T10:00:00+08:00',
-            'topic' => 'Course guidance',
-        ];
+        $otherCounselor->roles()->attach($this->counselorRole());
 
-        $appointment = $this->actingAs($counselor)
-            ->postJson('/api/v1/counselor/appointments', $payload)
-            ->assertCreated()
-            ->assertJsonCount(1, 'data.statusHistory')
-            ->json('data');
-
-        $this->actingAs($counselor)
-            ->postJson('/api/v1/counselor/appointments', $payload)
-            ->assertConflict()
-            ->assertJsonPath('message', 'This appointment overlaps another active appointment for the counselor.');
-
-        $this->actingAs($counselor)
-            ->postJson('/api/v1/counselor/appointments', [
-                ...$payload,
-                'scheduledAt' => '2026-08-22T09:30:00+08:00',
-                'endsAt' => '2026-08-22T10:30:00+08:00',
-            ])
-            ->assertConflict();
-
-        $terminal = $this->actingAs($counselor)
-            ->putJson("/api/v1/counselor/appointments/{$appointment['id']}", [
-                ...$payload,
-                'status' => 'no_show',
-            ])
-            ->assertOk()
-            ->assertJsonPath('data.status', 'no_show')
-            ->assertJsonCount(2, 'data.statusHistory')
-            ->json('data');
-
-        $this->actingAs($counselor)
-            ->putJson("/api/v1/counselor/appointments/{$terminal['id']}", [
-                ...$payload,
-                'status' => 'scheduled',
-            ])
-            ->assertConflict()
-            ->assertJsonPath('message', 'Completed, cancelled, and no-show appointments are immutable.');
-    }
-
-    public function test_counselor_configures_availability_before_scheduling_and_rescheduling(): void
-    {
-        [$admin, $student] = $this->createAdminAndStudent();
-        $counselor = User::factory()->create(['name' => 'Availability Owner', 'account_status' => 'active']);
-        $counselor->roles()->attach($this->counselorRole());
-        $payload = [
-            'studentId' => $student->getKey(),
-            'counselorId' => $counselor->getKey(),
-            'scheduledAt' => '2026-08-20T09:30:00+08:00',
-            'endsAt' => '2026-08-20T10:30:00+08:00',
-            'topic' => 'Review course choices',
-        ];
-
-        $this->actingAs($counselor)
-            ->getJson('/api/v1/counselor/availability')
-            ->assertOk()
-            ->assertJsonPath('data.configured', false)
-            ->assertJsonPath('data.timezone', 'Asia/Manila')
-            ->assertJsonCount(0, 'data.windows');
-
-        $this->postJson('/api/v1/counselor/appointments', $payload)
-            ->assertUnprocessable()
-            ->assertJsonValidationErrors('scheduledAt');
-
-        $this->putJson('/api/v1/counselor/availability', [
-            'timezone' => 'Asia/Manila',
-            'windows' => [
-                ['weekday' => 4, 'startsAt' => '09:00', 'endsAt' => '12:00'],
-                ['weekday' => 4, 'startsAt' => '11:00', 'endsAt' => '13:00'],
-            ],
-        ])->assertUnprocessable()->assertJsonValidationErrors('windows');
-
-        $this->putJson('/api/v1/counselor/availability', [
-            'timezone' => 'Asia/Manila',
-            'windows' => [['weekday' => 4, 'startsAt' => '09:00', 'endsAt' => '12:00']],
-        ])
-            ->assertOk()
-            ->assertJsonPath('data.configured', true)
-            ->assertJsonPath('data.windows.0.weekday', 4)
-            ->assertJsonPath('data.windows.0.startsAt', '09:00');
-
-        $this->postJson('/api/v1/counselor/appointments', [
-            ...$payload,
-            'scheduledAt' => '2026-08-20T08:00:00+08:00',
-            'endsAt' => '2026-08-20T09:00:00+08:00',
-        ])->assertUnprocessable()->assertJsonValidationErrors('scheduledAt');
-
-        $appointment = $this->postJson('/api/v1/counselor/appointments', $payload)
-            ->assertCreated()
-            ->json('data');
-
-        GuidanceAppointment::query()->findOrFail($appointment['id'])->update(['student_confirmed_at' => now()]);
-
-        $this->putJson("/api/v1/counselor/appointments/{$appointment['id']}", [
-            ...$payload,
-            'scheduledAt' => '2026-08-20T12:00:00+08:00',
-            'endsAt' => '2026-08-20T13:00:00+08:00',
-            'status' => 'scheduled',
-        ])->assertUnprocessable()->assertJsonValidationErrors('scheduledAt');
-
-        $this->putJson("/api/v1/counselor/appointments/{$appointment['id']}", [
-            ...$payload,
-            'scheduledAt' => '2026-08-20T10:00:00+08:00',
-            'endsAt' => '2026-08-20T11:00:00+08:00',
-            'status' => 'scheduled',
-        ])
-            ->assertOk()
-            ->assertJsonPath('data.studentConfirmedAt', null)
-            ->assertJsonPath('data.statusHistory.1.eventType', 'rescheduled');
-
-        $this->assertDatabaseHas('admin_audit_events', ['action' => 'counselor_availability.updated']);
-        $this->actingAs($admin)->getJson('/api/v1/counselor/availability')->assertForbidden();
-        $this->getJson('/api/v1/counselor/availability/slots?date=2026-08-20&durationMinutes=30')->assertForbidden();
-    }
-
-    public function test_counselor_can_select_duration_based_slots_from_their_real_free_time(): void
-    {
-        [, $student] = $this->createAdminAndStudent();
-        $counselor = User::factory()->create(['name' => 'Slot Owner', 'account_status' => 'active']);
-        $counselor->roles()->attach($this->counselorRole());
-
-        $this->actingAs($counselor)->putJson('/api/v1/counselor/availability', [
-            'timezone' => 'Asia/Manila',
-            'windows' => [['weekday' => 4, 'startsAt' => '09:00', 'endsAt' => '12:00']],
-        ])->assertOk();
-
-        $appointment = $this->postJson('/api/v1/counselor/appointments', [
-            'studentId' => $student->getKey(),
-            'counselorId' => $counselor->getKey(),
-            'scheduledAt' => '2026-08-20T10:00:00+08:00',
-            'endsAt' => '2026-08-20T11:00:00+08:00',
-            'topic' => 'Review course choices',
-        ])->assertCreated()->json('data');
-
-        $this->getJson('/api/v1/counselor/availability/slots?date=2026-08-20&durationMinutes=30')
-            ->assertOk()
-            ->assertJsonPath('data.timezone', 'Asia/Manila')
-            ->assertJsonPath('data.durationMinutes', 30)
-            ->assertJsonCount(4, 'data.slots')
-            ->assertJsonPath('data.slots.0.startsAt', '2026-08-20T09:00:00+08:00')
-            ->assertJsonPath('data.slots.1.endsAt', '2026-08-20T10:00:00+08:00')
-            ->assertJsonPath('data.slots.2.startsAt', '2026-08-20T11:00:00+08:00');
-
-        $this->getJson("/api/v1/counselor/availability/slots?date=2026-08-20&durationMinutes=30&excludeAppointmentId={$appointment['id']}")
-            ->assertOk()
-            ->assertJsonCount(6, 'data.slots');
-
-        $this->getJson('/api/v1/counselor/availability/slots?date=2026-08-21&durationMinutes=30')
-            ->assertOk()
-            ->assertJsonCount(0, 'data.slots');
-    }
-
-    public function test_available_time_selection_never_offers_elapsed_manila_times(): void
-    {
-        $this->createAdminAndStudent();
-        $counselor = User::factory()->create(['name' => 'Current Day Counselor', 'account_status' => 'active']);
-        $counselor->roles()->attach($this->counselorRole());
-        $this->actingAs($counselor)->putJson('/api/v1/counselor/availability', [
-            'timezone' => 'Asia/Manila',
-            'windows' => [['weekday' => 4, 'startsAt' => '09:00', 'endsAt' => '12:00']],
-        ])->assertOk();
-
-        $this->travelTo(CarbonImmutable::parse('2026-08-20T10:15:00+08:00'));
-        try {
-            $this->getJson('/api/v1/counselor/availability/slots?date=2026-08-20&durationMinutes=30')
-                ->assertOk()
-                ->assertJsonCount(3, 'data.slots')
-                ->assertJsonPath('data.slots.0.startsAt', '2026-08-20T10:30:00+08:00');
-        } finally {
-            $this->travelBack();
-        }
-    }
-
-    public function test_student_guidance_request_enters_the_admin_queue_and_is_linked_to_an_appointment(): void
-    {
-        [$admin, $student] = $this->createAdminAndStudent();
-        $counselor = User::factory()->create(['name' => 'Course Counselor']);
-        $counselor->roles()->attach($this->counselorRole());
-        $this->configureAvailability($counselor);
-
-        $request = $this->actingAs($student)->postJson('/api/v1/student/guidance-requests', [
-            'programmeId' => 'bs-information-technology',
+        $guidanceRequest = $this->actingAs($student)->postJson('/api/v1/student/guidance-requests', [
             'concernCategory' => 'programme_comparison',
             'preferredFormat' => 'in_person',
-            'preferredDate' => '2026-08-20',
-            'message' => 'I would like help comparing my matched programmes before deciding.',
-        ])->assertCreated()
-            ->assertJsonPath('data.status', 'pending')
-            ->assertJsonPath('data.programmeCode', 'BSIT')
-            ->assertJsonPath('data.concernCategory', 'programme_comparison')
-            ->assertJsonPath('data.preferredFormat', 'in_person')
-            ->assertJsonPath('data.statusHistory.0.eventType', 'submitted')
-            ->json('data');
-
-        $this->actingAs($student)->getJson('/api/v1/student/guidance-requests')
-            ->assertOk()
-            ->assertJsonCount(1, 'data')
-            ->assertJsonPath('data.0.id', $request['id']);
-        $otherStudent = User::factory()->create();
-        $otherStudent->roles()->attach(Role::query()->where('slug', RoleSlug::Student->value)->firstOrFail());
-        $this->actingAs($otherStudent)->getJson('/api/v1/student/guidance-requests')
-            ->assertOk()
-            ->assertJsonCount(0, 'data');
-
-        $this->actingAs($admin)->getJson('/api/v1/admin/guidance-requests')
-            ->assertOk()
-            ->assertJsonPath('data.0.studentId', $student->getKey())
-            ->assertJsonPath('data.0.status', 'pending');
-        $this->actingAs($admin)->getJson('/api/v1/admin/overview')
-            ->assertOk()
-            ->assertJsonPath('data.pendingGuidanceRequests', 1);
-
-        $appointment = $this->actingAs($counselor)->postJson('/api/v1/counselor/appointments', [
-            'studentId' => $student->getKey(),
-            'counselorId' => $counselor->getKey(),
-            'guidanceRequestId' => $request['id'],
-            'scheduledAt' => '2026-08-21T10:00:00+08:00',
-            'endsAt' => '2026-08-21T11:00:00+08:00',
-            'topic' => 'Review programme matches',
-            'programmeCode' => 'BSIT',
+            'message' => 'I need help comparing my matched programmes.',
         ])->assertCreated()->json('data');
 
-        $this->assertDatabaseHas('guidance_requests', [
-            'id' => $request['id'],
-            'student_id' => $student->getKey(),
-            'status' => 'scheduled',
-            'appointment_id' => $appointment['id'],
-            'accepted_by' => $counselor->getKey(),
-        ]);
-        $this->assertDatabaseHas('guidance_request_events', [
-            'guidance_request_id' => $request['id'],
-            'actor_id' => $counselor->getKey(),
-            'event_type' => 'accepted',
-            'to_status' => 'accepted',
-        ]);
-        $this->assertDatabaseHas('guidance_request_events', [
-            'guidance_request_id' => $request['id'],
-            'actor_id' => $counselor->getKey(),
-            'event_type' => 'scheduled',
-            'to_status' => 'scheduled',
-        ]);
-        $this->assertSame(1, GuidanceRequest::query()->count());
-    }
+        $this->actingAs($counselor)
+            ->postJson("/api/v1/counselor/guidance-requests/{$guidanceRequest['id']}/accept")
+            ->assertOk()
+            ->assertJsonPath('data.status', 'accepted')
+            ->assertJsonPath('data.acceptedBy', 'Guidance Counselor');
 
-    public function test_guidance_requests_are_owned_by_the_accepting_counselor_and_cannot_be_claimed_twice(): void
-    {
-        [, $student] = $this->createAdminAndStudent();
-        $firstCounselor = User::factory()->create(['name' => 'First Counselor']);
-        $secondCounselor = User::factory()->create(['name' => 'Second Counselor']);
-        $firstCounselor->roles()->attach($this->counselorRole());
-        $secondCounselor->roles()->attach($this->counselorRole());
-        $this->configureAvailability($firstCounselor);
-        $this->configureAvailability($secondCounselor);
-
-        $request = $this->actingAs($student)->postJson('/api/v1/student/guidance-requests', [
-            'concernCategory' => 'course_requirements',
-            'preferredFormat' => 'video_call',
-            'message' => 'I need help understanding the programme requirements.',
-        ])->assertCreated()->json('data');
-
-        $startsAt = now()->addDays(8)->setTime(13, 0);
-        $payload = [
-            'studentId' => $student->getKey(),
-            'counselorId' => $firstCounselor->getKey(),
-            'guidanceRequestId' => $request['id'],
-            'scheduledAt' => $startsAt->toAtomString(),
-            'endsAt' => $startsAt->copy()->addHour()->toAtomString(),
-            'topic' => 'Review programme requirements',
-        ];
-
-        $this->actingAs($firstCounselor)
-            ->postJson('/api/v1/counselor/appointments', $payload)
-            ->assertCreated();
-
-        $this->actingAs($secondCounselor)
-            ->postJson('/api/v1/counselor/appointments', [
-                ...$payload,
-                'counselorId' => $secondCounselor->getKey(),
-                'scheduledAt' => $startsAt->copy()->addDays(1)->toAtomString(),
-                'endsAt' => $startsAt->copy()->addDays(1)->addHour()->toAtomString(),
-            ])
+        $this->actingAs($otherCounselor)
+            ->postJson("/api/v1/counselor/guidance-requests/{$guidanceRequest['id']}/resolve", ['summary' => 'Unauthorized resolution.'])
             ->assertConflict();
 
-        $this->assertDatabaseCount('guidance_appointments', 1);
-        $this->assertDatabaseHas('guidance_requests', [
-            'id' => $request['id'],
-            'accepted_by' => $firstCounselor->getKey(),
-            'status' => 'scheduled',
+        $this->actingAs($counselor)
+            ->postJson("/api/v1/counselor/guidance-requests/{$guidanceRequest['id']}/resolve", ['summary' => 'Reviewed programme evidence and recorded the agreed next steps.'])
+            ->assertOk()
+            ->assertJsonPath('data.status', 'closed')
+            ->assertJsonPath('data.resolutionReason', 'Reviewed programme evidence and recorded the agreed next steps.');
+
+        $this->assertDatabaseHas('guidance_request_events', [
+            'guidance_request_id' => $guidanceRequest['id'],
+            'event_type' => 'resolved',
+            'to_status' => 'closed',
         ]);
-        $this->actingAs($secondCounselor)->getJson('/api/v1/counselor/guidance-requests')
-            ->assertOk()
-            ->assertJsonCount(0, 'data');
-        $this->actingAs($firstCounselor)->getJson('/api/v1/counselor/guidance-requests')
-            ->assertOk()
-            ->assertJsonCount(1, 'data')
-            ->assertJsonPath('data.0.acceptedById', $firstCounselor->getKey())
-            ->assertJsonPath('data.0.acceptedBy', 'First Counselor');
+        $this->assertDatabaseHas('admin_audit_events', ['action' => 'guidance_request.accepted']);
+        $this->assertDatabaseHas('admin_audit_events', ['action' => 'guidance_request.resolved']);
     }
 
     public function test_counselor_decline_and_student_cancellation_retain_request_history(): void
@@ -717,51 +387,6 @@ class AdminWorkspaceTest extends TestCase
         ]);
     }
 
-    public function test_student_can_confirm_and_cancel_only_their_own_future_appointment(): void
-    {
-        [, $student] = $this->createAdminAndStudent();
-        $otherStudent = User::factory()->create();
-        $otherStudent->roles()->attach(Role::query()->where('slug', RoleSlug::Student->value)->firstOrFail());
-        $counselor = User::factory()->create(['name' => 'Student Appointment Counselor']);
-        $counselor->roles()->attach($this->counselorRole());
-        $this->configureAvailability($counselor);
-        $startsAt = now()->addDays(7)->setTime(9, 0);
-        $endsAt = $startsAt->copy()->addHour();
-
-        $appointment = $this->actingAs($counselor)->postJson('/api/v1/counselor/appointments', [
-            'studentId' => $student->getKey(),
-            'counselorId' => $counselor->getKey(),
-            'scheduledAt' => $startsAt->toAtomString(),
-            'endsAt' => $endsAt->toAtomString(),
-            'topic' => 'Review saved programmes',
-        ])->assertCreated()->json('data');
-
-        $this->actingAs($otherStudent)
-            ->postJson("/api/v1/student/guidance-appointments/{$appointment['id']}/confirm")
-            ->assertNotFound();
-
-        $this->actingAs($student)
-            ->postJson("/api/v1/student/guidance-appointments/{$appointment['id']}/confirm")
-            ->assertOk()
-            ->assertJsonPath('data.status', 'scheduled')
-            ->assertJsonPath('data.statusHistory.1.eventType', 'student_confirmed');
-
-        $this->actingAs($student)
-            ->postJson("/api/v1/student/guidance-appointments/{$appointment['id']}/cancel", [
-                'reason' => 'I need to request a different schedule.',
-            ])
-            ->assertOk()
-            ->assertJsonPath('data.status', 'cancelled')
-            ->assertJsonPath('data.cancellationReason', 'I need to request a different schedule.');
-
-        $this->assertDatabaseHas('guidance_appointment_events', [
-            'guidance_appointment_id' => $appointment['id'],
-            'actor_id' => $student->getKey(),
-            'event_type' => 'status_changed',
-            'to_status' => 'cancelled',
-        ]);
-    }
-
     public function test_admin_and_counselor_can_export_aggregate_reports_without_student_details(): void
     {
         [$admin, $student] = $this->createAdminAndStudent();
@@ -782,24 +407,14 @@ class AdminWorkspaceTest extends TestCase
             'status' => 'follow_up',
             'follow_up_on' => today()->subDay(),
         ]);
-        $appointment = GuidanceAppointment::query()->create([
-            'student_id' => $student->getKey(),
-            'counselor_id' => $counselor->getKey(),
-            'created_by' => $counselor->getKey(),
-            'scheduled_at' => now()->addDay(),
-            'ends_at' => now()->addDay()->addHour(),
-            'topic' => 'Review programme options',
-            'status' => 'scheduled',
-        ]);
         GuidanceRequest::query()->create([
             'student_id' => $student->getKey(),
             'concern_category' => 'general_guidance',
             'message' => 'Please help me review my options.',
             'preferred_format' => 'in_person',
-            'status' => 'scheduled',
+            'status' => 'accepted',
             'accepted_by' => $counselor->getKey(),
             'accepted_at' => now(),
-            'appointment_id' => $appointment->getKey(),
             'created_at' => now()->subHour(),
         ]);
 
@@ -808,8 +423,7 @@ class AdminWorkspaceTest extends TestCase
             ->assertJsonPath('data.completedAssessments', 1)
             ->assertJsonPath('data.assessmentCompletionRate', 100)
             ->assertJsonPath('data.programmeSaves', 1)
-            ->assertJsonPath('data.appointmentStatuses.scheduled', 1)
-            ->assertJsonPath('data.guidanceRequestStatuses.scheduled', 1)
+            ->assertJsonPath('data.guidanceRequestStatuses.accepted', 1)
             ->assertJsonPath('data.openFollowUps', 1)
             ->assertJsonPath('data.overdueFollowUps', 1)
             ->assertJsonCount(1, 'data.assessmentCompletionsByMonth')
@@ -819,14 +433,14 @@ class AdminWorkspaceTest extends TestCase
         $response->assertOk()->assertHeader('content-type', 'text/csv; charset=UTF-8');
         $export = $response->streamedContent();
         $this->assertStringNotContainsString($student->email, $export);
-        $this->assertStringContainsString('Appointment lifecycle', $export);
+        $this->assertStringContainsString('Guidance request lifecycle', $export);
         $this->assertDatabaseHas('admin_audit_events', ['action' => 'report.exported']);
 
         $this->actingAs($counselor)->getJson('/api/v1/counselor/reports')
             ->assertOk()
             ->assertJsonPath('data.scope', 'counselor')
             ->assertJsonPath('data.studentCount', 1)
-            ->assertJsonPath('data.appointmentStatuses.scheduled', 1);
+            ->assertJsonPath('data.guidanceRequestStatuses.accepted', 1);
 
         $counselorExport = $this->actingAs($counselor)->get('/api/v1/counselor/reports/export');
         $counselorExport->assertOk();
@@ -869,7 +483,7 @@ class AdminWorkspaceTest extends TestCase
         $counselor = User::factory()->create(['account_status' => 'active']);
         $counselor->roles()->attach($this->counselorRole());
 
-        foreach (['overview', 'students', 'counselors', 'appointments', 'guidance-requests', 'reports'] as $resource) {
+        foreach (['overview', 'students', 'counselors', 'guidance-requests', 'reports'] as $resource) {
             $this->actingAs($counselor)
                 ->getJson("/api/v1/counselor/{$resource}")
                 ->assertOk()
@@ -920,18 +534,5 @@ class AdminWorkspaceTest extends TestCase
             ['slug' => RoleSlug::Counselor->value],
             ['name' => 'Counselor'],
         );
-    }
-
-    private function configureAvailability(User $counselor): void
-    {
-        foreach (range(0, 6) as $weekday) {
-            CounselorAvailabilityWindow::query()->create([
-                'counselor_id' => $counselor->getKey(),
-                'weekday' => $weekday,
-                'starts_at' => '00:00',
-                'ends_at' => '23:59',
-                'timezone' => 'Asia/Manila',
-            ]);
-        }
     }
 }

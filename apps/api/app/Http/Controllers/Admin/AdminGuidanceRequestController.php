@@ -47,7 +47,6 @@ final class AdminGuidanceRequestController extends Controller
                     'acceptedById' => $guidanceRequest->accepted_by,
                     'acceptedBy' => $guidanceRequest->acceptedBy?->name,
                     'acceptedAt' => $guidanceRequest->accepted_at?->toAtomString(),
-                    'appointmentId' => $guidanceRequest->appointment_id,
                     'closedAt' => $guidanceRequest->closed_at?->toAtomString(),
                     'resolutionReason' => $guidanceRequest->resolution_reason,
                     'createdAt' => $guidanceRequest->created_at?->toAtomString(),
@@ -63,6 +62,90 @@ final class AdminGuidanceRequestController extends Controller
             });
 
         return response()->json(['data' => $requests]);
+    }
+
+    public function accept(Request $request, GuidanceRequest $guidanceRequest, PathwaysNotifier $notifier): JsonResponse
+    {
+        $guidanceRequest = DB::transaction(function () use ($request, $guidanceRequest): GuidanceRequest {
+            $locked = GuidanceRequest::query()->lockForUpdate()->findOrFail($guidanceRequest->getKey());
+            abort_unless($locked->status === 'pending', 409, 'This guidance request has already been handled.');
+            $locked->update([
+                'status' => 'accepted',
+                'accepted_by' => $request->user()->getKey(),
+                'accepted_at' => now(),
+            ]);
+            $locked->events()->create([
+                'actor_id' => $request->user()->getKey(),
+                'event_type' => 'accepted',
+                'from_status' => 'pending',
+                'to_status' => 'accepted',
+            ]);
+            AdminAuditEvent::query()->create([
+                'actor_id' => $request->user()->getKey(),
+                'action' => 'guidance_request.accepted',
+                'subject_type' => 'guidance_request',
+                'subject_reference' => (string) $locked->getKey(),
+                'metadata' => ['student_id' => $locked->student_id, 'status' => 'accepted'],
+            ]);
+
+            return $locked;
+        });
+
+        $guidanceRequest->loadMissing('student:id,name,email');
+        if ($guidanceRequest->student !== null) {
+            $notifier->notify(
+                $guidanceRequest->student,
+                'guidance_request_accepted',
+                'Guidance request accepted',
+                'A counselor has accepted your guidance concern and will review your recorded information.',
+                ['guidanceRequestId' => $guidanceRequest->getKey()],
+            );
+        }
+
+        return $this->response($guidanceRequest);
+    }
+
+    public function resolve(Request $request, GuidanceRequest $guidanceRequest, PathwaysNotifier $notifier): JsonResponse
+    {
+        $validated = $request->validate(['summary' => ['required', 'string', 'min:3', 'max:1000']]);
+        $guidanceRequest = DB::transaction(function () use ($request, $guidanceRequest, $validated): GuidanceRequest {
+            $locked = GuidanceRequest::query()->lockForUpdate()->findOrFail($guidanceRequest->getKey());
+            abort_unless($locked->status === 'accepted' && $locked->accepted_by === $request->user()->getKey(), 409, 'Only the counselor handling this active concern can resolve it.');
+            $locked->update([
+                'status' => 'closed',
+                'closed_at' => now(),
+                'resolution_reason' => trim($validated['summary']),
+            ]);
+            $locked->events()->create([
+                'actor_id' => $request->user()->getKey(),
+                'event_type' => 'resolved',
+                'from_status' => 'accepted',
+                'to_status' => 'closed',
+                'reason' => $locked->resolution_reason,
+            ]);
+            AdminAuditEvent::query()->create([
+                'actor_id' => $request->user()->getKey(),
+                'action' => 'guidance_request.resolved',
+                'subject_type' => 'guidance_request',
+                'subject_reference' => (string) $locked->getKey(),
+                'metadata' => ['student_id' => $locked->student_id, 'status' => 'closed'],
+            ]);
+
+            return $locked;
+        });
+
+        $guidanceRequest->loadMissing('student:id,name,email');
+        if ($guidanceRequest->student !== null) {
+            $notifier->notify(
+                $guidanceRequest->student,
+                'guidance_request_resolved',
+                'Guidance concern resolved',
+                'Your counselor has completed this guidance concern. Review your published guidance summary for next steps.',
+                ['guidanceRequestId' => $guidanceRequest->getKey()],
+            );
+        }
+
+        return $this->response($guidanceRequest);
     }
 
     public function decline(Request $request, GuidanceRequest $guidanceRequest, PathwaysNotifier $notifier): JsonResponse
@@ -120,7 +203,38 @@ final class AdminGuidanceRequestController extends Controller
             'acceptedById' => $guidanceRequest->accepted_by,
             'acceptedBy' => $guidanceRequest->acceptedBy?->name,
             'acceptedAt' => $guidanceRequest->accepted_at?->toAtomString(),
-            'appointmentId' => $guidanceRequest->appointment_id,
+            'resolutionReason' => $guidanceRequest->resolution_reason,
+            'closedAt' => $guidanceRequest->closed_at?->toAtomString(),
+            'createdAt' => $guidanceRequest->created_at?->toAtomString(),
+            'statusHistory' => $guidanceRequest->events->map(static fn (GuidanceRequestEvent $event): array => [
+                'eventType' => $event->event_type,
+                'fromStatus' => $event->from_status,
+                'toStatus' => $event->to_status,
+                'reason' => $event->reason,
+                'actor' => $event->actor?->name,
+                'createdAt' => $event->created_at?->toAtomString(),
+            ])->values()->all(),
+        ]]);
+    }
+
+    private function response(GuidanceRequest $guidanceRequest): JsonResponse
+    {
+        $guidanceRequest->load(['student:id,name,email', 'acceptedBy:id,name', 'events.actor:id,name']);
+
+        return response()->json(['data' => [
+            'id' => $guidanceRequest->getKey(),
+            'studentId' => $guidanceRequest->student_id,
+            'studentName' => $guidanceRequest->student?->name,
+            'studentEmail' => $guidanceRequest->student?->email,
+            'programmeId' => $guidanceRequest->programme_id,
+            'concernCategory' => $guidanceRequest->concern_category,
+            'message' => $guidanceRequest->message,
+            'preferredFormat' => $guidanceRequest->preferred_format,
+            'preferredDate' => $guidanceRequest->preferred_date?->toDateString(),
+            'status' => $guidanceRequest->status,
+            'acceptedById' => $guidanceRequest->accepted_by,
+            'acceptedBy' => $guidanceRequest->acceptedBy?->name,
+            'acceptedAt' => $guidanceRequest->accepted_at?->toAtomString(),
             'resolutionReason' => $guidanceRequest->resolution_reason,
             'closedAt' => $guidanceRequest->closed_at?->toAtomString(),
             'createdAt' => $guidanceRequest->created_at?->toAtomString(),

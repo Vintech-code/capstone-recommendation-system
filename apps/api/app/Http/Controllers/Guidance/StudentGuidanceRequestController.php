@@ -101,7 +101,6 @@ final class StudentGuidanceRequestController extends Controller
             'status' => $guidanceRequest->status,
             'acceptedBy' => $guidanceRequest->acceptedBy?->name,
             'acceptedAt' => $guidanceRequest->accepted_at?->toAtomString(),
-            'appointmentId' => $guidanceRequest->appointment_id,
             'closedAt' => $guidanceRequest->closed_at?->toAtomString(),
             'resolutionReason' => $guidanceRequest->resolution_reason,
             'createdAt' => $guidanceRequest->created_at?->toAtomString(),

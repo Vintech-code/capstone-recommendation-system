@@ -3,7 +3,6 @@
 namespace Tests\Feature\Recommendation;
 
 use App\Models\AssessmentSession;
-use App\Models\GuidanceAppointment;
 use App\Models\RecommendationRun;
 use App\Models\Role;
 use App\Models\RoleSlug;
@@ -111,45 +110,6 @@ class StudentRecommendationTest extends TestCase
         $this->getJson('/api/v1/student/saved-programmes')
             ->assertOk()
             ->assertExactJson(['data' => ['programmeIds' => []]]);
-    }
-
-    public function test_student_can_only_read_their_own_guidance_appointments(): void
-    {
-        $student = $this->student();
-        $otherStudent = $this->student();
-        $adminRole = Role::query()->firstOrCreate(
-            ['slug' => RoleSlug::Admin->value],
-            ['name' => 'Guidance/Psychometrician/Admin'],
-        );
-        $counselor = User::factory()->create(['account_status' => 'active']);
-        $counselor->roles()->attach($adminRole);
-
-        GuidanceAppointment::query()->create([
-            'student_id' => $student->getKey(),
-            'counselor_id' => $counselor->getKey(),
-            'created_by' => $counselor->getKey(),
-            'scheduled_at' => now()->addDay(),
-            'topic' => 'Review programme matches',
-            'programme_code' => 'BSIT',
-            'status' => 'scheduled',
-        ]);
-        GuidanceAppointment::query()->create([
-            'student_id' => $otherStudent->getKey(),
-            'counselor_id' => $counselor->getKey(),
-            'created_by' => $counselor->getKey(),
-            'scheduled_at' => now()->addDays(2),
-            'topic' => 'Private appointment',
-            'status' => 'scheduled',
-        ]);
-
-        $this->actingAs($student)
-            ->getJson('/api/v1/student/guidance-appointments')
-            ->assertOk()
-            ->assertJsonCount(1, 'data')
-            ->assertJsonPath('data.0.counselorName', $counselor->name)
-            ->assertJsonPath('data.0.topic', 'Review programme matches')
-            ->assertJsonPath('data.0.programmeCode', 'BSIT')
-            ->assertJsonMissing(['Private appointment']);
     }
 
     public function test_configured_temporary_catalogue_produces_visible_recommendations(): void
