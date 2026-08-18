@@ -53,123 +53,16 @@ describe('Administration and counselor workspaces', () => {
     expect(await screen.findByText(/account created/i)).toBeVisible()
   })
 
-  it('uses the separate Counselor portal to schedule a student appointment', async () => {
-    const user = userEvent.setup()
-    await renderAppAt('/counselor')
-
-    expect(await screen.findByRole('heading', { name: /Good (morning|afternoon|evening), Counselor/i })).toBeVisible()
-    expect(screen.getAllByText('Student records').length).toBeGreaterThan(0)
-    expect(screen.getByRole('heading', { name: "Today's calendar" })).toBeVisible()
-    expect(screen.getByRole('list', { name: 'Seven-day date strip' }).children).toHaveLength(7)
-    expect(screen.getByRole('button', { name: /View full calendar/i })).toBeVisible()
-    expect(screen.queryByRole('button', { name: /Previous month/i })).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /Next month/i })).not.toBeInTheDocument()
-    expect(screen.queryByText('Weekly')).not.toBeInTheDocument()
-    expect(screen.queryByText('Monthly')).not.toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Guidance request queue' })).toBeVisible()
-    await user.click(screen.getByRole('button', { name: /Accept.*schedule/i }))
-    expect(screen.getByLabelText('Student')).toHaveValue('10')
-    expect(screen.getByLabelText('Guidance topic')).toHaveValue('Review BSIT programme match')
-    fireEvent.change(screen.getByLabelText('Appointment date'), { target: { value: '2026-08-20' } })
-    await user.type(screen.getByLabelText('Length in minutes'), '60')
-    await user.click(screen.getByRole('button', { name: 'Show available times' }))
-    await user.click(await screen.findByRole('button', { name: /9:00.*10:00/i }))
-    await user.click(screen.getByRole('button', { name: 'Schedule appointment' }))
-
-    expect(await screen.findByText('Appointment scheduled successfully.')).toBeVisible()
-    expect(fetch).toHaveBeenCalledWith('/api/v1/counselor/appointments', expect.objectContaining({ method: 'POST' }))
-    const appointmentCall = vi.mocked(fetch).mock.calls.find(([input, init]) => input.toString() === '/api/v1/counselor/appointments' && init?.method === 'POST')
-    expect(JSON.parse(String(appointmentCall?.[1]?.body))).toMatchObject({ studentId: 10, guidanceRequestId: 21, programmeCode: 'BSIT', scheduledAt: '2026-08-20T09:00:00+08:00', endsAt: '2026-08-20T10:00:00+08:00' })
-  })
-
-  it('uses recorded free time and an explicit appointment length when scheduling', async () => {
-    const user = userEvent.setup()
-    await renderAppAt('/counselor/appointments')
-
-    expect(await screen.findByRole('columnheader', { name: 'No.' })).toBeVisible()
-    expect(screen.getByText('Showing 1–1 of 1 appointments')).toBeVisible()
-    expect(screen.getByRole('button', { name: 'Page 1' })).toHaveAttribute('aria-current', 'page')
-    expect(screen.getByRole('button', { name: 'Previous' })).toBeDisabled()
-    expect(screen.getByRole('button', { name: 'Next' })).toBeDisabled()
-    expect(screen.queryByText('Asia/Manila')).not.toBeInTheDocument()
-    await user.click(await screen.findByRole('button', { name: 'Schedule appointment' }))
-    expect(screen.getByRole('dialog')).toBeVisible()
-    fireEvent.change(screen.getByLabelText('Appointment date'), { target: { value: '2026-08-20' } })
-    await user.type(screen.getByLabelText('Length in minutes'), '60')
-    await user.click(screen.getByRole('button', { name: 'Show available times' }))
-
-    const availableTime = await screen.findByRole('button', { name: /9:00.*10:00/i })
-    await user.click(availableTime)
-
-    expect(screen.queryByLabelText('Date and time')).not.toBeInTheDocument()
-    expect(screen.queryByLabelText('End date and time')).not.toBeInTheDocument()
-    expect(within(screen.getByText('Selected schedule').parentElement!).getByText(/Aug 20, 2026, 9:00 AM/)).toBeVisible()
-    expect(fetch).toHaveBeenCalledWith('/api/v1/counselor/availability/slots?date=2026-08-20&durationMinutes=60', expect.objectContaining({ credentials: 'include' }))
-  })
-
-  it('excludes the current appointment when selecting a reschedule time', async () => {
-    const user = userEvent.setup()
-    await renderAppAt('/counselor/appointments')
-
-    await user.click(await screen.findByRole('button', { name: 'Reschedule' }))
-    const dates = screen.getAllByLabelText('Appointment date')
-    const durations = screen.getAllByLabelText('Length in minutes')
-    const showButtons = screen.getAllByRole('button', { name: 'Show available times' })
-    fireEvent.change(dates[0], { target: { value: '2026-08-20' } })
-    await user.type(durations[0], '60')
-    await user.click(showButtons[0])
-
-    expect(await screen.findByRole('button', { name: /9:00.*10:00/i })).toBeVisible()
-    expect(fetch).toHaveBeenCalledWith('/api/v1/counselor/availability/slots?date=2026-08-20&durationMinutes=60&excludeAppointmentId=7', expect.objectContaining({ credentials: 'include' }))
-  })
-
-  it('lets a counselor configure Manila availability and reschedule an upcoming appointment', async () => {
-    const user = userEvent.setup()
-    await renderAppAt('/counselor/appointments')
-
-    await user.click(await screen.findByRole('button', { name: 'Recurring availability' }))
-    expect(await screen.findByRole('heading', { name: 'Your recurring availability' })).toBeVisible()
-    expect(screen.getByText('Not configured')).toBeVisible()
-    await user.click(screen.getByRole('button', { name: 'Add time window' }))
-    await user.selectOptions(screen.getByLabelText('Day'), '4')
-    await user.type(screen.getByLabelText('Start'), '08:00')
-    await user.type(screen.getByLabelText('End'), '12:00')
-    await user.click(screen.getByRole('button', { name: 'Save availability' }))
-
-    expect(await screen.findByText('Availability saved.')).toBeVisible()
-    const availabilityCall = vi.mocked(fetch).mock.calls.find(([input, init]) => input.toString() === '/api/v1/counselor/availability' && init?.method === 'PUT')
-    expect(JSON.parse(String(availabilityCall?.[1]?.body))).toEqual({ timezone: 'Asia/Manila', windows: [{ weekday: 4, startsAt: '08:00', endsAt: '12:00' }] })
-
-    await user.click(screen.getByRole('button', { name: 'Close recurring availability' }))
-    expect(screen.getByRole('table')).toBeVisible()
-    await user.click(screen.getByRole('button', { name: 'Reschedule' }))
-    expect(screen.queryByLabelText('New start')).not.toBeInTheDocument()
-    expect(screen.queryByLabelText('New end')).not.toBeInTheDocument()
-    const rescheduleDates = screen.getAllByLabelText('Appointment date')
-    const rescheduleDurations = screen.getAllByLabelText('Length in minutes')
-    const rescheduleShowButtons = screen.getAllByRole('button', { name: 'Show available times' })
-    fireEvent.change(rescheduleDates[0], { target: { value: '2026-08-20' } })
-    fireEvent.change(rescheduleDurations[0], { target: { value: '60' } })
-    await user.click(rescheduleShowButtons[0])
-    await user.click(await screen.findByRole('button', { name: /9:00.*10:00/i }))
-    await user.click(screen.getByRole('button', { name: 'Confirm reschedule' }))
-
-    expect(await screen.findByText(/Appointment rescheduled/)).toBeVisible()
-    const rescheduleCall = vi.mocked(fetch).mock.calls.find(([input, init]) => input.toString() === '/api/v1/counselor/appointments/7' && init?.method === 'PUT')
-    expect(JSON.parse(String(rescheduleCall?.[1]?.body))).toMatchObject({ scheduledAt: '2026-08-20T09:00:00+08:00', endsAt: '2026-08-20T10:00:00+08:00', status: 'scheduled' })
-  })
-
   it('lets a counselor decline a pending request with an auditable reason', async () => {
     const user = userEvent.setup()
     await renderAppAt('/counselor/requests')
 
     expect(await screen.findByText('Programme Comparison')).toBeVisible()
-    expect(screen.getByText('In Person')).toBeVisible()
     await user.click(screen.getByRole('button', { name: 'Decline' }))
-    await user.type(screen.getByLabelText('Reason for declining'), 'The requested date is not available; please submit another date.')
-    await user.click(screen.getByRole('button', { name: 'Confirm decline' }))
+    await user.type(screen.getByLabelText('Reason'), 'Please update the concern with the missing information.')
+    await user.click(screen.getByRole('button', { name: 'Confirm' }))
 
-    expect(await screen.findByText('Guidance request declined with a recorded reason.')).toBeVisible()
+    expect(await screen.findByText('Guidance concern declined.')).toBeVisible()
     expect(fetch).toHaveBeenCalledWith('/api/v1/counselor/guidance-requests/21/decline', expect.objectContaining({ method: 'POST' }))
   })
 
@@ -191,7 +84,6 @@ describe('Administration and counselor workspaces', () => {
     expect(screen.queryByRole('heading', { name: 'What should happen next?' })).not.toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Record summary' })).not.toBeInTheDocument()
     expect(screen.getAllByText('BS Information Technology').length).toBeGreaterThan(0)
-    expect(fetch).not.toHaveBeenCalledWith('/api/v1/counselor/appointments', expect.any(Object))
     expect(fetch).not.toHaveBeenCalledWith('/api/v1/counselor/guidance-requests', expect.any(Object))
 
     await user.click(screen.getByRole('button', { name: 'Open counseling workspace' }))
@@ -214,11 +106,7 @@ describe('Administration and counselor workspaces', () => {
     )
   })
 
-  it('gives counselors separate calendar and aggregate report views', async () => {
-    const { unmount } = await renderAppAt('/counselor/calendar')
-    expect(await screen.findByRole('heading', { name: 'Appointment calendar' })).toBeVisible()
-    unmount()
-
+  it('gives counselors a separate aggregate report view', async () => {
     await renderAppAt('/counselor/reports')
     expect(await screen.findByRole('heading', { name: 'Guidance reports' })).toBeVisible()
     expect(screen.queryByText(/programme match frequency/i)).not.toBeInTheDocument()
@@ -302,7 +190,6 @@ describe('Administration and counselor workspaces', () => {
   it('shows privacy-aware reports and auditable Admin activity', async () => {
     const { unmount } = await renderAppAt('/admin/reports')
     expect(await screen.findByRole('heading', { name: 'Guidance reports' })).toBeVisible()
-    expect(screen.getByRole('heading', { name: 'Appointment lifecycle' })).toBeVisible()
     expect(screen.getByRole('heading', { name: 'Guidance operations' })).toBeVisible()
     expect(screen.getByRole('heading', { name: 'Assessment completion by month' })).toBeVisible()
     expect(screen.getByText('100%')).toBeVisible()

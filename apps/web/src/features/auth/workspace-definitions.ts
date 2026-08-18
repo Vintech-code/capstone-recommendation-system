@@ -1,7 +1,6 @@
 import {
   Activity,
   BookOpenCheck,
-  CalendarDays,
   ClipboardList,
   FileText,
   History,
@@ -135,13 +134,13 @@ const dashboards: Record<AccessRole, DashboardDefinition> = {
   },
   counselor: {
     title: 'Counselor workspace',
-    subtitle: 'Student course guidance, requests, cases, and appointments.',
+    subtitle: 'Student course guidance, concerns, cases, and follow-ups.',
     workflowTitle: 'Counseling workflow',
     workflow: [
       'Review student concerns',
       'Review assessment and programme matches',
-      'Book or update an appointment',
-      'Record guidance notes and follow-up',
+      'Document guidance notes and an action plan',
+      'Record follow-up progress or resolve the concern',
     ],
     accessFacts: [
       'Individual counselor account',
@@ -161,18 +160,6 @@ const dashboards: Record<AccessRole, DashboardDefinition> = {
         title: 'Guidance requests',
         description: 'Respond to student course concerns and advice requests.',
         icon: ClipboardList,
-      },
-      {
-        id: 'appointments',
-        title: 'Appointments',
-        description: 'Accept requests and manage counseling appointments.',
-        icon: History,
-      },
-      {
-        id: 'calendar',
-        title: 'Schedule calendar',
-        description: 'View counseling appointments by date.',
-        icon: CalendarDays,
       },
       {
         id: 'follow-ups',

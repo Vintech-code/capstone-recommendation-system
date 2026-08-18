@@ -1,15 +1,3 @@
-interface StudentGuidanceAppointment {
-  id: number
-  counselorName: string | null
-  scheduledAt: string
-  endsAt: string | null
-  topic: string
-  programmeCode: string | null
-  status: 'scheduled' | 'completed' | 'cancelled' | 'no_show'
-  cancellationReason: string | null
-  studentConfirmedAt: string | null
-}
-
 interface StudentGuidanceRequest {
   id: number
   programmeId: string | null
@@ -19,10 +7,9 @@ interface StudentGuidanceRequest {
   message: string
   preferredFormat: 'in_person' | 'video_call' | 'phone'
   preferredDate: string | null
-  status: 'pending' | 'accepted' | 'scheduled' | 'declined' | 'closed' | 'expired' | 'cancelled'
+  status: 'pending' | 'accepted' | 'declined' | 'closed' | 'expired' | 'cancelled'
   acceptedBy: string | null
   acceptedAt: string | null
-  appointmentId: number | null
   closedAt: string | null
   resolutionReason: string | null
   createdAt: string
@@ -42,16 +29,6 @@ interface CreateGuidanceRequestFields {
   message: string
   preferredFormat: StudentGuidanceRequest['preferredFormat']
   preferredDate: string | null
-}
-
-async function getStudentGuidanceAppointments(): Promise<StudentGuidanceAppointment[]> {
-  const response = await fetch('/api/v1/student/guidance-appointments', {
-    credentials: 'include',
-    headers: { Accept: 'application/json' },
-  })
-  if (!response.ok) throw new Error('Guidance appointments could not be loaded.')
-  const body = await response.json() as { data: StudentGuidanceAppointment[] }
-  return body.data
 }
 
 async function getStudentGuidanceRequests(): Promise<StudentGuidanceRequest[]> {
@@ -92,27 +69,6 @@ function csrfToken() {
   return cookie ? decodeURIComponent(cookie.split('=').slice(1).join('=')) : ''
 }
 
-async function mutateAppointment(appointmentId: number, action: 'confirm' | 'cancel', body?: { reason: string }): Promise<StudentGuidanceAppointment> {
-  const token = csrfToken()
-  const response = await fetch(`/api/v1/student/guidance-appointments/${appointmentId}/${action}`, {
-    method: 'POST',
-    credentials: 'include',
-    headers: { Accept: 'application/json', 'Content-Type': 'application/json', ...(token ? { 'X-XSRF-TOKEN': token } : {}) },
-    body: body ? JSON.stringify(body) : undefined,
-  })
-  const payload = await response.json().catch(() => ({})) as { data?: StudentGuidanceAppointment; message?: string }
-  if (!response.ok || !payload.data) throw new Error(payload.message ?? 'The appointment could not be updated.')
-  return payload.data
-}
-
-function confirmStudentGuidanceAppointment(appointmentId: number) {
-  return mutateAppointment(appointmentId, 'confirm')
-}
-
-function cancelStudentGuidanceAppointment(appointmentId: number, reason: string) {
-  return mutateAppointment(appointmentId, 'cancel', { reason })
-}
-
 async function cancelStudentGuidanceRequest(requestId: number, reason: string): Promise<StudentGuidanceRequest> {
   const token = csrfToken()
   const response = await fetch(`/api/v1/student/guidance-requests/${requestId}/cancel`, {
@@ -125,5 +81,5 @@ async function cancelStudentGuidanceRequest(requestId: number, reason: string): 
   return payload.data
 }
 
-export { cancelStudentGuidanceAppointment, cancelStudentGuidanceRequest, confirmStudentGuidanceAppointment, createStudentGuidanceRequest, getStudentGuidanceAppointments, getStudentGuidanceRequests, getStudentGuidanceSummaries }
-export type { CreateGuidanceRequestFields, StudentGuidanceAppointment, StudentGuidanceRequest, StudentGuidanceSummary }
+export { cancelStudentGuidanceRequest, createStudentGuidanceRequest, getStudentGuidanceRequests, getStudentGuidanceSummaries }
+export type { CreateGuidanceRequestFields, StudentGuidanceRequest, StudentGuidanceSummary }

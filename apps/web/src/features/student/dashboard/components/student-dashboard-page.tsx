@@ -2,7 +2,6 @@ import {
   AlertCircle,
   ArrowRight,
   BookOpenCheck,
-  CalendarCheck2,
   CalendarDays,
   ChevronRight,
   ClipboardList,
@@ -19,7 +18,7 @@ import { Button } from '@/components/ui/button'
 import { getAssessmentHistory, getCurrentAssessment, retryAssessmentResult, type AssessmentHistoryResponse, type AssessmentLifecycle } from '@/features/student/assessment/assessment-api'
 import { RetakeAssessmentDialog } from '@/features/student/assessment/components/retake-assessment-dialog'
 import { formatAssessmentDate, mapAssessmentResult } from '@/features/student/assessment/assessment-result-mapper'
-import { cancelStudentGuidanceAppointment, cancelStudentGuidanceRequest, confirmStudentGuidanceAppointment, createStudentGuidanceRequest, getStudentGuidanceAppointments, getStudentGuidanceRequests, getStudentGuidanceSummaries, type StudentGuidanceAppointment, type StudentGuidanceRequest, type StudentGuidanceSummary } from '@/features/student/guidance/guidance-api'
+import { cancelStudentGuidanceRequest, createStudentGuidanceRequest, getStudentGuidanceRequests, getStudentGuidanceSummaries, type StudentGuidanceRequest, type StudentGuidanceSummary } from '@/features/student/guidance/guidance-api'
 import { getProgrammeImages } from '@/features/student/programmes/programme-images'
 import { getLatestRecommendation, getRecommendationForAttempt } from '@/features/student/recommendations/recommendation-api'
 import type { StudentRecommendedCourse, StudentRecommendationState } from '@/features/student/recommendations/recommendation-types'
@@ -45,7 +44,6 @@ function StudentDashboardPage({ onSelectModule, initialLifecycle, initialRecomme
   const [recommendations, setRecommendations] = useState<StudentRecommendationState | null>(initialRecommendations ?? null)
   const [loadState, setLoadState] = useState<'loading' | 'ready' | 'error'>(initialLifecycle ? 'ready' : 'loading')
   const [attempt, setAttempt] = useState(0)
-  const [appointments, setAppointments] = useState<StudentGuidanceAppointment[]>([])
   const [guidanceRequests, setGuidanceRequests] = useState<StudentGuidanceRequest[]>([])
   const [guidanceSummaries, setGuidanceSummaries] = useState<StudentGuidanceSummary[]>([])
 
@@ -56,11 +54,10 @@ function StudentDashboardPage({ onSelectModule, initialLifecycle, initialRecomme
       getCurrentAssessment(),
       getLatestRecommendation().catch(() => null),
       getAssessmentHistory().catch(() => null),
-      getStudentGuidanceAppointments().catch(() => []),
       getStudentGuidanceRequests().catch(() => []),
       getStudentGuidanceSummaries().catch(() => []),
     ])
-      .then(async ([assessment, currentRecommendation, history, guidanceAppointments, studentGuidanceRequests, studentGuidanceSummaries]) => {
+      .then(async ([assessment, currentRecommendation, history, studentGuidanceRequests, studentGuidanceSummaries]) => {
         if (!active) return
         const latestCompleted = assessment.status === 'result_available'
           ? assessment
@@ -73,7 +70,6 @@ function StudentDashboardPage({ onSelectModule, initialLifecycle, initialRecomme
         setLifecycle(assessment)
         setLatestResultLifecycle(latestCompleted)
         setRecommendations(recommendation)
-        setAppointments(guidanceAppointments)
         setGuidanceRequests(studentGuidanceRequests)
         setGuidanceSummaries(studentGuidanceSummaries)
         setLoadState('ready')
@@ -170,14 +166,12 @@ function StudentDashboardPage({ onSelectModule, initialLifecycle, initialRecomme
           </div>
 
           <div className="contents">
-            <GuidanceAppointmentPanel
-              appointments={appointments}
+            <GuidanceSupportPanel
               request={latestGuidanceRequest}
               summary={guidanceSummaries[0] ?? null}
               topCourse={topCourse}
               onRequested={(request) => setGuidanceRequests((current) => [request, ...current.filter((item) => item.id !== request.id)])}
               onRequestChanged={(request) => setGuidanceRequests((current) => [request, ...current.filter((item) => item.id !== request.id)])}
-              onAppointmentChanged={(appointment) => setAppointments((current) => [appointment, ...current.filter((item) => item.id !== appointment.id)])}
             />
             <AssessmentLifecycleCard lifecycle={lifecycle} onOpenAssessment={() => onSelectModule('assessment')} onOpenHistory={() => onSelectModule('history')} onRetryResult={async () => {
               if (!lifecycle.id) return
@@ -361,7 +355,7 @@ function CourseDirectionPanel({ course, generatedAt, onOpen }: { course: Student
   )
 }
 
-function GuidanceAppointmentPanel({ appointments, request, summary, topCourse, onRequested, onRequestChanged, onAppointmentChanged }: { appointments: StudentGuidanceAppointment[]; request: StudentGuidanceRequest | null; summary: StudentGuidanceSummary | null; topCourse: StudentRecommendedCourse | null; onRequested: (request: StudentGuidanceRequest) => void; onRequestChanged: (request: StudentGuidanceRequest) => void; onAppointmentChanged: (appointment: StudentGuidanceAppointment) => void }) {
+function GuidanceSupportPanel({ request, summary, topCourse, onRequested, onRequestChanged }: { request: StudentGuidanceRequest | null; summary: StudentGuidanceSummary | null; topCourse: StudentRecommendedCourse | null; onRequested: (request: StudentGuidanceRequest) => void; onRequestChanged: (request: StudentGuidanceRequest) => void }) {
   const [showRequestForm, setShowRequestForm] = useState(false)
   const [message, setMessage] = useState('I would like guidance comparing my matched programmes before I decide.')
   const [concernCategory, setConcernCategory] = useState<StudentGuidanceRequest['concernCategory']>('programme_comparison')
@@ -369,34 +363,8 @@ function GuidanceAppointmentPanel({ appointments, request, summary, topCourse, o
   const [preferredDate, setPreferredDate] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [requestError, setRequestError] = useState('')
-  const [appointmentBusy, setAppointmentBusy] = useState(false)
-  const [appointmentError, setAppointmentError] = useState('')
-  const [showCancellation, setShowCancellation] = useState(false)
-  const [cancellationReason, setCancellationReason] = useState('')
   const [requestCancellationReason, setRequestCancellationReason] = useState('')
-  const [now] = useState(() => Date.now())
-  const todayIso = new Date(now).toISOString().slice(0, 10)
-  const upcoming = appointments.filter((item) => item.status === 'scheduled' && new Date(item.scheduledAt).getTime() >= now).sort((a, b) => a.scheduledAt.localeCompare(b.scheduledAt))
-  const history = appointments.filter((item) => !upcoming.some((upcomingItem) => upcomingItem.id === item.id)).sort((a, b) => b.scheduledAt.localeCompare(a.scheduledAt))
-  const appointment = upcoming[0] ?? null
-
-  const confirmAppointment = async () => {
-    if (!appointment) return
-    setAppointmentBusy(true); setAppointmentError('')
-    try { onAppointmentChanged(await confirmStudentGuidanceAppointment(appointment.id)) }
-    catch (reason) { setAppointmentError(reason instanceof Error ? reason.message : 'The appointment could not be confirmed.') }
-    finally { setAppointmentBusy(false) }
-  }
-
-  const cancelAppointment = async () => {
-    if (!appointment || cancellationReason.trim().length < 3) return
-    setAppointmentBusy(true); setAppointmentError('')
-    try {
-      onAppointmentChanged(await cancelStudentGuidanceAppointment(appointment.id, cancellationReason.trim()))
-      setShowCancellation(false); setCancellationReason('')
-    } catch (reason) { setAppointmentError(reason instanceof Error ? reason.message : 'The appointment could not be cancelled.') }
-    finally { setAppointmentBusy(false) }
-  }
+  const todayIso = new Date().toISOString().slice(0, 10)
 
   const submitRequest = async () => {
     setRequestError('')
@@ -428,26 +396,10 @@ function GuidanceAppointmentPanel({ appointments, request, summary, topCourse, o
       <div className="p-6">
         <span className="flex size-11 items-center justify-center rounded-lg bg-primary text-primary-foreground"><MessageCircleMore aria-hidden="true" className="size-5" /></span>
         <p className="mt-5 font-label text-xs font-semibold uppercase tracking-[0.14em] text-on-primary-fixed">Course advice</p>
-        <h2 id="counselor-guidance-title" className="mt-2 font-display text-2xl font-semibold">Talk with a counselor</h2>
-        {summary ? <div className="mt-5 rounded-lg bg-card p-4 text-card-foreground shadow-sm"><p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary">Latest counselor summary</p><p className="mt-3 whitespace-pre-wrap text-sm leading-6">{summary.body}</p><p className="mt-3 text-xs text-muted-foreground">Published {formatAppointmentDate(summary.publishedAt)}{summary.counselor ? ` by ${summary.counselor}` : ''}</p></div> : null}
-        {appointment ? (
-          <div className="mt-5 rounded-lg bg-card p-4 text-card-foreground shadow-sm">
-            <div className="flex items-start gap-3">
-              <CalendarCheck2 aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-primary" />
-              <div>
-                <p className="font-semibold">Upcoming guidance appointment</p>
-                <p className="mt-2 text-sm text-muted-foreground">{formatAppointmentDate(appointment.scheduledAt)}</p>
-                {appointment.endsAt ? <p className="mt-1 text-sm text-muted-foreground">Ends {formatAppointmentTime(appointment.endsAt)}</p> : null}
-                <p className="mt-1 text-sm text-muted-foreground">Counselor: {appointment.counselorName || 'Assigned guidance staff'}</p>
-                <p className="mt-1 text-sm text-muted-foreground">Topic: {appointment.topic}</p>
-                {appointment.programmeCode ? <p className="mt-1 text-sm text-muted-foreground">Programme: {appointment.programmeCode}</p> : null}
-                {appointment.studentConfirmedAt ? <p className="mt-3 text-sm font-semibold text-success">You confirmed this schedule.</p> : <Button type="button" size="sm" className="mt-4" disabled={appointmentBusy} onClick={() => void confirmAppointment()}>Confirm schedule</Button>}
-                {!showCancellation ? <Button type="button" size="sm" variant="ghost" className="mt-4" disabled={appointmentBusy} onClick={() => setShowCancellation(true)}>Request cancellation</Button> : <div className="mt-4"><label htmlFor="student-cancellation-reason" className="text-sm font-semibold">Reason for cancellation</label><textarea id="student-cancellation-reason" value={cancellationReason} onChange={(event) => setCancellationReason(event.target.value)} rows={3} className="mt-2 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm" /><div className="mt-2 flex flex-wrap gap-2"><Button type="button" size="sm" variant="destructive" disabled={appointmentBusy || cancellationReason.trim().length < 3} onClick={() => void cancelAppointment()}>Cancel appointment</Button><Button type="button" size="sm" variant="ghost" disabled={appointmentBusy} onClick={() => setShowCancellation(false)}>Keep appointment</Button></div></div>}
-                {appointmentError ? <p role="alert" className="mt-3 text-sm font-medium text-destructive">{appointmentError}</p> : null}
-              </div>
-            </div>
-          </div>
-        ) : request && !showRequestForm ? (
+        <h2 id="counselor-guidance-title" className="mt-2 font-display text-2xl font-semibold">Ask a counselor</h2>
+        <p className="mt-2 text-sm leading-6 text-on-primary-fixed/75">Submit a course concern for review and receive documented next steps.</p>
+        {summary ? <div className="mt-5 rounded-lg bg-card p-4 text-card-foreground shadow-sm"><p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary">Latest counselor summary</p><p className="mt-3 whitespace-pre-wrap text-sm leading-6">{summary.body}</p><p className="mt-3 text-xs text-muted-foreground">Published {formatAssessmentDate(summary.publishedAt)}{summary.counselor ? ` by ${summary.counselor}` : ''}</p></div> : null}
+        {request && !showRequestForm ? (
           <div className="mt-5 rounded-lg bg-card p-4 text-card-foreground shadow-sm">
             <div className="flex items-center justify-between gap-3"><p className="font-semibold">Guidance request</p><StatusBadge label={humanizeGuidanceStatus(request.status)} tone={guidanceStatusTone(request.status)} /></div>
             <p className="mt-2 text-sm leading-6 text-muted-foreground">{guidanceStatusMessage(request)}</p>
@@ -472,22 +424,9 @@ function GuidanceAppointmentPanel({ appointments, request, summary, topCourse, o
             </div> : <Button type="button" className="mt-4" disabled={!topCourse} onClick={() => setShowRequestForm(true)}>Request guidance</Button>}
           </div>
         )}
-        {history.length ? <div className="mt-4"><p className="text-xs font-semibold uppercase tracking-[0.12em]">Past appointment records</p><ul className="mt-2 space-y-2">{history.slice(0, 3).map((item) => <li key={item.id} className="rounded-lg bg-card/75 p-3 text-card-foreground"><div className="flex items-center justify-between gap-3"><span className="text-sm font-semibold">{formatAppointmentDate(item.scheduledAt)}</span><StatusBadge tone={item.status === 'no_show' ? 'warning' : item.status === 'cancelled' ? 'danger' : 'success'} label={item.status === 'no_show' ? 'No-show' : item.status} /></div><p className="mt-1 text-xs text-muted-foreground">{item.topic}</p>{item.cancellationReason ? <p className="mt-2 text-xs text-muted-foreground">Reason: {item.cancellationReason}</p> : null}</li>)}</ul></div> : null}
       </div>
     </section>
   )
-}
-
-function formatAppointmentDate(value: string) {
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return 'Schedule unavailable'
-  return new Intl.DateTimeFormat('en-PH', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Manila' }).format(date)
-}
-
-function formatAppointmentTime(value: string) {
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return 'time unavailable'
-  return new Intl.DateTimeFormat('en-PH', { timeStyle: 'short', timeZone: 'Asia/Manila' }).format(date)
 }
 
 function humanizeGuidanceStatus(value: string) {
@@ -496,7 +435,6 @@ function humanizeGuidanceStatus(value: string) {
 
 function guidanceStatusTone(status: StudentGuidanceRequest['status']) {
   if (status === 'pending' || status === 'accepted') return 'warning' as const
-  if (status === 'scheduled') return 'info' as const
   if (status === 'closed') return 'success' as const
   return 'danger' as const
 }
@@ -504,10 +442,9 @@ function guidanceStatusTone(status: StudentGuidanceRequest['status']) {
 function guidanceStatusMessage(request: StudentGuidanceRequest) {
   const messages: Record<StudentGuidanceRequest['status'], string> = {
     pending: 'Your request is waiting for a counselor. You may cancel it before a counselor accepts it.',
-    accepted: 'A counselor accepted your concern and is preparing the appointment schedule.',
-    scheduled: 'Your request was accepted and linked to a scheduled appointment.',
+    accepted: 'A counselor accepted your concern and is reviewing your recorded information and next steps.',
     declined: 'A counselor could not proceed with this request. You may submit a new request if you still need guidance.',
-    closed: 'The counseling concern and linked appointment are complete.',
+    closed: 'The counseling concern is resolved. Review the recorded outcome and any published guidance summary.',
     expired: 'This request expired before it was accepted. You may submit a new request.',
     cancelled: 'This request was cancelled and remains in your history.',
   }

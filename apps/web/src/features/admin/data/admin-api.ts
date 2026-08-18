@@ -15,7 +15,6 @@ interface AdminOverview {
     unverifiedSources: number
     unpublishedDrafts: number
     suspendedCounselors: number
-    scheduledAppointments: number
     pendingGuidanceRequests: number
   }
   recentActivity: AdminAssessment[]
@@ -103,58 +102,6 @@ interface AdminStaff {
   assignments: AdminStaffAssignment[]
 }
 
-interface GuidanceAppointment {
-  id: number
-  studentId: number
-  studentName: string
-  studentEmail: string
-  counselorId: number
-  counselorName: string
-  scheduledAt: string
-  endsAt: string | null
-  topic: string
-  programmeCode: string | null
-  status: 'scheduled' | 'completed' | 'cancelled' | 'no_show'
-  notes: string | null
-  cancellationReason: string | null
-  studentConfirmedAt: string | null
-  statusHistory: Array<{
-    id: number
-    eventType: 'created' | 'rescheduled' | 'status_changed' | 'student_confirmed'
-    fromStatus: GuidanceAppointment['status'] | null
-    toStatus: GuidanceAppointment['status']
-    previousScheduledAt: string | null
-    scheduledAt: string | null
-    previousEndsAt: string | null
-    endsAt: string | null
-    reason: string | null
-    actor: string | null
-    createdAt: string
-  }>
-}
-
-interface CounselorAvailability {
-  configured: boolean
-  timezone: 'Asia/Manila'
-  windows: Array<{
-    id: number
-    weekday: number
-    startsAt: string
-    endsAt: string
-  }>
-}
-
-interface CounselorAvailabilitySlots {
-  date: string
-  durationMinutes: number
-  timezone: 'Asia/Manila'
-  configured: boolean
-  slots: Array<{
-    startsAt: string
-    endsAt: string
-  }>
-}
-
 interface AdminGuidanceRequest {
   id: number
   studentId: number
@@ -167,11 +114,10 @@ interface AdminGuidanceRequest {
   message: string
   preferredFormat: 'in_person' | 'video_call' | 'phone'
   preferredDate: string | null
-  status: 'pending' | 'accepted' | 'scheduled' | 'declined' | 'closed' | 'expired' | 'cancelled'
+  status: 'pending' | 'accepted' | 'declined' | 'closed' | 'expired' | 'cancelled'
   acceptedById: number | null
   acceptedBy: string | null
   acceptedAt: string | null
-  appointmentId: number | null
   closedAt: string | null
   resolutionReason: string | null
   statusHistory: Array<{ eventType: string; fromStatus: string | null; toStatus: string; reason: string | null; actor: string | null; createdAt: string }>
@@ -253,9 +199,7 @@ interface AdminReport {
   assessmentCompletionRate: number
   recommendationRuns: number
   programmeSaves: number
-  guidanceRequestStatuses: Record<'pending' | 'accepted' | 'scheduled' | 'closed' | 'declined' | 'cancelled', number>
-  appointmentStatuses: Record<'scheduled' | 'completed' | 'cancelled' | 'no_show', number>
-  averageRequestToAppointmentMinutes: number | null
+  guidanceRequestStatuses: Record<'pending' | 'accepted' | 'closed' | 'declined' | 'cancelled', number>
   openFollowUps: number
   overdueFollowUps: number
   closedGuidanceCases: number
@@ -348,12 +292,6 @@ async function requestWorkspace<T>(scope: StaffApiScope, path: string, signal?: 
 
 function requestAdmin<T>(path: string, signal?: AbortSignal): Promise<T> {
   return requestWorkspace<T>('admin', path, signal)
-}
-
-function requestCounselorAvailabilitySlots(date: string, durationMinutes: number, excludeAppointmentId?: number): Promise<CounselorAvailabilitySlots> {
-  const query = new URLSearchParams({ date, durationMinutes: String(durationMinutes) })
-  if (excludeAppointmentId !== undefined) query.set('excludeAppointmentId', String(excludeAppointmentId))
-  return requestWorkspace<CounselorAvailabilitySlots>('counselor', `/availability/slots?${query.toString()}`)
 }
 
 function csrfToken() {
@@ -450,7 +388,7 @@ function useWorkspaceResource<T>(scope: StaffApiScope, path: string) {
   return { data, error, loading, retry }
 }
 
-export { mutateAdmin, mutateWorkspace, requestAdmin, requestCounselorAvailabilitySlots, requestWorkspace, uploadProgrammeMedia, useAdminResource, useWorkspaceResource }
+export { mutateAdmin, mutateWorkspace, requestAdmin, requestWorkspace, uploadProgrammeMedia, useAdminResource, useWorkspaceResource }
 export type {
   AdminActivity,
   AdminAssessment,
@@ -467,9 +405,6 @@ export type {
   ConfigurationWorkspace,
   GuidanceCase,
   ProgrammeSourceRegistryEntry,
-  GuidanceAppointment,
-  CounselorAvailability,
-  CounselorAvailabilitySlots,
   AdminGuidanceRequest,
   GuidanceNote,
   GuidanceSummary,

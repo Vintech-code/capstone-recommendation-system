@@ -24,16 +24,16 @@ describe('NotificationCenter', () => {
 
   it('shows real unread records and marks one as read through the API', async () => {
     vi.mocked(fetch)
-      .mockResolvedValueOnce(Response.json({ data: [{ id: 'notice-1', eventType: 'appointment_rescheduled', title: 'Guidance appointment rescheduled', message: 'Your counselor changed the appointment schedule.', context: { appointmentId: 8 }, readAt: null, createdAt: '2026-08-11T08:30:00+08:00' }] }))
+      .mockResolvedValueOnce(Response.json({ data: [{ id: 'notice-1', eventType: 'guidance_request_accepted', title: 'Guidance request accepted', message: 'A counselor is reviewing your concern.', context: { guidanceRequestId: 8 }, readAt: null, createdAt: '2026-08-11T08:30:00+08:00' }] }))
       .mockResolvedValueOnce(Response.json({ data: { id: 'notice-1', readAt: '2026-08-11T09:00:00+08:00' } }))
     const user = userEvent.setup()
     render(<NotificationCenter workspaceLabel="Student" />)
 
     await user.click(screen.getByRole('button', { name: /Open student notifications/i }))
-    expect(await screen.findByText('Guidance appointment rescheduled')).toBeVisible()
+    expect(await screen.findByText('Guidance request accepted')).toBeVisible()
     expect(screen.getByText('1 new')).toBeVisible()
 
-    await user.click(screen.getByRole('button', { name: 'Mark notification as read: Guidance appointment rescheduled' }))
+    await user.click(screen.getByRole('button', { name: 'Mark notification as read: Guidance request accepted' }))
 
     await user.click(screen.getByRole('tab', { name: 'Unread' }))
     expect(await screen.findByText('No unread notifications')).toBeVisible()
@@ -84,19 +84,6 @@ describe('NotificationCenter', () => {
 
     expect(fetch).toHaveBeenCalledWith('/api/v1/notifications/notice-1/read', expect.objectContaining({ method: 'POST' }))
     expect(onNavigate).toHaveBeenCalledWith('programmes')
-  })
-
-  it('opens an already-read counselor appointment without issuing another read request', async () => {
-    vi.mocked(fetch).mockResolvedValueOnce(Response.json({ data: [{ id: 'notice-2', eventType: 'appointment_student_confirmed', title: 'Student confirmed appointment', message: 'A student confirmed the schedule.', context: { appointmentId: 7, studentId: 10 }, readAt: '2026-08-11T09:00:00+08:00', createdAt: '2026-08-11T08:30:00+08:00' }] }))
-    const onNavigate = vi.fn()
-    const user = userEvent.setup()
-    render(<NotificationCenter workspaceLabel="Counselor" onNavigate={onNavigate} />)
-
-    await user.click(screen.getByRole('button', { name: /Open counselor notifications/i }))
-    await user.click(await screen.findByRole('button', { name: 'Open notification: Student confirmed appointment' }))
-
-    expect(fetch).toHaveBeenCalledTimes(1)
-    expect(onNavigate).toHaveBeenCalledWith('appointments')
   })
 
   it('keeps an invalid notification safely non-navigating while allowing it to be marked read', async () => {

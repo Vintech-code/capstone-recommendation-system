@@ -369,7 +369,7 @@ function WorkspacePreview({
                   value={query}
                   onChange={(event) => changeQuery(event.target.value)}
                   onKeyDown={(event) => { if (event.key === 'Enter' && filteredModules[0]) selectModule(filteredModules[0].id) }}
-                  placeholder={isStaff ? `Search ${isAdmin ? 'students, assessments, programmes' : 'students, requests, appointments'}…` : 'Search modules'}
+                  placeholder={isStaff ? `Search ${isAdmin ? 'students, assessments, programmes' : 'students, concerns, follow-ups'}…` : 'Search modules'}
                   className={cn('h-10 rounded-xl pl-9 shadow-none', isStaff ? 'border-border/70 bg-secondary text-foreground placeholder:text-muted-foreground focus-visible:bg-background dark:border-white/8 dark:bg-white/5 dark:focus-visible:bg-white/8' : 'border-transparent bg-secondary focus-visible:bg-background')}
                 />
               </div>

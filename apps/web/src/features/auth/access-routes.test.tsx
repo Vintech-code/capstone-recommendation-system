@@ -164,11 +164,11 @@ describe('access portals and workspace shell', () => {
     expect(
       await screen.findByRole('heading', {
         level: 1,
-        name: /Good (morning|afternoon|evening),/,
+        name: /Good day,/,
       }),
     ).toBeVisible()
     expect(screen.getAllByText('Student records').length).toBeGreaterThan(0)
-    expect(screen.getAllByText('Appointments').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Guidance requests').length).toBeGreaterThan(0)
     expect(screen.queryByRole('contentinfo')).not.toBeInTheDocument()
   })
 

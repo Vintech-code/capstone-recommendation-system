@@ -24,7 +24,7 @@ const roleOptions: RoleOption[] = [
     value: 'counselor',
     label: 'Counselor',
     shortLabel: 'Counselor',
-    description: 'Review student records and manage guidance appointments.',
+    description: 'Review student records and resolve guidance concerns.',
   },
 ]
 

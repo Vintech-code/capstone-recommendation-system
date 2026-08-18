@@ -23,9 +23,6 @@ describe('Student dashboard', () => {
       if (url === '/api/v1/student/recommendations/latest') {
         return Response.json({ data: { status: 'not_available', recommendation: null } })
       }
-      if (url === '/api/v1/student/guidance-appointments') {
-        return Response.json({ data: [{ id: 7, counselorName: 'Guidance Counselor', scheduledAt: '2096-08-20T09:00:00+08:00', endsAt: '2096-08-20T10:00:00+08:00', topic: 'Review programme matches', programmeCode: 'BSIT', status: 'scheduled', cancellationReason: null, studentConfirmedAt: null }] })
-      }
       if (url === '/api/v1/student/guidance-summaries') {
         return Response.json({ data: [{ id: 3, body: 'Compare your shortlisted programmes and record your remaining questions.', counselor: 'Guidance Counselor', publishedBy: 'Guidance Counselor', publishedAt: '2026-08-10T10:00:00+08:00' }] })
       }
@@ -141,46 +138,6 @@ describe('Student dashboard', () => {
     },
   )
 
-  it('shows the redesigned guidance hub and a student-owned counselor appointment', async () => {
-    await renderAppAt('/student')
-
-    expect(await screen.findByText('Your academic journey')).toBeVisible()
-    expect(screen.getByRole('heading', { level: 1, name: 'Turn your assessment into a confident course choice.' })).toBeVisible()
-    expect(screen.queryByRole('heading', { name: 'My guidance' })).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Print summary' })).not.toBeInTheDocument()
-    expect(screen.getByTestId('student-guidance-summary')).toHaveClass('space-y-6')
-    expect(screen.getByTestId('student-guidance-summary')).not.toHaveClass('mt-6')
-    expect(screen.getByTestId('student-guidance-summary').parentElement).toHaveClass('pt-4', 'sm:pt-6')
-    expect(screen.getByTestId('student-journey-grid')).toHaveClass('lg:grid-cols-12')
-    expect(screen.queryByText('This guidance does not guarantee admission or enrolment.')).not.toBeInTheDocument()
-    expect(screen.queryByRole('link', { name: 'O*NET® Web Services' })).not.toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Talk with a counselor' })).toBeVisible()
-    expect(screen.getByText('Upcoming guidance appointment')).toBeVisible()
-    expect(screen.getByText('Counselor: Guidance Counselor')).toBeVisible()
-    expect(screen.getByText('Topic: Review programme matches')).toBeVisible()
-    expect(screen.getByText(/^Ends /)).toBeVisible()
-    expect(screen.queryByText('Asia/Manila')).not.toBeInTheDocument()
-    expect(screen.getByText('Latest counselor summary')).toBeVisible()
-    expect(screen.getByText('Compare your shortlisted programmes and record your remaining questions.')).toBeVisible()
-  })
-
-  it('lets the student confirm their own appointment schedule', async () => {
-    const user = userEvent.setup()
-    const fallbackFetch = vi.mocked(fetch).getMockImplementation()
-    vi.mocked(fetch).mockImplementation(async (input, init) => {
-      if (input.toString() === '/api/v1/student/guidance-appointments/7/confirm' && init?.method === 'POST') {
-        return Response.json({ data: { id: 7, counselorName: 'Guidance Counselor', scheduledAt: '2096-08-20T09:00:00+08:00', endsAt: '2096-08-20T10:00:00+08:00', topic: 'Review programme matches', programmeCode: 'BSIT', status: 'scheduled', cancellationReason: null, studentConfirmedAt: '2096-08-10T08:00:00+08:00' } })
-      }
-      return fallbackFetch!(input, init)
-    })
-
-    await renderAppAt('/student')
-    await user.click(await screen.findByRole('button', { name: 'Confirm schedule' }))
-
-    expect(await screen.findByText('You confirmed this schedule.')).toBeVisible()
-    expect(fetch).toHaveBeenCalledWith('/api/v1/student/guidance-appointments/7/confirm', expect.objectContaining({ method: 'POST' }))
-  })
-
   it('keeps guidance requests unavailable until course matches exist', () => {
     render(<StudentDashboardPage onSelectModule={vi.fn()} initialLifecycle={{ status: 'not_started', question_count: 30 }} />)
     expect(screen.getByRole('button', { name: 'Request guidance' })).toBeDisabled()
@@ -191,7 +148,7 @@ describe('Student dashboard', () => {
     vi.mocked(fetch).mockImplementation(async (input, init) => {
       if (input.toString() === '/api/v1/student/guidance-requests' && init?.method === 'POST') {
         const body = JSON.parse(String(init.body)) as { programmeId: string; concernCategory: string; preferredFormat: string; preferredDate: string | null; message: string }
-        return Response.json({ data: { id: 21, programmeId: body.programmeId, programmeCode: 'TEST', programmeName: 'Test Course', concernCategory: body.concernCategory, preferredFormat: body.preferredFormat, preferredDate: body.preferredDate, message: body.message, status: 'pending', appointmentId: null, acceptedBy: null, acceptedAt: null, closedAt: null, resolutionReason: null, statusHistory: [], createdAt: '2026-08-09T10:00:00+08:00' } }, { status: 201 })
+        return Response.json({ data: { id: 21, programmeId: body.programmeId, programmeCode: 'TEST', programmeName: 'Test Course', concernCategory: body.concernCategory, preferredFormat: body.preferredFormat, preferredDate: body.preferredDate, message: body.message, status: 'pending', acceptedBy: null, acceptedAt: null, closedAt: null, resolutionReason: null, statusHistory: [], createdAt: '2026-08-09T10:00:00+08:00' } }, { status: 201 })
       }
       return Response.json({ message: 'Not found.' }, { status: 404 })
     })

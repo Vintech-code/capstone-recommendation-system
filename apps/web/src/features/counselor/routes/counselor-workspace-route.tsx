@@ -7,7 +7,7 @@ import { useAuth } from '@/features/auth/auth-context'
 import { ProtectedRoute } from '@/features/auth/components/protected-route'
 import { WorkspacePreview } from '@/features/auth/components/workspace-preview'
 
-const sections = ['students', 'requests', 'appointments', 'calendar', 'follow-ups', 'reports'] as const
+const sections = ['students', 'requests', 'follow-ups', 'reports'] as const
 
 function CounselorWorkspaceRoute() {
   const navigate = useNavigate()

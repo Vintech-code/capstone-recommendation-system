@@ -96,7 +96,7 @@ async function defaultFetch(
     return Response.json({ data: {
       students: 2, assessments: 3, completed: 2, inProgress: 1,
       needsAttention: 0, recommendations: 2, pendingGuidanceRequests: 1,
-      operationalAttention: { processingFailures: 0, unverifiedSources: 3, unpublishedDrafts: 1, suspendedCounselors: 0, scheduledAppointments: 1, pendingGuidanceRequests: 1 },
+      operationalAttention: { processingFailures: 0, unverifiedSources: 3, unpublishedDrafts: 1, suspendedCounselors: 0, pendingGuidanceRequests: 1 },
       recentActivity: [{ id: 1, reference: 'ASMT-000001', studentId: 10, studentName: 'Ana Santos', studentEmail: 'ana@example.test', attemptNumber: 1, status: 'result_available', topCode: 'I-C', startedAt: '2026-08-01T08:00:00+08:00', submittedAt: '2026-08-01T08:20:00+08:00', resultAvailableAt: '2026-08-01T08:20:01+08:00', processingErrorCode: null }],
     } })
   }
@@ -143,23 +143,7 @@ async function defaultFetch(
   if (url.match(/\/api\/v1\/counselor\/guidance-requests\/\d+\/decline$/) && init?.method === 'POST') {
     const id = Number(url.split('/').at(-2))
     const body = JSON.parse(String(init.body ?? '{}')) as { reason: string }
-    return Response.json({ data: { id, studentId: 10, studentName: 'Ana Santos', studentEmail: 'ana@example.test', programmeId: 'bs-information-technology', programmeCode: 'BSIT', programmeName: 'BS Information Technology', concernCategory: 'programme_comparison', preferredFormat: 'in_person', preferredDate: '2026-08-20', message: 'I would like help comparing my matched programmes before deciding.', status: 'declined', appointmentId: null, acceptedBy: null, acceptedAt: null, closedAt: '2026-08-09T11:00:00+08:00', resolutionReason: body.reason, statusHistory: [{ id: 1, eventType: 'submitted', fromStatus: null, toStatus: 'pending', reason: null, actor: 'Ana Santos', createdAt: '2026-08-09T10:00:00+08:00' }, { id: 2, eventType: 'declined', fromStatus: 'pending', toStatus: 'declined', reason: body.reason, actor: 'Guidance Counselor', createdAt: '2026-08-09T11:00:00+08:00' }], createdAt: '2026-08-09T10:00:00+08:00' } })
-  }
-
-  if (url === '/api/v1/counselor/availability' && init?.method === 'PUT') {
-    const body = JSON.parse(String(init.body ?? '{}')) as { windows?: Array<{ weekday: number; startsAt: string; endsAt: string }> }
-    return Response.json({ data: { configured: (body.windows?.length ?? 0) > 0, timezone: 'Asia/Manila', windows: (body.windows ?? []).map((window, index) => ({ id: index + 1, ...window })) } })
-  }
-
-  if (url.startsWith('/api/v1/counselor/availability/slots?')) {
-    const query = new URL(url, 'http://localhost').searchParams
-    const date = query.get('date') ?? '2026-08-20'
-    const durationMinutes = Number(query.get('durationMinutes') ?? 60)
-    return Response.json({ data: { date, durationMinutes, timezone: 'Asia/Manila', configured: true, slots: [{ startsAt: `${date}T09:00:00+08:00`, endsAt: `${date}T10:00:00+08:00` }, { startsAt: `${date}T11:00:00+08:00`, endsAt: `${date}T12:00:00+08:00` }] } })
-  }
-
-  if (url === '/api/v1/counselor/availability') {
-    return Response.json({ data: { configured: false, timezone: 'Asia/Manila', windows: [] } })
+    return Response.json({ data: { id, studentId: 10, studentName: 'Ana Santos', studentEmail: 'ana@example.test', programmeId: 'bs-information-technology', programmeCode: 'BSIT', programmeName: 'BS Information Technology', concernCategory: 'programme_comparison', preferredFormat: 'in_person', preferredDate: '2026-08-20', message: 'I would like help comparing my matched programmes before deciding.', status: 'declined', acceptedBy: null, acceptedAt: null, closedAt: '2026-08-09T11:00:00+08:00', resolutionReason: body.reason, statusHistory: [{ id: 1, eventType: 'submitted', fromStatus: null, toStatus: 'pending', reason: null, actor: 'Ana Santos', createdAt: '2026-08-09T10:00:00+08:00' }, { id: 2, eventType: 'declined', fromStatus: 'pending', toStatus: 'declined', reason: body.reason, actor: 'Guidance Counselor', createdAt: '2026-08-09T11:00:00+08:00' }], createdAt: '2026-08-09T10:00:00+08:00' } })
   }
 
   if (url.startsWith('/api/v1/counselor/')) {
@@ -167,20 +151,8 @@ async function defaultFetch(
     return defaultFetch(adminUrl, init)
   }
 
-  if (url === '/api/v1/admin/appointments' && init?.method === 'POST') {
-    return Response.json({ data: { id: 1, studentId: 10, studentName: 'Ana Santos', studentEmail: 'ana@example.test', counselorId: 2, counselorName: 'Guidance Counselor', scheduledAt: '2026-08-20T09:00:00+08:00', topic: 'Review programme matches', programmeCode: 'BSIT', status: 'scheduled', notes: null } }, { status: 201 })
-  }
-
-  if (url === '/api/v1/admin/appointments') {
-    return Response.json({ data: [{ id: 7, studentId: 10, studentName: 'Ana Santos', studentEmail: 'ana@example.test', counselorId: 2, counselorName: 'Guidance Counselor', scheduledAt: '2026-08-20T09:00:00+08:00', topic: 'Review programme matches', programmeCode: 'BSIT', status: 'scheduled', notes: null }] })
-  }
-
   if (url === '/api/v1/admin/guidance-requests') {
-    return Response.json({ data: [{ id: 21, studentId: 10, studentName: 'Ana Santos', studentEmail: 'ana@example.test', programmeId: 'bs-information-technology', programmeCode: 'BSIT', programmeName: 'BS Information Technology', concernCategory: 'programme_comparison', preferredFormat: 'in_person', preferredDate: '2026-08-20', message: 'I would like help comparing my matched programmes before deciding.', status: 'pending', appointmentId: null, acceptedBy: null, acceptedAt: null, closedAt: null, resolutionReason: null, statusHistory: [{ id: 1, eventType: 'submitted', fromStatus: null, toStatus: 'pending', reason: null, actor: 'Ana Santos', createdAt: '2026-08-09T10:00:00+08:00' }], createdAt: '2026-08-09T10:00:00+08:00' }] })
-  }
-
-  if (url.match(/\/api\/v1\/admin\/appointments\/\d+$/) && init?.method === 'PUT') {
-    return Response.json({ data: { id: 1, studentId: 10, studentName: 'Ana Santos', studentEmail: 'ana@example.test', counselorId: 2, counselorName: 'Guidance Counselor', scheduledAt: '2026-08-20T09:00:00+08:00', topic: 'Review programme matches', programmeCode: 'BSIT', status: 'completed', notes: null } })
+    return Response.json({ data: [{ id: 21, studentId: 10, studentName: 'Ana Santos', studentEmail: 'ana@example.test', programmeId: 'bs-information-technology', programmeCode: 'BSIT', programmeName: 'BS Information Technology', concernCategory: 'programme_comparison', preferredFormat: 'in_person', preferredDate: '2026-08-20', message: 'I would like help comparing my matched programmes before deciding.', status: 'pending', acceptedBy: null, acceptedAt: null, closedAt: null, resolutionReason: null, statusHistory: [{ id: 1, eventType: 'submitted', fromStatus: null, toStatus: 'pending', reason: null, actor: 'Ana Santos', createdAt: '2026-08-09T10:00:00+08:00' }], createdAt: '2026-08-09T10:00:00+08:00' }] })
   }
 
   if (url === '/api/v1/admin/programmes') {
@@ -219,7 +191,7 @@ async function defaultFetch(
   }
 
   if (url.startsWith('/api/v1/admin/reports')) {
-    return Response.json({ data: { generatedAt: '2026-08-08T12:00:00+08:00', from: null, to: null, scope: 'institution', studentCount: 2, assessmentActivity: 2, completedAssessments: 2, assessmentCompletionRate: 100, recommendationRuns: 2, programmeSaves: 1, guidanceRequestStatuses: { pending: 1, accepted: 0, scheduled: 1, closed: 0, declined: 0, cancelled: 0 }, appointmentStatuses: { scheduled: 1, completed: 1, cancelled: 0, no_show: 0 }, averageRequestToAppointmentMinutes: 90, openFollowUps: 1, overdueFollowUps: 0, closedGuidanceCases: 1, assessmentCompletionsByMonth: [{ month: '2026-08', count: 2 }] } })
+    return Response.json({ data: { generatedAt: '2026-08-08T12:00:00+08:00', from: null, to: null, scope: 'institution', studentCount: 2, assessmentActivity: 2, completedAssessments: 2, assessmentCompletionRate: 100, recommendationRuns: 2, programmeSaves: 1, guidanceRequestStatuses: { pending: 1, accepted: 1, closed: 0, declined: 0, cancelled: 0 }, openFollowUps: 1, overdueFollowUps: 0, closedGuidanceCases: 1, assessmentCompletionsByMonth: [{ month: '2026-08', count: 2 }] } })
   }
 
   if (url === '/api/v1/admin/activity') {
@@ -250,18 +222,14 @@ async function defaultFetch(
     return Response.json({ data: { programmeIds: [] } })
   }
 
-  if (url === '/api/v1/student/guidance-appointments') {
-    return Response.json({ data: [] })
-  }
-
   if (url === '/api/v1/student/guidance-requests' && init?.method === 'POST') {
     const body = JSON.parse(String(init.body ?? '{}')) as { programmeId: string | null; concernCategory: string; preferredFormat: string; preferredDate: string | null; message: string }
-    return Response.json({ data: { id: 21, programmeId: body.programmeId, programmeCode: body.programmeId ? 'BSIT' : null, programmeName: body.programmeId ? 'BS Information Technology' : null, concernCategory: body.concernCategory, preferredFormat: body.preferredFormat, preferredDate: body.preferredDate, message: body.message, status: 'pending', appointmentId: null, acceptedBy: null, acceptedAt: null, closedAt: null, resolutionReason: null, statusHistory: [{ id: 1, eventType: 'submitted', fromStatus: null, toStatus: 'pending', reason: null, actor: 'Student', createdAt: '2026-08-09T10:00:00+08:00' }], createdAt: '2026-08-09T10:00:00+08:00' } }, { status: 201 })
+    return Response.json({ data: { id: 21, programmeId: body.programmeId, programmeCode: body.programmeId ? 'BSIT' : null, programmeName: body.programmeId ? 'BS Information Technology' : null, concernCategory: body.concernCategory, preferredFormat: body.preferredFormat, preferredDate: body.preferredDate, message: body.message, status: 'pending', acceptedBy: null, acceptedAt: null, closedAt: null, resolutionReason: null, statusHistory: [{ id: 1, eventType: 'submitted', fromStatus: null, toStatus: 'pending', reason: null, actor: 'Student', createdAt: '2026-08-09T10:00:00+08:00' }], createdAt: '2026-08-09T10:00:00+08:00' } }, { status: 201 })
   }
 
   if (url.match(/\/api\/v1\/student\/guidance-requests\/\d+\/cancel$/) && init?.method === 'POST') {
     const body = JSON.parse(String(init.body ?? '{}')) as { reason: string }
-    return Response.json({ data: { id: 21, programmeId: 'bs-information-technology', programmeCode: 'BSIT', programmeName: 'BS Information Technology', concernCategory: 'programme_comparison', preferredFormat: 'in_person', preferredDate: '2026-08-20', message: 'I would like help comparing programmes.', status: 'cancelled', appointmentId: null, acceptedBy: null, acceptedAt: null, closedAt: '2026-08-09T11:00:00+08:00', resolutionReason: body.reason, statusHistory: [{ id: 1, eventType: 'cancelled', fromStatus: 'pending', toStatus: 'cancelled', reason: body.reason, actor: 'Student', createdAt: '2026-08-09T11:00:00+08:00' }], createdAt: '2026-08-09T10:00:00+08:00' } })
+    return Response.json({ data: { id: 21, programmeId: 'bs-information-technology', programmeCode: 'BSIT', programmeName: 'BS Information Technology', concernCategory: 'programme_comparison', preferredFormat: 'in_person', preferredDate: '2026-08-20', message: 'I would like help comparing programmes.', status: 'cancelled', acceptedBy: null, acceptedAt: null, closedAt: '2026-08-09T11:00:00+08:00', resolutionReason: body.reason, statusHistory: [{ id: 1, eventType: 'cancelled', fromStatus: 'pending', toStatus: 'cancelled', reason: body.reason, actor: 'Student', createdAt: '2026-08-09T11:00:00+08:00' }], createdAt: '2026-08-09T10:00:00+08:00' } })
   }
 
   if (url === '/api/v1/student/guidance-requests') {
