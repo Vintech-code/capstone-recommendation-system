@@ -19,17 +19,21 @@ class CounselorAccountAndProgrammeGovernanceTest extends TestCase
     public function test_admin_provisions_and_resets_an_individual_counselor_account(): void
     {
         $admin = $this->userWithRole(RoleSlug::Admin);
+        $initialPassword = 'Initial!Counsel2026';
 
         $created = $this->actingAs($admin)->postJson('/api/v1/admin/counselors', [
             'name' => 'Maria Counselor',
             'email' => 'maria.counselor@example.test',
+            'password' => $initialPassword,
+            'password_confirmation' => $initialPassword,
         ])->assertCreated()
             ->assertJsonPath('data.mustChangePassword', true)
+            ->assertJsonMissingPath('data.temporaryPassword')
             ->json('data');
 
         $counselor = User::query()->where('email', 'maria.counselor@example.test')->firstOrFail();
-        $this->assertNotSame($created['temporaryPassword'], $counselor->password);
-        $this->assertTrue(Hash::check($created['temporaryPassword'], $counselor->password));
+        $this->assertNotSame($initialPassword, $counselor->password);
+        $this->assertTrue(Hash::check($initialPassword, $counselor->password));
         $this->assertTrue($counselor->hasRole(RoleSlug::Counselor));
 
         $this->actingAs($counselor)->getJson('/api/v1/counselor/overview')
@@ -37,7 +41,7 @@ class CounselorAccountAndProgrammeGovernanceTest extends TestCase
             ->assertJsonPath('error.code', 'PASSWORD_CHANGE_REQUIRED');
 
         $this->actingAs($counselor)->putJson('/api/v1/auth/password', [
-            'currentPassword' => $created['temporaryPassword'],
+            'currentPassword' => $initialPassword,
             'password' => 'Private!Counselor2026',
             'password_confirmation' => 'Private!Counselor2026',
         ])->assertOk()->assertJsonPath('data.changed', true);
@@ -52,11 +56,15 @@ class CounselorAccountAndProgrammeGovernanceTest extends TestCase
             'last_activity' => now()->timestamp,
         ]);
 
-        $reset = $this->actingAs($admin)->postJson("/api/v1/admin/counselors/{$counselor->getKey()}/reset-password")
+        $resetPassword = 'Reset!Counselor2026';
+        $this->actingAs($admin)->postJson("/api/v1/admin/counselors/{$counselor->getKey()}/reset-password", [
+            'password' => $resetPassword,
+            'password_confirmation' => $resetPassword,
+        ])
             ->assertOk()
             ->assertJsonPath('data.mustChangePassword', true)
-            ->json('data');
-        $this->assertTrue(Hash::check($reset['temporaryPassword'], $counselor->fresh()->password));
+            ->assertJsonMissingPath('data.temporaryPassword');
+        $this->assertTrue(Hash::check($resetPassword, $counselor->fresh()->password));
         $this->assertDatabaseMissing('sessions', ['id' => 'counselor-browser-session']);
 
         DB::table('sessions')->insert([
@@ -74,6 +82,28 @@ class CounselorAccountAndProgrammeGovernanceTest extends TestCase
 
         $this->assertDatabaseHas('admin_audit_events', ['action' => 'counselor_account.created']);
         $this->assertDatabaseHas('admin_audit_events', ['action' => 'counselor_account.password_reset']);
+    }
+
+    public function test_admin_set_counselor_passwords_must_be_confirmed_and_meet_policy(): void
+    {
+        $admin = $this->userWithRole(RoleSlug::Admin);
+
+        $this->actingAs($admin)->postJson('/api/v1/admin/counselors', [
+            'name' => 'Maria Counselor',
+            'email' => 'maria.counselor@example.test',
+            'password' => 'weak-password',
+            'password_confirmation' => 'different-password',
+        ])->assertUnprocessable()->assertJsonValidationErrors(['password']);
+
+        $counselor = $this->userWithRole(RoleSlug::Counselor);
+        $originalHash = $counselor->password;
+
+        $this->actingAs($admin)->postJson("/api/v1/admin/counselors/{$counselor->getKey()}/reset-password", [
+            'password' => 'short',
+            'password_confirmation' => 'short',
+        ])->assertUnprocessable()->assertJsonValidationErrors(['password']);
+
+        $this->assertSame($originalHash, $counselor->fresh()->password);
     }
 
     public function test_catalogue_media_and_editable_content_publish_while_api_facts_remain_locked(): void

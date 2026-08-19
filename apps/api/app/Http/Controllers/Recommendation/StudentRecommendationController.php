@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Recommendation;
 use App\Http\Controllers\Controller;
 use App\Models\AssessmentSession;
 use App\Models\RecommendationRun;
-use App\Services\Onet\OnetInterestProfilerClient;
+use App\Services\Assessment\RiasecQuestionnaire;
 use App\Services\Recommendation\ProvisionalRiasecRecommendationEngine;
 use App\Services\Recommendation\TccProgrammeCatalogueRepository;
 use DomainException;
@@ -21,17 +21,17 @@ final class StudentRecommendationController extends Controller
     ): JsonResponse {
         $current = AssessmentSession::query()
             ->whereBelongsTo($request->user())
-            ->where('instrument_code', OnetInterestProfilerClient::INSTRUMENT_CODE)
+            ->where('instrument_code', RiasecQuestionnaire::INSTRUMENT_CODE)
             ->where('is_current', true)
             ->latest('attempt_number')
             ->first();
 
         $session = AssessmentSession::query()
             ->whereBelongsTo($request->user())
-            ->where('instrument_code', OnetInterestProfilerClient::INSTRUMENT_CODE)
+            ->whereIn('instrument_code', [RiasecQuestionnaire::INSTRUMENT_CODE, RiasecQuestionnaire::LEGACY_INSTRUMENT_CODE])
             ->where('status', 'result_available')
             ->with('recommendationRun')
-            ->latest('attempt_number')
+            ->latest('result_available_at')
             ->first();
 
         if ($session === null && $current?->status === 'preparing_result') {
@@ -74,7 +74,7 @@ final class StudentRecommendationController extends Controller
         $run = $session->recommendationRun;
         if ($run === null) {
             try {
-                $result = $engine->recommend(OnetInterestProfilerClient::normalizeResultEntries($entries), $catalogue);
+                $result = $engine->recommend(RiasecQuestionnaire::normalizeResultEntries($entries), $catalogue);
             } catch (DomainException) {
                 return $this->notAvailable('RECOMMENDATION_CONFIGURATION_INVALID');
             }
@@ -101,7 +101,7 @@ final class StudentRecommendationController extends Controller
             'recommendation' => $this->recommendationPayload(
                 $run,
                 $session,
-                OnetInterestProfilerClient::normalizeResultEntries($entries),
+                RiasecQuestionnaire::normalizeResultEntries($entries),
                 $request->query('view') === 'all',
                 $catalogue,
             ),

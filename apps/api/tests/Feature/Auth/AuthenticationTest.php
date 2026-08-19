@@ -72,6 +72,24 @@ class AuthenticationTest extends TestCase
         ])->assertOk();
     }
 
+    public function test_student_session_includes_the_current_profile_photo(): void
+    {
+        $user = $this->studentUser();
+        $user->studentProfile()->create([
+            'photo_path' => 'student-profile-photos/'.$user->getKey().'/profile.webp',
+            'strengths' => [],
+            'growth_areas' => [],
+            'learning_preferences' => [],
+        ]);
+
+        $response = $this->actingAs($user)->getJson('/api/v1/auth/me')->assertOk();
+
+        $this->assertStringStartsWith(
+            '/api/v1/profile-photos/'.$user->getKey().'?v=',
+            (string) $response->json('user.photoUrl'),
+        );
+    }
+
     public function test_student_registration_rejects_duplicate_email_and_mismatched_confirmation(): void
     {
         User::factory()->create(['email' => 'existing@example.test']);
@@ -237,6 +255,18 @@ class AuthenticationTest extends TestCase
         $user = User::factory()->create([
             'password' => 'correct-password',
         ]);
+        $user->roles()->attach($role);
+
+        return $user;
+    }
+
+    private function studentUser(): User
+    {
+        $role = Role::query()->create([
+            'slug' => RoleSlug::Student->value,
+            'name' => 'Student Applicant',
+        ]);
+        $user = User::factory()->create();
         $user->roles()->attach($role);
 
         return $user;

@@ -25,10 +25,10 @@
         "normalization": {
             "output_min": 0,
             "output_max": 100,
-            "instrument_min": 5,
-            "instrument_max": 25,
+            "instrument_min": 0,
+            "instrument_max": 8,
             "formula": "100 * (score - instrument_min) / (instrument_max - instrument_min)",
-            "status": "proposed_pending_instrument_version_validation"
+            "status": "proposed_local_binary_count_range"
         },
         "eligibility": {
             "catalogue_programmes_only": true,

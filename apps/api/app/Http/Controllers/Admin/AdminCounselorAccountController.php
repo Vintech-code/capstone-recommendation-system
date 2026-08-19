@@ -11,8 +11,8 @@ use App\Services\Auth\UserSessionRevoker;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Password;
 
 final class AdminCounselorAccountController extends Controller
 {
@@ -21,14 +21,14 @@ final class AdminCounselorAccountController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
+            'password' => ['required', 'confirmed', Password::min(12)->letters()->mixedCase()->numbers()->symbols()],
         ]);
-        $temporaryPassword = Str::password(16, symbols: true);
 
-        $counselor = DB::transaction(function () use ($request, $validated, $temporaryPassword): User {
+        $counselor = DB::transaction(function () use ($request, $validated): User {
             $user = User::query()->create([
                 'name' => trim($validated['name']),
                 'email' => strtolower(trim($validated['email'])),
-                'password' => $temporaryPassword,
+                'password' => $validated['password'],
                 'account_status' => 'active',
                 'must_change_password' => true,
             ]);
@@ -39,10 +39,7 @@ final class AdminCounselorAccountController extends Controller
             return $user;
         });
 
-        return response()->json(['data' => [
-            ...$this->payload($counselor),
-            'temporaryPassword' => $temporaryPassword,
-        ]], 201);
+        return response()->json(['data' => $this->payload($counselor)], 201);
     }
 
     public function update(Request $request, User $counselor, UserSessionRevoker $sessions): JsonResponse
@@ -70,15 +67,14 @@ final class AdminCounselorAccountController extends Controller
     public function resetPassword(Request $request, User $counselor, UserSessionRevoker $sessions): JsonResponse
     {
         $this->ensureCounselor($counselor);
-        $temporaryPassword = Str::password(16, symbols: true);
-        $counselor->update(['password' => $temporaryPassword, 'must_change_password' => true]);
+        $validated = $request->validate([
+            'password' => ['required', 'confirmed', Password::min(12)->letters()->mixedCase()->numbers()->symbols()],
+        ]);
+        $counselor->update(['password' => $validated['password'], 'must_change_password' => true]);
         $sessions->revoke($counselor);
         $this->audit($request, 'counselor_account.password_reset', $counselor);
 
-        return response()->json(['data' => [
-            ...$this->payload($counselor),
-            'temporaryPassword' => $temporaryPassword,
-        ]]);
+        return response()->json(['data' => $this->payload($counselor)]);
     }
 
     private function ensureCounselor(User $user): void

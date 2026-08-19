@@ -23,7 +23,7 @@ class AuthenticatedSessionController extends Controller
         $request->session()->regenerate();
 
         /** @var User $user */
-        $user = $request->user()->load('roles');
+        $user = $request->user()->load(['roles', 'studentProfile']);
 
         if ($user->account_status !== 'active') {
             Auth::guard('web')->logout();
@@ -57,7 +57,7 @@ class AuthenticatedSessionController extends Controller
     public function show(Request $request): JsonResponse
     {
         /** @var User $user */
-        $user = $request->user()->load('roles');
+        $user = $request->user()->load(['roles', 'studentProfile']);
 
         return response()->json(['user' => $this->userPayload($user)]);
     }
@@ -73,7 +73,7 @@ class AuthenticatedSessionController extends Controller
     }
 
     /**
-     * @return array{id: int, name: string, email: string, accountStatus: string, mustChangePassword: bool, roles: array<int, string>}
+     * @return array{id: int, name: string, email: string, accountStatus: string, mustChangePassword: bool, photoUrl: string|null, roles: array<int, string>}
      */
     private function userPayload(User $user): array
     {
@@ -83,6 +83,9 @@ class AuthenticatedSessionController extends Controller
             'email' => $user->email,
             'accountStatus' => $user->account_status,
             'mustChangePassword' => (bool) $user->must_change_password,
+            'photoUrl' => $user->studentProfile?->photo_path
+                ? '/api/v1/profile-photos/'.$user->getKey().'?v='.$user->studentProfile->updated_at?->getTimestamp()
+                : null,
             'roles' => $user->roles->pluck('slug')->values()->all(),
         ];
     }

@@ -141,9 +141,9 @@ class TccProgrammeCatalogueTest extends TestCase
         $this->assertSame('proposed', $policy['formula']['status']);
         $this->assertSame(0, $policy['normalization']['output_min']);
         $this->assertSame(100, $policy['normalization']['output_max']);
-        $this->assertSame(5, $policy['normalization']['instrument_min']);
-        $this->assertSame(25, $policy['normalization']['instrument_max']);
-        $this->assertSame('proposed_pending_instrument_version_validation', $policy['normalization']['status']);
+        $this->assertSame(0, $policy['normalization']['instrument_min']);
+        $this->assertSame(8, $policy['normalization']['instrument_max']);
+        $this->assertSame('proposed_local_binary_count_range', $policy['normalization']['status']);
         $this->assertTrue($policy['eligibility']['catalogue_programmes_only']);
         $this->assertTrue($policy['eligibility']['required_criteria_must_be_met']);
         $this->assertSame('pending_definition', $policy['eligibility']['programme_criteria_status']);

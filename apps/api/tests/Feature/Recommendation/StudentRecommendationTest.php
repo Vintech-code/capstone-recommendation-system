@@ -122,17 +122,17 @@ class StudentRecommendationTest extends TestCase
         $student->roles()->attach($role);
         AssessmentSession::query()->create([
             'user_id' => $student->getKey(),
-            'instrument_code' => 'onet-mini-ip-30',
+            'instrument_code' => 'tcc-riasec-42-v1',
             'status' => 'result_available',
-            'answers' => array_combine(range(1, 30), array_fill(0, 30, 3)),
-            'current_question' => 30,
+            'answers' => array_combine(range(1, 42), array_fill(0, 42, 1)),
+            'current_question' => 42,
             'result_payload' => ['result' => [
-                ['area' => 'Realistic', 'score' => 12],
-                ['area' => 'Investigative', 'score' => 22],
-                ['area' => 'Artistic', 'score' => 16],
-                ['area' => 'Social', 'score' => 20],
-                ['area' => 'Enterprising', 'score' => 14],
-                ['area' => 'Conventional', 'score' => 18],
+                ['area' => 'Realistic', 'score' => 4],
+                ['area' => 'Investigative', 'score' => 8],
+                ['area' => 'Artistic', 'score' => 5],
+                ['area' => 'Social', 'score' => 7],
+                ['area' => 'Enterprising', 'score' => 6],
+                ['area' => 'Conventional', 'score' => 6],
             ]],
             'started_at' => now()->subHour(),
             'submitted_at' => now()->subMinute(),
@@ -169,7 +169,7 @@ class StudentRecommendationTest extends TestCase
         $student->roles()->attach($role);
         $session = AssessmentSession::query()->create([
             'user_id' => $student->getKey(),
-            'instrument_code' => 'onet-mini-ip-30',
+            'instrument_code' => 'tcc-riasec-42-v1',
             'status' => 'result_available',
             'answers' => array_combine(range(1, 30), array_fill(0, 30, 3)),
             'current_question' => 30,
@@ -225,7 +225,7 @@ class StudentRecommendationTest extends TestCase
         AssessmentSession::query()->create([
             'user_id' => $student->getKey(),
             'previous_session_id' => $completed->getKey(),
-            'instrument_code' => 'onet-mini-ip-30',
+            'instrument_code' => 'tcc-riasec-42-v1',
             'attempt_number' => 2,
             'is_current' => true,
             'status' => 'in_progress',
@@ -273,7 +273,7 @@ class StudentRecommendationTest extends TestCase
             ->assertJsonPath('data.recommendation.courses.0.duration', '4 years')
             ->assertJsonPath('data.recommendation.courses.0.learningAreaDescriptions.Management', 'Develop skills in planning, organising, leading teams, and evaluating organisational performance.')
             ->assertJsonPath('data.recommendation.courses.0.explanation.recordedProgrammeAreas.0.label', 'Enterprising')
-            ->assertJsonPath('data.recommendation.courses.0.explanation.recordedProgrammeAreas.0.score', 14)
+            ->assertJsonPath('data.recommendation.courses.0.explanation.recordedProgrammeAreas.0.score', 6)
             ->assertJsonPath('data.recommendation.courses.0.explanation.learningAreas.0', 'Management')
             ->assertJsonPath('data.recommendation.courses.0.careerDirections.0', 'Business and operations administration');
     }
@@ -311,19 +311,19 @@ class StudentRecommendationTest extends TestCase
     {
         return AssessmentSession::query()->create([
             'user_id' => $student->getKey(),
-            'instrument_code' => 'onet-mini-ip-30',
+            'instrument_code' => 'tcc-riasec-42-v1',
             'attempt_number' => $attemptNumber,
             'is_current' => $isCurrent,
             'status' => 'result_available',
-            'answers' => array_combine(range(1, 30), array_fill(0, 30, 3)),
-            'current_question' => 30,
+            'answers' => array_combine(range(1, 42), array_fill(0, 42, 1)),
+            'current_question' => 42,
             'result_payload' => ['result' => [
-                ['area' => 'Realistic', 'score' => 12],
-                ['area' => 'Investigative', 'score' => 22],
-                ['area' => 'Artistic', 'score' => 16],
-                ['area' => 'Social', 'score' => 20],
-                ['area' => 'Enterprising', 'score' => 14],
-                ['area' => 'Conventional', 'score' => 18],
+                ['area' => 'Realistic', 'score' => 4],
+                ['area' => 'Investigative', 'score' => 8],
+                ['area' => 'Artistic', 'score' => 5],
+                ['area' => 'Social', 'score' => 7],
+                ['area' => 'Enterprising', 'score' => 6],
+                ['area' => 'Conventional', 'score' => 6],
             ]],
             'started_at' => now()->subDays(31),
             'submitted_at' => now()->subDays(30),

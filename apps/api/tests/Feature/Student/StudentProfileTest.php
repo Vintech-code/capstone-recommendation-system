@@ -173,7 +173,10 @@ class StudentProfileTest extends TestCase
             ->postJson('/api/v1/student/profile/photo', ['photo' => UploadedFile::fake()->image('profile.jpg', 640, 640)])
             ->assertCreated();
         $firstPath = StudentProfile::query()->where('user_id', $student->getKey())->value('photo_path');
-        $response->assertJsonPath('data.student.photoUrl', '/api/v1/profile-photos/'.$student->getKey());
+        $this->assertStringStartsWith(
+            '/api/v1/profile-photos/'.$student->getKey().'?v=',
+            (string) $response->json('data.student.photoUrl'),
+        );
         Storage::disk('local')->assertExists($firstPath);
         $this->get('/api/v1/profile-photos/'.$student->getKey())->assertOk();
         $this->actingAs($this->userWithRole(RoleSlug::Student))
@@ -206,7 +209,7 @@ class StudentProfileTest extends TestCase
     {
         return AssessmentSession::query()->create([
             'user_id' => $student->getKey(),
-            'instrument_code' => 'onet-mini-ip-30',
+            'instrument_code' => 'tcc-riasec-42-v1',
             'attempt_number' => 1,
             'is_current' => true,
             'status' => 'result_available',

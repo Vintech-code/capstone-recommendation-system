@@ -14,13 +14,12 @@ use App\Models\Role;
 use App\Models\RoleSlug;
 use App\Models\StudentSavedProgramme;
 use App\Models\User;
+use App\Services\Assessment\RiasecQuestionnaire;
 use App\Services\Notifications\NotificationPolicyScheduler;
 use App\Services\Notifications\PathwaysNotifier;
-use App\Services\Onet\OnetInterestProfilerClient;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Tests\TestCase;
 
@@ -95,23 +94,17 @@ class GuidanceSummaryAndNotificationTest extends TestCase
     public function test_result_processing_notifies_the_student_once_result_is_available(): void
     {
         [$student] = $this->studentAndCounselor();
-        config()->set('services.onet.api_key', 'test-onet-key');
-        Http::fake(['api-v2.onetcenter.org/*' => Http::response(['result' => [
-            ['title' => 'Realistic', 'score' => 10], ['title' => 'Investigative', 'score' => 20],
-            ['title' => 'Artistic', 'score' => 15], ['title' => 'Social', 'score' => 12],
-            ['title' => 'Enterprising', 'score' => 11], ['title' => 'Conventional', 'score' => 18],
-        ]])]);
         $session = AssessmentSession::query()->create([
             'user_id' => $student->getKey(),
-            'instrument_code' => 'onet-mini-ip-30',
+            'instrument_code' => 'tcc-riasec-42-v1',
             'status' => 'preparing_result',
-            'answers' => array_combine(range(1, 30), array_fill(0, 30, 3)),
-            'current_question' => 30,
+            'answers' => array_combine(range(1, 42), array_fill(0, 42, 1)),
+            'current_question' => 42,
             'started_at' => now(),
             'submitted_at' => now(),
         ]);
 
-        (new ProcessAssessmentResult($session->getKey()))->handle(app(OnetInterestProfilerClient::class));
+        (new ProcessAssessmentResult($session->getKey()))->handle(app(RiasecQuestionnaire::class));
 
         $this->assertSame('assessment_result_ready', $student->notifications()->firstOrFail()->data['eventType']);
     }

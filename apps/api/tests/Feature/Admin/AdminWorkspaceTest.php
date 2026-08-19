@@ -173,7 +173,7 @@ class AdminWorkspaceTest extends TestCase
         $this->completedSession($student)->update(['is_current' => false]);
         AssessmentSession::query()->create([
             'user_id' => $student->getKey(),
-            'instrument_code' => 'onet-mini-ip-30',
+            'instrument_code' => 'tcc-riasec-42-v1',
             'attempt_number' => 2,
             'status' => 'in_progress',
             'is_current' => true,
@@ -460,7 +460,7 @@ class AdminWorkspaceTest extends TestCase
         $secondStudent->roles()->attach(Role::query()->where('slug', RoleSlug::Student->value)->firstOrFail());
         AssessmentSession::query()->create([
             'user_id' => $secondStudent->getKey(),
-            'instrument_code' => 'onet-mini-ip-30',
+            'instrument_code' => 'tcc-riasec-42-v1',
             'attempt_number' => 1,
             'status' => 'in_progress',
             'is_current' => true,
@@ -508,7 +508,7 @@ class AdminWorkspaceTest extends TestCase
     {
         return AssessmentSession::query()->create([
             'user_id' => $student->getKey(),
-            'instrument_code' => 'onet-mini-ip-30',
+            'instrument_code' => 'tcc-riasec-42-v1',
             'attempt_number' => 1,
             'status' => 'result_available',
             'is_current' => true,

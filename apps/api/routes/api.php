@@ -8,7 +8,7 @@ use App\Http\Controllers\Admin\AdminProgrammeMediaController;
 use App\Http\Controllers\Admin\AdminProgrammeSourceController;
 use App\Http\Controllers\Admin\AdminWorkspaceController;
 use App\Http\Controllers\Assessment\AssessmentSessionController;
-use App\Http\Controllers\Assessment\OnetInterestProfilerController;
+use App\Http\Controllers\Assessment\RiasecQuestionnaireController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\PasswordChangeController;
 use App\Http\Controllers\Auth\PasswordRecoveryController;
@@ -48,11 +48,11 @@ Route::prefix('v1/auth')->group(function (): void {
     });
 });
 
-Route::prefix('v1/student/assessments/onet-mini-ip')
+Route::prefix('v1/student/assessments/riasec')
     ->middleware(['auth:sanctum', 'active', 'role:student'])
     ->group(function (): void {
-        Route::get('/questions', [OnetInterestProfilerController::class, 'questions']);
-        Route::post('/results', [OnetInterestProfilerController::class, 'results']);
+        Route::get('/questions', [RiasecQuestionnaireController::class, 'questions']);
+        Route::post('/results', [RiasecQuestionnaireController::class, 'results']);
         Route::get('/session', [AssessmentSessionController::class, 'current']);
         Route::post('/sessions', [AssessmentSessionController::class, 'store']);
         Route::patch('/sessions/{assessmentSession}', [AssessmentSessionController::class, 'update']);

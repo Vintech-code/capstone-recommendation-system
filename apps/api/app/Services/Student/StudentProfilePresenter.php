@@ -4,7 +4,7 @@ namespace App\Services\Student;
 
 use App\Models\AssessmentSession;
 use App\Models\User;
-use App\Services\Onet\OnetInterestProfilerClient;
+use App\Services\Assessment\RiasecQuestionnaire;
 use App\Services\Recommendation\TccProgrammeCatalogueRepository;
 
 final class StudentProfilePresenter
@@ -42,7 +42,9 @@ final class StudentProfilePresenter
                 'id' => $student->getKey(),
                 'name' => $student->name,
                 'email' => $student->email,
-                'photoUrl' => $profile?->photo_path ? '/api/v1/profile-photos/'.$student->getKey() : null,
+                'photoUrl' => $profile?->photo_path
+                    ? '/api/v1/profile-photos/'.$student->getKey().'?v='.$profile->updated_at?->getTimestamp()
+                    : null,
             ],
             'questionnaire' => [
                 'complete' => $strengths !== [] && $growthAreas !== [] && $learningPreferences !== [],
@@ -73,10 +75,10 @@ final class StudentProfilePresenter
     private function latestAssessment(User $student): ?AssessmentSession
     {
         return $student->assessmentSessions()
-            ->where('instrument_code', OnetInterestProfilerClient::INSTRUMENT_CODE)
+            ->whereIn('instrument_code', [RiasecQuestionnaire::INSTRUMENT_CODE, RiasecQuestionnaire::LEGACY_INSTRUMENT_CODE])
             ->where('status', 'result_available')
             ->with('recommendationRun')
-            ->latest('attempt_number')
+            ->latest('result_available_at')
             ->first();
     }
 
@@ -84,7 +86,7 @@ final class StudentProfilePresenter
     private function riasec(AssessmentSession $assessment): array
     {
         $codes = ['Realistic' => 'R', 'Investigative' => 'I', 'Artistic' => 'A', 'Social' => 'S', 'Enterprising' => 'E', 'Conventional' => 'C'];
-        $entries = OnetInterestProfilerClient::normalizeResultEntries($assessment->result_payload['result'] ?? []);
+        $entries = RiasecQuestionnaire::normalizeResultEntries($assessment->result_payload['result'] ?? []);
         $dimensions = array_map(static fn (array $entry, int $index): array => [
             'code' => $codes[$entry['area']] ?? '',
             'label' => $entry['area'],
