@@ -29,9 +29,12 @@ describe('NotificationCenter', () => {
     const user = userEvent.setup()
     render(<NotificationCenter workspaceLabel="Student" />)
 
+    expect(await screen.findByRole('button', { name: 'Open student notifications, 1 unread' })).toBeVisible()
     await user.click(screen.getByRole('button', { name: /Open student notifications/i }))
     expect(await screen.findByText('Guidance request accepted')).toBeVisible()
     expect(screen.getByText('1 new')).toBeVisible()
+    expect(screen.getByRole('tab', { name: 'All' })).not.toHaveClass('rounded-full')
+    expect(screen.getByRole('tab', { name: 'Unread 1' })).not.toHaveClass('rounded-full')
 
     await user.click(screen.getByRole('button', { name: 'Mark notification as read: Guidance request accepted' }))
 

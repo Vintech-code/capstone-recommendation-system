@@ -1,4 +1,5 @@
 import type { StudentProfileData, StudentProfileFields } from '@/features/student/profile/student-profile-types'
+import { getCachedStudentResource, setCachedStudentResource } from '@/features/student/student-resource-cache'
 
 class StudentProfileApiError extends Error {
   fieldErrors: Record<string, string[]>
@@ -35,20 +36,24 @@ async function profileRequest(path: string, init: RequestInit = {}) {
 }
 
 function getStudentProfile() {
-  return profileRequest('/api/v1/student/profile')
+  return getCachedStudentResource('profile:current', () => profileRequest('/api/v1/student/profile'), 60_000)
 }
 
-function updateStudentProfile(fields: StudentProfileFields) {
-  return profileRequest('/api/v1/student/profile', {
+async function updateStudentProfile(fields: StudentProfileFields) {
+  const profile = await profileRequest('/api/v1/student/profile', {
     method: 'PUT',
     body: JSON.stringify(fields),
   })
+  setCachedStudentResource('profile:current', profile, 60_000)
+  return profile
 }
 
 async function uploadStudentProfilePhoto(photo: File) {
   const body = new FormData()
   body.append('photo', photo)
-  return profileRequest('/api/v1/student/profile/photo', { method: 'POST', body })
+  const profile = await profileRequest('/api/v1/student/profile/photo', { method: 'POST', body })
+  setCachedStudentResource('profile:current', profile, 60_000)
+  return profile
 }
 
 export { getStudentProfile, StudentProfileApiError, updateStudentProfile, uploadStudentProfilePhoto }

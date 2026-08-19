@@ -19,6 +19,7 @@ import {
   type AuthContextValue,
   type SessionStatus,
 } from '@/features/auth/auth-context'
+import { clearStudentResourceCache } from '@/features/student/student-resource-cache'
 
 interface AuthProviderProps {
   children: ReactNode
@@ -69,9 +70,17 @@ function AuthProvider({ children, initialUser }: AuthProviderProps) {
     try {
       await requestSignOut()
     } finally {
+      clearStudentResourceCache()
       setUser(null)
       setStatus('ready')
     }
+  }, [])
+
+  const refreshUser = useCallback(async () => {
+    const response = await currentUser()
+    setUser(response.user)
+    setStatus('ready')
+    return response.user
   }, [])
 
   const value = useMemo<AuthContextValue>(
@@ -80,12 +89,13 @@ function AuthProvider({ children, initialUser }: AuthProviderProps) {
       status,
       signIn,
       signOut,
+      refreshUser,
       retrySession: () => {
         setStatus('loading')
         setSessionAttempt((attempt) => attempt + 1)
       },
     }),
-    [signIn, signOut, status, user],
+    [refreshUser, signIn, signOut, status, user],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

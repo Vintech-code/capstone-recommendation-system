@@ -12,7 +12,7 @@ describe('Student dashboard', () => {
   beforeEach(() => {
     vi.mocked(fetch).mockImplementation(async (input) => {
       const url = input.toString()
-      if (url === '/api/v1/student/assessments/onet-mini-ip/session') {
+      if (url === '/api/v1/student/assessments/riasec/session') {
         return Response.json({
           data: testAssessmentLifecycle,
         })
@@ -29,7 +29,7 @@ describe('Student dashboard', () => {
       if (url === '/api/v1/student/programmes') {
         return Response.json({ data: { academicYear: '2026-2027', catalogueVersion: 1, programmes: [{ id: 'bs-information-technology', name: 'BS Information Technology', code: 'BSIT', majors: [], riasecProfile: ['I', 'C', 'R'], description: 'Technology programme', learningAreas: ['Software development'], requirements: ['Meet published admission requirements.'], readinessPrompt: 'Discuss your interest in technology.' }] } })
       }
-      if (url === '/api/v1/student/assessments/onet-mini-ip/history') {
+      if (url === '/api/v1/student/assessments/riasec/history') {
         return Response.json({
           data: [{ ...testAssessmentLifecycle, attempt_number: 1, is_current: true }],
           policy: { status: 'proposed', version: 'RETAKE-PROPOSED-2026-01', minimum_days_between_completed_attempts: 0, completed_attempts_are_read_only: true },
@@ -138,29 +138,35 @@ describe('Student dashboard', () => {
     },
   )
 
-  it('keeps guidance requests unavailable until course matches exist', () => {
+  it('directs students with concerns to the school without an online guidance workflow', () => {
     render(<StudentDashboardPage onSelectModule={vi.fn()} initialLifecycle={{ status: 'not_started', question_count: 30 }} />)
-    expect(screen.getByRole('button', { name: 'Request guidance' })).toBeDisabled()
+    expect(screen.getByRole('heading', { name: 'Visit the Guidance Office' })).toBeVisible()
+    expect(screen.getByText('No online appointment or request is needed.')).toBeVisible()
+    expect(screen.queryByRole('button', { name: /guidance|appointment|request/i })).not.toBeInTheDocument()
   })
 
-  it('submits a student-owned guidance request for the current top match', async () => {
-    const user = userEvent.setup()
-    vi.mocked(fetch).mockImplementation(async (input, init) => {
-      if (input.toString() === '/api/v1/student/guidance-requests' && init?.method === 'POST') {
-        const body = JSON.parse(String(init.body)) as { programmeId: string; concernCategory: string; preferredFormat: string; preferredDate: string | null; message: string }
-        return Response.json({ data: { id: 21, programmeId: body.programmeId, programmeCode: 'TEST', programmeName: 'Test Course', concernCategory: body.concernCategory, preferredFormat: body.preferredFormat, preferredDate: body.preferredDate, message: body.message, status: 'pending', acceptedBy: null, acceptedAt: null, closedAt: null, resolutionReason: null, statusHistory: [], createdAt: '2026-08-09T10:00:00+08:00' } }, { status: 201 })
-      }
-      return Response.json({ message: 'Not found.' }, { status: 404 })
-    })
+  it('uses the clean journey overview without fabricated social proof or appointment actions', () => {
     render(<StudentDashboardPage onSelectModule={vi.fn()} initialLifecycle={testAssessmentLifecycle} initialRecommendations={{ status: 'available', recommendation: testRecommendationSnapshot }} />)
 
-    await user.click(screen.getByRole('button', { name: 'Request guidance' }))
-    await user.click(screen.getByRole('button', { name: 'Send request' }))
-
-    expect(await screen.findByText('Guidance request')).toBeVisible()
-    expect(screen.getByText('Pending')).toBeVisible()
-    const requestCall = vi.mocked(fetch).mock.calls.find(([input, init]) => input.toString() === '/api/v1/student/guidance-requests' && init?.method === 'POST')
-    expect(JSON.parse(String(requestCall?.[1]?.body))).toMatchObject({ programmeId: 'test-course', concernCategory: 'programme_comparison', preferredFormat: 'in_person' })
+    expect(screen.getByRole('heading', { level: 1, name: 'Your journey. Your future.' })).toBeVisible()
+    expect(screen.getByRole('button', { name: 'Explore your matches' })).not.toHaveClass('rounded-full')
+    expect(screen.getByRole('heading', { name: 'Keep moving forward' })).toBeVisible()
+    expect(screen.getByRole('progressbar', { name: 'Academic journey progress' })).toHaveAttribute('aria-valuenow', '100')
+    expect(screen.getByRole('heading', { name: 'Visit the Guidance Office' })).toBeVisible()
+    expect(screen.getByText('Topics you can discuss')).toBeVisible()
+    expect(screen.getByText('Programmes you are comparing')).toBeVisible()
+    expect(screen.getByText('Your highest recorded areas are Investigative and Conventional.')).toBeVisible()
+    expect(screen.getByLabelText('Primary recorded interest')).toBeInTheDocument()
+    expect(document.querySelector('.lucide-eye')).toBeInTheDocument()
+    expect(document.querySelector('.lucide-paintbrush')).toBeInTheDocument()
+    expect(document.querySelector('.lucide-users-round')).toBeInTheDocument()
+    expect(document.querySelector('.lucide-sparkles, .lucide-star')).not.toBeInTheDocument()
+    expect(document.querySelector('.lucide-route')).toBeInTheDocument()
+    expect(document.querySelector('.lucide-target')).toBeInTheDocument()
+    expect(screen.getByRole('progressbar', { name: /course match/i })).toHaveAttribute('aria-valuenow', '90')
+    expect(screen.getByText('Recommended programme')).toBeVisible()
+    expect(screen.queryByText(/students on their journey/i)).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /appointment/i })).not.toBeInTheDocument()
   })
 
   it.skip('does not invent recommendation generation or provenance', async () => {
@@ -205,13 +211,13 @@ describe('Student dashboard', () => {
     }
     vi.mocked(fetch).mockImplementation(async (input) => {
       const url = input.toString()
-      if (url === '/api/v1/student/assessments/onet-mini-ip/history') {
+      if (url === '/api/v1/student/assessments/riasec/history') {
         return Response.json({
           data: [secondAttempt, { ...testAssessmentLifecycle, id: 1, attempt_number: 1, is_current: false }],
           policy: { status: 'proposed', version: 'RETAKE-PROPOSED-2026-01', minimum_days_between_completed_attempts: 0, completed_attempts_are_read_only: true },
         })
       }
-      if (url === '/api/v1/student/assessments/onet-mini-ip/session') return Response.json({ data: secondAttempt })
+      if (url === '/api/v1/student/assessments/riasec/session') return Response.json({ data: secondAttempt })
       if (url === '/api/v1/student/recommendations/attempts/2') return Response.json({ data: { status: 'available', recommendation: testRecommendationSnapshot } })
       return Response.json({ message: 'Not found.' }, { status: 404 })
     })
@@ -230,7 +236,7 @@ describe('Student dashboard', () => {
     const user = userEvent.setup()
     vi.mocked(fetch).mockImplementation(async (input) => {
       const url = input.toString()
-      if (url === '/api/v1/student/assessments/onet-mini-ip/history') {
+      if (url === '/api/v1/student/assessments/riasec/history') {
         return Response.json({
           data: [
             { id: 2, status: 'in_progress', question_count: 30, attempt_number: 2, is_current: true, started_at: '2026-09-10T00:00:00Z' },
@@ -239,7 +245,7 @@ describe('Student dashboard', () => {
           policy: { status: 'proposed', version: 'RETAKE-PROPOSED-2026-01', minimum_days_between_completed_attempts: 0, completed_attempts_are_read_only: true },
         })
       }
-      if (url === '/api/v1/student/assessments/onet-mini-ip/session') {
+      if (url === '/api/v1/student/assessments/riasec/session') {
         return Response.json({ data: { id: 2, status: 'in_progress', question_count: 30, attempt_number: 2, is_current: true } })
       }
       if (url === '/api/v1/student/recommendations/attempts/1') {
@@ -260,13 +266,13 @@ describe('Student dashboard', () => {
   it('keeps the latest completed summary on the dashboard while a new result is preparing', async () => {
     vi.mocked(fetch).mockImplementation(async (input) => {
       const url = input.toString()
-      if (url === '/api/v1/student/assessments/onet-mini-ip/session') {
+      if (url === '/api/v1/student/assessments/riasec/session') {
         return Response.json({ data: { id: 2, status: 'preparing_result', question_count: 30, attempt_number: 2, is_current: true } })
       }
       if (url === '/api/v1/student/recommendations/latest') {
         return Response.json({ data: { status: 'preparing', recommendation: null } })
       }
-      if (url === '/api/v1/student/assessments/onet-mini-ip/history') {
+      if (url === '/api/v1/student/assessments/riasec/history') {
         return Response.json({
           data: [
             { id: 2, status: 'preparing_result', question_count: 30, attempt_number: 2, is_current: true },
@@ -288,20 +294,52 @@ describe('Student dashboard', () => {
     expect(screen.getByText('Test Course')).toBeVisible()
   })
 
+  it('prioritizes a completed result over an empty retake session', async () => {
+    vi.mocked(fetch).mockImplementation(async (input) => {
+      const url = input.toString()
+      if (url === '/api/v1/student/assessments/riasec/session') {
+        return Response.json({ data: { id: 2, status: 'in_progress', answer_count: 0, question_count: 42, attempt_number: 2, is_current: true } })
+      }
+      if (url === '/api/v1/student/recommendations/latest') {
+        return Response.json({ data: { status: 'not_available', recommendation: null } })
+      }
+      if (url === '/api/v1/student/assessments/riasec/history') {
+        return Response.json({
+          data: [
+            { id: 2, status: 'in_progress', answer_count: 0, question_count: 42, attempt_number: 2, is_current: true },
+            { ...testAssessmentLifecycle, id: 1, attempt_number: 1, is_current: false },
+          ],
+          policy: { status: 'proposed', version: 'RETAKE-PROPOSED-2026-01', minimum_days_between_completed_attempts: 0, completed_attempts_are_read_only: true },
+        })
+      }
+      if (url === '/api/v1/student/recommendations/attempts/1') {
+        return Response.json({ data: { status: 'available', recommendation: testRecommendationSnapshot } })
+      }
+      return Response.json({ message: 'Not found.' }, { status: 404 })
+    })
+
+    render(<StudentDashboardPage onSelectModule={vi.fn()} />)
+
+    expect(await screen.findByRole('heading', { name: 'Your result is available' })).toBeVisible()
+    expect(screen.getByRole('button', { name: 'View latest result' })).toBeVisible()
+    expect(screen.queryByRole('progressbar', { name: 'Saved assessment progress' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Resume assessment' })).not.toBeInTheDocument()
+  })
+
   it('confirms a retake and displays a visible start failure', async () => {
     const user = userEvent.setup()
     vi.mocked(fetch).mockImplementation(async (input) => {
       const url = input.toString()
-      if (url === '/api/v1/student/assessments/onet-mini-ip/history') {
+      if (url === '/api/v1/student/assessments/riasec/history') {
         return Response.json({
           data: [{ ...testAssessmentLifecycle, attempt_number: 1, is_current: true, can_retake: true }],
           policy: { status: 'proposed', version: 'RETAKE-PROPOSED-2026-01', minimum_days_between_completed_attempts: 0, completed_attempts_are_read_only: true },
         })
       }
-      if (url === '/api/v1/student/assessments/onet-mini-ip/session') {
+      if (url === '/api/v1/student/assessments/riasec/session') {
         return Response.json({ data: { ...testAssessmentLifecycle, attempt_number: 1, is_current: true, can_retake: true } })
       }
-      if (url === '/api/v1/student/assessments/onet-mini-ip/sessions') {
+      if (url === '/api/v1/student/assessments/riasec/sessions') {
         return Response.json({ message: 'Unable to start the retake.' }, { status: 503 })
       }
       return Response.json({ message: 'Not found.' }, { status: 404 })

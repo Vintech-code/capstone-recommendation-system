@@ -1,4 +1,4 @@
-import { ArrowRight, BookOpen, Sparkles } from 'lucide-react'
+import { ArrowRight, BookOpen, ListChecks } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { getProgrammeImages } from '@/features/student/programmes/programme-images'
@@ -30,7 +30,7 @@ function RecommendationMatchCard({
     >
       <span
         aria-hidden="true"
-        className={`absolute inset-x-0 top-0 h-1 ${course.rank === 1 ? 'bg-secondary-container' : 'bg-primary'}`}
+        className={`absolute inset-y-0 left-0 w-1 ${course.rank === 1 ? 'bg-secondary-container' : course.rank === 2 ? 'bg-success' : 'bg-primary'}`}
       />
 
       <div
@@ -52,7 +52,7 @@ function RecommendationMatchCard({
             </>
           )}
           <span aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-primary/50 via-transparent to-transparent" />
-          <span className="absolute right-2 top-2 rounded bg-secondary-container px-2.5 py-1 font-label text-xs font-medium text-[#221b00] shadow-sm">
+          <span className="absolute left-2 top-2 rounded bg-secondary-container px-2.5 py-1 font-label text-xs font-medium text-[#221b00] shadow-sm">
             {course.match}% match
           </span>
         </div>
@@ -61,11 +61,6 @@ function RecommendationMatchCard({
           <div>
             <div className="flex flex-wrap gap-2">
               <span className="outcome-chip">Recommendation {course.rank}</span>
-              {course.interestAreas.slice(0, 2).map((area) => (
-                <span key={area} className="outcome-chip">
-                  {area}
-                </span>
-              ))}
             </div>
             <h3 className="mt-3 font-display text-xl font-semibold leading-7 transition-colors group-hover:text-primary">
               {course.name} <span className="whitespace-nowrap">({course.code})</span>
@@ -77,7 +72,7 @@ function RecommendationMatchCard({
             ) : null}
             {course.explanation ? (
               <div className="mt-4 flex items-start gap-2 rounded bg-primary-fixed/45 px-3 py-2.5 text-xs leading-5 text-on-primary-fixed">
-                <Sparkles aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
+                <ListChecks aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
                 <p>
                   {course.explanation.sharedTopAreas.length > 0
                     ? `Your recorded ${course.explanation.sharedTopAreas.map((area) => `${area.label} (${area.score})`).join(' and ')} scores are also listed in this programme's configured interest profile.`

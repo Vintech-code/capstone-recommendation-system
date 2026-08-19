@@ -15,6 +15,12 @@ function App() {
 function ApplicationFrame() {
   const location = useLocation()
   const isStaffWorkspace = location.pathname === '/admin' || location.pathname.startsWith('/admin/') || location.pathname === '/counselor' || location.pathname.startsWith('/counselor/')
+  const isAuthenticationPage =
+    location.pathname.endsWith('/login') ||
+    location.pathname === '/student/register' ||
+    location.pathname === '/forgot-password' ||
+    location.pathname.startsWith('/reset-password') ||
+    location.pathname === '/change-password'
 
   return <div className="flex min-h-svh flex-col">
     <div className="flex-1">
@@ -22,7 +28,7 @@ function ApplicationFrame() {
         <AccessRoutes />
       </ApplicationErrorBoundary>
     </div>
-    {!isStaffWorkspace ? <SiteFooter /> : null}
+    {!isStaffWorkspace && !isAuthenticationPage ? <SiteFooter /> : null}
   </div>
 }
 

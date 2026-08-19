@@ -24,9 +24,10 @@ describe('Administration and counselor workspaces', () => {
     const user = userEvent.setup()
     await renderAppAt('/admin/students')
 
-    const row = (await screen.findByText('ana@example.test')).closest('tr')
-    expect(row).not.toBeNull()
-    await user.click(within(row as HTMLTableRowElement).getByRole('button', { name: 'Open record' }))
+    const emailMatches = await screen.findAllByText('ana@example.test')
+    const row = emailMatches.map((match) => match.closest('tr')).find(Boolean)
+    expect(row).toBeDefined()
+    await user.click(within(row as HTMLTableRowElement).getByRole('button', { name: 'Open student record' }))
 
     expect(window.location.pathname).toBe('/admin/students/10')
     expect(await screen.findByRole('heading', { name: 'Ana Santos' })).toBeVisible()
@@ -49,8 +50,34 @@ describe('Administration and counselor workspaces', () => {
     expect(screen.getByRole('heading', { name: 'Counselor directory' })).toBeVisible()
     await user.type(screen.getByLabelText('Full name'), 'New Counselor')
     await user.type(screen.getByLabelText('Email address'), 'new@example.test')
+    await user.type(screen.getByLabelText('Initial temporary password'), 'Initial!Counsel2026')
+    await user.type(screen.getByLabelText('Confirm initial temporary password'), 'Initial!Counsel2026')
     await user.click(screen.getByRole('button', { name: /Create counselor account/i }))
     expect(await screen.findByText(/account created/i)).toBeVisible()
+    expect(fetch).toHaveBeenCalledWith('/api/v1/admin/counselors', expect.objectContaining({
+      method: 'POST',
+      body: JSON.stringify({
+        name: 'New Counselor',
+        email: 'new@example.test',
+        password: 'Initial!Counsel2026',
+        password_confirmation: 'Initial!Counsel2026',
+      }),
+    }))
+    expect(screen.queryByText('One-time temporary password')).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Reset password' }))
+    expect(screen.getByRole('dialog', { name: 'Set a new temporary password' })).toBeVisible()
+    await user.type(screen.getByLabelText('New temporary password'), 'Reset!Counselor2026')
+    await user.type(screen.getByLabelText('Confirm new temporary password'), 'Reset!Counselor2026')
+    await user.click(screen.getByRole('button', { name: 'Set temporary password' }))
+    expect(await screen.findByText(/temporary password set/i)).toBeVisible()
+    expect(fetch).toHaveBeenCalledWith('/api/v1/admin/counselors/2/reset-password', expect.objectContaining({
+      method: 'POST',
+      body: JSON.stringify({
+        password: 'Reset!Counselor2026',
+        password_confirmation: 'Reset!Counselor2026',
+      }),
+    }))
   })
 
   it('lets a counselor decline a pending request with an auditable reason', async () => {
@@ -176,15 +203,22 @@ describe('Administration and counselor workspaces', () => {
     expect(screen.getByRole('button', { name: 'Retry upload' })).toBeVisible()
   })
 
-  it('presents assessment activity as a searchable lifecycle ledger', async () => {
+  it('combines students and assessment activity in one searchable lifecycle ledger', async () => {
     const user = userEvent.setup()
+    await renderAppAt('/admin/students')
+
+    expect(await screen.findByRole('heading', { name: 'Student records' })).toBeVisible()
+    expect(screen.getByRole('heading', { name: 'Student and assessment records' })).toBeVisible()
+    expect(screen.getByText('Results available')).toBeVisible()
+    await user.type(screen.getByRole('searchbox', { name: 'Search student records' }), 'Ana')
+    expect(screen.getAllByRole('button', { name: /Open student record/i }).length).toBeGreaterThan(0)
+  })
+
+  it('redirects the former assessment destination to the combined student records page', async () => {
     await renderAppAt('/admin/assessments')
 
-    expect(await screen.findByRole('heading', { name: 'Assessment activity' })).toBeVisible()
-    expect(screen.getByRole('heading', { name: 'Student assessment records' })).toBeVisible()
-    expect(screen.getByText('Results available')).toBeVisible()
-    await user.type(screen.getByRole('searchbox', { name: 'Search assessment activity' }), 'Ana')
-    expect(screen.getByRole('button', { name: /Open student record/i })).toBeVisible()
+    expect(await screen.findByRole('heading', { name: 'Student records' })).toBeVisible()
+    expect(window.location.pathname).toBe('/admin/students')
   })
 
   it('shows privacy-aware reports and auditable Admin activity', async () => {

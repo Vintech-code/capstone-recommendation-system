@@ -94,7 +94,6 @@ interface AdminStaff {
   email: string
   accountStatus: string
   mustChangePassword: boolean
-  temporaryPassword?: string
   assignedCaseCount: number
   activeCaseCount: number
   followUpCount: number

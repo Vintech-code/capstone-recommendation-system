@@ -1,4 +1,5 @@
 import type { StudentProgramme, StudentProgrammeCatalogue } from '@/features/student/programmes/programme-types'
+import { getCachedStudentResource, invalidateStudentResources } from '@/features/student/student-resource-cache'
 
 async function programmeRequest<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(path, {
@@ -14,7 +15,7 @@ async function programmeRequest<T>(path: string, init?: RequestInit): Promise<T>
 }
 
 function getProgrammeCatalogue() {
-  return programmeRequest<StudentProgrammeCatalogue>('/api/v1/student/programmes')
+  return getCachedStudentResource('programmes:catalogue', () => programmeRequest<StudentProgrammeCatalogue>('/api/v1/student/programmes'), 5 * 60_000)
 }
 
 function getProgramme(programmeId: string) {
@@ -22,14 +23,16 @@ function getProgramme(programmeId: string) {
 }
 
 function getSavedProgrammeIds() {
-  return programmeRequest<{ programmeIds: string[] }>('/api/v1/student/saved-programmes')
+  return getCachedStudentResource('programmes:saved', () => programmeRequest<{ programmeIds: string[] }>('/api/v1/student/saved-programmes'))
 }
 
-function updateSavedProgramme(programmeId: string, saved: boolean) {
-  return programmeRequest<{ programmeId: string; saved: boolean }>(
+async function updateSavedProgramme(programmeId: string, saved: boolean) {
+  const result = await programmeRequest<{ programmeId: string; saved: boolean }>(
     `/api/v1/student/saved-programmes/${encodeURIComponent(programmeId)}`,
     { method: saved ? 'PUT' : 'DELETE' },
   )
+  invalidateStudentResources('programmes:saved')
+  return result
 }
 
 export { getProgramme, getProgrammeCatalogue, getSavedProgrammeIds, updateSavedProgramme }

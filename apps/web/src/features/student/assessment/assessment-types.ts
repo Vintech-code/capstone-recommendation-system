@@ -1,4 +1,4 @@
-type AssessmentResponseValue = 1 | 2 | 3 | 4 | 5
+type AssessmentResponseValue = 1 | 2
 
 interface AssessmentResponseOption {
   value: AssessmentResponseValue

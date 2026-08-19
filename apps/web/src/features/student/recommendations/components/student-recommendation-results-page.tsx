@@ -1,8 +1,9 @@
-import { ArrowRight, BookOpenCheck } from 'lucide-react'
+import { ArrowRight, Award, BookOpenCheck, CalendarDays, CheckCircle2, GraduationCap, RefreshCw } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 
 import { EmptyState, ErrorState, LoadingState } from '@/components/shared'
 import { Button } from '@/components/ui/button'
+import matchesHeroImage from '@/assets/student-matches-hero-v2.webp'
 import {
   getCurrentAssessment,
   startAssessment,
@@ -145,46 +146,40 @@ function StudentRecommendationResultsPage({
   }
 
   return (
-    <div className="student-grid-page">
-    <div className="student-page pb-16 pt-8 sm:pt-10">
+    <div className="student-grid-page student-dashboard-canvas">
       <section
-        className="grid gap-7 py-8 sm:py-12 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center"
+        data-testid="matches-hero"
+        className="relative isolate min-h-[19rem] overflow-hidden bg-primary-fixed/55"
         aria-labelledby="recommendation-title"
       >
-        <div className="max-w-4xl">
-          <p className="student-kicker"><span /> Assessment complete</p>
-          <h1
-            id="recommendation-title"
-            className="mt-6 font-display text-4xl font-bold tracking-[-0.035em] sm:text-5xl"
-          >
-            Your academic matches
-          </h1>
-          <p className="mt-5 max-w-2xl text-base leading-7 text-foreground/75 sm:text-lg">
-            Compare the TCC programmes that most closely match the interests recorded in your completed assessment.
-          </p>
-          <p className="mt-5 font-label text-sm font-medium text-muted-foreground">
-            Recommendations generated {formatAssessmentDate(snapshot.generatedAt)}
-          </p>
-        </div>
+        <img src={matchesHeroImage} alt="" className="pointer-events-none absolute inset-0 -z-20 size-full object-cover object-center" />
+        <div className="absolute inset-0 -z-10 bg-gradient-to-r from-primary-fixed/90 via-primary-fixed/20 to-transparent dark:from-background dark:via-background/70 dark:to-background/10" />
+        <div className="student-page grid min-h-[19rem] gap-8 py-8 sm:py-10 lg:grid-cols-[minmax(0,1fr)_16rem] lg:items-center">
+          <div className="max-w-2xl">
+            <p className="inline-flex min-h-10 items-center gap-2 rounded bg-card/90 px-4 font-label text-xs font-semibold uppercase tracking-[0.08em] text-primary shadow-sm"><CheckCircle2 aria-hidden="true" className="size-5 text-chart-blue" />Assessment complete</p>
+            <h1 id="recommendation-title" className="mt-5 font-display text-4xl font-bold tracking-[-0.04em] text-primary sm:text-5xl">Your academic matches</h1>
+            <p className="mt-4 max-w-xl text-base leading-7 text-on-primary-fixed-variant sm:text-lg">Compare the TCC programmes that most closely match the interests recorded in your completed assessment.</p>
+            <p className="mt-5 flex items-center gap-2 font-label text-sm font-medium text-on-primary-fixed-variant"><CalendarDays aria-hidden="true" className="size-4 text-primary" />Recommendations generated {formatAssessmentDate(snapshot.generatedAt)}</p>
+          </div>
 
-        <div className="flex flex-wrap gap-3 lg:max-w-sm lg:justify-end" data-print-hidden>
+          <div className="grid w-full gap-3 justify-self-end sm:max-w-64" data-print-hidden>
             {onOpenAssessment ? (
-              <Button type="button" onClick={() => setRetakeOpen(true)} className="min-h-12">
-                Retake assessment
+              <Button type="button" onClick={() => setRetakeOpen(true)} className="min-h-12 justify-between bg-primary/95 px-5">
+                <span className="flex items-center gap-2"><RefreshCw aria-hidden="true" />Retake assessment</span><ArrowRight aria-hidden="true" />
               </Button>
             ) : null}
-            <Button type="button" variant="outline" onClick={() => (onExploreProgrammes ?? (() => onBack()))(snapshot.courses)} className="min-h-12 bg-card/85">
-              Explore all programmes
+            <Button type="button" variant="outline" onClick={() => (onExploreProgrammes ?? (() => onBack()))(snapshot.courses)} className="min-h-12 justify-between bg-card/90 px-5">
+              <span className="flex items-center gap-2"><GraduationCap aria-hidden="true" />Explore all programmes</span><ArrowRight aria-hidden="true" />
             </Button>
+          </div>
         </div>
       </section>
 
-      <div className="mt-12 grid items-start gap-7 lg:grid-cols-[minmax(0,1.45fr)_minmax(19rem,0.65fr)]">
+      <div className="student-page pb-16 pt-10 sm:pt-12">
+      <div className="grid items-start gap-7 lg:grid-cols-[minmax(0,1.45fr)_minmax(19rem,0.65fr)]">
         <section aria-labelledby="top-recommendations-title">
           <div className="mb-6 flex items-center justify-between gap-4">
-            <h2 id="top-recommendations-title" className="font-display text-2xl font-semibold sm:text-3xl">
-              Top recommendations
-            </h2>
+            <div className="flex items-center gap-3"><span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-primary-fixed text-primary"><Award aria-hidden="true" className="size-5" /></span><h2 id="top-recommendations-title" className="font-display text-2xl font-semibold sm:text-3xl">Top recommendations</h2></div>
             <span className="inline-flex min-h-10 items-center rounded-full bg-primary px-4 font-label text-sm font-semibold text-primary-foreground shadow-sm">
               {snapshot.showingAll ? `${snapshot.courses.length} programmes` : `Top ${snapshot.courses.length} matches`}
             </span>
@@ -225,9 +220,7 @@ function StudentRecommendationResultsPage({
         <RecommendationProfilePanel result={assessmentResult ?? snapshot.profile ?? null} />
       </div>
 
-      <p className="mt-8 rounded bg-secondary px-5 py-4 text-sm leading-6 text-muted-foreground">
-        These matches support course exploration. They do not guarantee admission or enrolment.
-      </p>
+      <div className="mt-8 flex items-start gap-3 rounded bg-primary-fixed/55 px-5 py-4 text-sm leading-6 text-on-primary-fixed-variant"><span className="flex size-9 shrink-0 items-center justify-center rounded bg-primary text-primary-foreground"><GraduationCap aria-hidden="true" className="size-5" /></span><p><strong className="text-on-primary-fixed">Course exploration reminder:</strong> These matches support exploration. Review each programme's published information; a match does not guarantee admission or enrolment.</p></div>
 
       {retakeError ? (
         <p role="alert" className="mt-4 rounded bg-destructive/10 p-4 text-sm font-medium text-destructive">
@@ -251,7 +244,7 @@ function StudentRecommendationResultsPage({
           }
         }}
       />
-    </div>
+      </div>
     </div>
   )
 }

@@ -21,7 +21,7 @@ import {
   Stethoscope,
   TrendingUp,
 } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
 
 import { ErrorState, LoadingState } from '@/components/shared'
 import { Button } from '@/components/ui/button'
@@ -47,6 +47,33 @@ const categoryDefinitions = [
 
 const programmesPerBatch = 6
 
+const riasecDefinitions = [
+  { code: 'R', label: 'Realistic' },
+  { code: 'I', label: 'Investigative' },
+  { code: 'A', label: 'Artistic' },
+  { code: 'S', label: 'Social' },
+  { code: 'E', label: 'Enterprising' },
+  { code: 'C', label: 'Conventional' },
+]
+
+type FilterSectionId = 'field' | 'riasec' | 'duration' | 'strand'
+
+function FilterSection({ id, title, open, activeCount, onToggle, children }: { id: FilterSectionId; title: string; open: boolean; activeCount: number; onToggle: () => void; children: ReactNode }) {
+  const panelId = `programme-filter-${id}`
+  return (
+    <section className="border-t border-outline-variant/50">
+      <button type="button" aria-expanded={open} aria-controls={panelId} onClick={onToggle} className="flex min-h-11 w-full items-center justify-between gap-3 py-2 text-left">
+        <span className="font-label text-xs font-semibold uppercase tracking-[0.1em] text-foreground">{title}</span>
+        <span className="flex items-center gap-2">
+          {activeCount > 0 ? <span className="flex size-5 items-center justify-center rounded bg-primary text-[10px] font-bold text-primary-foreground">{activeCount}</span> : null}
+          <ChevronDown aria-hidden="true" className={`size-4 text-muted-foreground transition-transform ${open ? 'rotate-180' : ''}`} />
+        </span>
+      </button>
+      {open ? <div id={panelId} role="group" aria-label={title} className="pb-3">{children}</div> : null}
+    </section>
+  )
+}
+
 const strandLabels: Record<string, string> = {
   ABM: 'Accountancy, Business and Management',
   GAS: 'General Academic Strand',
@@ -64,7 +91,9 @@ function StudentProgrammeCataloguePage({ initialCatalogue, matchContext = [] }: 
   const [attempt, setAttempt] = useState(0)
   const [query, setQuery] = useState('')
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
+  const [selectedRiasec, setSelectedRiasec] = useState<string[]>([])
   const [selectedStrands, setSelectedStrands] = useState<string[]>([])
+  const [openFilterSection, setOpenFilterSection] = useState<FilterSectionId | null>('field')
   const [sortBy, setSortBy] = useState<'name' | 'category'>('name')
   const [durationFilter, setDurationFilter] = useState('all')
   const [visibleCount, setVisibleCount] = useState(programmesPerBatch)
@@ -105,6 +134,7 @@ function StudentProgrammeCataloguePage({ initialCatalogue, matchContext = [] }: 
     const filtered = (catalogue?.programmes ?? []).filter((programme) => {
       const category = categoryDefinitions.find((definition) => definition.ids.includes(programme.id))
       const matchesCategory = selectedCategories.length === 0 || (category && selectedCategories.includes(category.id))
+      const matchesRiasec = selectedRiasec.length === 0 || selectedRiasec.some((code) => programme.riasecProfile.includes(code))
       const matchesDuration = durationFilter === 'all' || programme.duration?.display === durationFilter
       const matchesStrands = selectedStrands.length === 0 || selectedStrands.some((strand) => programme.recommendedStrands.includes(strand))
       const matchesSaved = !savedOnly || savedProgrammeIds.has(programme.id)
@@ -112,7 +142,7 @@ function StudentProgrammeCataloguePage({ initialCatalogue, matchContext = [] }: 
         .join(' ')
         .toLowerCase()
 
-      return matchesCategory && matchesDuration && matchesStrands && matchesSaved && (!normalizedQuery || searchable.includes(normalizedQuery))
+      return matchesCategory && matchesRiasec && matchesDuration && matchesStrands && matchesSaved && (!normalizedQuery || searchable.includes(normalizedQuery))
     })
 
     return [...filtered].sort((left, right) => {
@@ -125,7 +155,7 @@ function StudentProgrammeCataloguePage({ initialCatalogue, matchContext = [] }: 
 
       return left.name.localeCompare(right.name)
     })
-  }, [catalogue, durationFilter, query, savedOnly, savedProgrammeIds, selectedCategories, selectedStrands, sortBy])
+  }, [catalogue, durationFilter, query, savedOnly, savedProgrammeIds, selectedCategories, selectedRiasec, selectedStrands, sortBy])
   const displayedProgrammes = visibleProgrammes.slice(0, visibleCount)
   const comparisonProgrammes = (catalogue?.programmes ?? []).filter((programme) => comparisonIds.has(programme.id))
 
@@ -208,27 +238,27 @@ function StudentProgrammeCataloguePage({ initialCatalogue, matchContext = [] }: 
       </header>
 
       <div className="student-page relative z-10 -mt-10 grid items-start gap-7 sm:-mt-14 lg:grid-cols-[17rem_minmax(0,1fr)]">
-        <aside aria-labelledby="programme-filters-title" className="rounded-xl bg-secondary p-6 shadow-sm lg:sticky lg:top-24">
+        <aside aria-labelledby="programme-filters-title" className="rounded-xl bg-secondary p-5 shadow-sm lg:sticky lg:top-24">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <SlidersHorizontal aria-hidden="true" className="size-5 text-primary" />
-              <h2 id="programme-filters-title" className="font-display text-2xl font-semibold">Filters</h2>
+              <h2 id="programme-filters-title" className="font-display text-xl font-semibold">Filters</h2>
             </div>
             <button
               type="button"
-              onClick={() => { setSelectedCategories([]); setSelectedStrands([]); setDurationFilter('all'); setSavedOnly(false); setQuery(''); setVisibleCount(programmesPerBatch) }}
+              onClick={() => { setSelectedCategories([]); setSelectedRiasec([]); setSelectedStrands([]); setDurationFilter('all'); setSavedOnly(false); setQuery(''); setVisibleCount(programmesPerBatch) }}
               className="min-h-11 text-sm font-semibold text-primary hover:underline"
             >
               Clear all
             </button>
           </div>
-          <fieldset className="mt-6">
-            <legend className="font-label text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">Field of study</legend>
-            <div className="mt-4 space-y-3">
+          <div className="mt-3">
+          <FilterSection id="field" title="Field of study" open={openFilterSection === 'field'} activeCount={selectedCategories.length} onToggle={() => setOpenFilterSection((current) => current === 'field' ? null : 'field')}>
+            <div className="grid gap-1">
               {categoryDefinitions.map((category) => {
                 const checked = selectedCategories.includes(category.id)
                 return (
-                  <label key={category.id} className="flex min-h-11 cursor-pointer items-center gap-3 text-sm font-medium">
+                  <label key={category.id} className="flex min-h-9 cursor-pointer items-center gap-2 rounded px-1 text-sm font-medium hover:bg-card/70">
                     <input
                       type="checkbox"
                       checked={checked}
@@ -238,7 +268,7 @@ function StudentProgrammeCataloguePage({ initialCatalogue, matchContext = [] }: 
                           : [...current, category.id])
                         setVisibleCount(programmesPerBatch)
                       }}
-                      className="size-5 rounded accent-primary"
+                      className="size-4 rounded accent-primary"
                     />
                     <category.icon aria-hidden="true" className="size-4 text-primary" />
                     <span>{category.title}</span>
@@ -246,30 +276,52 @@ function StudentProgrammeCataloguePage({ initialCatalogue, matchContext = [] }: 
                 )
               })}
             </div>
-          </fieldset>
-          <fieldset className="mt-6 border-t border-outline-variant/50 pt-6">
-            <legend className="font-label text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">Duration</legend>
-            <div className="mt-4 grid gap-2">
+          </FilterSection>
+          <FilterSection id="riasec" title="RIASEC interest" open={openFilterSection === 'riasec'} activeCount={selectedRiasec.length} onToggle={() => setOpenFilterSection((current) => current === 'riasec' ? null : 'riasec')}>
+            <div className="grid grid-cols-3 gap-2">
+              {riasecDefinitions.map(({ code, label }) => {
+                const checked = selectedRiasec.includes(code)
+                return (
+                  <label key={code} className="cursor-pointer" title={label}>
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      aria-label={`${label} (${code})`}
+                      onChange={() => {
+                        setSelectedRiasec((current) => checked ? current.filter((item) => item !== code) : [...current, code])
+                        setVisibleCount(programmesPerBatch)
+                      }}
+                      className="peer sr-only"
+                    />
+                    <span className="flex min-h-9 items-center justify-center rounded border border-outline-variant bg-card text-sm font-bold text-primary transition peer-checked:border-primary peer-checked:bg-primary peer-checked:text-primary-foreground peer-focus-visible:ring-3 peer-focus-visible:ring-ring/30">
+                      {code}
+                    </span>
+                  </label>
+                )
+              })}
+            </div>
+          </FilterSection>
+          <FilterSection id="duration" title="Duration" open={openFilterSection === 'duration'} activeCount={durationFilter === 'all' ? 0 : 1} onToggle={() => setOpenFilterSection((current) => current === 'duration' ? null : 'duration')}>
+            <div className="grid gap-1">
               {[['all', 'All durations'], ...durationOptions.map((duration) => [duration, duration])].map(([value, label]) => (
-                <label key={value} className="flex min-h-11 cursor-pointer items-center gap-3 rounded-lg px-3 text-sm font-medium hover:bg-card">
+                <label key={value} className="flex min-h-9 cursor-pointer items-center gap-2 rounded px-1 text-sm font-medium hover:bg-card">
                   <input
                     type="radio"
                     name="programme-duration"
                     value={value}
                     checked={durationFilter === value}
                     onChange={() => { setDurationFilter(value); setVisibleCount(programmesPerBatch) }}
-                    className="size-5 accent-primary"
+                    className="size-4 accent-primary"
                   />
                   {label}
                 </label>
               ))}
             </div>
-          </fieldset>
-          <fieldset className="mt-6 border-t border-outline-variant/50 pt-6">
-            <legend className="font-label text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">Recommended SHS strand</legend>
-            <div className="mt-3 grid gap-1">
+          </FilterSection>
+          <FilterSection id="strand" title="Recommended SHS strand" open={openFilterSection === 'strand'} activeCount={selectedStrands.length} onToggle={() => setOpenFilterSection((current) => current === 'strand' ? null : 'strand')}>
+            <div className="grid gap-1">
               {strandOptions.map((strand) => (
-                <label key={strand} className="flex min-h-10 cursor-pointer items-center gap-3 rounded-lg px-3 text-sm hover:bg-card">
+                <label key={strand} className="flex min-h-9 cursor-pointer items-center gap-2 rounded px-1 text-sm hover:bg-card">
                   <input
                     type="checkbox"
                     checked={selectedStrands.includes(strand)}
@@ -277,27 +329,27 @@ function StudentProgrammeCataloguePage({ initialCatalogue, matchContext = [] }: 
                       setSelectedStrands((current) => current.includes(strand) ? current.filter((item) => item !== strand) : [...current, strand])
                       setVisibleCount(programmesPerBatch)
                     }}
-                    className="size-5 rounded accent-primary"
+                    className="size-4 rounded accent-primary"
                   />
                   {strand}
                 </label>
               ))}
             </div>
-          </fieldset>
-          <fieldset className="mt-6 border-t border-outline-variant/50 pt-6">
-            <legend className="font-label text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">Saved programmes</legend>
-            <label className="mt-3 flex min-h-11 cursor-pointer items-center gap-3 rounded-lg px-3 text-sm font-medium hover:bg-card">
+          </FilterSection>
+          <div className="border-t border-outline-variant/50 py-2">
+            <label className="flex min-h-10 cursor-pointer items-center gap-2 rounded px-1 text-sm font-medium hover:bg-card">
               <input
                 type="checkbox"
                 checked={savedOnly}
                 onChange={(event) => { setSavedOnly(event.target.checked); setVisibleCount(programmesPerBatch) }}
-                className="size-5 rounded accent-primary"
+                className="size-4 rounded accent-primary"
               />
               <BookmarkCheck aria-hidden="true" className="size-4 text-primary" />
               Show saved only
             </label>
-          </fieldset>
-          <p className="mt-6 rounded-lg bg-card px-4 py-3 text-sm text-muted-foreground shadow-sm" role="status">
+          </div>
+          </div>
+          <p className="mt-4 rounded bg-card px-3 py-2.5 text-xs text-muted-foreground shadow-sm" role="status">
             Showing {displayedProgrammes.length} of {visibleProgrammes.length} matching programmes
           </p>
         </aside>
@@ -329,7 +381,7 @@ function StudentProgrammeCataloguePage({ initialCatalogue, matchContext = [] }: 
           </div>
 
           {visibleProgrammes.length > 0 ? (
-            <div className="mt-7 grid gap-6 md:grid-cols-2">
+            <div className="mt-7 grid gap-6 sm:grid-cols-2">
               {displayedProgrammes.map((programme, index) => (
                 <ProgrammeCard
                   key={programme.id}

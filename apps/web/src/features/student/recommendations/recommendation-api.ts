@@ -1,4 +1,5 @@
 import type { StudentRecommendationState } from '@/features/student/recommendations/recommendation-types'
+import { getCachedStudentResource } from '@/features/student/student-resource-cache'
 
 async function recommendationRequest(path: string): Promise<StudentRecommendationState> {
   const response = await fetch(path, {
@@ -16,12 +17,15 @@ async function recommendationRequest(path: string): Promise<StudentRecommendatio
 }
 
 function getLatestRecommendation(viewAll = false) {
-  return recommendationRequest(`/api/v1/student/recommendations/latest${viewAll ? '?view=all' : ''}`)
+  const suffix = viewAll ? '?view=all' : ''
+  return getCachedStudentResource(`recommendation:latest${suffix}`, () => recommendationRequest(`/api/v1/student/recommendations/latest${suffix}`))
 }
 
 function getRecommendationForAttempt(assessmentSessionId: number, viewAll = false) {
-  return recommendationRequest(
-    `/api/v1/student/recommendations/attempts/${assessmentSessionId}${viewAll ? '?view=all' : ''}`,
+  const suffix = viewAll ? '?view=all' : ''
+  return getCachedStudentResource(
+    `recommendation:attempt:${assessmentSessionId}${suffix}`,
+    () => recommendationRequest(`/api/v1/student/recommendations/attempts/${assessmentSessionId}${suffix}`),
   )
 }
 

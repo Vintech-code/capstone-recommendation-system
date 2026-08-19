@@ -7,6 +7,7 @@ interface AuthUser {
   roles: AccessRole[]
   accountStatus?: 'active' | 'pending' | 'suspended' | 'archived'
   mustChangePassword?: boolean
+  photoUrl?: string | null
 }
 
 interface SignInCredentials {

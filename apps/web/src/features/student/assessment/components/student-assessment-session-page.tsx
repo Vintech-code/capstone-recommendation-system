@@ -22,6 +22,8 @@ import { Button } from '@/components/ui/button'
 import assessmentLearningVisual from '@/assets/assessment-learning-visual.jpg'
 import { AssessmentProgressPanel } from '@/features/student/assessment/components/assessment-progress-panel'
 import { AssessmentQuestionCard } from '@/features/student/assessment/components/assessment-question-card'
+import { RetakeAssessmentDialog } from '@/features/student/assessment/components/retake-assessment-dialog'
+import { formatAssessmentDate } from '@/features/student/assessment/assessment-result-mapper'
 import type {
   AssessmentResponseValue,
   AssessmentSessionContent,
@@ -34,6 +36,7 @@ import {
   saveAssessment,
   startAssessment,
   submitAssessmentSession,
+  type AssessmentLifecycle,
 } from '@/features/student/assessment/assessment-api'
 import { StudentPageHeader } from '@/features/student/components/student-page-header'
 
@@ -47,6 +50,7 @@ interface StudentAssessmentSessionPageProps {
   onExit: () => void
   onReturnToIntroduction: () => void
   onViewResult: () => void
+  onViewMatches?: () => void
   initialLoadState?: AssessmentSessionLoadState
   initialConnectionState?: AssessmentConnectionState
   versionState?: AssessmentVersionState
@@ -71,6 +75,7 @@ function StudentAssessmentSessionPage({
   onExit,
   onReturnToIntroduction,
   onViewResult,
+  onViewMatches,
   initialLoadState = 'ready',
   initialConnectionState = 'online',
   versionState = 'current',
@@ -96,6 +101,8 @@ function StudentAssessmentSessionPage({
   const [submitDialogOpen, setSubmitDialogOpen] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [sessionId, setSessionId] = useState<number | null>(null)
+  const [completedAssessment, setCompletedAssessment] = useState<AssessmentLifecycle | null>(null)
+  const [retakeError, setRetakeError] = useState<string | null>(null)
   const [content, setContent] = useState<AssessmentSessionContent>(
     initialContent ?? { id: '', versionReference: '', questions: [], responseOptions: [] },
   )
@@ -120,10 +127,17 @@ function StudentAssessmentSessionPage({
 
     Promise.all([getAssessmentQuestions(), getCurrentAssessment()])
       .then(async ([questions, current]) => {
-        const session =
-          current.status === 'not_started' || current.status === 'result_available'
-            ? await startAssessment()
-            : current
+        if (current.status === 'result_available') {
+          if (active) {
+            setCompletedAssessment(current)
+            setLoadState('ready')
+            setView('completed')
+          }
+          return
+        }
+        const session = current.status === 'not_started'
+          ? await startAssessment()
+          : current
         if (!active) return
         if (
           !session.id ||
@@ -241,7 +255,8 @@ function StudentAssessmentSessionPage({
           return
         }
         window.localStorage.removeItem(storageKey)
-        onViewResult()
+        setCompletedAssessment(submitted)
+        setView('completed')
         return
       }
 
@@ -266,6 +281,19 @@ function StudentAssessmentSessionPage({
     }
     setLoadState('loading')
     setLoadAttempt((value) => value + 1)
+  }
+
+  async function beginRetake(reason?: string) {
+    setRetakeError(null)
+    try {
+      await startAssessment(reason)
+      setCompletedAssessment(null)
+      setView('questions')
+      setLoadState('loading')
+      setLoadAttempt((value) => value + 1)
+    } catch (error) {
+      setRetakeError(error instanceof AssessmentApiError ? error.message : 'The retake could not be started. Try again.')
+    }
   }
 
   if (loadState === 'loading') {
@@ -307,6 +335,19 @@ function StudentAssessmentSessionPage({
     )
   }
 
+  if (view === 'completed') {
+    return (
+      <CompletedAssessmentState
+        lifecycle={completedAssessment}
+        retakeError={retakeError}
+        onExit={onExit}
+        onViewResult={onViewResult}
+        onViewMatches={onViewMatches}
+        onStartRetake={beginRetake}
+      />
+    )
+  }
+
   if (!question || content.responseOptions.length === 0) {
     return (
       <ErrorState
@@ -334,16 +375,6 @@ function StudentAssessmentSessionPage({
           onRetry={onReturnToIntroduction}
         />
       </div>
-    )
-  }
-
-  if (view === 'completed') {
-    return (
-      <CompletedAssessmentState
-        versionReference={content.versionReference}
-        onExit={onExit}
-        onViewResult={onViewResult}
-      />
     )
   }
 
@@ -644,92 +675,76 @@ function AssessmentReview({
 }
 
 function CompletedAssessmentState({
+  lifecycle,
+  retakeError,
   onExit,
   onViewResult,
+  onViewMatches,
+  onStartRetake,
 }: {
-  versionReference: string
+  lifecycle: AssessmentLifecycle | null
+  retakeError: string | null
   onExit: () => void
   onViewResult: () => void
+  onViewMatches?: () => void
+  onStartRetake: (reason?: string) => Promise<void>
 }) {
+  const [retakeDialogOpen, setRetakeDialogOpen] = useState(false)
+  const completedDate = lifecycle?.result_available_at ?? lifecycle?.submitted_at
+
   return (
     <div className="relative isolate min-h-[calc(100svh-5rem)] overflow-hidden bg-secondary/35 pb-14 pt-6 sm:pb-20 sm:pt-10">
       <div aria-hidden="true" className="pointer-events-none absolute -right-40 -top-48 -z-10 size-[34rem] rounded-full bg-primary-fixed/55 blur-3xl" />
       <div className="student-page">
         <StudentPageHeader
           title="Assessment complete"
-          description="Your responses have been submitted."
+          description={completedDate ? `Completed ${formatAssessmentDate(completedDate)}. Your recorded answers are read-only.` : 'Your responses have been submitted.'}
           onBack={onExit}
-          actions={<StatusBadge label="Submitted" tone="success" />}
+          actions={<StatusBadge label="Completed" tone="success" />}
         />
 
         <section
           aria-labelledby="assessment-complete-title"
-          className="mt-6 grid overflow-hidden rounded-lg bg-card shadow-sm lg:grid-cols-[1.08fr_0.92fr]"
+          className="mt-6 overflow-hidden rounded-xl bg-card shadow-sm"
         >
-          <div className="relative overflow-hidden bg-brand-dark p-7 text-white sm:p-10 lg:p-12">
-            <div aria-hidden="true" className="absolute -right-20 -top-24 size-56 rounded-full bg-primary/25 blur-3xl" />
-            <div className="relative max-w-xl">
-              <span className="flex size-12 items-center justify-center rounded bg-success text-success-foreground">
-                <Check aria-hidden="true" className="size-6" />
-              </span>
-              <p className="mt-7 font-label text-xs font-semibold uppercase tracking-[0.14em] text-brand-soft">
-                Submission received
-              </p>
-              <h2
-                id="assessment-complete-title"
-                className="mt-2 font-display text-3xl font-semibold tracking-[-0.035em] sm:text-4xl"
-              >
-                Responses submitted successfully
-              </h2>
-              <p className="mt-4 max-w-lg text-sm leading-6 text-white/80 sm:text-base sm:leading-7">
-                Your answers are safely recorded and cannot be edited. Your
-                interest profile is ready to review.
-              </p>
-            </div>
-          </div>
+          <div className="flex flex-col justify-center p-7 sm:p-10 lg:p-12">
+            <span className="flex size-11 items-center justify-center rounded bg-success/15 text-success">
+              <Check aria-hidden="true" className="size-5" />
+            </span>
+            <p className="mt-5 font-label text-xs font-semibold uppercase tracking-[0.14em] text-primary">Assessment complete</p>
+            <h2 id="assessment-complete-title" className="mt-2 max-w-2xl font-display text-3xl font-bold tracking-[-0.04em] text-primary sm:text-4xl">Responses submitted successfully</h2>
+            <p className="mt-3 max-w-xl text-sm leading-6 text-muted-foreground sm:text-base">
+              {completedDate ? `Completed ${formatAssessmentDate(completedDate)}. Your recorded answers are read-only.` : 'Your recorded answers are read-only.'}
+            </p>
 
-          <div className="flex flex-col justify-between p-7 sm:p-10 lg:p-12">
-            <div>
-              <p className="font-label text-xs font-semibold uppercase tracking-[0.14em] text-primary">
-                What happens next
-              </p>
-              <h3 className="mt-2 font-display text-2xl font-semibold">
-                Review your guidance
-              </h3>
-              <ul className="mt-6 space-y-3" aria-label="Assessment next steps">
-                <li className="flex items-center gap-3 rounded bg-secondary/65 p-4">
-                  <span className="flex size-9 shrink-0 items-center justify-center rounded bg-success/15 text-success">
-                    <Check aria-hidden="true" className="size-4" />
-                  </span>
-                  <span>
-                    <strong className="block text-sm">Responses recorded</strong>
-                    <span className="mt-0.5 block text-xs text-muted-foreground">Your assessment is complete.</span>
-                  </span>
-                </li>
-                <li className="flex items-center gap-3 rounded bg-secondary/65 p-4">
-                  <span className="flex size-9 shrink-0 items-center justify-center rounded bg-primary-fixed text-primary">
-                    <ClipboardCheck aria-hidden="true" className="size-4" />
-                  </span>
-                  <span>
-                    <strong className="block text-sm">Result ready</strong>
-                    <span className="mt-0.5 block text-xs text-muted-foreground">Open your interest profile and programme matches.</span>
-                  </span>
-                </li>
-              </ul>
-            </div>
+            {retakeError ? (
+              <Alert variant="destructive" className="mt-5">
+                <AlertTitle>Retake could not be started</AlertTitle>
+                <AlertDescription>{retakeError}</AlertDescription>
+              </Alert>
+            ) : null}
 
-            <div className="mt-7 grid gap-2 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
-              <Button type="button" variant="outline" onClick={onExit}>
-                Return to dashboard
-              </Button>
-              <Button type="button" onClick={onViewResult}>
-                View assessment result
-                <ArrowRight aria-hidden="true" />
-              </Button>
+            <div className="mt-7 flex flex-wrap gap-2">
+              <Button type="button" onClick={onViewResult}>View assessment result <ArrowRight aria-hidden="true" /></Button>
+              {onViewMatches ? <Button type="button" variant="secondary" onClick={onViewMatches}>View course matches <Compass aria-hidden="true" /></Button> : null}
+            </div>
+            <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2">
+              <Button type="button" variant="link" onClick={onExit} className="h-auto p-0">Return to dashboard</Button>
+              {lifecycle?.can_retake ? (
+                <Button type="button" variant="link" onClick={() => setRetakeDialogOpen(true)} className="h-auto p-0"><RotateCcw aria-hidden="true" /> Retake assessment</Button>
+              ) : lifecycle?.retake_available_at ? (
+                <p className="text-xs text-muted-foreground">Retake available {formatAssessmentDate(lifecycle.retake_available_at)}</p>
+              ) : null}
             </div>
           </div>
         </section>
       </div>
+      <RetakeAssessmentDialog
+        open={retakeDialogOpen}
+        onOpenChange={setRetakeDialogOpen}
+        description="Your completed result will remain available in Assessment history. The new attempt starts with no answers and becomes your current assessment."
+        onConfirm={onStartRetake}
+      />
     </div>
   )
 }

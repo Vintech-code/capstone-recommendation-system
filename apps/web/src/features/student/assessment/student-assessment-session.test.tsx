@@ -33,7 +33,7 @@ async function answerQuestion(
   expect(
     screen.getByRole('group', { name: `Response for question ${questionNumber}` }),
   ).toBeVisible()
-  await user.click(screen.getByRole('radio', { name: /Strongly like/i }))
+  await user.click(screen.getByRole('radio', { name: /^Agree/i }))
 }
 
 describe('Student assessment session', () => {
@@ -49,7 +49,7 @@ describe('Student assessment session', () => {
     expect(screen.getByLabelText('0% assessment completion')).toBeVisible()
     expect(screen.getByRole('list', { name: 'Assessment stages' })).toBeVisible()
     expect(screen.getByAltText('Student studying with a tablet in a library')).toBeVisible()
-    expect(screen.getAllByRole('radio')).toHaveLength(5)
+    expect(screen.getAllByRole('radio')).toHaveLength(2)
     expect(screen.queryByText('Aptitude')).not.toBeInTheDocument()
     expect(screen.queryByText(/module 1 of/i)).not.toBeInTheDocument()
   })
@@ -59,7 +59,7 @@ describe('Student assessment session', () => {
     renderSession()
 
     await user.click(
-      screen.getByRole('radio', { name: /Strongly like/i }),
+      screen.getByRole('radio', { name: /^Agree/i }),
     )
 
     expect(
@@ -69,7 +69,7 @@ describe('Student assessment session', () => {
 
     await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Saved'))
     expect(window.localStorage.getItem('tcc-guidance:student-assessment-session'))
-      .toContain('"item-01":5')
+      .toContain('"item-01":1')
   })
 
   it('reviews incomplete responses and returns to a missing question', async () => {
@@ -129,7 +129,7 @@ describe('Student assessment session', () => {
         name: 'Responses submitted successfully',
       }),
     ).toBeVisible()
-    expect(screen.getByText('Responses recorded')).toBeVisible()
+    expect(screen.getByText('Your recorded answers are read-only.')).toBeVisible()
     expect(screen.queryByText('Version reference')).not.toBeInTheDocument()
     expect(screen.queryByRole('radio')).not.toBeInTheDocument()
     expect(window.localStorage.getItem('tcc-guidance:student-assessment-session'))
@@ -145,14 +145,14 @@ describe('Student assessment session', () => {
     const first = renderSession()
 
     await user.click(
-      screen.getByRole('radio', { name: /^Like/i }),
+      screen.getByRole('radio', { name: /^Do not agree/i }),
     )
     await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Saved'))
     first.unmount()
 
     renderSession()
     expect(
-      screen.getByRole('radio', { name: /^Like/i }),
+      screen.getByRole('radio', { name: /^Do not agree/i }),
     ).toBeChecked()
     expect(
       screen.getByRole('progressbar', { name: 'Assessment completion' }),
@@ -166,18 +166,43 @@ describe('Student assessment session', () => {
     expect(
       await screen.findByRole('group', { name: 'Response for question 1' }),
     ).toBeVisible()
-    await user.click(screen.getByRole('radio', { name: /Strongly like/i }))
+    await user.click(screen.getByRole('radio', { name: /^Agree/i }))
 
     await waitFor(() => {
       expect(fetch).toHaveBeenCalledWith(
-        '/api/v1/student/assessments/onet-mini-ip/sessions/1',
+        '/api/v1/student/assessments/riasec/sessions/1',
         expect.objectContaining({ method: 'PATCH' }),
       )
     })
     expect(screen.getByRole('status')).toHaveTextContent('Saved')
   })
 
-  it('opens the result immediately after an online submission succeeds', async () => {
+  it('keeps an existing completed assessment visible without silently creating a retake', async () => {
+    const fallbackFetch = vi.mocked(fetch).getMockImplementation()
+    expect(fallbackFetch).toBeDefined()
+    vi.mocked(fetch).mockImplementation(async (input, init) => {
+      if (input.toString() === '/api/v1/student/assessments/riasec/session') {
+        return Response.json({ data: { id: 1, status: 'result_available', question_count: 42, result_available_at: '2026-08-19T10:00:00+08:00', can_retake: true } })
+      }
+      return fallbackFetch!(input, init)
+    })
+
+    const session = renderSession({ remotePersistence: true })
+
+    expect(await screen.findByRole('heading', { name: 'Responses submitted successfully' })).toBeVisible()
+    expect(screen.getByText(/Completed Aug 19, 2026/)).toBeVisible()
+    expect(screen.getByText(/recorded answers are read-only/i)).toBeVisible()
+    expect(session.onViewResult).not.toHaveBeenCalled()
+    expect(screen.getByRole('button', { name: 'Retake assessment' })).toBeVisible()
+    expect(fetch).not.toHaveBeenCalledWith(
+      '/api/v1/student/assessments/riasec/sessions',
+      expect.objectContaining({ method: 'POST' }),
+    )
+    await userEvent.setup().click(screen.getByRole('button', { name: 'View assessment result' }))
+    expect(session.onViewResult).toHaveBeenCalledOnce()
+  })
+
+  it('shows the persistent completed state after an online submission succeeds', async () => {
     const user = userEvent.setup()
     const session = renderSession({ remotePersistence: true })
 
@@ -196,7 +221,8 @@ describe('Student assessment session', () => {
       within(dialog).getByRole('button', { name: 'Submit assessment' }),
     )
 
-    await waitFor(() => expect(session.onViewResult).toHaveBeenCalledOnce())
+    expect(await screen.findByRole('heading', { name: 'Responses submitted successfully' })).toBeVisible()
+    expect(session.onViewResult).not.toHaveBeenCalled()
     const requests = vi.mocked(fetch).mock.calls
     const submitIndex = requests.findIndex(([input]) => input.toString().endsWith('/submit'))
     expect(submitIndex).toBeGreaterThanOrEqual(0)
@@ -204,9 +230,6 @@ describe('Student assessment session', () => {
       requests.slice(submitIndex + 1).some(([input, init]) =>
         input.toString().includes('/sessions/1') && init?.method === 'PATCH'),
     ).toBe(false)
-    expect(
-      screen.queryByRole('heading', { name: 'Responses submitted successfully' }),
-    ).not.toBeInTheDocument()
   })
 
   it('retries a previously failed result instead of resubmitting locked answers', async () => {
@@ -233,9 +256,10 @@ describe('Student assessment session', () => {
     await user.click(screen.getByRole('button', { name: 'Submit assessment' }))
     await user.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Submit assessment' }))
 
-    await waitFor(() => expect(session.onViewResult).toHaveBeenCalledOnce())
+    expect(await screen.findByRole('heading', { name: 'Responses submitted successfully' })).toBeVisible()
+    expect(session.onViewResult).not.toHaveBeenCalled()
     expect(fetch).toHaveBeenCalledWith(
-      '/api/v1/student/assessments/onet-mini-ip/sessions/1/retry-result',
+      '/api/v1/student/assessments/riasec/sessions/1/retry-result',
       expect.objectContaining({ method: 'POST' }),
     )
     vi.mocked(fetch).mockImplementation(fallbackFetch!)
@@ -250,7 +274,7 @@ describe('Student assessment session', () => {
     )
     expect(screen.getByRole('status')).toHaveTextContent('Saved on device')
     await user.click(
-      screen.getByRole('radio', { name: /Strongly dislike/i }),
+      screen.getByRole('radio', { name: /^Agree/i }),
     )
     await user.click(
       screen.getByRole('button', { name: 'Retry connection' }),

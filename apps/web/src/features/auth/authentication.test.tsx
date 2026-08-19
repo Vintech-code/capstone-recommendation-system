@@ -60,7 +60,7 @@ describe('server-backed authentication', () => {
     expect(
       await screen.findByRole(
         'heading',
-        { name: 'Sign in to your account' },
+        { name: 'Welcome back!' },
         { timeout: 5_000 },
       ),
     ).toBeVisible()
@@ -152,7 +152,7 @@ describe('server-backed authentication', () => {
     expect(
       await screen.findByRole('heading', {
         level: 1,
-        name: /Turn your assessment into a confident course choice|Start with what genuinely interests you/,
+        name: 'Your journey. Your future.',
       }),
     ).toBeVisible()
   })

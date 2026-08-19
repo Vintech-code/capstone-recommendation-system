@@ -4,6 +4,8 @@ import {
   ClipboardList,
   FileText,
   History,
+  LibraryBig,
+  Target,
   UsersRound,
   UserRound,
   type LucideIcon,
@@ -47,20 +49,20 @@ const dashboards: Record<AccessRole, DashboardDefinition> = {
       {
         id: 'assessment',
         title: 'Interest assessment',
-        description: 'Answer the 30 RIASEC-based questions.',
+        description: 'Answer the 42 researcher-provided RIASEC questions.',
         icon: ClipboardList,
       },
       {
         id: 'programmes',
         title: 'Explore Programs',
         description: 'Explore programmes in the current TCC catalogue.',
-        icon: BookOpenCheck,
+        icon: LibraryBig,
       },
       {
         id: 'recommendations',
         title: 'My Matches',
         description: 'View programme matches from your completed assessment.',
-        icon: BookOpenCheck,
+        icon: Target,
       },
       {
         id: 'history',
@@ -97,7 +99,7 @@ const dashboards: Record<AccessRole, DashboardDefinition> = {
       {
         id: 'students',
         title: 'Students',
-        description: 'Search students and review their guidance records.',
+        description: 'Search students and monitor assessment and guidance records.',
         icon: UsersRound,
       },
       {
@@ -105,12 +107,6 @@ const dashboards: Record<AccessRole, DashboardDefinition> = {
         title: 'Counselor accounts',
         description: 'Create, suspend, reactivate, and reset counselor accounts.',
         icon: UsersRound,
-      },
-      {
-        id: 'assessments',
-        title: 'Assessments',
-        description: 'Monitor assessment attempts and processing outcomes.',
-        icon: ClipboardList,
       },
       {
         id: 'programmes',

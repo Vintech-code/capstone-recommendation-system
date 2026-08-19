@@ -87,13 +87,13 @@ async function installStudentApi(page: Page, initiallyComplete = false) {
     if (path === '/api/v1/auth/authorize/student') return json(route, { authorized: true, portal: 'student' })
     if (path === '/api/v1/auth/logout') return json(route, { message: 'Signed out.' })
 
-    if (path === '/api/v1/student/assessments/onet-mini-ip/session') {
+    if (path === '/api/v1/student/assessments/riasec/session') {
       return json(route, { data: submitted ? completedAssessment() : currentAssessment(answers) })
     }
-    if (path === '/api/v1/student/assessments/onet-mini-ip/questions') {
+    if (path === '/api/v1/student/assessments/riasec/questions') {
       return json(route, { data: questionPayload() })
     }
-    if (path === '/api/v1/student/assessments/onet-mini-ip/sessions' && method === 'POST') {
+    if (path === '/api/v1/student/assessments/riasec/sessions' && method === 'POST') {
       answers = {}
       return json(route, { data: currentAssessment(answers) }, 201)
     }
@@ -106,7 +106,7 @@ async function installStudentApi(page: Page, initiallyComplete = false) {
       submitted = true
       return json(route, { data: completedAssessment() })
     }
-    if (path === '/api/v1/student/assessments/onet-mini-ip/history') {
+    if (path === '/api/v1/student/assessments/riasec/history') {
       return json(route, {
         data: submitted ? [completedAssessment()] : [],
         policy: {
@@ -145,7 +145,7 @@ function currentAssessment(answers: Record<string, number>) {
   return {
     id: 1,
     reference: 'ASMT-000001',
-    instrument_code: 'onet-mini-ip-30',
+    instrument_code: 'tcc-riasec-42-v1',
     status: Object.keys(answers).length ? 'in_progress' : 'not_started',
     answers,
     answer_count: Object.keys(answers).length,
@@ -160,9 +160,9 @@ function completedAssessment() {
   return {
     id: 1,
     reference: 'ASMT-000001',
-    instrument_code: 'onet-mini-ip-30',
+    instrument_code: 'tcc-riasec-42-v1',
     status: 'result_available',
-    answers: Object.fromEntries(Array.from({ length: 6 }, (_, index) => [String(index + 1), 4])),
+    answers: Object.fromEntries(Array.from({ length: 6 }, (_, index) => [String(index + 1), 1])),
     answer_count: 6,
     question_count: 6,
     current_question: 6,
@@ -170,22 +170,19 @@ function completedAssessment() {
     is_current: true,
     result_available_at: '2026-08-08T00:00:00Z',
     can_retake: false,
-    result: { instrument_code: 'onet-mini-ip-30', answer_count: 6, result: resultEntries },
+    result: { instrument_code: 'tcc-riasec-42-v1', answer_count: 6, result: resultEntries },
   }
 }
 
 function questionPayload() {
   return {
-    instrument: { code: 'onet-mini-ip-30', name: 'O*NET Interest Profiler Mini-IP', question_count: 6, api_version: '2.0' },
+    instrument: { code: 'tcc-riasec-42-v1', name: 'TCC RIASEC Interest Questionnaire', question_count: 6, content_version: 'researcher-questionnaire-v1', status: 'proposed', instructions: 'Answer honestly.' },
     answer_options: [
-      { value: 1, name: 'Strongly dislike' },
-      { value: 2, name: 'Dislike' },
-      { value: 3, name: 'Unsure' },
-      { value: 4, name: 'Like' },
-      { value: 5, name: 'Strongly like' },
+      { value: 1, name: 'Agree' },
+      { value: 2, name: 'Do not agree' },
     ],
     questions: Array.from({ length: 6 }, (_, index) => ({ index: index + 1, text: `Browser assessment question ${index + 1}` })),
-    attribution: { text: 'O*NET attribution', url: 'https://services.onetcenter.org/' },
+
   }
 }
 
@@ -239,7 +236,7 @@ test('completes the student assessment and opens a recommendation detail', async
 
   for (let index = 1; index <= 6; index += 1) {
     await expect(page.getByText(`Question ${index} of 6`).first()).toBeVisible()
-    await page.getByText('Like', { exact: true }).click()
+    await page.getByText('Agree', { exact: true }).click()
   }
 
   await expect(page.getByRole('heading', { name: 'All questions are answered' })).toBeVisible()

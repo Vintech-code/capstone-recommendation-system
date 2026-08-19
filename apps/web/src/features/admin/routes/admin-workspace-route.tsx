@@ -1,7 +1,6 @@
 import { Navigate, useLocation, useNavigate } from 'react-router'
 
 import {
-  AdminAssessmentsPage,
   AdminActivityPage,
   AdminDashboardPage,
   AdminReportsPage,
@@ -15,7 +14,7 @@ import { useAuth } from '@/features/auth/auth-context'
 import { ProtectedRoute } from '@/features/auth/components/protected-route'
 import { WorkspacePreview } from '@/features/auth/components/workspace-preview'
 
-const sections = ['students', 'counselors', 'assessments', 'programmes', 'reports', 'activity'] as const
+const sections = ['students', 'counselors', 'programmes', 'reports', 'activity'] as const
 type AdminSection = (typeof sections)[number]
 
 function AdminWorkspaceRoute() {
@@ -55,7 +54,6 @@ function resolveContent(activeId: string, recordId: string | undefined, navigate
       ? <AdminStudentDetailPage studentId={recordId} onNavigate={navigate} />
       : <AdminStudentsPage onNavigate={navigate} />
   }
-  if (activeId === 'assessments') return <AdminAssessmentsPage onNavigate={navigate} />
   if (activeId === 'counselors') return <AdminCounselorAccountsPage />
   if (activeId === 'programmes') return recordId === 'sources' ? <AdminProgrammeSourcesPage onNavigate={navigate} /> : <AdminProgrammesPage onNavigate={navigate} />
   if (activeId === 'reports') return <AdminReportsPage />

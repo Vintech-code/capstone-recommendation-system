@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { Navigate, useLocation } from 'react-router'
 
-import { ErrorState, LoadingState } from '@/components/shared'
+import { ErrorState } from '@/components/shared'
 import type { AccessRole } from '@/features/auth/access-types'
 import {
   AuthApiError,
@@ -76,15 +76,7 @@ function ProtectedRoute({ role, children }: ProtectedRouteProps) {
   }, [authorizationKey, role, status, user])
 
   if (status === 'loading') {
-    return (
-      <main className="min-h-svh bg-secondary/70 p-4 sm:p-8">
-        <LoadingState
-          title="Restoring your session"
-          description="Checking your account access."
-          className="mx-auto mt-24 max-w-xl"
-        />
-      </main>
-    )
+    return <span role="status" className="sr-only">Checking your session.</span>
   }
 
   if (status === 'error') {
@@ -144,15 +136,7 @@ function ProtectedRoute({ role, children }: ProtectedRouteProps) {
   }
 
   if (authorization === 'checking') {
-    return (
-      <main className="min-h-svh bg-secondary/70 p-4 sm:p-8">
-        <LoadingState
-          title="Verifying your access"
-          description="Confirming permission for this workspace."
-          className="mx-auto mt-24 max-w-xl"
-        />
-      </main>
-    )
+    return <span role="status" className="sr-only">Verifying your access.</span>
   }
 
   return children

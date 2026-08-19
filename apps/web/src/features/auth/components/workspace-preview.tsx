@@ -5,7 +5,7 @@ import {
   Menu,
   Search,
 } from 'lucide-react'
-import { useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
 
 import { Button } from '@/components/ui/button'
 import logo from '@/assets/logo.png'
@@ -51,6 +51,7 @@ import {
   type DashboardModule,
 } from '@/features/auth/workspace-definitions'
 import { StudentWorkspaceShell } from '@/features/student/components/student-workspace-shell'
+import { prefetchStudentWorkspace } from '@/features/student/student-workspace-prefetch'
 import { NotificationCenter } from '@/features/notifications/components/notification-center'
 import { cn } from '@/lib/utils'
 
@@ -99,6 +100,11 @@ function WorkspacePreview({
   const [desktopNavigationExpanded, setDesktopNavigationExpanded] =
     useState(true)
   const activeId = activeModuleId ?? internalActiveId
+
+  useEffect(() => {
+    if (role !== 'student') return
+    void prefetchStudentWorkspace()
+  }, [role])
 
   const activeModule = definition.modules.find(
     (module) => module.id === activeId,
@@ -199,8 +205,12 @@ function WorkspacePreview({
         activeId={activeId}
         onSelect={selectModule}
         onExit={onExit}
+        studentName={user?.name}
+        studentPhotoUrl={user?.photoUrl}
       >
-        {workspaceContent}
+        <div key={activeId} className="student-page-enter">
+          {workspaceContent}
+        </div>
       </StudentWorkspaceShell>
     )
   }

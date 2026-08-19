@@ -17,10 +17,18 @@ describe('Student recommendation results', () => {
     expect(screen.getByText('Recommendations generated Aug 7, 2026')).toBeVisible()
     expect(screen.getByText('Top 1 matches')).toBeVisible()
     expect(screen.getByRole('heading', { name: 'Your profile breakdown' })).toBeVisible()
-    expect(screen.getByRole('heading', { name: 'Your academic matches' }).closest('.student-grid-page')).not.toBeNull()
+    const page = screen.getByRole('heading', { name: 'Your academic matches' }).closest('.student-grid-page')
+    expect(page).not.toBeNull()
+    expect(page).toHaveClass('student-dashboard-canvas')
+    expect(screen.getByTestId('matches-hero')).toHaveClass('min-h-[19rem]', 'overflow-hidden')
+    expect(screen.getByTestId('matches-hero').querySelector('img')).toHaveAttribute('src', expect.stringContaining('student-matches-hero-v2.webp'))
+    expect(screen.getByText('Assessment complete')).toBeVisible()
     expect(screen.getByText('I · Investigative')).toBeVisible()
     expect(screen.getByText('Top code: I-C')).toBeVisible()
     expect(screen.getByText(/recorded Investigative \(19\) and Conventional \(19\) scores/)).toBeVisible()
+    const recommendationCard = screen.getByText('Test Course').closest('article')
+    expect(recommendationCard?.querySelectorAll('.outcome-chip')).toHaveLength(1)
+    expect(recommendationCard?.querySelector('.outcome-chip')).toHaveTextContent('Recommendation 1')
     expect(screen.queryByText('TEST-SESSION-001')).not.toBeInTheDocument()
     expect(screen.queryByText(/temporary methodology/i)).not.toBeInTheDocument()
     expect(screen.queryByText(/programme guidance for review/i)).not.toBeInTheDocument()
@@ -186,7 +194,7 @@ describe('Student recommendation results', () => {
     await user.click(screen.getByRole('button', { name: 'Start retake' }))
 
     expect(fetchMock).toHaveBeenCalledWith(
-      '/api/v1/student/assessments/onet-mini-ip/sessions',
+      '/api/v1/student/assessments/riasec/sessions',
       expect.objectContaining({
         method: 'POST',
         body: JSON.stringify({ retakeReason: 'I want to reconsider my programme options.' }),

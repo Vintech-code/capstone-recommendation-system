@@ -37,6 +37,9 @@ describe('StudentProfilePage', () => {
 
     expect(await screen.findByRole('heading', { name: 'How I learn and grow' })).toBeVisible()
     expect(screen.getByText('Investigative × Conventional')).toBeVisible()
+    expect(screen.getByRole('img', { name: 'Recorded RIASEC interest compass I-C' })).toBeVisible()
+    expect(screen.getByRole('heading', { name: 'Career directions to explore' })).toBeVisible()
+    expect(screen.getByRole('button', { name: /update your learning snapshot/i })).toBeVisible()
     expect(screen.getByText('Problem-solving')).toBeVisible()
     expect(screen.getByText('Time management')).toBeVisible()
     expect(screen.getByText('Software and application development')).toBeVisible()
@@ -55,6 +58,18 @@ describe('StudentProfilePage', () => {
     expect(await screen.findByText('No strengths selected yet.')).toBeVisible()
     expect(screen.getByText('No growth areas selected yet.')).toBeVisible()
     expect(screen.getByRole('heading', { name: 'Assessment not completed' })).toBeVisible()
+  })
+
+  it('maps every RIASEC area around the compass and points to the primary area', async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(Response.json(profileResponse({
+      riasec: { sessionReference: 'ASMT-000001', availableAt: '2026-08-09T09:00:00+08:00', primary: { code: 'S', label: 'Social' }, secondary: { code: 'C', label: 'Conventional' }, code: 'S-C', dimensions: [] },
+    })))
+    renderProfile()
+
+    const compass = await screen.findByRole('img', { name: 'Recorded RIASEC interest compass S-C' })
+    expect(compass.querySelectorAll('[data-code]')).toHaveLength(6)
+    expect(compass.querySelector('[data-primary="true"]')).toHaveTextContent('S')
+    expect(compass.querySelector('[style*="rotate(120deg)"]')).not.toBeNull()
   })
 
   it('edits and saves approved self-report selections', async () => {
@@ -81,7 +96,7 @@ describe('StudentProfilePage', () => {
     await user.click(screen.getByRole('button', { name: 'Save my profile' }))
 
     await waitFor(() => expect(fetch).toHaveBeenCalledWith('/api/v1/student/profile', expect.objectContaining({ method: 'PUT' })))
-    expect((await screen.findAllByText('Creativity')).length).toBeGreaterThan(0)
+    expect(await screen.findByText(/Problem-solving, Creativity/)).toBeVisible()
     expect(screen.queryByRole('heading', { name: 'Which strengths describe you?' })).not.toBeInTheDocument()
   })
 

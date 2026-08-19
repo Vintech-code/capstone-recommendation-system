@@ -4,6 +4,7 @@ import type { ReactNode } from 'react'
 import { afterEach, vi } from 'vitest'
 
 import { THEME_STORAGE_KEY } from '@/app/theme-context'
+import { clearStudentResourceCache } from '@/features/student/student-resource-cache'
 
 vi.mock('recharts', async () => {
   const { createElement } = await import('react')
@@ -29,6 +30,7 @@ vi.mock('recharts', async () => {
 
 afterEach(() => {
   cleanup()
+  clearStudentResourceCache()
   window.localStorage.removeItem(THEME_STORAGE_KEY)
   document.documentElement.classList.remove('dark')
   document.documentElement.dataset.theme = 'light'
@@ -130,7 +132,7 @@ async function defaultFetch(
   }
 
   if (url === '/api/v1/admin/counselors' && init?.method === 'POST') {
-    return Response.json({ data: { id: 3, name: 'New Counselor', email: 'new@example.test', accountStatus: 'active', mustChangePassword: true, temporaryPassword: 'Temp!Pass12345', assignedCaseCount: 0, activeCaseCount: 0, followUpCount: 0, overdueCount: 0, assignments: [] } }, { status: 201 })
+    return Response.json({ data: { id: 3, name: 'New Counselor', email: 'new@example.test', accountStatus: 'active', mustChangePassword: true, assignedCaseCount: 0, activeCaseCount: 0, followUpCount: 0, overdueCount: 0, assignments: [] } }, { status: 201 })
   }
 
   if (url === '/api/v1/admin/counselors') {
@@ -138,7 +140,7 @@ async function defaultFetch(
   }
 
   if (url.match(/\/api\/v1\/admin\/counselors\/\d+$/) && init?.method === 'PUT') return Response.json({ data: {} })
-  if (url.match(/\/api\/v1\/admin\/counselors\/\d+\/reset-password$/) && init?.method === 'POST') return Response.json({ data: { temporaryPassword: 'Reset!Pass12345' } })
+  if (url.match(/\/api\/v1\/admin\/counselors\/\d+\/reset-password$/) && init?.method === 'POST') return Response.json({ data: {} })
 
   if (url.match(/\/api\/v1\/counselor\/guidance-requests\/\d+\/decline$/) && init?.method === 'POST') {
     const id = Number(url.split('/').at(-2))
@@ -198,7 +200,7 @@ async function defaultFetch(
     return Response.json({ data: [{ id: 1, actor: 'Authenticated User', action: 'guidance_note_created', subjectType: 'student', subjectReference: '10', metadata: null, createdAt: '2026-08-08T12:00:00+08:00' }] })
   }
 
-  if (url === '/api/v1/student/assessments/onet-mini-ip/session') {
+  if (url === '/api/v1/student/assessments/riasec/session') {
     return Response.json({
       data: {
         status: 'not_started',
@@ -243,7 +245,7 @@ async function defaultFetch(
     } }, { status: init?.method === 'PUT' ? 201 : 200 })
   }
 
-  if (url === '/api/v1/student/assessments/onet-mini-ip/history') {
+  if (url === '/api/v1/student/assessments/riasec/history') {
     return Response.json({
       data: [],
       policy: {
@@ -255,27 +257,24 @@ async function defaultFetch(
     })
   }
 
-  if (url === '/api/v1/student/assessments/onet-mini-ip/questions') {
+  if (url === '/api/v1/student/assessments/riasec/questions') {
     return Response.json({
       data: {
         instrument: {
-          code: 'onet-mini-ip-30',
-          name: 'O*NET Interest Profiler Mini-IP',
+          code: 'tcc-riasec-42-v1',
+          name: 'TCC RIASEC Interest Questionnaire',
           question_count: 6,
-          api_version: '2.0',
+          content_version: 'researcher-questionnaire-v1', status: 'proposed', instructions: 'Answer honestly.',
         },
         answer_options: [
-          { value: 1, name: 'Strongly dislike' },
-          { value: 2, name: 'Dislike' },
-          { value: 3, name: 'Unsure' },
-          { value: 4, name: 'Like' },
-          { value: 5, name: 'Strongly like' },
+          { value: 1, name: 'Agree' },
+          { value: 2, name: 'Do not agree' },
         ],
         questions: Array.from({ length: 6 }, (_, index) => ({
           index: index + 1,
           text: `Interest question ${index + 1}`,
         })),
-        attribution: { text: 'O*NET attribution', url: 'https://services.onetcenter.org/' },
+
       },
     })
   }
@@ -291,12 +290,12 @@ async function defaultFetch(
     } })
   }
 
-  if (url === '/api/v1/student/assessments/onet-mini-ip/sessions' && init?.method === 'POST') {
+  if (url === '/api/v1/student/assessments/riasec/sessions' && init?.method === 'POST') {
     return Response.json({
       data: {
         id: 1,
         reference: 'ASMT-000001',
-        instrument_code: 'onet-mini-ip-30',
+        instrument_code: 'tcc-riasec-42-v1',
         status: 'in_progress',
         answers: {},
         answer_count: 0,
@@ -306,7 +305,7 @@ async function defaultFetch(
     }, { status: 201 })
   }
 
-  if (url.match(/\/api\/v1\/student\/assessments\/onet-mini-ip\/sessions\/\d+$/) && init?.method === 'PATCH') {
+  if (url.match(/\/api\/v1\/student\/assessments\/riasec\/sessions\/\d+$/) && init?.method === 'PATCH') {
     const body = JSON.parse(String(init.body ?? '{}')) as { answers: Record<string, number>; current_question: number }
     return Response.json({
       data: {
@@ -329,7 +328,7 @@ async function defaultFetch(
         question_count: 6,
         result_available_at: '2026-08-08T02:30:00+08:00',
         result: {
-          instrument_code: 'onet-mini-ip-30',
+          instrument_code: 'tcc-riasec-42-v1',
           answer_count: 6,
           result: [
             { area: 'Realistic', score: 5 },

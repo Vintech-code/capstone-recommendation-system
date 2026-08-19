@@ -1,15 +1,14 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { ArrowRight, LockKeyhole, Mail, UserRound } from 'lucide-react'
+import { LockKeyhole, Mail, UserRound } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import {
   AuthApiError,
   type StudentRegistrationFields,
 } from '@/features/auth/auth-api'
+import { FloatingInputField } from '@/features/auth/components/floating-input-field'
 
 const registrationSchema = z
   .object({
@@ -31,9 +30,7 @@ interface StudentRegistrationFormProps {
   onRegister: (fields: StudentRegistrationFields) => Promise<void>
 }
 
-function StudentRegistrationForm({
-  onRegister,
-}: StudentRegistrationFormProps) {
+function StudentRegistrationForm({ onRegister }: StudentRegistrationFormProps) {
   const {
     register,
     handleSubmit,
@@ -68,45 +65,6 @@ function StudentRegistrationForm({
     }
   })
 
-  const fields = [
-    {
-      id: 'registration-name',
-      label: 'Full name',
-      type: 'text',
-      autoComplete: 'name',
-      icon: UserRound,
-      error: errors.name,
-      registration: register('name'),
-    },
-    {
-      id: 'registration-email',
-      label: 'Email address',
-      type: 'email',
-      autoComplete: 'email',
-      icon: Mail,
-      error: errors.email,
-      registration: register('email'),
-    },
-    {
-      id: 'registration-password',
-      label: 'Password',
-      type: 'password',
-      autoComplete: 'new-password',
-      icon: LockKeyhole,
-      error: errors.password,
-      registration: register('password'),
-    },
-    {
-      id: 'registration-password-confirmation',
-      label: 'Confirm password',
-      type: 'password',
-      autoComplete: 'new-password',
-      icon: LockKeyhole,
-      error: errors.passwordConfirmation,
-      registration: register('passwordConfirmation'),
-    },
-  ] as const
-
   return (
     <form noValidate onSubmit={submit} className="space-y-5">
       {errors.root ? (
@@ -118,43 +76,50 @@ function StudentRegistrationForm({
         </div>
       ) : null}
 
-      {fields.map((field) => (
-        <div key={field.id} className="space-y-2">
-          <Label htmlFor={field.id}>{field.label}</Label>
-          <div className="relative">
-            <field.icon
-              aria-hidden="true"
-              className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
-            />
-            <Input
-              id={field.id}
-              type={field.type}
-              autoComplete={field.autoComplete}
-              aria-invalid={Boolean(field.error)}
-              aria-describedby={field.error ? `${field.id}-error` : undefined}
-              className="h-12 pl-10"
-              {...field.registration}
-            />
-          </div>
-          {field.error ? (
-            <p
-              id={`${field.id}-error`}
-              className="text-xs font-semibold text-destructive"
-            >
-              {field.error.message}
-            </p>
-          ) : null}
-        </div>
-      ))}
+      <FloatingInputField
+        id="registration-name"
+        label="Full name"
+        icon={UserRound}
+        type="text"
+        autoComplete="name"
+        error={errors.name?.message}
+        {...register('name')}
+      />
+      <FloatingInputField
+        id="registration-email"
+        label="Email address"
+        icon={Mail}
+        type="email"
+        autoComplete="email"
+        error={errors.email?.message}
+        {...register('email')}
+      />
+      <FloatingInputField
+        id="registration-password"
+        label="Password"
+        icon={LockKeyhole}
+        type="password"
+        autoComplete="new-password"
+        error={errors.password?.message}
+        {...register('password')}
+      />
+      <FloatingInputField
+        id="registration-password-confirmation"
+        label="Confirm password"
+        icon={LockKeyhole}
+        type="password"
+        autoComplete="new-password"
+        error={errors.passwordConfirmation?.message}
+        {...register('passwordConfirmation')}
+      />
 
       <Button
         type="submit"
         size="lg"
         disabled={isSubmitting}
-        className="min-h-12 w-full"
+        className="min-h-12 w-full rounded-lg"
       >
         {isSubmitting ? 'Creating account…' : 'Create student account'}
-        <ArrowRight aria-hidden="true" />
       </Button>
     </form>
   )

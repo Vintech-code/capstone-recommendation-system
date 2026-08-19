@@ -25,14 +25,32 @@ describe('access portals and workspace shell', () => {
   it('opens the Student portal without exposing role selection', async () => {
     await renderAppAt('/student/login')
 
-    expect(screen.getAllByRole('contentinfo')).toHaveLength(1)
+    expect(screen.getByRole('main')).toHaveClass('portal-sign-in-theme')
+    expect(screen.queryByRole('contentinfo')).not.toBeInTheDocument()
     expect(
-      screen.getByRole('heading', { name: 'Institutional' }),
+      screen.getByRole('heading', { name: 'Welcome back!' }),
     ).toBeVisible()
+    expect(screen.getAllByRole('img', { name: 'Pathways' })).toHaveLength(1)
+    screen.getAllByRole('img', { name: 'Pathways' }).forEach((brandLogo) => {
+      expect(brandLogo).toHaveAttribute(
+        'src',
+        expect.stringMatching(/logo-optimized\.png$/),
+      )
+    })
     expect(
-      screen.getByRole('heading', { name: 'Sign in to your account' }),
-    ).toBeVisible()
-    expect(screen.getAllByText('Student Applicant').length).toBeGreaterThan(0)
+      screen.getByRole('img', { name: 'Student learning with a laptop' }),
+    ).toHaveAttribute('src', expect.stringMatching(/login-background\.png$/))
+    expect(screen.getByText('Discover the right courses')).toBeVisible()
+    expect(screen.getByText('for your future.')).toBeVisible()
+    expect(
+      screen.getByRole('button', { name: 'Continue with Gmail' }),
+    ).toBeDisabled()
+    expect(screen.queryByText('Gmail sign-in is not configured yet.')).not.toBeInTheDocument()
+    expect(screen.queryByText(/facebook/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/microsoft/i)).not.toBeInTheDocument()
+    expect(screen.queryByText('Student Applicant')).not.toBeInTheDocument()
+    expect(screen.queryByText('Course Recommendation System')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /dark mode|light mode/i })).not.toBeInTheDocument()
     expect(screen.queryByRole('radio')).not.toBeInTheDocument()
     expect(screen.queryByText(/frontend ui preview/i)).not.toBeInTheDocument()
     expect(screen.queryByText(/no backend/i)).not.toBeInTheDocument()
@@ -48,6 +66,13 @@ describe('access portals and workspace shell', () => {
     expect(
       screen.getByRole('heading', { name: 'Create your account' }),
     ).toBeVisible()
+    expect(screen.getByRole('main')).toHaveClass('portal-sign-in-theme')
+    expect(screen.getAllByRole('img', { name: 'Pathways' })).toHaveLength(1)
+    expect(screen.getByRole('textbox', { name: 'Full name' })).toHaveAttribute(
+      'placeholder',
+      ' ',
+    )
+    expect(screen.getByLabelText('Password')).toHaveAttribute('placeholder', ' ')
     expect(screen.queryByRole('radio')).not.toBeInTheDocument()
 
     await user.click(
@@ -94,10 +119,13 @@ describe('access portals and workspace shell', () => {
     expect(
       await screen.findByRole('heading', {
         level: 1,
-        name: /Turn your assessment into a confident course choice|Start with what genuinely interests you/,
+        name: 'Your journey. Your future.',
       }),
     ).toBeVisible()
-    expect(screen.getByRole('button', { name: 'Go to dashboard' }).querySelector('img')).toHaveAttribute('src', expect.stringMatching(/logo\.png$/))
+    expect(screen.getByRole('heading', { name: 'Your journey. Your future.' }).closest('.student-page-enter')).not.toBeNull()
+    const studentLogos = screen.getByRole('button', { name: 'Go to dashboard' }).querySelectorAll('img')
+    expect(studentLogos[0]).toHaveAttribute('src', expect.stringMatching(/logo-optimized\.png$/))
+    expect(studentLogos[1]).toHaveAttribute('src', expect.stringMatching(/logo\.png$/))
     expect(
       screen.getByRole('navigation', { name: 'Workspace navigation' }),
     ).toBeVisible()
@@ -113,7 +141,7 @@ describe('access portals and workspace shell', () => {
 
     expect(window.location.pathname).toBe('/student/login')
     expect(
-      await screen.findByRole('heading', { name: 'Sign in to your account' }),
+      await screen.findByRole('heading', { name: 'Welcome back!' }),
     ).toBeVisible()
   }, 10_000)
 
@@ -121,9 +149,7 @@ describe('access portals and workspace shell', () => {
     const user = userEvent.setup()
     await renderAppAt('/admin/login')
 
-    expect(
-      screen.getAllByText('Administrator').length,
-    ).toBeGreaterThan(0)
+    expect(screen.queryByText('Administrator')).not.toBeInTheDocument()
 
     await signIn(user)
 
@@ -136,7 +162,7 @@ describe('access portals and workspace shell', () => {
     ).toBeVisible()
     expect(screen.getAllByText('Students').length).toBeGreaterThan(0)
     expect(screen.getAllByText('Counselor accounts').length).toBeGreaterThan(0)
-    expect(screen.getAllByText('Assessments').length).toBeGreaterThan(0)
+    expect(screen.queryByRole('button', { name: 'Assessments' })).not.toBeInTheDocument()
     expect(screen.getAllByText('Programmes').length).toBeGreaterThan(0)
     expect(screen.queryByText('Methodology')).not.toBeInTheDocument()
     expect(screen.getAllByText('Reports').length).toBeGreaterThan(0)
@@ -156,7 +182,7 @@ describe('access portals and workspace shell', () => {
     const user = userEvent.setup()
     await renderAppAt('/counselor/login')
 
-    expect(screen.getAllByText('Counselor').length).toBeGreaterThan(0)
+    expect(screen.queryByText('Counselor')).not.toBeInTheDocument()
 
     await signIn(user)
 

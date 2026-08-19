@@ -1,5 +1,5 @@
 import { Bell, BookOpenText, Check, ClipboardCheck, MessageSquareText, RefreshCw } from 'lucide-react'
-import { useCallback, useMemo, useRef, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
@@ -14,7 +14,7 @@ interface NotificationCenterProps {
 
 function NotificationCenter({ workspaceLabel, className, onNavigate }: NotificationCenterProps) {
   const [open, setOpen] = useState(false)
-  const [state, setState] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle')
+  const [state, setState] = useState<'loading' | 'ready' | 'error'>('loading')
   const [notifications, setNotifications] = useState<PathwaysNotification[]>([])
   const [markingId, setMarkingId] = useState<string | null>(null)
   const [interactionError, setInteractionError] = useState<string | null>(null)
@@ -37,13 +37,17 @@ function NotificationCenter({ workspaceLabel, className, onNavigate }: Notificat
       .catch(() => { if (!controller.signal.aborted) setState('error') })
   }, [])
 
+  useEffect(() => {
+    const controller = new AbortController()
+    controllerRef.current = controller
+    getNotifications(controller.signal)
+      .then((items) => { setNotifications(items); setState('ready') })
+      .catch(() => { if (!controller.signal.aborted) setState('error') })
+    return () => controller.abort()
+  }, [])
+
   function changeOpen(nextOpen: boolean) {
     setOpen(nextOpen)
-    if (nextOpen && state === 'idle') load()
-    if (!nextOpen) {
-      controllerRef.current?.abort()
-      if (state === 'loading') setState('idle')
-    }
   }
 
   async function markRead(notification: PathwaysNotification) {
@@ -150,7 +154,7 @@ function NotificationLoading() {
 }
 
 function FilterTab({ selected, onClick, children }: { selected: boolean; onClick: () => void; children: ReactNode }) {
-  return <button type="button" role="tab" aria-selected={selected} onClick={onClick} className={cn('min-h-9 rounded-full px-4 text-sm font-bold transition-colors focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/40', selected ? 'bg-primary-fixed text-on-primary-fixed' : 'text-muted-foreground hover:bg-secondary hover:text-foreground')}>{children}</button>
+  return <button type="button" role="tab" aria-selected={selected} onClick={onClick} className={cn('min-h-9 rounded px-4 text-sm font-bold transition-colors focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/40', selected ? 'bg-primary-fixed text-on-primary-fixed' : 'text-muted-foreground hover:bg-secondary hover:text-foreground')}>{children}</button>
 }
 
 function NotificationEmpty({ title, description }: { title: string; description: string }) {

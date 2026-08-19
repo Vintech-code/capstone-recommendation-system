@@ -5,7 +5,10 @@ import type { StudentRecommendationSnapshot } from '@/features/student/recommend
 const testAssessmentContent: AssessmentSessionContent = {
   id: 'test-session', versionReference: 'test-instrument',
   questions: Array.from({ length: 6 }, (_, index) => ({ id: `item-0${index + 1}`, prompt: `Test interest question ${index + 1}` })),
-  responseOptions: [1, 2, 3, 4, 5].map((value) => ({ value: value as 1 | 2 | 3 | 4 | 5, label: ['Strongly dislike', 'Dislike', 'Unsure', 'Like', 'Strongly like'][value - 1], description: '' })),
+  responseOptions: [
+    { value: 1, label: 'Agree', description: '' },
+    { value: 2, label: 'Do not agree', description: '' },
+  ],
 }
 
 const testAssessmentLifecycle: AssessmentLifecycle = {

@@ -88,6 +88,7 @@ describe('Student programme catalogue', () => {
     expect(screen.getByText('BS Information Technology')).toBeVisible()
 
     expect(screen.queryByRole('radio', { name: 'Confirm with TCC' })).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Duration' }))
     await user.click(screen.getByRole('radio', { name: '4 years' }))
     expect(screen.getByText('BS Information Technology')).toBeVisible()
 
@@ -95,7 +96,7 @@ describe('Student programme catalogue', () => {
     expect(screen.getByRole('heading', { name: 'No programmes match these filters' })).toBeVisible()
   })
 
-  it('filters using API-provided SHS strands without exposing a RIASEC-area filter', async () => {
+  it('filters using API-provided SHS strands and RIASEC areas', async () => {
     const user = userEvent.setup()
     const mixedCatalogue = {
       ...catalogue,
@@ -106,11 +107,16 @@ describe('Student programme catalogue', () => {
     }
     render(<StudentProgrammeCataloguePage initialCatalogue={mixedCatalogue} />)
 
+    await user.click(screen.getByRole('button', { name: 'Recommended SHS strand' }))
     await user.click(screen.getByRole('checkbox', { name: 'ABM' }))
     expect(screen.getByText('Business Option')).toBeVisible()
     expect(screen.queryByText('BS Information Technology')).not.toBeInTheDocument()
 
-    expect(screen.queryByRole('group', { name: 'RIASEC area' })).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Clear all' }))
+    await user.click(screen.getByRole('button', { name: 'RIASEC interest' }))
+    await user.click(screen.getByRole('checkbox', { name: 'Enterprising (E)' }))
+    expect(screen.getByText('Business Option')).toBeVisible()
+    expect(screen.queryByText('BS Information Technology')).not.toBeInTheDocument()
   })
 
   it('persists filters while opening and returning from programme details', async () => {
@@ -177,6 +183,7 @@ describe('Student programme catalogue', () => {
 
     expect(screen.getByRole('img', { name: 'BS Information Technology programme' })).toBeVisible()
     expect(screen.getByRole('img', { name: 'BS Information Technology programme' }).getAttribute('src')).toMatch(/\.webp$/)
+    expect(screen.getByRole('button', { name: /view programme details/i }).closest('article')?.parentElement).toHaveClass('sm:grid-cols-2')
 
     await user.click(screen.getByRole('button', { name: /view programme details/i }))
 

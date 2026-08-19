@@ -1,3 +1,9 @@
+import { getCachedStudentResource, invalidateStudentResources, setCachedStudentResource } from '@/features/student/student-resource-cache'
+
+const currentAssessmentKey = 'assessment:current'
+const assessmentQuestionsKey = 'assessment:questions'
+const assessmentHistoryKey = 'assessment:history'
+
 type AssessmentLifecycleStatus =
   | 'not_started'
   | 'in_progress'
@@ -61,11 +67,12 @@ interface AssessmentQuestionPayload {
     code: string
     name: string
     question_count: number
-    api_version: string
+    content_version: string
+    status: 'proposed'
+    instructions: string
   }
   answer_options: Array<{ value: number; name: string }>
   questions: Array<{ index: number; text: string }>
-  attribution: { text: string; url: string }
 }
 
 class AssessmentApiError extends Error {
@@ -120,70 +127,87 @@ async function assessmentRequest<T>(path: string, init: RequestInit = {}) {
   return payload.data
 }
 
-function getCurrentAssessment() {
-  return assessmentRequest<AssessmentLifecycle>(
-    '/api/v1/student/assessments/onet-mini-ip/session',
+function getCurrentAssessment(force = false) {
+  if (force) invalidateStudentResources(currentAssessmentKey)
+  return getCachedStudentResource(
+    currentAssessmentKey,
+    () => assessmentRequest<AssessmentLifecycle>('/api/v1/student/assessments/riasec/session'),
   )
 }
 
 function getAssessmentQuestions() {
-  return assessmentRequest<AssessmentQuestionPayload>(
-    '/api/v1/student/assessments/onet-mini-ip/questions',
+  return getCachedStudentResource(
+    assessmentQuestionsKey,
+    () => assessmentRequest<AssessmentQuestionPayload>('/api/v1/student/assessments/riasec/questions'),
+    5 * 60_000,
   )
 }
 
-function startAssessment(retakeReason?: string) {
-  return assessmentRequest<AssessmentLifecycle>(
-    '/api/v1/student/assessments/onet-mini-ip/sessions',
+async function startAssessment(retakeReason?: string) {
+  const lifecycle = await assessmentRequest<AssessmentLifecycle>(
+    '/api/v1/student/assessments/riasec/sessions',
     {
       method: 'POST',
       body: retakeReason ? JSON.stringify({ retakeReason }) : undefined,
     },
   )
+  setCachedStudentResource(currentAssessmentKey, lifecycle)
+  invalidateStudentResources(assessmentHistoryKey, 'recommendation:latest')
+  return lifecycle
 }
 
-function saveAssessment(
+async function saveAssessment(
   sessionId: number,
   answers: Record<string, number>,
   currentQuestion: number,
 ) {
-  return assessmentRequest<AssessmentLifecycle>(
-    `/api/v1/student/assessments/onet-mini-ip/sessions/${sessionId}`,
+  const lifecycle = await assessmentRequest<AssessmentLifecycle>(
+    `/api/v1/student/assessments/riasec/sessions/${sessionId}`,
     {
       method: 'PATCH',
       body: JSON.stringify({ answers, current_question: currentQuestion }),
     },
   )
+  setCachedStudentResource(currentAssessmentKey, lifecycle)
+  return lifecycle
 }
 
-function submitAssessmentSession(sessionId: number) {
-  return assessmentRequest<AssessmentLifecycle>(
-    `/api/v1/student/assessments/onet-mini-ip/sessions/${sessionId}/submit`,
+async function submitAssessmentSession(sessionId: number) {
+  const lifecycle = await assessmentRequest<AssessmentLifecycle>(
+    `/api/v1/student/assessments/riasec/sessions/${sessionId}/submit`,
     { method: 'POST' },
   )
+  setCachedStudentResource(currentAssessmentKey, lifecycle)
+  invalidateStudentResources(assessmentHistoryKey, 'recommendation:latest')
+  return lifecycle
 }
 
-function retryAssessmentResult(sessionId: number) {
-  return assessmentRequest<AssessmentLifecycle>(
-    `/api/v1/student/assessments/onet-mini-ip/sessions/${sessionId}/retry-result`,
+async function retryAssessmentResult(sessionId: number) {
+  const lifecycle = await assessmentRequest<AssessmentLifecycle>(
+    `/api/v1/student/assessments/riasec/sessions/${sessionId}/retry-result`,
     { method: 'POST' },
   )
+  setCachedStudentResource(currentAssessmentKey, lifecycle)
+  invalidateStudentResources(assessmentHistoryKey, 'recommendation:latest')
+  return lifecycle
 }
 
-async function getAssessmentHistory(): Promise<AssessmentHistoryResponse> {
-  const response = await fetch('/api/v1/student/assessments/onet-mini-ip/history', {
+function getAssessmentHistory(): Promise<AssessmentHistoryResponse> {
+  return getCachedStudentResource(assessmentHistoryKey, async () => {
+    const response = await fetch('/api/v1/student/assessments/riasec/history', {
     headers: { Accept: 'application/json' },
     credentials: 'include',
   })
-  const payload = (await response.json().catch(() => ({}))) as {
+    const payload = (await response.json().catch(() => ({}))) as {
     data?: AssessmentLifecycle[]
     policy?: AssessmentHistoryResponse['policy']
     message?: string
   }
-  if (!response.ok || !payload.data || !payload.policy) {
-    throw new AssessmentApiError(payload.message ?? 'Assessment history could not be loaded.', response.status)
-  }
-  return { attempts: payload.data, policy: payload.policy }
+    if (!response.ok || !payload.data || !payload.policy) {
+      throw new AssessmentApiError(payload.message ?? 'Assessment history could not be loaded.', response.status)
+    }
+    return { attempts: payload.data, policy: payload.policy }
+  })
 }
 
 export {

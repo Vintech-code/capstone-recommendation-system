@@ -6,7 +6,7 @@ import {
   useNavigate,
 } from 'react-router'
 
-import { ApplicationStatePage, LoadingState } from '@/components/shared'
+import { ApplicationStatePage } from '@/components/shared'
 import type { AccessRole } from '@/features/auth/access-types'
 import { useAuth } from '@/features/auth/auth-context'
 import { ProtectedRoute } from '@/features/auth/components/protected-route'
@@ -62,7 +62,8 @@ function WorkspaceRoute({ role }: { role: AccessRole }) {
                     <StudentAssessmentSessionPage
                       onExit={onBack}
                       onReturnToIntroduction={onBack}
-                      onViewResult={() => onSelect('recommendations')}
+                      onViewResult={() => onSelect('history')}
+                      onViewMatches={() => onSelect('recommendations')}
                       remotePersistence
                     />
                   )
@@ -125,17 +126,7 @@ function SharedStateRoute({
 
 function AccessRoutes() {
   return (
-    <Suspense
-      fallback={
-        <main className="min-h-svh bg-secondary/70 p-4 sm:p-8">
-          <LoadingState
-            title="Loading application"
-            description="Preparing the requested workspace."
-            className="mx-auto mt-24 max-w-xl"
-          />
-        </main>
-      }
-    >
+    <Suspense fallback={<span role="status" className="sr-only">Opening workspace.</span>}>
       <Routes>
       <Route path="/" element={<Navigate to="/student/login" replace />} />
       <Route
@@ -166,18 +157,18 @@ function AccessRoutes() {
       <Route path="/admin/students/:studentId" element={<AdminWorkspaceRoute />} />
       <Route path="/admin/counselors" element={<AdminWorkspaceRoute />} />
       <Route path="/admin/staff" element={<Navigate to="/admin/counselors" replace />} />
-      <Route path="/admin/assessments" element={<AdminWorkspaceRoute />} />
+      <Route path="/admin/assessments" element={<Navigate to="/admin/students" replace />} />
       <Route path="/admin/programmes" element={<AdminWorkspaceRoute />} />
       <Route path="/admin/programmes/sources" element={<AdminWorkspaceRoute />} />
       <Route path="/admin/reports" element={<AdminWorkspaceRoute />} />
       <Route path="/admin/activity" element={<AdminWorkspaceRoute />} />
       <Route path="/admin/applicants/*" element={<Navigate to="/admin/students" replace />} />
-      <Route path="/admin/official-results/*" element={<Navigate to="/admin/assessments" replace />} />
-      <Route path="/admin/exam-results/*" element={<Navigate to="/admin/assessments" replace />} />
-      <Route path="/admin/imports/*" element={<Navigate to="/admin/assessments" replace />} />
-      <Route path="/admin/questionnaires/*" element={<Navigate to="/admin/assessments" replace />} />
+      <Route path="/admin/official-results/*" element={<Navigate to="/admin/students" replace />} />
+      <Route path="/admin/exam-results/*" element={<Navigate to="/admin/students" replace />} />
+      <Route path="/admin/imports/*" element={<Navigate to="/admin/students" replace />} />
+      <Route path="/admin/questionnaires/*" element={<Navigate to="/admin/students" replace />} />
       <Route path="/admin/recommendations/*" element={<Navigate to="/admin/students" replace />} />
-      <Route path="/admin/validation-cases" element={<Navigate to="/admin/assessments" replace />} />
+      <Route path="/admin/validation-cases" element={<Navigate to="/admin/students" replace />} />
       <Route path="/admin/decisions" element={<Navigate to="/admin/students" replace />} />
       <Route path="/admin/courses/*" element={<Navigate to="/admin/programmes" replace />} />
       <Route path="/admin/rules/*" element={<Navigate to="/admin/programmes" replace />} />
