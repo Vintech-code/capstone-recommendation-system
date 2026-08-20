@@ -6,6 +6,17 @@ import { afterEach, vi } from 'vitest'
 import { THEME_STORAGE_KEY } from '@/app/theme-context'
 import { clearStudentResourceCache } from '@/features/student/student-resource-cache'
 
+vi.mock('lottie-web/build/player/lottie_light', () => {
+  return {
+    default: {
+      loadAnimation: () => ({
+        destroy: () => undefined,
+        goToAndStop: () => undefined,
+      }),
+    },
+  }
+})
+
 vi.mock('recharts', async () => {
   const { createElement } = await import('react')
   const Container = ({ children }: { children?: ReactNode }) =>

@@ -11,6 +11,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': apiTarget,
+      '/auth': apiTarget,
       '/sanctum': apiTarget,
       '/storage': apiTarget,
     },

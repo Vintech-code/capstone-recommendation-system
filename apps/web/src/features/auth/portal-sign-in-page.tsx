@@ -1,4 +1,4 @@
-import { Link, useNavigate } from 'react-router'
+import { Link, useNavigate, useSearchParams } from 'react-router'
 
 import type { AccessRole } from '@/features/auth/access-types'
 import { useAuth } from '@/features/auth/auth-context'
@@ -7,6 +7,21 @@ import { SignInForm } from '@/features/auth/components/sign-in-form'
 
 interface PortalSignInPageProps {
   role: AccessRole
+}
+
+const googleErrorMessages: Record<string, string> = {
+  account_conflict:
+    'This Student account is already connected to another Google account.',
+  account_inactive:
+    'This account is not active. Contact an authorized administrator.',
+  email_unverified:
+    'Google could not confirm a verified email address for this account.',
+  not_configured:
+    'Google sign-in is temporarily unavailable. Please use email and password.',
+  oauth_failed:
+    'Google sign-in could not be completed. Please try again.',
+  portal_forbidden:
+    'This Google account cannot access the Student portal.',
 }
 
 function GmailIcon() {
@@ -22,7 +37,14 @@ function GmailIcon() {
 
 function PortalSignInPage({ role }: PortalSignInPageProps) {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const { signIn } = useAuth()
+  const googleError = searchParams.get('google_error')
+  const googleAuthOrigin = (import.meta.env.VITE_API_ORIGIN ?? '').replace(/\/$/, '')
+
+  function continueWithGoogle() {
+    window.location.assign(`${googleAuthOrigin}/auth/google/redirect`)
+  }
 
   return (
     <AuthSplitLayout>
@@ -56,20 +78,33 @@ function PortalSignInPage({ role }: PortalSignInPageProps) {
         </Link>
       </p>
 
-      <div className="my-7 flex items-center gap-4" aria-hidden="true">
-        <span className="h-px flex-1 bg-border" />
-        <span className="text-xs font-medium text-muted-foreground">Or continue with</span>
-        <span className="h-px flex-1 bg-border" />
-      </div>
+      {role === 'student' ? (
+        <>
+          {googleError ? (
+            <p
+              role="alert"
+              className="mt-5 rounded-lg bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive"
+            >
+              {googleErrorMessages[googleError] ?? googleErrorMessages.oauth_failed}
+            </p>
+          ) : null}
 
-      <button
-        type="button"
-        disabled
-        className="flex min-h-12 w-full cursor-not-allowed items-center justify-center gap-3 rounded-lg border border-input bg-background px-4 text-sm font-semibold text-muted-foreground opacity-70 shadow-sm"
-      >
-        <GmailIcon />
-        Continue with Gmail
-      </button>
+          <div className="my-7 flex items-center gap-4" aria-hidden="true">
+            <span className="h-px flex-1 bg-border" />
+            <span className="text-xs font-medium text-muted-foreground">Or continue with</span>
+            <span className="h-px flex-1 bg-border" />
+          </div>
+
+          <button
+            type="button"
+            onClick={continueWithGoogle}
+            className="flex min-h-12 w-full items-center justify-center gap-3 rounded-lg border border-input bg-background px-4 text-sm font-semibold text-foreground shadow-sm transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          >
+            <GmailIcon />
+            Continue with Google
+          </button>
+        </>
+      ) : null}
 
       {role === 'student' ? (
         <p className="mt-7 text-center text-sm text-muted-foreground">

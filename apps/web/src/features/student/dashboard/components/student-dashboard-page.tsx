@@ -123,6 +123,10 @@ function StudentDashboardPage({ onSelectModule, initialLifecycle, initialRecomme
   const heroAction = result
     ? { label: topCourse ? 'Explore your matches' : 'Review your result', module: topCourse ? 'recommendations' : 'assessment' }
     : { label: lifecycle.status === 'in_progress' ? 'Continue your assessment' : 'Start your journey', module: 'assessment' }
+  const hasActiveAssessmentWork = lifecycle.status === 'preparing_result'
+    || lifecycle.status === 'result_failed'
+    || (lifecycle.status === 'in_progress' && (lifecycle.answer_count ?? 0) > 0)
+  const showAssessmentLifecycleCard = !result || hasActiveAssessmentWork
 
   return (
     <DashboardFrame>
@@ -153,8 +157,8 @@ function StudentDashboardPage({ onSelectModule, initialLifecycle, initialRecomme
               </h1>
               <p className="mt-4 max-w-md text-sm leading-6 text-muted-foreground">
                 {result
-                  ? `Discover programmes connected to your ${result.topLabels.join(' and ')} interests, compare your matches, and ask for guidance when you need it.`
-                  : 'Discover programmes that connect with your interests and strengths. Your first step is the interest assessment.'}
+                  ? `Explore programmes connected to ${result.topLabels.join(' and ')} interests, then compare your strongest matches.`
+                  : 'Explore programmes connected to your interests. Start with the interest assessment.'}
               </p>
               <Button type="button" className="mt-5 w-fit px-6" onClick={() => onSelectModule(heroAction.module)}>
                 {heroAction.label}<ArrowRight aria-hidden="true" />
@@ -187,16 +191,28 @@ function StudentDashboardPage({ onSelectModule, initialLifecycle, initialRecomme
                 </li>
               ))}
             </ol>
+            {result ? (
+              <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-outline-variant/55 pt-4">
+                <Button type="button" variant="link" className="h-auto p-0 text-sm" onClick={() => onSelectModule('assessment')}>
+                  View assessment result <ArrowRight aria-hidden="true" />
+                </Button>
+                <Button type="button" variant="link" className="h-auto p-0 text-sm text-muted-foreground" onClick={() => onSelectModule('history')}>
+                  <History aria-hidden="true" /> Assessment history
+                </Button>
+              </div>
+            ) : null}
           </section>
         </section>
 
         <div data-print-summary-grid data-testid="student-journey-grid" className="grid items-stretch gap-4 xl:grid-cols-12">
           <div className="contents">
-            <CourseDirectionPanel course={topCourse} generatedAt={snapshot?.generatedAt} onOpen={() => onSelectModule('recommendations')} />
-            <AssessmentLifecycleCard lifecycle={lifecycle} hasCompletedResult={Boolean(result)} onOpenAssessment={() => onSelectModule('assessment')} onOpenResult={() => onSelectModule('recommendations')} onOpenHistory={() => onSelectModule('history')} onRetryResult={async () => {
-              if (!lifecycle.id) return
-              setLifecycle(await retryAssessmentResult(lifecycle.id))
-            }} />
+            <CourseDirectionPanel course={topCourse} generatedAt={snapshot?.generatedAt} wide={!showAssessmentLifecycleCard} onOpen={() => onSelectModule('recommendations')} />
+            {showAssessmentLifecycleCard ? (
+              <AssessmentLifecycleCard lifecycle={lifecycle} hasCompletedResult={Boolean(result)} onOpenAssessment={() => onSelectModule('assessment')} onOpenResult={() => onSelectModule('assessment')} onOpenHistory={() => onSelectModule('history')} onRetryResult={async () => {
+                if (!lifecycle.id) return
+                setLifecycle(await retryAssessmentResult(lifecycle.id))
+              }} />
+            ) : null}
 
             {result ? (
               <section data-print-profile aria-labelledby="interest-scores-title" className="relative h-full overflow-hidden rounded-xl bg-card p-5 shadow-sm xl:col-span-7 xl:row-start-2 sm:p-6">
@@ -380,10 +396,10 @@ function assessmentStatusLabel(status: AssessmentLifecycle['status']) {
   return ({ not_started: 'Not started', in_progress: 'In progress', preparing_result: 'Finalizing submission', result_failed: 'Result unavailable', result_available: 'Result available' })[status]
 }
 
-function CourseDirectionPanel({ course, generatedAt, onOpen }: { course: StudentRecommendedCourse | null; generatedAt?: string; onOpen: () => void }) {
+function CourseDirectionPanel({ course, generatedAt, wide = false, onOpen }: { course: StudentRecommendedCourse | null; generatedAt?: string; wide?: boolean; onOpen: () => void }) {
   const { cover } = getProgrammeImages(course?.id ?? '')
   return (
-    <section data-print-recommendations aria-labelledby="course-direction-title" className="h-full overflow-hidden rounded-xl bg-card shadow-sm xl:col-span-7 xl:row-start-1">
+    <section data-print-recommendations aria-labelledby="course-direction-title" className={`h-full overflow-hidden rounded-xl bg-card shadow-sm xl:row-start-1 ${wide ? 'xl:col-span-12' : 'xl:col-span-7'}`}>
       {course ? (
         <div className="grid min-h-[17rem] sm:grid-cols-[minmax(0,1fr)_13rem]">
           <div className="flex min-w-0 flex-col p-5 sm:p-6">

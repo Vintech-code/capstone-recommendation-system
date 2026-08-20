@@ -46,6 +46,21 @@ describe('StudentProfilePage', () => {
     expect(screen.getByText(/not a diagnosis or a validated measure/i)).toBeVisible()
   })
 
+  it('renders the Google avatar returned by the Student profile API', async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(Response.json(profileResponse({
+      student: {
+        ...identity,
+        photoUrl: 'https://example.test/google-avatar.png',
+      },
+    })))
+    renderProfile()
+
+    expect(await screen.findByRole('img', { name: 'Zyx Santos profile' })).toHaveAttribute(
+      'src',
+      'https://example.test/google-avatar.png',
+    )
+  })
+
   it('shows truthful empty states when profile and RIASEC records are incomplete', async () => {
     vi.mocked(fetch).mockResolvedValueOnce(Response.json(profileResponse({
       questionnaire: { complete: false, strengths: [], growthAreas: [], learningPreferences: [], updatedAt: null },

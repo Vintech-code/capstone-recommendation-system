@@ -25,7 +25,7 @@ describe('access portals and workspace shell', () => {
   it('opens the Student portal without exposing role selection', async () => {
     await renderAppAt('/student/login')
 
-    expect(screen.getByRole('main')).toHaveClass('portal-sign-in-theme')
+    expect(screen.getByRole('main')).toHaveClass('portal-sign-in-theme', 'text-foreground')
     expect(screen.queryByRole('contentinfo')).not.toBeInTheDocument()
     expect(
       screen.getByRole('heading', { name: 'Welcome back!' }),
@@ -38,13 +38,13 @@ describe('access portals and workspace shell', () => {
       )
     })
     expect(
-      screen.getByRole('img', { name: 'Student learning with a laptop' }),
-    ).toHaveAttribute('src', expect.stringMatching(/login-background\.png$/))
+      screen.getByRole('img', { name: 'Student exploring course options online' }),
+    ).toHaveAttribute('src', expect.stringMatching(/login-background1\.png$/))
     expect(screen.getByText('Discover the right courses')).toBeVisible()
     expect(screen.getByText('for your future.')).toBeVisible()
     expect(
-      screen.getByRole('button', { name: 'Continue with Gmail' }),
-    ).toBeDisabled()
+      screen.getByRole('button', { name: 'Continue with Google' }),
+    ).toBeEnabled()
     expect(screen.queryByText('Gmail sign-in is not configured yet.')).not.toBeInTheDocument()
     expect(screen.queryByText(/facebook/i)).not.toBeInTheDocument()
     expect(screen.queryByText(/microsoft/i)).not.toBeInTheDocument()
@@ -66,7 +66,7 @@ describe('access portals and workspace shell', () => {
     expect(
       screen.getByRole('heading', { name: 'Create your account' }),
     ).toBeVisible()
-    expect(screen.getByRole('main')).toHaveClass('portal-sign-in-theme')
+    expect(screen.getByRole('main')).toHaveClass('portal-sign-in-theme', 'text-foreground')
     expect(screen.getAllByRole('img', { name: 'Pathways' })).toHaveLength(1)
     expect(screen.getByRole('textbox', { name: 'Full name' })).toHaveAttribute(
       'placeholder',
@@ -92,6 +92,14 @@ describe('access portals and workspace shell', () => {
 
     expect(screen.getByText('Enter your email address.')).toBeVisible()
     expect(screen.getByText('Enter your password.')).toBeVisible()
+  })
+
+  it('shows a safe Google callback error on the Student sign-in page', async () => {
+    await renderAppAt('/student/login?google_error=account_inactive')
+
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'This account is not active. Contact an authorized administrator.',
+    )
   })
 
   it('provides an accessible password visibility control', async () => {
@@ -150,6 +158,7 @@ describe('access portals and workspace shell', () => {
     await renderAppAt('/admin/login')
 
     expect(screen.queryByText('Administrator')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Continue with Google' })).not.toBeInTheDocument()
 
     await signIn(user)
 
@@ -183,6 +192,7 @@ describe('access portals and workspace shell', () => {
     await renderAppAt('/counselor/login')
 
     expect(screen.queryByText('Counselor')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Continue with Google' })).not.toBeInTheDocument()
 
     await signIn(user)
 

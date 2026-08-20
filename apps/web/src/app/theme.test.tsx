@@ -19,7 +19,7 @@ describe('application theme', () => {
 
   it('switches to dark mode and persists the preference', async () => {
     const user = userEvent.setup()
-    await renderAppAt('/student/login')
+    await renderAppAt('/not-found')
 
     const toggle = screen.getByRole('button', {
       name: 'Switch to dark mode',

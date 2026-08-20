@@ -113,6 +113,10 @@
   --chart-blue: #2f70ef;
   --shadow-primary: rgba(47, 112, 239, 0.2);
   --shadow-primary-strong: rgba(47, 112, 239, 0.3);
+  --access-scene: #d8f3f4;
+  --access-caption: #0b4a78;
+  --access-caption-strong: #075da1;
+  --access-panel-shadow: rgba(11, 74, 120, 0.18);
 }
 
 .staff-workspace-theme {

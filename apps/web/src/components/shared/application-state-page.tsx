@@ -5,10 +5,16 @@ import {
   ShieldX,
   type LucideIcon,
 } from 'lucide-react'
-import { useEffect, useRef } from 'react'
+import { lazy, Suspense, useEffect, useRef } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { ThemeToggle } from '@/components/shared/theme-toggle'
+
+const NotFoundAnimation = lazy(() =>
+  import('@/components/shared/not-found-animation').then((module) => ({
+    default: module.NotFoundAnimation,
+  })),
+)
 
 type ApplicationStateKind = 'forbidden' | 'session-expired' | 'not-found'
 
@@ -70,10 +76,22 @@ function ApplicationStatePage({
     <main className="relative flex min-h-svh items-center justify-center bg-secondary/70 px-4 py-12">
       <ThemeToggle className="absolute right-4 top-4 bg-background shadow-sm sm:right-6 sm:top-6" />
       <section className="w-full max-w-xl rounded-3xl bg-background p-7 text-center shadow-sm sm:p-10">
-        <div className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-primary/8 text-primary">
-          <content.icon aria-hidden="true" className="size-6" />
-        </div>
-        <p className="mt-7 text-xs font-bold uppercase tracking-[0.14em] text-primary">
+        {kind === 'not-found' ? (
+          <Suspense
+            fallback={(
+              <div className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-primary/8 text-primary">
+                <content.icon aria-hidden="true" className="size-6" />
+              </div>
+            )}
+          >
+            <NotFoundAnimation />
+          </Suspense>
+        ) : (
+          <div className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-primary/8 text-primary">
+            <content.icon aria-hidden="true" className="size-6" />
+          </div>
+        )}
+        <p className={kind === 'not-found' ? 'mt-2 text-xs font-bold uppercase tracking-[0.14em] text-primary' : 'mt-7 text-xs font-bold uppercase tracking-[0.14em] text-primary'}>
           {content.eyebrow}
         </p>
         <h1

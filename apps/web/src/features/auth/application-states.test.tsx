@@ -1,7 +1,9 @@
-import { screen } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
+import App from '@/App'
+import { AppProviders } from '@/app/providers'
 import { renderAppAt } from '@/test/render-app'
 
 describe('shared application states', () => {
@@ -12,6 +14,7 @@ describe('shared application states', () => {
     expect(
       screen.getByRole('heading', { level: 1, name: 'This page is unavailable' }),
     ).toBeVisible()
+    expect(await screen.findByTestId('not-found-animation')).toBeVisible()
     await user.click(
       screen.getByRole('button', { name: 'Return to application' }),
     )
@@ -36,6 +39,20 @@ describe('shared application states', () => {
     expect(
       screen.getByRole('heading', { level: 1, name: 'Sign in to continue' }),
     ).toBeVisible()
+  })
+
+  it('does not flash the footer while restoring a protected session', () => {
+    window.history.pushState({}, '', '/student')
+    vi.mocked(fetch).mockImplementation(() => new Promise<Response>(() => undefined))
+
+    render(
+      <AppProviders>
+        <App />
+      </AppProviders>,
+    )
+
+    expect(screen.getByRole('status')).toHaveTextContent('Restoring your session.')
+    expect(screen.queryByRole('contentinfo')).not.toBeInTheDocument()
   })
 
 })

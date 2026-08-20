@@ -145,13 +145,23 @@ describe('Student dashboard', () => {
     expect(screen.queryByRole('button', { name: /guidance|appointment|request/i })).not.toBeInTheDocument()
   })
 
-  it('uses the clean journey overview without fabricated social proof or appointment actions', () => {
-    render(<StudentDashboardPage onSelectModule={vi.fn()} initialLifecycle={testAssessmentLifecycle} initialRecommendations={{ status: 'available', recommendation: testRecommendationSnapshot }} />)
+  it('uses the clean journey overview without a redundant completed-assessment card', async () => {
+    const user = userEvent.setup()
+    const onSelectModule = vi.fn()
+    render(<StudentDashboardPage onSelectModule={onSelectModule} initialLifecycle={testAssessmentLifecycle} initialRecommendations={{ status: 'available', recommendation: testRecommendationSnapshot }} />)
 
     expect(screen.getByRole('heading', { level: 1, name: 'Your journey. Your future.' })).toBeVisible()
+    expect(screen.getByText('Explore programmes connected to Investigative and Conventional interests, then compare your strongest matches.')).toBeVisible()
     expect(screen.getByRole('button', { name: 'Explore your matches' })).not.toHaveClass('rounded-full')
     expect(screen.getByRole('heading', { name: 'Keep moving forward' })).toBeVisible()
     expect(screen.getByRole('progressbar', { name: 'Academic journey progress' })).toHaveAttribute('aria-valuenow', '100')
+    expect(screen.queryByRole('heading', { name: 'Your result is available' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'View assessment result' })).toBeVisible()
+    expect(screen.getByRole('button', { name: 'Assessment history' })).toBeVisible()
+    await user.click(screen.getByRole('button', { name: 'View assessment result' }))
+    expect(onSelectModule).toHaveBeenCalledWith('assessment')
+    await user.click(screen.getByRole('button', { name: 'Assessment history' }))
+    expect(onSelectModule).toHaveBeenCalledWith('history')
     expect(screen.getByRole('heading', { name: 'Visit the Guidance Office' })).toBeVisible()
     expect(screen.getByText('Topics you can discuss')).toBeVisible()
     expect(screen.getByText('Programmes you are comparing')).toBeVisible()
@@ -320,8 +330,9 @@ describe('Student dashboard', () => {
 
     render(<StudentDashboardPage onSelectModule={vi.fn()} />)
 
-    expect(await screen.findByRole('heading', { name: 'Your result is available' })).toBeVisible()
-    expect(screen.getByRole('button', { name: 'View latest result' })).toBeVisible()
+    expect(await screen.findByRole('button', { name: 'View assessment result' })).toBeVisible()
+    expect(screen.queryByRole('heading', { name: 'Your result is available' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'View latest result' })).not.toBeInTheDocument()
     expect(screen.queryByRole('progressbar', { name: 'Saved assessment progress' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Resume assessment' })).not.toBeInTheDocument()
   })

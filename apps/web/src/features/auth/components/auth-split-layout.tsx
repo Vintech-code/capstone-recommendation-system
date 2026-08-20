@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 
-import loginBackground from '@/assets/login-background.png'
+import loginBackground from '@/assets/login-background1.png'
 import logo from '@/assets/logo-optimized.png'
 
 interface AuthSplitLayoutProps {
@@ -9,28 +9,23 @@ interface AuthSplitLayoutProps {
 
 function AuthSplitLayout({ children }: AuthSplitLayoutProps) {
   return (
-    <main className="portal-sign-in-theme grid min-h-svh bg-background lg:grid-cols-[1.08fr_.92fr]">
-      <section className="relative hidden min-h-svh overflow-hidden bg-primary-fixed/65 lg:block">
-        <img
-          src={loginBackground}
-          alt="Student learning with a laptop"
-          className="absolute left-1/2 top-1/2 h-[68%] w-[88%] -translate-x-1/2 -translate-y-1/2 object-contain"
-        />
-        <div className="absolute inset-x-8 bottom-10 px-6 text-center xl:inset-x-12">
-          <p className="text-base font-medium leading-6 text-foreground xl:text-lg xl:leading-7">
-            Discover the right courses
-            <span className="block font-bold text-primary">for your future.</span>
-          </p>
-          <div aria-hidden="true" className="mt-5 flex items-center justify-center gap-2.5">
-            <span className="h-2 w-6 rounded-full bg-primary" />
-            <span className="size-2 rounded-full bg-primary/25" />
-            <span className="size-2 rounded-full bg-primary/25" />
-          </div>
-        </div>
-      </section>
+    <main className="portal-sign-in-theme relative min-h-svh overflow-x-hidden bg-[var(--access-scene)] text-foreground">
+      <img
+        src={loginBackground}
+        alt="Student exploring course options online"
+        className="absolute inset-0 size-full object-cover object-center"
+      />
+      <div className="absolute inset-0 bg-white/38 lg:bg-transparent" aria-hidden="true" />
 
-      <section className="flex items-center justify-center bg-card px-5 py-10 sm:px-10 lg:px-12 xl:px-16">
-        <div className="w-full max-w-md">
+      <div className="pointer-events-none absolute left-[5vw] top-[7vh] z-10 hidden max-w-sm lg:block">
+        <p className="text-2xl font-medium leading-tight text-[var(--access-caption)] xl:text-3xl">
+          Discover the right courses
+          <span className="block font-bold text-[var(--access-caption-strong)]">for your future.</span>
+        </p>
+      </div>
+
+      <section className="relative z-20 flex min-h-svh items-center justify-center px-4 py-6 sm:px-8 lg:justify-end lg:px-[5vw] lg:py-10 xl:px-[7vw]">
+        <div className="w-full max-w-[34rem] rounded-lg bg-card/96 px-6 py-7 shadow-[0_24px_70px_var(--access-panel-shadow)] backdrop-blur-sm sm:px-9 sm:py-9 lg:px-10">
           <div className="-mb-2 flex justify-center">
             <img
               src={logo}
