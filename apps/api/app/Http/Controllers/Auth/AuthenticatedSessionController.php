@@ -85,7 +85,7 @@ class AuthenticatedSessionController extends Controller
             'mustChangePassword' => (bool) $user->must_change_password,
             'photoUrl' => $user->studentProfile?->photo_path
                 ? '/api/v1/profile-photos/'.$user->getKey().'?v='.$user->studentProfile->updated_at?->getTimestamp()
-                : null,
+                : $user->google_avatar_url,
             'roles' => $user->roles->pluck('slug')->values()->all(),
         ];
     }

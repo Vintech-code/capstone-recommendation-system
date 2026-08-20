@@ -17,6 +17,22 @@ class StudentProfileTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_google_avatar_is_the_profile_photo_fallback(): void
+    {
+        $student = $this->userWithRole(RoleSlug::Student);
+        $student->forceFill([
+            'google_avatar_url' => 'https://example.test/google-avatar.png',
+        ])->save();
+
+        $this->actingAs($student)
+            ->getJson('/api/v1/student/profile')
+            ->assertOk()
+            ->assertJsonPath(
+                'data.student.photoUrl',
+                'https://example.test/google-avatar.png',
+            );
+    }
+
     public function test_student_can_create_and_update_only_their_own_self_report_profile(): void
     {
         $student = $this->userWithRole(RoleSlug::Student);

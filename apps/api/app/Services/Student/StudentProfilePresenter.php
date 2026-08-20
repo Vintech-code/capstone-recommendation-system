@@ -44,7 +44,7 @@ final class StudentProfilePresenter
                 'email' => $student->email,
                 'photoUrl' => $profile?->photo_path
                     ? '/api/v1/profile-photos/'.$student->getKey().'?v='.$profile->updated_at?->getTimestamp()
-                    : null,
+                    : $student->google_avatar_url,
             ],
             'questionnaire' => [
                 'complete' => $strengths !== [] && $growthAreas !== [] && $learningPreferences !== [],
