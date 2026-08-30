@@ -24,6 +24,7 @@ class ProgrammePublishingWorkflowTest extends TestCase
         $draft['payload']['programmes'][0]['description'] = 'Reviewed student-visible description.';
         $draft['payload']['programmes'][0]['cover_image_position'] = ['x' => 65, 'y' => 40, 'zoom' => 1.3];
         $draft['payload']['programmes'][0]['duration'] = ['display' => '99 years'];
+        $draft['payload']['programmes'][0]['eligibility_group'] = 'board';
 
         $this->actingAs($admin)->postJson("/api/v1/admin/configurations/versions/{$draft['id']}/preview", [
             'payload' => $draft['payload'],
@@ -33,7 +34,8 @@ class ProgrammePublishingWorkflowTest extends TestCase
             ->assertJsonPath('data.programmeChanges.0.programmeId', 'bs-information-technology')
             ->assertJsonFragment(['field' => 'description', 'after' => 'Reviewed student-visible description.'])
             ->assertJsonFragment(['field' => 'cover_image_position', 'after' => ['x' => 65, 'y' => 40, 'zoom' => 1.3]])
-            ->assertJsonMissing(['field' => 'duration', 'after' => ['display' => '99 years']]);
+            ->assertJsonMissing(['field' => 'duration', 'after' => ['display' => '99 years']])
+            ->assertJsonMissing(['field' => 'eligibility_group', 'after' => 'board']);
     }
 
     public function test_catalogue_rejects_invalid_media_framing_values(): void

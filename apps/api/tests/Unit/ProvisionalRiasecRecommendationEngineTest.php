@@ -37,6 +37,31 @@ class ProvisionalRiasecRecommendationEngineTest extends TestCase
         (new ProvisionalRiasecRecommendationEngine)->recommend($scores, $this->catalogue());
     }
 
+    #[Test]
+    public function it_filters_programmes_by_the_approved_entrance_examination_group(): void
+    {
+        $catalogue = $this->catalogue();
+        $catalogue['programmes'][0]['eligibility_group'] = 'board';
+        $catalogue['programmes'][1]['eligibility_group'] = 'non_board';
+        $catalogue['programmes'][2]['eligibility_group'] = 'non_board';
+        $catalogue['programmes'][3]['eligibility_group'] = 'board';
+
+        $result = (new ProvisionalRiasecRecommendationEngine)->recommend(
+            $this->scores(),
+            $catalogue,
+            'board',
+        );
+
+        $this->assertSame(['zulu'], array_column($result['ranked'], 'id'));
+        $this->assertSame(
+            ['ENTRANCE_EXAMINATION_GROUP_INELIGIBLE', 'ENTRANCE_EXAMINATION_GROUP_INELIGIBLE'],
+            array_values(array_map(
+                static fn (array $item): string => $item['reason'],
+                array_filter($result['exclusions'], static fn (array $item): bool => $item['reason'] === 'ENTRANCE_EXAMINATION_GROUP_INELIGIBLE'),
+            )),
+        );
+    }
+
     /** @return array<int, array{area: string, score: int}> */
     private function scores(): array
     {

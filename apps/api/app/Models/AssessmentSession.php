@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 #[Fillable([
     'user_id',
+    'entrance_examination_result_id',
     'previous_session_id',
     'retake_reason',
     'instrument_code',
@@ -32,6 +33,12 @@ class AssessmentSession extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /** @return BelongsTo<EntranceExaminationResult, $this> */
+    public function entranceExaminationResult(): BelongsTo
+    {
+        return $this->belongsTo(EntranceExaminationResult::class);
     }
 
     /** @return HasOne<RecommendationRun, $this> */

@@ -40,6 +40,12 @@ class User extends Authenticatable
         return $this->hasMany(AssessmentSession::class);
     }
 
+    /** @return HasMany<EntranceExaminationResult, $this> */
+    public function entranceExaminationResults(): HasMany
+    {
+        return $this->hasMany(EntranceExaminationResult::class);
+    }
+
     /** @return HasMany<RecommendationRun, $this> */
     public function recommendationRuns(): HasMany
     {
@@ -56,24 +62,6 @@ class User extends Authenticatable
     public function studentProfile(): HasOne
     {
         return $this->hasOne(StudentProfile::class);
-    }
-
-    /** @return HasMany<GuidanceCase, $this> */
-    public function assignedGuidanceCases(): HasMany
-    {
-        return $this->hasMany(GuidanceCase::class, 'assigned_to_id');
-    }
-
-    /** @return HasMany<GuidanceRequest, $this> */
-    public function guidanceRequests(): HasMany
-    {
-        return $this->hasMany(GuidanceRequest::class, 'student_id');
-    }
-
-    /** @return HasMany<GuidanceCase, $this> */
-    public function guidanceCases(): HasMany
-    {
-        return $this->hasMany(GuidanceCase::class, 'student_id');
     }
 
     public function hasRole(RoleSlug $role): bool

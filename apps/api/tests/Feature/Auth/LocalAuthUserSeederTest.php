@@ -21,9 +21,10 @@ class LocalAuthUserSeederTest extends TestCase
 
         app(LocalAuthUserSeeder::class)->run();
 
-        $this->assertDatabaseCount('roles', 3);
-        $this->assertDatabaseCount('users', 3);
-        $this->assertDatabaseCount('role_user', 3);
+        $roleCount = count(RoleSlug::cases());
+        $this->assertDatabaseCount('roles', $roleCount);
+        $this->assertDatabaseCount('users', $roleCount);
+        $this->assertDatabaseCount('role_user', $roleCount);
 
         foreach (RoleSlug::cases() as $role) {
             $email = config("local-auth.accounts.{$role->value}.email");
@@ -45,8 +46,9 @@ class LocalAuthUserSeederTest extends TestCase
         config()->set('local-auth.password', 'second-local-password');
         $this->seed(LocalAuthUserSeeder::class);
 
-        $this->assertDatabaseCount('users', 3);
-        $this->assertDatabaseCount('role_user', 3);
+        $roleCount = count(RoleSlug::cases());
+        $this->assertDatabaseCount('users', $roleCount);
+        $this->assertDatabaseCount('role_user', $roleCount);
 
         User::query()->each(function (User $user): void {
             $this->assertTrue(
@@ -101,7 +103,7 @@ class LocalAuthUserSeederTest extends TestCase
 
         $this->seed(DatabaseSeeder::class);
 
-        $this->assertDatabaseCount('roles', 3);
+        $this->assertDatabaseCount('roles', count(RoleSlug::cases()));
         $this->assertDatabaseCount('users', 0);
     }
 
@@ -112,8 +114,9 @@ class LocalAuthUserSeederTest extends TestCase
 
         $this->seed(DatabaseSeeder::class);
 
-        $this->assertDatabaseCount('roles', 3);
-        $this->assertDatabaseCount('users', 3);
-        $this->assertDatabaseCount('role_user', 3);
+        $roleCount = count(RoleSlug::cases());
+        $this->assertDatabaseCount('roles', $roleCount);
+        $this->assertDatabaseCount('users', $roleCount);
+        $this->assertDatabaseCount('role_user', $roleCount);
     }
 }

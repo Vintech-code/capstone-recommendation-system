@@ -2,9 +2,11 @@
 
 namespace Tests\Feature\Assessment;
 
+use App\Models\EntranceExaminationResult;
 use App\Models\Role;
 use App\Models\RoleSlug;
 use App\Models\User;
+use App\Services\Assessment\EntranceExaminationPolicy;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
@@ -94,7 +96,15 @@ class RiasecQuestionnaireTest extends TestCase
         $this->getJson('/api/v1/student/recommendations/latest')
             ->assertOk()
             ->assertJsonPath('data.status', 'available')
-            ->assertJsonPath('data.recommendation.profile.dimensions.0.value', 4);
+            ->assertJsonPath('data.recommendation.totalEligible', 6)
+            ->assertJsonPath('data.recommendation.entranceExamination.score', 2.5)
+            ->assertJsonPath('data.recommendation.entranceExamination.eligibilityGroup', 'board')
+            ->assertJsonPath('data.recommendation.courses.0.eligibilityGroup', 'board')
+            ->assertJsonPath('data.recommendation.profile.dimensions.0.value', 4)
+            ->assertJsonPath('data.recommendation.profile.dimensions.0.maximum', 4)
+            ->assertJsonPath('data.recommendation.profile.dimensions.1.maximum', 8)
+            ->assertJsonPath('data.recommendation.profile.guidance.status', 'proposed')
+            ->assertJsonPath('data.recommendation.profile.guidance.explanations.R', fn (string $value): bool => $value !== '');
     }
 
     private function userWithRole(RoleSlug $roleSlug): User
@@ -102,6 +112,15 @@ class RiasecQuestionnaireTest extends TestCase
         $role = Role::query()->create(['slug' => $roleSlug->value, 'name' => $roleSlug->value]);
         $user = User::factory()->create();
         $user->roles()->attach($role);
+        if ($roleSlug === RoleSlug::Student) {
+            EntranceExaminationResult::query()->create([
+                'user_id' => $user->getKey(),
+                'score' => 2.5,
+                'eligibility_group' => EntranceExaminationPolicy::BOARD,
+                'rule_reference' => EntranceExaminationPolicy::RULE_REFERENCE,
+                'declared_at' => now(),
+            ]);
+        }
 
         return $user;
     }

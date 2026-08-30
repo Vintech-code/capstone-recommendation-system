@@ -146,34 +146,6 @@ class StudentProfileTest extends TestCase
             ->assertJsonPath('data.riasec.code', 'I-S');
     }
 
-    public function test_counselor_can_view_but_not_modify_a_student_profile(): void
-    {
-        $student = $this->userWithRole(RoleSlug::Student);
-        $counselor = $this->userWithRole(RoleSlug::Counselor);
-        StudentProfile::query()->create([
-            'user_id' => $student->getKey(),
-            'strengths' => ['Teamwork'],
-            'growth_areas' => ['Public speaking'],
-            'learning_preferences' => ['Group activities'],
-        ]);
-
-        $this->actingAs($counselor)
-            ->getJson("/api/v1/counselor/students/{$student->getKey()}")
-            ->assertOk()
-            ->assertJsonPath('data.profile.questionnaire.strengths.0', 'Teamwork');
-
-        $this->putJson('/api/v1/student/profile', [
-            'strengths' => ['Leadership'],
-            'growthAreas' => [],
-            'learningPreferences' => [],
-        ])->assertForbidden();
-
-        $this->assertDatabaseMissing('student_profiles', [
-            'user_id' => $student->getKey(),
-            'strengths' => json_encode(['Leadership']),
-        ]);
-    }
-
     public function test_guest_cannot_read_or_write_student_profiles(): void
     {
         $this->getJson('/api/v1/student/profile')->assertUnauthorized();
@@ -198,7 +170,7 @@ class StudentProfileTest extends TestCase
         $this->actingAs($this->userWithRole(RoleSlug::Student))
             ->get('/api/v1/profile-photos/'.$student->getKey())
             ->assertForbidden();
-        $this->actingAs($this->userWithRole(RoleSlug::Counselor))
+        $this->actingAs($this->userWithRole(RoleSlug::Admin))
             ->get('/api/v1/profile-photos/'.$student->getKey())
             ->assertOk();
         $this->actingAs($student);

@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'assessment_session_id',
     'catalogue_reference',
     'rule_reference',
+    'entrance_examination_snapshot',
     'methodology_status',
     'default_count',
     'total_eligible',
@@ -36,6 +37,7 @@ class RecommendationRun extends Model
     {
         return [
             'ranked_courses' => 'array',
+            'entrance_examination_snapshot' => 'array',
             'generated_at' => 'immutable_datetime',
         ];
     }

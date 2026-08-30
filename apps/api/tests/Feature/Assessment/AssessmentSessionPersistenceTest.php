@@ -4,9 +4,11 @@ namespace Tests\Feature\Assessment;
 
 use App\Jobs\ProcessAssessmentResult;
 use App\Models\AssessmentSession;
+use App\Models\EntranceExaminationResult;
 use App\Models\Role;
 use App\Models\RoleSlug;
 use App\Models\User;
+use App\Services\Assessment\EntranceExaminationPolicy;
 use App\Services\Assessment\RiasecQuestionnaire;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use RuntimeException;
@@ -371,6 +373,13 @@ class AssessmentSessionPersistenceTest extends TestCase
         );
         $student = User::factory()->create();
         $student->roles()->attach($role);
+        EntranceExaminationResult::query()->create([
+            'user_id' => $student->getKey(),
+            'score' => 2.5,
+            'eligibility_group' => EntranceExaminationPolicy::BOARD,
+            'rule_reference' => EntranceExaminationPolicy::RULE_REFERENCE,
+            'declared_at' => now(),
+        ]);
 
         return $student;
     }

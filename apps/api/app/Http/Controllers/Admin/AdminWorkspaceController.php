@@ -6,8 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\AdminAuditEvent;
 use App\Models\AssessmentSession;
 use App\Models\ConfigurationVersion;
-use App\Models\GuidanceCase;
-use App\Models\GuidanceRequest;
 use App\Models\RecommendationRun;
 use App\Models\RoleSlug;
 use App\Models\StudentSavedProgramme;
@@ -39,21 +37,13 @@ final class AdminWorkspaceController extends Controller
             ->limit(6)
             ->get()
             ->map(fn (AssessmentSession $session): array => $this->sessionSummary($session));
-        $operationalAttention = null;
-        if ($request->user()->hasRole(RoleSlug::Admin)) {
-            $operationalAttention = [
-                'processingFailures' => (int) ($statusCounts['result_failed'] ?? 0),
-                'unverifiedSources' => collect($sourceRegistry->entries($catalogues->current()))
-                    ->whereIn('reviewStatus', ['not_verified', 'review_due'])
-                    ->count(),
-                'unpublishedDrafts' => ConfigurationVersion::query()->where('status', 'draft')->count(),
-                'suspendedCounselors' => User::query()
-                    ->where('account_status', 'suspended')
-                    ->whereHas('roles', static fn (Builder $query) => $query->where('slug', RoleSlug::Counselor->value))
-                    ->count(),
-                'pendingGuidanceRequests' => GuidanceRequest::query()->where('status', 'pending')->count(),
-            ];
-        }
+        $operationalAttention = [
+            'processingFailures' => (int) ($statusCounts['result_failed'] ?? 0),
+            'unverifiedSources' => collect($sourceRegistry->entries($catalogues->current()))
+                ->whereIn('reviewStatus', ['not_verified', 'review_due'])
+                ->count(),
+            'unpublishedDrafts' => ConfigurationVersion::query()->where('status', 'draft')->count(),
+        ];
 
         return response()->json(['data' => [
             'students' => $students,
@@ -62,8 +52,7 @@ final class AdminWorkspaceController extends Controller
             'inProgress' => (int) ($statusCounts['in_progress'] ?? 0),
             'needsAttention' => (int) ($statusCounts['result_failed'] ?? 0),
             'recommendations' => RecommendationRun::query()->distinct()->count('user_id'),
-            'pendingGuidanceRequests' => GuidanceRequest::query()->where('status', 'pending')->count(),
-            ...($operationalAttention === null ? [] : ['operationalAttention' => $operationalAttention]),
+            'operationalAttention' => $operationalAttention,
             'recentActivity' => $recent,
         ]]);
     }
@@ -107,19 +96,9 @@ final class AdminWorkspaceController extends Controller
         return response()->json(['data' => $students]);
     }
 
-    public function student(Request $request, User $student, StudentProfilePresenter $profiles): JsonResponse
+    public function student(User $student, StudentProfilePresenter $profiles): JsonResponse
     {
         abort_unless($student->roles()->where('slug', RoleSlug::Student->value)->exists(), 404);
-
-        if ($request->user()->hasRole(RoleSlug::Counselor)) {
-            AdminAuditEvent::query()->create([
-                'actor_id' => $request->user()->getKey(),
-                'action' => 'counselor.student_record.viewed',
-                'subject_type' => 'student',
-                'subject_reference' => (string) $student->getKey(),
-                'metadata' => ['portal' => 'counselor'],
-            ]);
-        }
 
         $attempts = $student->assessmentSessions()
             ->with('recommendationRun')
@@ -132,14 +111,6 @@ final class AdminWorkspaceController extends Controller
                     'recommendations' => $session->recommendationRun?->ranked_courses ?? [],
                 ],
             ));
-        $guidanceCase = GuidanceCase::query()
-            ->where('student_id', $student->getKey())
-            ->with([
-                'assignedTo:id,name',
-                'notes' => static fn ($query) => $query->with('author:id,name')->latest(),
-                'summaries' => static fn ($query) => $query->with(['author:id,name', 'publishedBy:id,name'])->latest(),
-            ])
-            ->first();
 
         return response()->json(['data' => [
             'id' => $student->getKey(),
@@ -148,29 +119,6 @@ final class AdminWorkspaceController extends Controller
             'accountStatus' => $student->account_status,
             'profile' => $profiles->present($student),
             'attempts' => $attempts,
-            'guidanceCase' => $guidanceCase ? [
-                'id' => $guidanceCase->getKey(),
-                'status' => $guidanceCase->status,
-                'followUpOn' => $guidanceCase->follow_up_on?->toDateString(),
-                'assignedTo' => $guidanceCase->assignedTo?->name,
-                'assignedToId' => $guidanceCase->assigned_to_id,
-                'notes' => $guidanceCase->notes->map(static fn ($note): array => [
-                    'id' => $note->getKey(),
-                    'body' => $note->body,
-                    'author' => $note->author?->name,
-                    'createdAt' => $note->created_at?->toAtomString(),
-                ]),
-                'summaries' => $guidanceCase->summaries->map(static fn ($summary): array => [
-                    'id' => $summary->getKey(),
-                    'body' => $summary->body,
-                    'author' => $summary->author?->name,
-                    'status' => $summary->published_at === null ? 'draft' : 'published',
-                    'publishedBy' => $summary->publishedBy?->name,
-                    'publishedAt' => $summary->published_at?->toAtomString(),
-                    'createdAt' => $summary->created_at?->toAtomString(),
-                    'updatedAt' => $summary->updated_at?->toAtomString(),
-                ]),
-            ] : null,
         ]]);
     }
 
@@ -192,54 +140,10 @@ final class AdminWorkspaceController extends Controller
         return response()->json(['data' => $sessions]);
     }
 
-    public function counselors(Request $request): JsonResponse
-    {
-        $staff = User::query()
-            ->whereHas('roles', static fn (Builder $query) => $query->where('slug', RoleSlug::Counselor->value))
-            ->when($request->user()->hasRole(RoleSlug::Counselor), fn (Builder $query) => $query->whereKey($request->user()->getKey()))
-            ->with(['assignedGuidanceCases' => static fn ($query) => $query
-                ->with('student:id,name,email')
-                ->orderByRaw("case when status = 'follow_up' then 0 when status = 'open' then 1 else 2 end")
-                ->orderBy('follow_up_on')])
-            ->orderBy('name')
-            ->get()
-            ->map(static function (User $member): array {
-                $active = $member->assignedGuidanceCases->where('status', '!=', 'closed');
-
-                return [
-                    'id' => $member->getKey(),
-                    'name' => $member->name,
-                    'email' => $member->email,
-                    'accountStatus' => $member->account_status,
-                    'mustChangePassword' => (bool) $member->must_change_password,
-                    'assignedCaseCount' => $member->assignedGuidanceCases->count(),
-                    'activeCaseCount' => $active->count(),
-                    'followUpCount' => $active->where('status', 'follow_up')->count(),
-                    'overdueCount' => $active->filter(static fn (GuidanceCase $case): bool => $case->follow_up_on?->isBefore(today()) ?? false)->count(),
-                    'assignments' => $member->assignedGuidanceCases->map(static fn (GuidanceCase $case): array => [
-                        'caseId' => $case->getKey(),
-                        'studentId' => $case->student_id,
-                        'studentName' => $case->student?->name,
-                        'studentEmail' => $case->student?->email,
-                        'status' => $case->status,
-                        'followUpOn' => $case->follow_up_on?->toDateString(),
-                    ])->values(),
-                ];
-            });
-
-        return response()->json(['data' => $staff]);
-    }
-
     public function programmes(TccProgrammeCatalogueRepository $catalogues): JsonResponse
     {
         $catalogue = $catalogues->current();
         $savedCounts = StudentSavedProgramme::query()
-            ->selectRaw('programme_id, count(*) as aggregate')
-            ->groupBy('programme_id')
-            ->pluck('aggregate', 'programme_id');
-        $guidanceRequestCounts = GuidanceRequest::query()
-            ->where('status', 'pending')
-            ->whereNotNull('programme_id')
             ->selectRaw('programme_id, count(*) as aggregate')
             ->groupBy('programme_id')
             ->pluck('aggregate', 'programme_id');
@@ -275,7 +179,6 @@ final class AdminWorkspaceController extends Controller
                 'logoImageUrl' => $programme['logo_image_url'] ?? null,
                 'monitoring' => [
                     'savedByStudents' => (int) ($savedCounts[$programme['id']] ?? 0),
-                    'pendingGuidanceRequests' => (int) ($guidanceRequestCounts[$programme['id']] ?? 0),
                 ],
             ], $catalogue['programmes'] ?? []),
         ]]);
@@ -320,8 +223,8 @@ final class AdminWorkspaceController extends Controller
         return response()->streamDownload(static function () use ($report): void {
             $stream = fopen('php://output', 'w');
             $write = static fn (array $row) => fputcsv($stream, array_map(self::csvCell(...), $row));
-            $write(['Pathways aggregate guidance report']);
-            $write(['Scope', $report['scope'] === 'counselor' ? 'Signed-in counselor records' : 'Institution records']);
+            $write(['Pathways aggregate system report']);
+            $write(['Scope', 'Institution records']);
             $write(['From', $report['from'] ?: 'All records']);
             $write(['To', $report['to'] ?: 'All records']);
             $write(['Students in report scope', $report['studentCount']]);
@@ -330,21 +233,12 @@ final class AdminWorkspaceController extends Controller
             $write(['Completion rate for students who started in period', $report['assessmentCompletionRate'].'%']);
             $write(['Students with generated recommendations', $report['recommendationRuns']]);
             $write(['Programme saves recorded', $report['programmeSaves']]);
-            $write(['Open guidance cases with a follow-up date', $report['openFollowUps']]);
-            $write(['Overdue open follow-ups', $report['overdueFollowUps']]);
-            $write(['Closed guidance cases', $report['closedGuidanceCases']]);
-            $write([]);
-            $write(['Guidance request lifecycle', 'Count']);
-            foreach ($report['guidanceRequestStatuses'] as $status => $count) {
-                $write([str_replace('_', ' ', ucfirst($status)), $count]);
-            }
-            $write([]);
             $write(['Assessment completion month', 'Completed students']);
             foreach ($report['assessmentCompletionsByMonth'] as $month) {
                 $write([$month['month'], $month['count']]);
             }
             fclose($stream);
-        }, 'pathways-guidance-report-'.now()->format('Y-m-d').'.csv', ['Content-Type' => 'text/csv']);
+        }, 'pathways-system-report-'.now()->format('Y-m-d').'.csv', ['Content-Type' => 'text/csv']);
     }
 
     public function activity(): JsonResponse
@@ -376,25 +270,13 @@ final class AdminWorkspaceController extends Controller
         ]);
         $from = $validated['from'] ?? null;
         $to = $validated['to'] ?? null;
-        $isCounselor = $request->user()->hasRole(RoleSlug::Counselor);
-        $studentIds = $isCounselor
-            ? collect()
-                ->merge(GuidanceCase::query()->where('assigned_to_id', $request->user()->getKey())->pluck('student_id'))
-                ->merge(GuidanceRequest::query()->where('accepted_by', $request->user()->getKey())->pluck('student_id'))
-                ->map(static fn ($id): int => (int) $id)
-                ->unique()
-                ->values()
-            : null;
-        $studentScope = fn (Builder $query): Builder => $isCounselor
-            ? $query->whereIn('user_id', $studentIds)
-            : $query;
         $period = static function (Builder $query, string $column) use ($from, $to): Builder {
             return $query
                 ->when($from, fn (Builder $builder) => $builder->whereDate($column, '>=', $from))
                 ->when($to, fn (Builder $builder) => $builder->whereDate($column, '<=', $to));
         };
 
-        $assessmentActivityQuery = $studentScope(AssessmentSession::query());
+        $assessmentActivityQuery = AssessmentSession::query();
         $period($assessmentActivityQuery, 'started_at');
         $completedStudents = (clone $assessmentActivityQuery)
             ->where('status', 'result_available')
@@ -402,30 +284,15 @@ final class AdminWorkspaceController extends Controller
             ->count('user_id');
         $assessmentActivity = (clone $assessmentActivityQuery)->distinct()->count('user_id');
 
-        $completionEventQuery = $studentScope(AssessmentSession::query()->where('status', 'result_available'));
+        $completionEventQuery = AssessmentSession::query()->where('status', 'result_available');
         $period($completionEventQuery, 'result_available_at');
 
-        $runs = $studentScope(RecommendationRun::query())
+        $runs = RecommendationRun::query()
             ->when($from, fn (Builder $query) => $query->whereDate('generated_at', '>=', $from))
             ->when($to, fn (Builder $query) => $query->whereDate('generated_at', '<=', $to))
             ->get(['user_id']);
 
-        $requestQuery = GuidanceRequest::query()
-            ->when($isCounselor, fn (Builder $query) => $query->where('accepted_by', $request->user()->getKey()));
-        $period($requestQuery, 'created_at');
-        $requestStatuses = (clone $requestQuery)->selectRaw('status, count(*) as aggregate')->groupBy('status')->pluck('aggregate', 'status');
-
-        $caseQuery = GuidanceCase::query()
-            ->when($isCounselor, fn (Builder $query) => $query->where('assigned_to_id', $request->user()->getKey()));
-        $followUpQuery = (clone $caseQuery)->where('status', '!=', 'closed')->whereNotNull('follow_up_on');
-        if ($from) {
-            $followUpQuery->whereDate('follow_up_on', '>=', $from);
-        }
-        if ($to) {
-            $followUpQuery->whereDate('follow_up_on', '<=', $to);
-        }
-
-        $savedProgrammeQuery = $studentScope(StudentSavedProgramme::query());
+        $savedProgrammeQuery = StudentSavedProgramme::query();
         $period($savedProgrammeQuery, 'created_at');
 
         $completionMonths = (clone $completionEventQuery)
@@ -443,19 +310,13 @@ final class AdminWorkspaceController extends Controller
             'generatedAt' => now()->toAtomString(),
             'from' => $from,
             'to' => $to,
-            'scope' => $isCounselor ? 'counselor' : 'institution',
-            'studentCount' => $isCounselor ? $studentIds->count() : $this->studentQuery()->count(),
+            'scope' => 'institution',
+            'studentCount' => $this->studentQuery()->count(),
             'assessmentActivity' => $assessmentActivity,
             'completedAssessments' => $completedStudents,
             'assessmentCompletionRate' => $assessmentActivity > 0 ? round(($completedStudents / $assessmentActivity) * 100, 1) : 0,
             'recommendationRuns' => $runs->pluck('user_id')->filter()->unique()->count(),
             'programmeSaves' => $savedProgrammeQuery->count(),
-            'guidanceRequestStatuses' => collect(['pending', 'accepted', 'closed', 'declined', 'cancelled'])
-                ->mapWithKeys(static fn (string $status): array => [$status => (int) ($requestStatuses[$status] ?? 0)])
-                ->all(),
-            'openFollowUps' => (clone $followUpQuery)->count(),
-            'overdueFollowUps' => (clone $followUpQuery)->whereDate('follow_up_on', '<', today())->count(),
-            'closedGuidanceCases' => (clone $caseQuery)->where('status', 'closed')->count(),
             'assessmentCompletionsByMonth' => $completionMonths,
         ];
     }

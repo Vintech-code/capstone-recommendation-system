@@ -76,7 +76,7 @@ final class StudentProfileController extends Controller
     {
         $viewer = $request->user();
         abort_unless(
-            $viewer->is($student) || $viewer->hasRole(RoleSlug::Admin) || $viewer->hasRole(RoleSlug::Counselor),
+            $viewer->is($student) || $viewer->hasRole(RoleSlug::Admin),
             403,
         );
         abort_unless($student->roles()->where('slug', RoleSlug::Student->value)->exists(), 404);

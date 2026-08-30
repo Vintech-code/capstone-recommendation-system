@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Recommendation;
 
 use App\Http\Controllers\Controller;
+use App\Models\AssessmentQuestion;
 use App\Models\AssessmentSession;
 use App\Models\RecommendationRun;
 use App\Services\Assessment\RiasecQuestionnaire;
@@ -30,7 +31,7 @@ final class StudentRecommendationController extends Controller
             ->whereBelongsTo($request->user())
             ->whereIn('instrument_code', [RiasecQuestionnaire::INSTRUMENT_CODE, RiasecQuestionnaire::LEGACY_INSTRUMENT_CODE])
             ->where('status', 'result_available')
-            ->with('recommendationRun')
+            ->with(['recommendationRun', 'entranceExaminationResult'])
             ->latest('result_available_at')
             ->first();
 
@@ -48,7 +49,7 @@ final class StudentRecommendationController extends Controller
         TccProgrammeCatalogueRepository $catalogues,
     ): JsonResponse {
         abort_unless($assessmentSession->user_id === $request->user()->getKey(), 404);
-        $assessmentSession->load('recommendationRun');
+        $assessmentSession->load(['recommendationRun', 'entranceExaminationResult']);
 
         return $this->forSession($request, $assessmentSession, $engine, $catalogues);
     }
@@ -74,7 +75,11 @@ final class StudentRecommendationController extends Controller
         $run = $session->recommendationRun;
         if ($run === null) {
             try {
-                $result = $engine->recommend(RiasecQuestionnaire::normalizeResultEntries($entries), $catalogue);
+                $result = $engine->recommend(
+                    RiasecQuestionnaire::normalizeResultEntries($entries),
+                    $catalogue,
+                    $session->entranceExaminationResult?->eligibility_group,
+                );
             } catch (DomainException) {
                 return $this->notAvailable('RECOMMENDATION_CONFIGURATION_INVALID');
             }
@@ -88,6 +93,7 @@ final class StudentRecommendationController extends Controller
                 'user_id' => $request->user()->getKey(),
                 'catalogue_reference' => 'TCC-AY-'.$catalogue['academic_year'].'-V'.$catalogue['catalogue_version'],
                 'rule_reference' => 'PROPOSED-RIASEC-1',
+                'entrance_examination_snapshot' => $this->entranceExaminationSnapshot($session),
                 'methodology_status' => 'Proposed methodology',
                 'default_count' => $defaultCount,
                 'total_eligible' => count($result['ranked']),
@@ -118,6 +124,7 @@ final class StudentRecommendationController extends Controller
             'rank' => $course['rank'],
             'code' => $course['code'],
             'name' => $course['name'],
+            'eligibilityGroup' => $course['eligibility_group'] ?? null,
             'department' => '',
             'duration' => '',
             'level' => '',
@@ -206,6 +213,7 @@ final class StudentRecommendationController extends Controller
             'canViewAll' => $run->total_eligible > $run->default_count,
             'showingAll' => $viewAll,
             'guidanceContentStatus' => 'proposed',
+            'entranceExamination' => $run->entrance_examination_snapshot,
             'profile' => $profile,
             'courses' => $visibleCourses,
         ];
@@ -274,11 +282,14 @@ final class StudentRecommendationController extends Controller
             'Conventional' => 'C',
         ];
 
+        $scoreRanges = $this->scoreRanges($session);
         $dimensions = array_values(array_map(
             static fn (array $entry, int $index): array => [
                 'code' => $codes[$entry['area']] ?? '',
                 'label' => $entry['area'],
                 'value' => (int) ($entry['score'] ?? 0),
+                'minimum' => $scoreRanges[$codes[$entry['area']] ?? '']['minimum'] ?? 0,
+                'maximum' => $scoreRanges[$codes[$entry['area']] ?? '']['maximum'] ?? max(1, (int) ($entry['score'] ?? 0)),
                 'order' => $index,
             ],
             $entries,
@@ -290,6 +301,8 @@ final class StudentRecommendationController extends Controller
         );
         $leading = array_slice($leading, 0, 2);
 
+        $guidance = $session->result_payload['guidance'] ?? null;
+
         return [
             'sessionReference' => 'ASMT-'.str_pad((string) $session->getKey(), 6, '0', STR_PAD_LEFT),
             'availableAt' => $session->result_available_at?->toAtomString(),
@@ -299,8 +312,33 @@ final class StudentRecommendationController extends Controller
                 'code' => $dimension['code'],
                 'label' => $dimension['label'],
                 'value' => $dimension['value'],
+                'minimum' => $dimension['minimum'],
+                'maximum' => $dimension['maximum'],
             ], $dimensions),
+            'guidance' => is_array($guidance) ? [
+                'status' => $guidance['status'] ?? 'proposed',
+                'version' => $guidance['version'] ?? '',
+                'notice' => $guidance['notice'] ?? '',
+                'explanations' => is_array($guidance['explanations'] ?? null) ? $guidance['explanations'] : [],
+            ] : null,
         ];
+    }
+
+    /** @return array<string, array{minimum: int, maximum: int}> */
+    private function scoreRanges(AssessmentSession $session): array
+    {
+        if ($session->instrument_code === RiasecQuestionnaire::LEGACY_INSTRUMENT_CODE) {
+            return collect(['R', 'I', 'A', 'S', 'E', 'C'])
+                ->mapWithKeys(static fn (string $code): array => [$code => ['minimum' => 5, 'maximum' => 25]])
+                ->all();
+        }
+
+        return AssessmentQuestion::query()
+            ->whereHas('instrument', static fn ($query) => $query->where('code', $session->instrument_code))
+            ->get(['riasec_code'])
+            ->countBy('riasec_code')
+            ->map(static fn (int $maximum): array => ['minimum' => 0, 'maximum' => $maximum])
+            ->all();
     }
 
     private function notAvailable(string $reason): JsonResponse
@@ -310,5 +348,23 @@ final class StudentRecommendationController extends Controller
             'reason' => $reason,
             'recommendation' => null,
         ]]);
+    }
+
+    /** @return array<string, mixed>|null */
+    private function entranceExaminationSnapshot(AssessmentSession $session): ?array
+    {
+        $result = $session->entranceExaminationResult;
+        if ($result === null) {
+            return null;
+        }
+
+        return [
+            'resultId' => $result->getKey(),
+            'score' => (float) $result->score,
+            'eligibilityGroup' => $result->eligibility_group,
+            'ruleReference' => $result->rule_reference,
+            'source' => 'student_self_declared',
+            'declaredAt' => $result->declared_at?->toAtomString(),
+        ];
     }
 }

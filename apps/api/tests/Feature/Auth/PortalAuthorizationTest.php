@@ -67,29 +67,6 @@ class PortalAuthorizationTest extends TestCase
             ->assertOk();
     }
 
-    public function test_multiple_individual_accounts_may_hold_the_counselor_role(): void
-    {
-        $counselorRole = Role::query()->updateOrCreate([
-            'slug' => RoleSlug::Counselor->value,
-            'name' => RoleSlug::Counselor->name,
-        ]);
-        $counselor = User::factory()->create();
-        $psychometrician = User::factory()->create();
-
-        $counselor->roles()->attach($counselorRole);
-        $psychometrician->roles()->attach($counselorRole);
-
-        $this->actingAs($counselor)
-            ->getJson('/api/v1/auth/authorize/counselor')
-            ->assertOk();
-
-        $this->actingAs($psychometrician)
-            ->getJson('/api/v1/auth/authorize/counselor')
-            ->assertOk();
-
-        $this->assertSame(2, $counselorRole->users()->count());
-    }
-
     private function userWithRole(RoleSlug $role): User
     {
         $roleModel = Role::query()->updateOrCreate([

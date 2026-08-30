@@ -13,9 +13,5 @@ return [
             'name' => env('LOCAL_ADMIN_NAME', 'Local Administrator'),
             'email' => env('LOCAL_ADMIN_EMAIL', 'admin@example.test'),
         ],
-        'counselor' => [
-            'name' => env('LOCAL_COUNSELOR_NAME', 'Local Counselor'),
-            'email' => env('LOCAL_COUNSELOR_EMAIL', 'counselor@example.test'),
-        ],
     ],
 ];

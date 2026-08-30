@@ -181,7 +181,7 @@ final class AdminConfigurationController extends Controller
         $locked = collect($runtime['programmes'] ?? [])->keyBy('id');
         $payload['programmes'] = array_map(static function (array $programme) use ($locked): array {
             $source = $locked->get($programme['id'] ?? '', []);
-            foreach (['degree_type', 'duration', 'salary', 'job_growth', 'outlook_version'] as $field) {
+            foreach (['eligibility_group', 'degree_type', 'duration', 'salary', 'job_growth', 'outlook_version'] as $field) {
                 $programme[$field] = $source[$field] ?? null;
             }
 

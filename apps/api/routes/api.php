@@ -1,21 +1,17 @@
 <?php
 
 use App\Http\Controllers\Admin\AdminConfigurationController;
-use App\Http\Controllers\Admin\AdminCounselorAccountController;
-use App\Http\Controllers\Admin\AdminGuidanceController;
-use App\Http\Controllers\Admin\AdminGuidanceRequestController;
 use App\Http\Controllers\Admin\AdminProgrammeMediaController;
 use App\Http\Controllers\Admin\AdminProgrammeSourceController;
 use App\Http\Controllers\Admin\AdminWorkspaceController;
 use App\Http\Controllers\Assessment\AssessmentSessionController;
+use App\Http\Controllers\Assessment\EntranceExaminationResultController;
 use App\Http\Controllers\Assessment\RiasecQuestionnaireController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\PasswordChangeController;
 use App\Http\Controllers\Auth\PasswordRecoveryController;
 use App\Http\Controllers\Auth\PortalAccessController;
 use App\Http\Controllers\Auth\RegisteredStudentController;
-use App\Http\Controllers\Guidance\StudentGuidanceRequestController;
-use App\Http\Controllers\Guidance\StudentGuidanceSummaryController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Recommendation\StudentProgrammeController;
 use App\Http\Controllers\Recommendation\StudentRecommendationController;
@@ -61,6 +57,13 @@ Route::prefix('v1/student/assessments/riasec')
         Route::get('/history', [AssessmentSessionController::class, 'history']);
     });
 
+Route::prefix('v1/student/entrance-examination')
+    ->middleware(['auth:sanctum', 'active', 'role:student'])
+    ->group(function (): void {
+        Route::get('/', [EntranceExaminationResultController::class, 'show']);
+        Route::post('/', [EntranceExaminationResultController::class, 'store']);
+    });
+
 Route::prefix('v1/student/recommendations')
     ->middleware(['auth:sanctum', 'active', 'role:student'])
     ->group(function (): void {
@@ -73,14 +76,6 @@ Route::prefix('v1/student/programmes')
     ->group(function (): void {
         Route::get('/', [StudentProgrammeController::class, 'index']);
         Route::get('/{programme}', [StudentProgrammeController::class, 'show']);
-    });
-
-Route::prefix('v1/student/guidance-requests')
-    ->middleware(['auth:sanctum', 'active', 'role:student'])
-    ->group(function (): void {
-        Route::get('/', [StudentGuidanceRequestController::class, 'index']);
-        Route::post('/', [StudentGuidanceRequestController::class, 'store']);
-        Route::post('/{guidanceRequest}/cancel', [StudentGuidanceRequestController::class, 'cancel']);
     });
 
 Route::prefix('v1/student/saved-programmes')
@@ -110,9 +105,6 @@ Route::prefix('v1/notifications')
         Route::post('/{notification}/read', [NotificationController::class, 'markRead']);
     });
 
-Route::get('v1/student/guidance-summaries', [StudentGuidanceSummaryController::class, 'index'])
-    ->middleware(['auth:sanctum', 'active', 'role:student']);
-
 Route::prefix('v1/admin')
     ->middleware(['auth:sanctum', 'active', 'role:admin'])
     ->group(function (): void {
@@ -120,11 +112,6 @@ Route::prefix('v1/admin')
         Route::get('/students', [AdminWorkspaceController::class, 'students']);
         Route::get('/students/{student}', [AdminWorkspaceController::class, 'student']);
         Route::get('/assessments', [AdminWorkspaceController::class, 'assessments']);
-        Route::get('/counselors', [AdminWorkspaceController::class, 'counselors']);
-        Route::post('/counselors', [AdminCounselorAccountController::class, 'store']);
-        Route::put('/counselors/{counselor}', [AdminCounselorAccountController::class, 'update']);
-        Route::post('/counselors/{counselor}/reset-password', [AdminCounselorAccountController::class, 'resetPassword']);
-        Route::get('/guidance-requests', [AdminGuidanceRequestController::class, 'index']);
         Route::get('/programmes', [AdminWorkspaceController::class, 'programmes']);
         Route::post('/programmes/{programme}/media', [AdminProgrammeMediaController::class, 'store']);
         Route::get('/reports', [AdminWorkspaceController::class, 'reports']);
@@ -138,24 +125,4 @@ Route::prefix('v1/admin')
         Route::post('/configurations/versions/{configurationVersion}/rollback', [AdminConfigurationController::class, 'rollback']);
         Route::get('/programme-sources', [AdminProgrammeSourceController::class, 'index']);
         Route::put('/programme-sources/{sourceReference}', [AdminProgrammeSourceController::class, 'update']);
-    });
-
-Route::prefix('v1/counselor')
-    ->middleware(['auth:sanctum', 'active', 'role:counselor'])
-    ->group(function (): void {
-        Route::get('/overview', [AdminWorkspaceController::class, 'overview']);
-        Route::get('/students', [AdminWorkspaceController::class, 'students']);
-        Route::get('/students/{student}', [AdminWorkspaceController::class, 'student']);
-        Route::put('/students/{student}/guidance-case', [AdminGuidanceController::class, 'updateCase']);
-        Route::post('/students/{student}/guidance-notes', [AdminGuidanceController::class, 'storeNote']);
-        Route::post('/students/{student}/guidance-summaries', [AdminGuidanceController::class, 'storeSummary']);
-        Route::put('/students/{student}/guidance-summaries/{guidanceSummary}', [AdminGuidanceController::class, 'updateSummary']);
-        Route::post('/students/{student}/guidance-summaries/{guidanceSummary}/publish', [AdminGuidanceController::class, 'publishSummary']);
-        Route::get('/counselors', [AdminWorkspaceController::class, 'counselors']);
-        Route::get('/guidance-requests', [AdminGuidanceRequestController::class, 'index']);
-        Route::post('/guidance-requests/{guidanceRequest}/accept', [AdminGuidanceRequestController::class, 'accept']);
-        Route::post('/guidance-requests/{guidanceRequest}/decline', [AdminGuidanceRequestController::class, 'decline']);
-        Route::post('/guidance-requests/{guidanceRequest}/resolve', [AdminGuidanceRequestController::class, 'resolve']);
-        Route::get('/reports', [AdminWorkspaceController::class, 'reports']);
-        Route::get('/reports/export', [AdminWorkspaceController::class, 'exportReports']);
     });

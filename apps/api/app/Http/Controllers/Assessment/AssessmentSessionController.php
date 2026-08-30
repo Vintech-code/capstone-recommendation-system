@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Assessment\SaveAssessmentSessionRequest;
 use App\Jobs\ProcessAssessmentResult;
 use App\Models\AssessmentSession;
+use App\Services\Assessment\EntranceExaminationPolicy;
 use App\Services\Assessment\RiasecQuestionnaire;
 use App\Services\Recommendation\ProposedGuidanceContentRepository;
 use Illuminate\Http\JsonResponse;
@@ -36,14 +37,16 @@ class AssessmentSessionController extends Controller
         ]]);
     }
 
-    public function store(Request $request): JsonResponse
+    public function store(Request $request, EntranceExaminationPolicy $entranceExamination): JsonResponse
     {
         $validated = $request->validate([
             'retakeReason' => ['nullable', 'string', 'max:500'],
         ]);
         $retakeReason = trim((string) ($validated['retakeReason'] ?? ''));
+        $examResult = $entranceExamination->currentResult($request->user());
+        abort_if($examResult === null, 409, 'Declare your entrance examination result before starting the assessment.');
         $created = false;
-        $session = DB::transaction(function () use ($request, $retakeReason, &$created): AssessmentSession {
+        $session = DB::transaction(function () use ($request, $retakeReason, $examResult, &$created): AssessmentSession {
             $current = AssessmentSession::query()
                 ->whereBelongsTo($request->user())
                 ->where('instrument_code', RiasecQuestionnaire::INSTRUMENT_CODE)
@@ -55,7 +58,7 @@ class AssessmentSessionController extends Controller
             if ($current === null) {
                 $created = true;
 
-                return $this->createAttempt($request->user()->getKey(), 1);
+                return $this->createAttempt($request->user()->getKey(), $examResult->getKey(), 1);
             }
 
             if (in_array($current->status, ['in_progress', 'preparing_result', 'result_failed'], true)) {
@@ -67,6 +70,7 @@ class AssessmentSessionController extends Controller
 
             return $this->createAttempt(
                 $request->user()->getKey(),
+                $examResult->getKey(),
                 $current->attempt_number + 1,
                 $current->getKey(),
                 $retakeReason !== '' ? $retakeReason : null,
@@ -82,6 +86,7 @@ class AssessmentSessionController extends Controller
     ): JsonResponse {
         $this->assertOwnedBy($request, $assessmentSession);
         $this->assertActiveInstrument($assessmentSession);
+        $this->assertEntranceExaminationResult($assessmentSession);
         $answers = $request->validated('answers');
         $currentQuestion = $request->integer('current_question');
 
@@ -108,6 +113,7 @@ class AssessmentSessionController extends Controller
     {
         $this->assertOwnedBy($request, $assessmentSession);
         $this->assertActiveInstrument($assessmentSession);
+        $this->assertEntranceExaminationResult($assessmentSession);
 
         if ($assessmentSession->status !== 'in_progress') {
             return response()->json(['data' => $this->resource($assessmentSession)]);
@@ -137,6 +143,7 @@ class AssessmentSessionController extends Controller
     {
         $this->assertOwnedBy($request, $assessmentSession);
         $this->assertActiveInstrument($assessmentSession);
+        $this->assertEntranceExaminationResult($assessmentSession);
         abort_if($assessmentSession->status !== 'result_failed', 409, 'This result is not available for retry.');
 
         $assessmentSession->forceFill([
@@ -167,12 +174,14 @@ class AssessmentSessionController extends Controller
 
     private function createAttempt(
         int $userId,
+        int $entranceExaminationResultId,
         int $attemptNumber,
         ?int $previousSessionId = null,
         ?string $retakeReason = null,
     ): AssessmentSession {
         return AssessmentSession::query()->create([
             'user_id' => $userId,
+            'entrance_examination_result_id' => $entranceExaminationResultId,
             'previous_session_id' => $previousSessionId,
             'retake_reason' => $retakeReason,
             'instrument_code' => RiasecQuestionnaire::INSTRUMENT_CODE,
@@ -199,6 +208,18 @@ class AssessmentSessionController extends Controller
         );
     }
 
+    private function assertEntranceExaminationResult(AssessmentSession $session): void
+    {
+        if ($session->entrance_examination_result_id !== null) {
+            return;
+        }
+
+        $result = app(EntranceExaminationPolicy::class)->currentResult($session->user);
+        abort_if($result === null, 409, 'Declare your entrance examination result before continuing the assessment.');
+
+        $session->forceFill(['entrance_examination_result_id' => $result->getKey()])->save();
+    }
+
     private function processResultNow(AssessmentSession $session, RiasecQuestionnaire $questionnaire): AssessmentSession
     {
         $job = new ProcessAssessmentResult($session->getKey());
@@ -221,19 +242,22 @@ class AssessmentSessionController extends Controller
             $resultPayload['result'] = RiasecQuestionnaire::normalizeResultEntries(
                 $resultPayload['result'],
             );
-            $content = $this->guidance->current();
-            $resultPayload['guidance'] = [
-                'status' => $content['policy_status'],
-                'version' => $content['policy_version'],
-                'notice' => $content['student_notice'],
-                'explanations' => $content['riasec_explanations'],
-            ];
+            if (! is_array($resultPayload['guidance'] ?? null)) {
+                $content = $this->guidance->current();
+                $resultPayload['guidance'] = [
+                    'status' => $content['policy_status'],
+                    'version' => $content['policy_version'],
+                    'notice' => $content['student_notice'],
+                    'explanations' => $content['riasec_explanations'],
+                ];
+            }
         }
 
         return [
             'id' => $session->getKey(),
             'reference' => 'ASMT-'.str_pad((string) $session->getKey(), 6, '0', STR_PAD_LEFT),
             'instrument_code' => $session->instrument_code,
+            'entrance_examination_result_id' => $session->entrance_examination_result_id,
             'attempt_number' => $session->attempt_number,
             'is_current' => $session->is_current,
             'status' => $session->status,

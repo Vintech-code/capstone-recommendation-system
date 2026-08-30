@@ -20,7 +20,7 @@ final class ProvisionalRiasecRecommendationEngine
      * @param  array<string, mixed>  $catalogue
      * @return array{method: string, normalized_scores: array<string, float>, ranked: array<int, array<string, mixed>>, exclusions: array<int, array<string, string>>}
      */
-    public function recommend(array $resultEntries, array $catalogue): array
+    public function recommend(array $resultEntries, array $catalogue, ?string $eligibilityGroup = null): array
     {
         $policy = $catalogue['matching_policy'] ?? null;
         if (! is_array($policy) || ($policy['method'] ?? null) !== 'unweighted_riasec_profile_matching') {
@@ -52,6 +52,16 @@ final class ProvisionalRiasecRecommendationEngine
                 continue;
             }
 
+            $programmeGroup = (string) ($programme['eligibility_group'] ?? '');
+            if ($eligibilityGroup !== null && $programmeGroup !== $eligibilityGroup) {
+                $exclusions[] = [
+                    'programme_id' => (string) ($programme['id'] ?? ''),
+                    'reason' => 'ENTRANCE_EXAMINATION_GROUP_INELIGIBLE',
+                ];
+
+                continue;
+            }
+
             $profile = array_values(array_unique(array_map(
                 static fn (mixed $code): string => strtoupper(trim((string) $code)),
                 is_array($programme['riasec_profile'] ?? null) ? $programme['riasec_profile'] : [],
@@ -78,6 +88,7 @@ final class ProvisionalRiasecRecommendationEngine
                 'id' => (string) ($programme['id'] ?? ''),
                 'code' => (string) ($programme['short_label'] ?? ''),
                 'name' => (string) ($programme['display_name'] ?? ''),
+                'eligibility_group' => $programmeGroup,
                 'profile' => $profile,
                 'description' => (string) ($programme['description'] ?? ''),
                 'learning_areas' => array_values($programme['learning_areas'] ?? []),

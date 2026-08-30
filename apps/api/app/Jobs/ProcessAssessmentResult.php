@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Models\AssessmentSession;
 use App\Services\Assessment\RiasecQuestionnaire;
 use App\Services\Notifications\PathwaysNotifier;
+use App\Services\Recommendation\ProposedGuidanceContentRepository;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Throwable;
@@ -27,9 +28,18 @@ class ProcessAssessmentResult implements ShouldQueue
         $answers = $session->answers ?? [];
         ksort($answers, SORT_NUMERIC);
 
+        $resultPayload = $questionnaire->results(array_values($answers));
+        $guidance = app(ProposedGuidanceContentRepository::class)->current();
+        $resultPayload['guidance'] = [
+            'status' => $guidance['policy_status'],
+            'version' => $guidance['policy_version'],
+            'notice' => $guidance['student_notice'],
+            'explanations' => $guidance['riasec_explanations'],
+        ];
+
         $session->forceFill([
             'status' => 'result_available',
-            'result_payload' => $questionnaire->results(array_values($answers)),
+            'result_payload' => $resultPayload,
             'result_available_at' => now(),
             'retake_available_at' => now()->addDays(
                 (int) config('assessment.retake.minimum_days_between_completed_attempts'),
