@@ -51,7 +51,7 @@ function PortalSignInPage({ role }: PortalSignInPageProps) {
       <div className="text-center">
         <h1
           id="sign-in-title"
-          className="text-3xl font-bold tracking-[-0.045em] sm:text-4xl"
+          className="text-3xl font-bold tracking-[-0.04em] sm:text-4xl"
         >
           Welcome back!
         </h1>
@@ -83,7 +83,7 @@ function PortalSignInPage({ role }: PortalSignInPageProps) {
           {googleError ? (
             <p
               role="alert"
-              className="mt-5 rounded-lg bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive"
+              className="mt-5 rounded-xl bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive"
             >
               {googleErrorMessages[googleError] ?? googleErrorMessages.oauth_failed}
             </p>
@@ -98,7 +98,7 @@ function PortalSignInPage({ role }: PortalSignInPageProps) {
           <button
             type="button"
             onClick={continueWithGoogle}
-            className="flex min-h-12 w-full items-center justify-center gap-3 rounded-lg border border-input bg-background px-4 text-sm font-semibold text-foreground shadow-sm transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            className="flex min-h-12 w-full items-center justify-center gap-3 rounded-xl border border-input bg-background px-4 text-sm font-semibold text-foreground shadow-xs transition-colors hover:border-primary/30 hover:bg-accent focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/25"
           >
             <GmailIcon />
             Continue with Google

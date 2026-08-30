@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import axe from 'axe-core'
 import type { ComponentProps } from 'react'
@@ -34,6 +34,11 @@ async function answerQuestion(
     screen.getByRole('group', { name: `Response for question ${questionNumber}` }),
   ).toBeVisible()
   await user.click(screen.getByRole('radio', { name: /^Agree/i }))
+  await user.click(
+    screen.getByRole('button', {
+      name: questionNumber === 6 ? 'Finish assessment' : 'Next',
+    }),
+  )
 }
 
 describe('Student assessment session', () => {
@@ -41,17 +46,25 @@ describe('Student assessment session', () => {
     window.localStorage.clear()
   })
 
-  it('uses the Navigator assessment hierarchy with truthful session data', () => {
+  it('uses a simple single-question layout with truthful session data', () => {
     renderSession()
 
-    expect(screen.getByRole('heading', { name: 'Assessment session' })).toBeVisible()
-    expect(screen.getByText('Discover your path')).toBeVisible()
-    expect(screen.getByLabelText('0% assessment completion')).toBeVisible()
-    expect(screen.getByRole('list', { name: 'Assessment stages' })).toBeVisible()
-    expect(screen.getByAltText('Student studying with a tablet in a library')).toBeVisible()
+    expect(screen.getByRole('heading', { name: 'Interest assessment' })).toBeInTheDocument()
+    expect(screen.getByText('01')).toBeVisible()
+    expect(screen.getByText('of 6')).toBeVisible()
+    expect(screen.getByText('0 answered · 6 remaining')).toBeVisible()
+    expect(screen.getByText('0%')).toBeVisible()
+    expect(screen.getByRole('progressbar', { name: 'Assessment completion' })).toBeVisible()
+    expect(screen.getByText('Does this activity interest you?')).toBeVisible()
+    expect(screen.getByRole('navigation', { name: 'Question navigation' })).toBeVisible()
+    expect(screen.getByText('👍')).toBeVisible()
+    expect(screen.getByText('👎')).toBeVisible()
+    expect(screen.getByText('This sounds like me')).toBeVisible()
+    expect(screen.getByText('This does not sound like me')).toBeVisible()
     expect(screen.getAllByRole('radio')).toHaveLength(2)
-    expect(screen.queryByText('Aptitude')).not.toBeInTheDocument()
-    expect(screen.queryByText(/module 1 of/i)).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Next' })).toBeDisabled()
+    expect(screen.queryByText('Career compass module')).not.toBeInTheDocument()
+    expect(screen.queryByRole('img')).not.toBeInTheDocument()
   })
 
   it('answers questions and autosaves progress locally', async () => {
@@ -72,57 +85,28 @@ describe('Student assessment session', () => {
       .toContain('"item-01":1')
   })
 
-  it('reviews incomplete responses and returns to a missing question', async () => {
+  it('requires an answer before moving forward and preserves it when navigating back', async () => {
     const user = userEvent.setup()
     renderSession()
 
-    await answerQuestion(user, 1)
-    for (let index = 0; index < 4; index += 1) {
-      await user.click(screen.getByRole('button', { name: 'Skip question' }))
-    }
-    const reviewButton = screen.getByRole('button', { name: 'Review responses' })
-    expect(reviewButton.parentElement).toHaveClass('flex-row', 'justify-between')
-    await user.click(reviewButton)
-
-    expect(
-      screen.getByRole('heading', {
-        name: '5 questions need a response',
-      }),
-    ).toBeVisible()
-    expect(
-      screen.getByRole('button', { name: 'Submit assessment' }),
-    ).toBeDisabled()
-
-    const unansweredItem = screen.getAllByText('No response')[0].closest('li')
-    expect(unansweredItem).not.toBeNull()
-    await user.click(
-      within(unansweredItem as HTMLLIElement).getByRole('button', {
-        name: 'Edit response',
-      }),
-    )
+    const nextButton = screen.getByRole('button', { name: 'Next' })
+    expect(nextButton).toBeDisabled()
+    await user.click(screen.getByRole('radio', { name: /^Agree/i }))
+    expect(nextButton).toBeEnabled()
+    await user.click(nextButton)
     expect(screen.getByRole('group', { name: 'Response for question 2' })).toBeVisible()
+
+    await user.click(screen.getByRole('button', { name: 'Previous' }))
+    expect(screen.getByRole('radio', { name: /^Agree/i })).toBeChecked()
   })
 
-  it('submits a complete assessment and locks the responses', async () => {
+  it('finishes without a review list and locks the responses', async () => {
     const user = userEvent.setup()
     const session = renderSession()
 
     for (let questionNumber = 1; questionNumber <= 6; questionNumber += 1) {
       await answerQuestion(user, questionNumber)
     }
-    expect(
-      screen.getByRole('heading', { name: 'All questions are answered' }),
-    ).toBeVisible()
-    await user.click(
-      screen.getByRole('button', { name: 'Submit assessment' }),
-    )
-
-    const dialog = screen.getByRole('alertdialog', {
-      name: 'Submit this assessment?',
-    })
-    await user.click(
-      within(dialog).getByRole('button', { name: 'Submit assessment' }),
-    )
 
     expect(
       await screen.findByRole('heading', {
@@ -131,6 +115,7 @@ describe('Student assessment session', () => {
     ).toBeVisible()
     expect(screen.getByText('Your recorded answers are read-only.')).toBeVisible()
     expect(screen.queryByText('Version reference')).not.toBeInTheDocument()
+    expect(screen.queryByText('Final review')).not.toBeInTheDocument()
     expect(screen.queryByRole('radio')).not.toBeInTheDocument()
     expect(window.localStorage.getItem('tcc-guidance:student-assessment-session'))
       .toBeNull()
@@ -177,6 +162,52 @@ describe('Student assessment session', () => {
     expect(screen.getByRole('status')).toHaveTextContent('Saved')
   })
 
+  it('requires and records the self-declared entrance result before starting', async () => {
+    const fallbackFetch = vi.mocked(fetch).getMockImplementation()
+    expect(fallbackFetch).toBeDefined()
+    let declared = false
+    const policy = {
+      ruleReference: 'SELF-DECLARED-TCC-ENTRANCE-2026-01',
+      minimum: 1,
+      maximum: 5,
+      decimalPlaces: 1,
+      boardRange: { minimum: 1, maximum: 2.5 },
+      nonBoardRange: { minimum: 2.6, maximum: 5 },
+      source: 'student_self_declared',
+    }
+    vi.mocked(fetch).mockImplementation(async (input, init) => {
+      if (input.toString() === '/api/v1/student/entrance-examination') {
+        if (init?.method === 'POST') {
+          declared = true
+          return Response.json({ data: { status: 'declared', result: { id: 1, score: 2.6, eligibilityGroup: 'non_board', ruleReference: policy.ruleReference, source: policy.source, declaredAt: '2026-08-28T09:00:00+08:00' }, policy } }, { status: 201 })
+        }
+        if (!declared) return Response.json({ data: { status: 'required', result: null, policy } })
+      }
+      return fallbackFetch!(input, init)
+    })
+
+    const user = userEvent.setup()
+    renderSession({ remotePersistence: true })
+
+    expect(await screen.findByRole('heading', { name: 'Entrance Exam Result' })).toBeVisible()
+    expect(screen.getByLabelText('Entrance Exam Score')).toBeVisible()
+    expect(fetch).not.toHaveBeenCalledWith(
+      '/api/v1/student/assessments/riasec/sessions',
+      expect.objectContaining({ method: 'POST' }),
+    )
+
+    await user.type(screen.getByLabelText('Entrance Exam Score'), '2.6')
+    expect(screen.getByText('Non-board programmes')).toBeVisible()
+    await user.click(screen.getByRole('button', { name: 'Continue to Assessment' }))
+
+    expect(await screen.findByRole('group', { name: 'Response for question 1' })).toBeVisible()
+    expect(fetch).toHaveBeenCalledWith(
+      '/api/v1/student/entrance-examination',
+      expect.objectContaining({ method: 'POST', body: JSON.stringify({ score: 2.6 }) }),
+    )
+    vi.mocked(fetch).mockImplementation(fallbackFetch!)
+  })
+
   it('keeps an existing completed assessment visible without silently creating a retake', async () => {
     const fallbackFetch = vi.mocked(fetch).getMockImplementation()
     expect(fallbackFetch).toBeDefined()
@@ -213,14 +244,6 @@ describe('Student assessment session', () => {
       await answerQuestion(user, questionNumber)
     }
 
-    await user.click(screen.getByRole('button', { name: 'Submit assessment' }))
-    const dialog = screen.getByRole('alertdialog', {
-      name: 'Submit this assessment?',
-    })
-    await user.click(
-      within(dialog).getByRole('button', { name: 'Submit assessment' }),
-    )
-
     expect(await screen.findByRole('heading', { name: 'Responses submitted successfully' })).toBeVisible()
     expect(session.onViewResult).not.toHaveBeenCalled()
     const requests = vi.mocked(fetch).mock.calls
@@ -253,15 +276,75 @@ describe('Student assessment session', () => {
       await answerQuestion(user, questionNumber)
     }
 
-    await user.click(screen.getByRole('button', { name: 'Submit assessment' }))
-    await user.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Submit assessment' }))
-
     expect(await screen.findByRole('heading', { name: 'Responses submitted successfully' })).toBeVisible()
     expect(session.onViewResult).not.toHaveBeenCalled()
     expect(fetch).toHaveBeenCalledWith(
       '/api/v1/student/assessments/riasec/sessions/1/retry-result',
       expect.objectContaining({ method: 'POST' }),
     )
+    vi.mocked(fetch).mockImplementation(fallbackFetch!)
+  })
+
+  it('shows the custom calculation state and opens My Matches when the result is ready', async () => {
+    const fallbackFetch = vi.mocked(fetch).getMockImplementation()
+    expect(fallbackFetch).toBeDefined()
+    let resolveSubmission: ((response: Response) => void) | undefined
+    const pendingSubmission = new Promise<Response>((resolve) => {
+      resolveSubmission = resolve
+    })
+    vi.mocked(fetch).mockImplementation(async (input, init) => {
+      if (input.toString().endsWith('/submit') && init?.method === 'POST') {
+        return pendingSubmission
+      }
+      return fallbackFetch!(input, init)
+    })
+
+    const user = userEvent.setup()
+    const onViewMatches = vi.fn()
+    renderSession({ remotePersistence: true, onViewMatches })
+    expect(await screen.findByRole('group', { name: 'Response for question 1' })).toBeVisible()
+
+    for (let questionNumber = 1; questionNumber <= 6; questionNumber += 1) {
+      await answerQuestion(user, questionNumber)
+    }
+
+    expect(screen.getByRole('heading', { name: 'Calculating your programme matches' })).toBeVisible()
+    expect(screen.getByRole('status')).toHaveTextContent('My Matches will open when your result is ready.')
+    expect(screen.queryByText('Final review')).not.toBeInTheDocument()
+    expect(onViewMatches).not.toHaveBeenCalled()
+
+    resolveSubmission?.(Response.json({ data: { id: 1, status: 'result_available', question_count: 6 } }))
+    await waitFor(() => expect(onViewMatches).toHaveBeenCalledOnce())
+    vi.mocked(fetch).mockImplementation(fallbackFetch!)
+  })
+
+  it('keeps calculating while the submitted result is still preparing', async () => {
+    const fallbackFetch = vi.mocked(fetch).getMockImplementation()
+    expect(fallbackFetch).toBeDefined()
+    let submitted = false
+    vi.mocked(fetch).mockImplementation(async (input, init) => {
+      const url = input.toString()
+      if (url.endsWith('/submit') && init?.method === 'POST') {
+        submitted = true
+        return Response.json({ data: { id: 1, status: 'preparing_result', question_count: 6 } })
+      }
+      if (submitted && url === '/api/v1/student/assessments/riasec/session') {
+        return Response.json({ data: { id: 1, status: 'result_available', question_count: 6 } })
+      }
+      return fallbackFetch!(input, init)
+    })
+
+    const user = userEvent.setup()
+    const onViewMatches = vi.fn()
+    renderSession({ remotePersistence: true, onViewMatches })
+    expect(await screen.findByRole('group', { name: 'Response for question 1' })).toBeVisible()
+
+    for (let questionNumber = 1; questionNumber <= 6; questionNumber += 1) {
+      await answerQuestion(user, questionNumber)
+    }
+
+    expect(screen.getByRole('heading', { name: 'Calculating your programme matches' })).toBeVisible()
+    await waitFor(() => expect(onViewMatches).toHaveBeenCalledOnce())
     vi.mocked(fetch).mockImplementation(fallbackFetch!)
   })
 
@@ -311,8 +394,8 @@ describe('Student assessment session', () => {
     )
     await userEvent.click(screen.getByRole('button', { name: 'Try again' }))
     expect(
-      screen.getByRole('heading', { name: 'Assessment session' }),
-    ).toBeVisible()
+      screen.getByRole('heading', { name: 'Interest assessment' }),
+    ).toBeInTheDocument()
     error.unmount()
 
     const stale = renderSession({ versionState: 'stale' })

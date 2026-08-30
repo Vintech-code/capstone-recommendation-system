@@ -30,11 +30,11 @@ function AdminPageHeader({
 function AdminPageSkeleton() {
   return (
     <div role="status" aria-label="Loading guidance workspace" className="space-y-5">
-      <Skeleton className="h-24 w-full rounded-lg" />
+      <Skeleton className="h-24 w-full rounded-3xl" />
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {Array.from({ length: 4 }, (_, index) => <Skeleton key={index} className="h-28 rounded-lg" />)}
+        {Array.from({ length: 4 }, (_, index) => <Skeleton key={index} className="h-28 rounded-3xl" />)}
       </div>
-      <Skeleton className="h-80 rounded-lg" />
+      <Skeleton className="h-80 rounded-3xl" />
       <span className="sr-only">Loading guidance workspace</span>
     </div>
   )
@@ -42,7 +42,7 @@ function AdminPageSkeleton() {
 
 function AdminPageError({ message, onRetry }: { message: string; onRetry: () => void }) {
   return (
-    <section role="alert" className="flex min-h-72 flex-col items-center justify-center bg-card px-6 text-center shadow-sm">
+    <section role="alert" className="flex min-h-72 flex-col items-center justify-center rounded-3xl border border-border bg-card px-6 text-center shadow-[var(--shadow-card)]">
       <span className="flex size-12 items-center justify-center rounded-lg bg-destructive/10 text-destructive"><AlertCircle aria-hidden="true" /></span>
       <h1 className="mt-4 font-display text-2xl font-semibold">Unable to load this workspace</h1>
       <p className="mt-2 max-w-lg text-sm text-muted-foreground">{message}</p>
@@ -53,7 +53,7 @@ function AdminPageError({ message, onRetry }: { message: string; onRetry: () => 
 
 function EmptyPanel({ title, description }: { title: string; description: string }) {
   return (
-    <div className="flex min-h-48 flex-col items-center justify-center bg-card px-6 text-center shadow-sm">
+    <div className="flex min-h-48 flex-col items-center justify-center rounded-3xl border border-border bg-card px-6 text-center shadow-[var(--shadow-card)]">
       <h2 className="font-display text-xl font-semibold">{title}</h2>
       <p className="mt-2 max-w-xl text-sm text-muted-foreground">{description}</p>
     </div>

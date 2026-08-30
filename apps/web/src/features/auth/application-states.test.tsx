@@ -41,7 +41,7 @@ describe('shared application states', () => {
     ).toBeVisible()
   })
 
-  it('does not flash the footer while restoring a protected session', () => {
+  it('does not render page content while restoring a protected session', () => {
     window.history.pushState({}, '', '/student')
     vi.mocked(fetch).mockImplementation(() => new Promise<Response>(() => undefined))
 
@@ -52,6 +52,12 @@ describe('shared application states', () => {
     )
 
     expect(screen.getByRole('status')).toHaveTextContent('Restoring your session.')
+    expect(screen.queryByRole('contentinfo')).not.toBeInTheDocument()
+  })
+
+  it('omits a global footer from application pages', async () => {
+    await renderAppAt('/student/login')
+
     expect(screen.queryByRole('contentinfo')).not.toBeInTheDocument()
   })
 

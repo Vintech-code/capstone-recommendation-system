@@ -1,45 +1,31 @@
-import { BarChart3, Lightbulb } from 'lucide-react'
-
+import { cn } from '@/lib/utils'
 import type { AssessmentDisplayResult } from '@/features/student/assessment/assessment-types'
 import type { StudentRecommendationProfile } from '@/features/student/recommendations/recommendation-types'
 
 interface RecommendationProfilePanelProps {
   result: AssessmentDisplayResult | StudentRecommendationProfile | null
+  className?: string
 }
 
-const scoreMinimum = 5
-const scoreMaximum = 25
-const center = 110
-const chartRadius = 70
-
-function normalizeScore(value: number) {
-  return Math.max(0, Math.min(1, (value - scoreMinimum) / (scoreMaximum - scoreMinimum)))
+const dimensionColors: Record<string, string> = {
+  R: '#b65338',
+  I: '#3d6f91',
+  A: '#a84f72',
+  S: '#3e7c61',
+  E: '#a36b16',
+  C: '#5e668f',
 }
 
-function chartPoint(index: number, radius: number) {
-  const angle = -Math.PI / 2 + index * (Math.PI / 3)
-  return {
-    x: center + Math.cos(angle) * radius,
-    y: center + Math.sin(angle) * radius,
-  }
+function normalizeScore(value: number, minimum: number, maximum: number) {
+  if (maximum <= minimum) return 0
+  return Math.max(0, Math.min(1, (value - minimum) / (maximum - minimum)))
 }
 
-function pointList(values: readonly number[], scale = 1) {
-  return values
-    .map((value, index) => {
-      const normalized = normalizeScore(value)
-      const point = chartPoint(index, chartRadius * normalized * scale)
-      return `${point.x},${point.y}`
-    })
-    .join(' ')
-}
-
-function RecommendationProfilePanel({ result }: RecommendationProfilePanelProps) {
+function RecommendationProfilePanel({ result, className }: RecommendationProfilePanelProps) {
   if (!result) {
     return (
-      <aside className="rounded-xl bg-card p-6 shadow-sm" aria-label="Interest profile unavailable">
-        <BarChart3 aria-hidden="true" className="size-7 text-primary" />
-        <h2 className="mt-4 font-display text-xl font-semibold">Your profile breakdown</h2>
+      <aside style={{ alignSelf: 'start' }} className={cn("self-start rounded-3xl border border-border bg-card p-6 shadow-[var(--shadow-card)]", className)} aria-label="Interest profile unavailable">
+        <h2 className="font-display text-xl font-bold text-foreground">RIASEC scores unavailable</h2>
         <p className="mt-2 text-sm leading-6 text-muted-foreground">
           Your programme matches are available, but the six assessment values could not be loaded here.
         </p>
@@ -47,83 +33,63 @@ function RecommendationProfilePanel({ result }: RecommendationProfilePanelProps)
     )
   }
 
-  const values = result.dimensions.map((dimension) => dimension.value)
-
   return (
-    <div className="space-y-6 lg:sticky lg:top-28">
-      <aside className="relative overflow-hidden rounded-xl bg-card p-6 shadow-sm" aria-labelledby="profile-breakdown-title">
-        <BarChart3 aria-hidden="true" className="absolute right-5 top-5 size-16 text-primary/5" />
-        <h2 id="profile-breakdown-title" className="font-display text-xl font-semibold">
-          Your profile breakdown
+    <aside style={{ alignSelf: 'start' }} className={cn("self-start rounded-3xl border border-border bg-card p-6 shadow-[var(--shadow-card)] sm:p-7 w-full", className)} aria-labelledby="profile-breakdown-title">
+      <div>
+        <h2 id="profile-breakdown-title" className="font-display text-xl font-bold tracking-tight text-foreground sm:text-2xl">
+          RIASEC scores
         </h2>
-        <p className="mt-1 text-sm text-muted-foreground">RIASEC scores from your latest completed assessment</p>
+        <p className="mt-1 text-xs text-muted-foreground sm:text-sm">
+          How your answers spread across six interest areas
+        </p>
+      </div>
 
-        <svg
-          viewBox="0 0 220 220"
-          role="img"
-          aria-label={`RIASEC profile: ${result.dimensions.map((item) => `${item.label} ${item.value}`).join(', ')}`}
-          className="mx-auto mt-5 aspect-square w-full max-w-72 overflow-visible"
-        >
-          {[0.25, 0.5, 0.75, 1].map((scale) => (
-            <polygon
-              key={scale}
-              points={pointList(Array(6).fill(scoreMaximum), scale)}
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="0.75"
-              className="text-outline-variant/60"
-            />
-          ))}
-          {result.dimensions.map((dimension, index) => {
-            const edge = chartPoint(index, chartRadius)
-            const label = chartPoint(index, chartRadius + 19)
-            return (
-              <g key={dimension.code}>
-                <line x1={center} y1={center} x2={edge.x} y2={edge.y} stroke="currentColor" strokeWidth="0.6" className="text-outline-variant/60" />
-                <text x={label.x} y={label.y} textAnchor="middle" dominantBaseline="middle" className="fill-foreground font-label text-[8px] font-semibold">
-                  {dimension.code}
-                </text>
-              </g>
-            )
-          })}
-          <polygon points={pointList(values)} className="fill-primary/15 stroke-primary" strokeWidth="2.25" strokeLinejoin="round" />
-          {values.map((value, index) => {
-            const point = chartPoint(index, chartRadius * normalizeScore(value))
-            return <circle key={`${index}-${value}`} cx={point.x} cy={point.y} r="3.5" className="fill-secondary-container stroke-primary" strokeWidth="1.2" />
-          })}
-        </svg>
+      <div className="mt-6 space-y-4">
+        {result.dimensions.map((dimension) => {
+          const minimum = dimension.minimum ?? 0
+          const maximum = dimension.maximum ?? 25
 
-        <div className="mt-3 space-y-4">
-          {result.dimensions.map((dimension) => (
+          return (
             <div key={dimension.code}>
-              <div className="flex items-center justify-between gap-3 font-label text-xs">
-                <span>{dimension.code} · {dimension.label}</span>
-                <strong>{dimension.value} / {scoreMaximum}</strong>
+              <div className="flex items-center justify-between gap-3 font-label text-sm">
+                <span className="flex min-w-0 items-center gap-2 font-medium">
+                  <span aria-hidden="true" className="size-2.5 rounded-full shrink-0" style={{ backgroundColor: dimensionColors[dimension.code] ?? 'var(--primary)' }} />
+                  <span className="text-foreground">{dimension.code} · {dimension.label}</span>
+                </span>
+                <span className="shrink-0 text-xs font-semibold text-muted-foreground sm:text-sm tabular-nums">
+                  {dimension.value} / {maximum}
+                </span>
               </div>
               <div
                 role="progressbar"
                 aria-label={`${dimension.label} score`}
-                aria-valuemin={scoreMinimum}
-                aria-valuemax={scoreMaximum}
-                aria-valuenow={Math.max(scoreMinimum, Math.min(scoreMaximum, dimension.value))}
-                className="mt-2 h-1.5 overflow-hidden rounded-full bg-secondary"
+                aria-valuemin={minimum}
+                aria-valuemax={maximum}
+                aria-valuenow={Math.max(minimum, Math.min(maximum, dimension.value))}
+                className="mt-2 h-2 overflow-hidden rounded-full bg-secondary"
               >
-                <div className="h-full rounded-full bg-primary" style={{ width: `${normalizeScore(dimension.value) * 100}%` }} />
+                <div
+                  className="h-full rounded-full transition-all duration-500"
+                  style={{
+                    width: `${normalizeScore(dimension.value, minimum, maximum) * 100}%`,
+                    backgroundColor: dimensionColors[dimension.code] ?? 'var(--primary)',
+                  }}
+                />
               </div>
             </div>
-          ))}
-        </div>
-      </aside>
+          )
+        })}
+      </div>
 
-      <aside className="rounded-xl bg-primary p-6 text-primary-foreground shadow-sm" aria-labelledby="leading-interests-title">
-        <Lightbulb aria-hidden="true" className="size-7 text-secondary-container" />
-        <h2 id="leading-interests-title" className="mt-4 font-display text-xl font-semibold">Your leading interests</h2>
-        <p className="mt-3 text-sm leading-6 text-primary-foreground/80">
-          Your strongest recorded areas are {result.topLabels.join(' and ')}. Use these results to compare programmes, then review the full programme information before choosing.
+      <div className="mt-6 rounded-2xl bg-secondary/60 p-4 sm:p-5">
+        <p className="font-label text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
+          Recorded pattern
         </p>
-        <p className="mt-4 font-label text-xs font-medium text-secondary-container">Top code: {result.topCode}</p>
-      </aside>
-    </div>
+        <p className="mt-1 text-xs leading-5 text-foreground sm:text-sm sm:leading-6">
+          <strong>{result.topCode}</strong> represents the two categories stored as your leading areas. Programme matching compares the recorded RIASEC scores with each programme's configured profile.
+        </p>
+      </div>
+    </aside>
   )
 }
 

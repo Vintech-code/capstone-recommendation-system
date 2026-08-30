@@ -30,7 +30,7 @@ function CollectionToolbar({
   return (
     <div
       className={cn(
-        'flex flex-col gap-3 rounded-xl bg-card p-3 shadow-sm sm:flex-row sm:items-center sm:justify-between',
+        'flex flex-col gap-3 rounded-2xl border border-border bg-card p-3 shadow-[var(--shadow-card)] sm:flex-row sm:items-center sm:justify-between',
         className,
       )}
     >

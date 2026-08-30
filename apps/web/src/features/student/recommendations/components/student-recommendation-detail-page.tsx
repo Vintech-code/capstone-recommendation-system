@@ -1,14 +1,12 @@
 import {
   ArrowLeft,
   ArrowRight,
-  BadgeDollarSign,
   BookOpen,
   BriefcaseBusiness,
   Clock3,
-  Compass,
   GraduationCap,
+  ShieldCheck,
   Target,
-  TrendingUp,
 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -70,11 +68,20 @@ function StudentRecommendationDetailPage({
     : course.factors.length > 0
       ? course.factors
       : course.interestAreas.map((area) => `Profile includes ${area}`)
+
+  const programmeTypeLabel = course.eligibilityGroup === 'non_board'
+    ? 'Non-board programme'
+    : 'Board programme'
+
+  const primaryCareer = course.careerDirections.length > 0
+    ? course.careerDirections[0]
+    : 'Technology & Applied'
+
   const facts = [
     { label: 'Duration', value: course.duration || 'Not published', accent: false, icon: Clock3 },
     { label: 'Degree type', value: course.degreeType || 'Not published', accent: false, icon: GraduationCap },
-    { label: 'Starting salary', value: course.salary?.display || 'Not published', accent: false, icon: BadgeDollarSign },
-    { label: 'Job growth', value: course.jobGrowth?.display || 'Not published', accent: true, icon: TrendingUp },
+    { label: 'Programme type', value: programmeTypeLabel, accent: true, icon: ShieldCheck },
+    { label: 'Career field', value: primaryCareer, accent: false, icon: BriefcaseBusiness },
   ]
 
   return (
@@ -118,18 +125,17 @@ function StudentRecommendationDetailPage({
         </div>
       </header>
 
-      <div className="student-page mt-8 grid items-start gap-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(18rem,0.72fr)]">
-        <div className="space-y-10">
-          <dl className="relative grid overflow-hidden rounded-xl bg-card p-6 shadow-sm sm:grid-cols-2 xl:grid-cols-4">
-            <span aria-hidden="true" className="absolute -right-12 -top-12 size-28 rounded-full bg-primary/5 blur-2xl" />
+      <div className="student-page mt-8 grid items-start gap-10 lg:grid-cols-[minmax(0,1.6fr)_minmax(18rem,0.72fr)]">
+        <div className="space-y-8">
+          <dl className="grid grid-cols-2 gap-4 border-b border-border/80 pb-6 sm:grid-cols-4 sm:gap-6">
             {facts.map((fact) => (
-              <div key={fact.label} className="relative min-w-0 py-3 sm:px-4 sm:py-1 first:pl-0 last:pr-0">
-                <dt className="flex items-center gap-2 font-label text-[11px] font-medium uppercase tracking-[0.11em] text-muted-foreground">
-                  <fact.icon aria-hidden="true" className="size-4 text-primary" />
+              <div key={fact.label} className="min-w-0">
+                <dt className="flex items-center gap-1.5 font-label text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
+                  <fact.icon aria-hidden="true" className="size-3.5 text-primary" />
                   {fact.label}
                 </dt>
                 <dd className="mt-1.5">
-                  <span className={`block font-display text-xl font-semibold leading-7 ${fact.accent ? 'text-accent' : 'text-foreground'}`}>
+                  <span className={`block font-display text-base font-bold sm:text-lg ${fact.accent ? 'text-primary' : 'text-foreground'}`}>
                     {fact.value}
                   </span>
                 </dd>
@@ -137,144 +143,140 @@ function StudentRecommendationDetailPage({
             ))}
           </dl>
 
-          <section aria-labelledby="learning-areas-title">
-            <div className="mb-5 flex items-center gap-3">
-              <BookOpen aria-hidden="true" className="size-7 text-primary" />
+          <section aria-labelledby="learning-areas-title" className="space-y-3.5">
+            <div className="flex items-center gap-2.5">
+              <BookOpen aria-hidden="true" className="size-5 text-primary" />
               <div>
-                <p className="font-label text-xs uppercase tracking-[0.12em] text-muted-foreground">Programme overview</p>
-                <h2 id="learning-areas-title" className="font-display text-2xl font-semibold sm:text-3xl">Core learning areas</h2>
+                <p className="font-label text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Programme overview</p>
+                <h2 id="learning-areas-title" className="font-display text-lg font-bold text-foreground sm:text-xl">Core learning areas</h2>
               </div>
             </div>
             {course.learningAreas.length > 0 ? (
-              <ol className="grid gap-4 sm:grid-cols-2">
+              <ol className="divide-y divide-border/60 rounded-2xl border border-border/70 bg-card/60 overflow-hidden shadow-xs">
                 {course.learningAreas.map((area, index) => (
-                  <li key={area} className="min-h-32 rounded-lg bg-secondary p-5">
-                    <div className="flex items-start justify-between gap-4">
-                      <h3 className="font-display text-lg font-semibold leading-6">{area}</h3>
-                      <span className="font-label text-xs font-semibold text-primary">{String(index + 1).padStart(2, '0')}</span>
+                  <li key={area} className="flex items-start gap-4 p-4.5 sm:p-5 transition-colors hover:bg-card">
+                    <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-primary-fixed font-label text-xs font-bold text-on-primary-fixed">
+                      {String(index + 1).padStart(2, '0')}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="font-display text-sm font-bold text-foreground sm:text-base">{area}</h3>
+                      <p className="mt-1 text-xs leading-relaxed text-muted-foreground sm:text-sm">
+                        {course.learningAreaDescriptions?.[area] ?? 'A recorded learning area in the current programme catalogue.'}
+                      </p>
                     </div>
-                    <p className="mt-4 text-sm leading-6 text-muted-foreground">
-                      {course.learningAreaDescriptions?.[area] ?? 'A recorded learning area in the current programme catalogue.'}
-                    </p>
                   </li>
                 ))}
               </ol>
             ) : (
-              <p className="rounded-lg bg-card p-5 text-sm text-muted-foreground shadow-sm">
+              <p className="text-sm text-muted-foreground">
                 Learning areas are not available for this programme.
               </p>
             )}
           </section>
 
-          <section aria-labelledby="fit-reasons-title" className="overflow-hidden rounded-xl bg-brand-dark px-6 py-7 text-white shadow-sm sm:px-8 sm:py-9">
-            <div className="flex items-start gap-4">
-              <span className="flex size-11 shrink-0 items-center justify-center rounded bg-white/10">
-                <Target aria-hidden="true" className="size-5" />
-              </span>
+          <section aria-labelledby="fit-reasons-title" className="space-y-3.5">
+            <div className="flex items-center gap-2.5">
+              <Target aria-hidden="true" className="size-5 text-primary" />
               <div>
-                <p className="font-label text-xs uppercase tracking-[0.12em] text-white/65">Assessment connection</p>
-                <h2 id="fit-reasons-title" className="mt-1 font-display text-2xl font-semibold sm:text-3xl">Why this fits you</h2>
+                <p className="font-label text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Assessment connection</p>
+                <h2 id="fit-reasons-title" className="font-display text-lg font-bold tracking-tight text-foreground sm:text-xl">Why this fits you</h2>
               </div>
             </div>
             {fitReasons.length > 0 ? (
-              <ol className="mt-7 grid gap-3 sm:grid-cols-2">
+              <ol className="divide-y divide-border/60 rounded-2xl border border-border/70 bg-card/60 overflow-hidden shadow-xs">
                 {fitReasons.map((reason, index) => (
-                  <li key={`${reason}-${index}`} className="flex min-h-28 items-start gap-4 rounded bg-white/[0.08] p-4">
-                    <span className="flex size-9 shrink-0 items-center justify-center rounded bg-accent font-label text-xs font-bold text-accent-foreground">
+                  <li key={`${reason}-${index}`} className="flex items-start gap-4 p-4.5 sm:p-5 transition-colors hover:bg-card">
+                    <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-secondary font-label text-xs font-bold text-foreground/80">
                       {String(index + 1).padStart(2, '0')}
                     </span>
-                    <p className="text-sm leading-6 text-white/85">{describeFactor(reason)}</p>
+                    <p className="pt-0.5 text-xs leading-relaxed text-foreground sm:text-sm sm:leading-6">
+                      {describeFactor(reason)}
+                    </p>
                   </li>
                 ))}
               </ol>
             ) : (
-              <p className="mt-6 text-sm text-white/75">No additional match factors were supplied for this recommendation.</p>
+              <p className="text-sm text-muted-foreground">No additional match factors were supplied for this recommendation.</p>
             )}
           </section>
 
         </div>
 
-        <aside className="space-y-6 lg:sticky lg:top-24">
-          <section aria-labelledby="match-score-title" className="overflow-hidden rounded-lg bg-card shadow-[inset_0_3px_0_var(--accent),0_2px_8px_var(--shadow-primary)]">
-            <div className="p-6 text-center">
-              <h2 id="match-score-title" className="font-display text-xl font-semibold">Your match score</h2>
-              <div className="relative mx-auto mt-4 size-32" aria-hidden="true">
-                <svg viewBox="0 0 100 100" className="size-full -rotate-90">
-                  <circle cx="50" cy="50" r={circleRadius} fill="none" stroke="currentColor" strokeWidth="7" className="text-secondary" />
-                  <circle
-                    cx="50"
-                    cy="50"
-                    r={circleRadius}
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="7"
-                    strokeLinecap="round"
-                    strokeDasharray={circleLength}
-                    strokeDashoffset={circleOffset}
-                    className="text-accent"
-                  />
-                </svg>
-                <strong className="absolute inset-0 flex items-center justify-center font-display text-3xl font-bold text-primary tabular-nums">
-                  {course.match}%
-                </strong>
-              </div>
-              <p className="mt-3 text-sm font-semibold text-primary">{fitLabel}</p>
-              <p className="mt-3 text-sm leading-6 text-muted-foreground">
-                Based on the interest profile recorded in your completed assessment.
-              </p>
-              <div
-                role="progressbar"
-                aria-label={`${course.name} recorded match`}
-                aria-valuemin={0}
-                aria-valuemax={100}
-                aria-valuenow={course.match}
-                className="sr-only"
-              />
-              <Button type="button" onClick={onBack} className="mt-5 w-full">
-                View all matches
-              </Button>
+        <aside className="space-y-6">
+          <section aria-labelledby="match-score-title" className="rounded-3xl border border-border bg-card p-6 shadow-sm">
+            <h2 id="match-score-title" className="text-center font-display text-lg font-bold">Your match score</h2>
+            <div className="relative mx-auto mt-4 size-32" aria-hidden="true">
+              <svg viewBox="0 0 100 100" className="size-full -rotate-90">
+                <circle cx="50" cy="50" r={circleRadius} fill="none" stroke="currentColor" strokeWidth="7" className="text-secondary" />
+                <circle
+                  cx="50"
+                  cy="50"
+                  r={circleRadius}
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="7"
+                  strokeLinecap="round"
+                  strokeDasharray={circleLength}
+                  strokeDashoffset={circleOffset}
+                  className="text-accent"
+                />
+              </svg>
+              <strong className="absolute inset-0 flex items-center justify-center font-display text-3xl font-bold text-primary tabular-nums">
+                {course.match}%
+              </strong>
+            </div>
+            <p className="mt-3 text-center text-sm font-semibold text-primary">{fitLabel}</p>
+            <p className="mt-2 text-center text-xs leading-5 text-muted-foreground sm:text-sm">
+              Based on the interest profile recorded in your completed assessment.
+            </p>
+            <div
+              role="progressbar"
+              aria-label={`${course.name} recorded match`}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={course.match}
+              className="sr-only"
+            />
+            <Button type="button" onClick={onBack} className="mt-5 w-full">
+              View all matches
+            </Button>
+
+            <div className="mt-6 border-t border-border pt-5">
+              <dl className="space-y-4">
+                <div>
+                  <dt className="font-label text-xs uppercase tracking-[0.1em] text-muted-foreground">Programme code</dt>
+                  <dd className="mt-1 font-semibold">{course.code}</dd>
+                </div>
+                <div>
+                  <dt className="font-label text-xs uppercase tracking-[0.1em] text-muted-foreground">Matched interest areas</dt>
+                  <dd className="mt-2 flex flex-wrap gap-2">
+                    {course.interestAreas.length > 0
+                      ? course.interestAreas.map((area) => (
+                          <span key={area} className="outcome-chip" title={interestAreaNames[area]}>{area}</span>
+                        ))
+                      : <span className="text-sm text-muted-foreground">Not supplied</span>}
+                  </dd>
+                </div>
+              </dl>
             </div>
           </section>
 
-          <section aria-labelledby="career-directions-title" className="rounded-xl bg-secondary p-5">
-            <div className="flex items-center gap-3">
-              <BriefcaseBusiness aria-hidden="true" className="size-5 text-primary" />
-              <h2 id="career-directions-title" className="font-display text-xl font-semibold">Related fields</h2>
-            </div>
-            {course.careerDirections.length > 0 ? (
-              <ul className="mt-4 space-y-3">
+          {course.careerDirections.length > 0 ? (
+            <section aria-labelledby="career-directions-title" className="space-y-3">
+              <div className="flex items-center gap-2.5">
+                <BriefcaseBusiness aria-hidden="true" className="size-4 text-primary" />
+                <h2 id="career-directions-title" className="font-display text-base font-bold">Related fields</h2>
+              </div>
+              <ul className="space-y-2">
                 {course.careerDirections.map((direction) => (
-                  <li key={direction} className="flex min-h-14 items-center justify-between gap-3 rounded-lg bg-card px-4 py-3 shadow-sm">
-                    <span className="text-sm font-semibold leading-5">{direction}</span>
-                    <ArrowRight aria-hidden="true" className="size-4 shrink-0 text-muted-foreground" />
+                  <li key={direction} className="flex min-h-11 items-center justify-between gap-3 rounded-xl bg-secondary/70 px-4 py-2.5 transition-colors">
+                    <span className="text-xs font-medium leading-5 text-foreground sm:text-sm">{direction}</span>
+                    <ArrowRight aria-hidden="true" className="size-3.5 shrink-0 text-muted-foreground" />
                   </li>
                 ))}
               </ul>
-            ) : <p className="mt-4 text-sm text-muted-foreground">Related fields are not available.</p>}
-          </section>
-
-          <section aria-labelledby="profile-title" className="rounded-lg bg-secondary p-5">
-            <div className="flex items-center gap-3">
-              <Compass aria-hidden="true" className="size-5 text-primary" />
-              <h2 id="profile-title" className="font-display text-xl font-semibold">Match profile</h2>
-            </div>
-            <dl className="mt-5 space-y-4">
-              <div className="rounded bg-card p-4 shadow-sm">
-                <dt className="font-label text-xs uppercase tracking-[0.1em] text-muted-foreground">Programme code</dt>
-                <dd className="mt-1 font-semibold">{course.code}</dd>
-              </div>
-              <div className="rounded bg-card p-4 shadow-sm">
-                <dt className="font-label text-xs uppercase tracking-[0.1em] text-muted-foreground">Matched interest areas</dt>
-                <dd className="mt-3 flex flex-wrap gap-2">
-                  {course.interestAreas.length > 0
-                    ? course.interestAreas.map((area) => (
-                        <span key={area} className="outcome-chip" title={interestAreaNames[area]}>{area}</span>
-                      ))
-                    : <span className="text-sm text-muted-foreground">Not supplied</span>}
-                </dd>
-              </div>
-            </dl>
-          </section>
+            </section>
+          ) : null}
 
         </aside>
       </div>

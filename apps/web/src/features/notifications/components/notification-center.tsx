@@ -7,7 +7,7 @@ import { getNotifications, markNotificationRead, type PathwaysNotification } fro
 import { cn } from '@/lib/utils'
 
 interface NotificationCenterProps {
-  workspaceLabel: 'Student' | 'Administrator' | 'Counselor'
+  workspaceLabel: 'Student' | 'Administrator'
   className?: string
   onNavigate?: (moduleId: string) => void
 }
@@ -87,7 +87,7 @@ function NotificationCenter({ workspaceLabel, className, onNavigate }: Notificat
       <PopoverContent aria-label={`${workspaceLabel} notifications`} className="flex max-h-[min(42rem,calc(100vh-5rem))] w-[calc(100vw-1rem)] max-w-104 flex-col overflow-hidden p-0">
         <div className="px-5 pb-3 pt-5">
           <div className="flex items-start justify-between gap-4">
-            <div><h2 className="font-display text-2xl font-bold tracking-tight">Notifications</h2><p className="mt-1 text-xs text-muted-foreground">{workspaceLabel} activity and guidance updates</p></div>
+            <div><h2 className="font-display text-2xl font-bold tracking-tight">Notifications</h2><p className="mt-1 text-xs text-muted-foreground">{workspaceLabel} assessment and programme updates</p></div>
             {unreadCount ? <span className="rounded-full bg-primary-fixed px-3 py-1 text-xs font-bold text-on-primary-fixed">{unreadCount} new</span> : null}
           </div>
           <div className="mt-4 flex gap-2" role="tablist" aria-label="Notification filters">
@@ -98,7 +98,7 @@ function NotificationCenter({ workspaceLabel, className, onNavigate }: Notificat
         <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-2">
           {state === 'loading' ? <NotificationLoading /> : null}
           {state === 'error' ? <div role="alert" className="m-2 rounded-xl bg-destructive/10 p-5"><p className="font-semibold text-destructive">Notifications could not be loaded.</p><p className="mt-2 text-sm text-muted-foreground">Your records were not changed. Try loading this list again.</p><Button type="button" variant="outline" size="sm" className="mt-4" onClick={load}><RefreshCw aria-hidden="true" />Try again</Button></div> : null}
-          {state === 'ready' && notifications.length === 0 ? <NotificationEmpty title="You’re all caught up" description="Assessment, guidance, and programme updates will appear here." /> : null}
+          {state === 'ready' && notifications.length === 0 ? <NotificationEmpty title="You’re all caught up" description="Assessment and programme updates will appear here." /> : null}
           {state === 'ready' && notifications.length > 0 && visibleNotifications.length === 0 ? <NotificationEmpty title="No unread notifications" description="New activity will appear here when it is recorded." /> : null}
           {state === 'ready' && visibleNotifications.length > 0 ? <ol>{visibleNotifications.map((notification) => {
             const navigable = Boolean(onNavigate && resolveNotificationDestination(workspaceLabel, notification))
@@ -125,13 +125,6 @@ function resolveNotificationDestination(workspaceLabel: NotificationCenterProps[
   if (workspaceLabel === 'Student') {
     if (eventType === 'assessment_result_ready' && hasRecordId(context.assessmentSessionId)) return 'recommendations'
     if (eventType === 'programme_updated' && hasTextId(context.programmeId)) return 'programmes'
-    if (eventType === 'guidance_summary_published' && hasRecordId(context.guidanceSummaryId)) return 'overview'
-    if (eventType.startsWith('guidance_request_') && hasRecordId(context.guidanceRequestId)) return 'overview'
-    return null
-  }
-
-  if (workspaceLabel === 'Counselor') {
-    if (eventType.startsWith('guidance_request_') && hasRecordId(context.guidanceRequestId)) return 'requests'
     return null
   }
 

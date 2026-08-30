@@ -40,11 +40,9 @@ describe('StudentWorkspaceShell', () => {
     expect(logos[1]).toHaveClass('hidden', 'md:block', 'object-contain')
     expect(logos[0]).not.toHaveClass('bg-background', 'shadow-sm')
     expect(mobileNavigation.querySelector('ul')).toHaveClass('grid')
-    expect(mobileNavigation.querySelector('ul')).toHaveClass('grid-cols-5')
-    expect(screen.getAllByRole('button', { name: 'Dashboard' })[0].textContent).toBe('')
-    expect(screen.getAllByRole('button', { name: 'Interest assessment' })[0].querySelector('svg')).not.toBeNull()
+    expect(mobileNavigation.querySelector('ul')).toHaveClass('grid-cols-2')
     expect(mobileNavigation.parentElement).toHaveClass('flex', 'h-16')
-    expect(screen.getAllByRole('button', { name: 'Dashboard' })).toHaveLength(2)
+    expect(screen.queryByRole('button', { name: 'Dashboard' })).not.toBeInTheDocument()
     expect(screen.getAllByRole('button', { name: 'My Matches' })[1]).toHaveAttribute('aria-current', 'page')
   })
 
@@ -61,17 +59,52 @@ describe('StudentWorkspaceShell', () => {
     render(
       <StudentWorkspaceShell
         modules={modules}
-        activeId="overview"
+        activeId="recommendations"
         onSelect={vi.fn()}
         onExit={vi.fn()}
-        studentName="Zyx Santos"
-        studentPhotoUrl="/api/v1/profile-photos/1?v=123"
+        studentName="Maria Santos"
+        studentPhotoUrl="https://example.test/avatar.png"
       >
         <p>Student content</p>
       </StudentWorkspaceShell>,
     )
 
-    expect(screen.getByRole('img', { name: 'Zyx Santos profile' })).toHaveAttribute('src', '/api/v1/profile-photos/1?v=123')
+    const avatar = screen.getByRole('img', { name: 'Maria Santos profile' })
+    expect(avatar).toBeVisible()
+    expect(avatar).toHaveAttribute('src', 'https://example.test/avatar.png')
+  })
+
+  it('falls back to student initials when no photo is available', () => {
+    render(
+      <StudentWorkspaceShell
+        modules={modules}
+        activeId="recommendations"
+        onSelect={vi.fn()}
+        onExit={vi.fn()}
+        studentName="Juan Dela Cruz"
+      >
+        <p>Student content</p>
+      </StudentWorkspaceShell>,
+    )
+
+    expect(screen.getByText('JD')).toBeVisible()
+  })
+
+  it('allows mobile students to toggle user profile and settings controls', () => {
+    render(
+      <StudentWorkspaceShell
+        modules={modules}
+        activeId="recommendations"
+        onSelect={vi.fn()}
+        onExit={vi.fn()}
+        studentName="Ana Santos"
+      >
+        <p>Student content</p>
+      </StudentWorkspaceShell>,
+    )
+
+    fireEvent.pointerDown(screen.getByRole('button', { name: 'Open user menu' }))
+    expect(screen.getByRole('menuitem', { name: 'Sign out' })).toBeVisible()
   })
 
   it('keeps mobile navigation functional', () => {
@@ -79,7 +112,7 @@ describe('StudentWorkspaceShell', () => {
     render(
       <StudentWorkspaceShell
         modules={modules}
-        activeId="assessment"
+        activeId="recommendations"
         onSelect={onSelect}
         onExit={vi.fn()}
       >
@@ -91,7 +124,7 @@ describe('StudentWorkspaceShell', () => {
     expect(onSelect).toHaveBeenCalledWith('programmes')
   })
 
-  it('keeps assessment history separate from the primary navigation', () => {
+  it('does not select a navigation tab when viewing off-navigation views like history', () => {
     render(
       <StudentWorkspaceShell
         modules={modules}
@@ -107,21 +140,38 @@ describe('StudentWorkspaceShell', () => {
     expect(screen.queryByRole('button', { current: 'page' })).not.toBeInTheDocument()
   })
 
-  it('provides a visible dashboard destination on desktop and mobile', () => {
-    const onSelect = vi.fn()
+  it('hides top navigation items during the assessment onboarding phase', () => {
     render(
       <StudentWorkspaceShell
         modules={modules}
         activeId="assessment"
-        onSelect={onSelect}
+        onSelect={vi.fn()}
         onExit={vi.fn()}
       >
         <p>Assessment page</p>
       </StudentWorkspaceShell>,
     )
 
-    fireEvent.click(screen.getAllByRole('button', { name: 'Dashboard' })[0])
-    expect(onSelect).toHaveBeenCalledWith('overview')
+    expect(screen.queryByRole('navigation', { name: 'Workspace navigation' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('navigation', { name: 'Mobile workspace navigation' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Go to dashboard' })).toBeInTheDocument()
+  })
+
+  it('provides a visible matches destination on desktop and mobile through the logo', () => {
+    const onSelect = vi.fn()
+    render(
+      <StudentWorkspaceShell
+        modules={modules}
+        activeId="programmes"
+        onSelect={onSelect}
+        onExit={vi.fn()}
+      >
+        <p>Programmes page</p>
+      </StudentWorkspaceShell>,
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Go to dashboard' }))
+    expect(onSelect).toHaveBeenCalledWith('recommendations')
     expect(screen.getByRole('button', { name: 'Go to dashboard' })).toBeInTheDocument()
   })
 })

@@ -1,9 +1,9 @@
-import { ArrowRight, Award, BookOpenCheck, CalendarDays, CheckCircle2, GraduationCap, RefreshCw } from 'lucide-react'
+import { ArrowRight, BookOpenCheck, CalendarDays, Compass, RefreshCw } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 
+import resultIllustration from '@/assets/student-interest-result-v1.webp'
 import { EmptyState, ErrorState, LoadingState } from '@/components/shared'
 import { Button } from '@/components/ui/button'
-import matchesHeroImage from '@/assets/student-matches-hero-v2.webp'
 import {
   getCurrentAssessment,
   startAssessment,
@@ -145,52 +145,166 @@ function StudentRecommendationResultsPage({
     )
   }
 
+  const profile = snapshot.profile ?? assessmentResult ?? null
+  const leadingDimensions = profile
+    ? profile.topCode
+        .split('-')
+        .map((code) => profile.dimensions.find((dimension) => dimension.code === code))
+        .filter((dimension) => dimension !== undefined)
+    : []
+
+  const topCareerPaths = snapshot
+    ? Array.from(new Set(snapshot.courses.flatMap((course) => course.careerDirections ?? []))).slice(0, 4)
+    : []
+
   return (
     <div className="student-grid-page student-dashboard-canvas">
-      <section
-        data-testid="matches-hero"
-        className="relative isolate min-h-[19rem] overflow-hidden bg-primary-fixed/55"
-        aria-labelledby="recommendation-title"
-      >
-        <img src={matchesHeroImage} alt="" className="pointer-events-none absolute inset-0 -z-20 size-full object-cover object-center" />
-        <div className="absolute inset-0 -z-10 bg-gradient-to-r from-primary-fixed/90 via-primary-fixed/20 to-transparent dark:from-background dark:via-background/70 dark:to-background/10" />
-        <div className="student-page grid min-h-[19rem] gap-8 py-8 sm:py-10 lg:grid-cols-[minmax(0,1fr)_16rem] lg:items-center">
-          <div className="max-w-2xl">
-            <p className="inline-flex min-h-10 items-center gap-2 rounded bg-card/90 px-4 font-label text-xs font-semibold uppercase tracking-[0.08em] text-primary shadow-sm"><CheckCircle2 aria-hidden="true" className="size-5 text-chart-blue" />Assessment complete</p>
-            <h1 id="recommendation-title" className="mt-5 font-display text-4xl font-bold tracking-[-0.04em] text-primary sm:text-5xl">Your academic matches</h1>
-            <p className="mt-4 max-w-xl text-base leading-7 text-on-primary-fixed-variant sm:text-lg">Compare the TCC programmes that most closely match the interests recorded in your completed assessment.</p>
-            <p className="mt-5 flex items-center gap-2 font-label text-sm font-medium text-on-primary-fixed-variant"><CalendarDays aria-hidden="true" className="size-4 text-primary" />Recommendations generated {formatAssessmentDate(snapshot.generatedAt)}</p>
-          </div>
+      <div className="mx-auto w-full max-w-6xl px-4 sm:px-6 md:px-8 lg:px-10 pb-12 pt-6 sm:pt-10">
+        <div style={{ alignItems: 'start' }} className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(24rem,28rem)] lg:gap-12 xl:gap-14">
+          <section className="min-w-0" aria-labelledby="recommendation-result-title">
+            <div className="relative mx-auto aspect-square w-52 overflow-hidden rounded-[2rem] border-2 border-primary/20 bg-primary-fixed/30 p-3 shadow-xs sm:w-60">
+              <div aria-hidden="true" className="absolute inset-x-4 bottom-2 h-10 rounded-full bg-primary-fixed/60 blur-lg" />
+              <img
+                src={resultIllustration}
+                alt=""
+                className="relative size-full object-contain"
+              />
+            </div>
 
-          <div className="grid w-full gap-3 justify-self-end sm:max-w-64" data-print-hidden>
-            {onOpenAssessment ? (
-              <Button type="button" onClick={() => setRetakeOpen(true)} className="min-h-12 justify-between bg-primary/95 px-5">
-                <span className="flex items-center gap-2"><RefreshCw aria-hidden="true" />Retake assessment</span><ArrowRight aria-hidden="true" />
+            {profile ? (
+              <>
+                <h1 id="recommendation-result-title" className="mt-4 max-w-2xl font-display text-2xl font-bold tracking-tight text-primary sm:text-3xl lg:text-4xl">
+                  {profile.topLabels.join(' and ')}
+                </h1>
+                <p className="mt-2 font-label text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground sm:text-xs">
+                  {leadingDimensions.map((d) => d.label.toUpperCase()).join(' AND ')}{' '}
+                  · {profile.topCode}
+                </p>
+
+                <p className="mt-4 max-w-xl text-sm leading-relaxed text-foreground/85 sm:text-base sm:leading-7">
+                  {leadingDimensions.length === 2
+                    ? `You care about ${leadingDimensions[0].label.toLowerCase()} and ${leadingDimensions[1].label.toLowerCase()} pursuits. Programmes that match these interest areas often align with how you learn best.`
+                    : 'These are the interest areas with the highest recorded counts in your completed assessment.'}
+                </p>
+
+                {leadingDimensions.length > 0 ? (
+                  <div className="mt-6">
+                    <p className="font-label text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground sm:text-xs">
+                      Your leading areas
+                    </p>
+                    <div className="mt-2.5 flex flex-wrap gap-2">
+                      {leadingDimensions.map((dimension) => (
+                        <span
+                          key={dimension.code}
+                          className="inline-flex items-center gap-1.5 rounded-full border border-primary/15 bg-primary-fixed px-3.5 py-1 font-label text-xs font-medium text-on-primary-fixed sm:text-sm"
+                        >
+                          {dimension.label}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+
+                <div className="mt-7 max-w-xl rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-sm">
+                  <div className="flex items-center gap-2 text-primary">
+                    <Compass aria-hidden="true" className="size-5 shrink-0" />
+                    <h2 className="font-display text-base font-bold sm:text-lg">Recommended career paths</h2>
+                  </div>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Built for your strongest pattern: <strong className="font-semibold text-foreground">{profile.topCode}</strong>
+                  </p>
+
+                  {topCareerPaths.length > 0 ? (
+                    <div className="mt-4">
+                      <p className="font-label text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
+                        Career opportunities
+                      </p>
+                      <p className="mt-1 font-display text-sm font-bold text-foreground sm:text-base">
+                        {topCareerPaths.join(', ')}
+                      </p>
+                    </div>
+                  ) : null}
+
+                  <div className="mt-4 border-t border-border/70 pt-3.5">
+                    <p className="font-label text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
+                      Why it fits you
+                    </p>
+                    <p className="mt-1 text-xs leading-relaxed text-muted-foreground sm:text-sm">
+                      {leadingDimensions.length === 2
+                        ? `Applying ${leadingDimensions[0].label.toLowerCase()} and ${leadingDimensions[1].label.toLowerCase()} strengths to practical professional opportunities.`
+                        : 'Matching careers align with your highest recorded interest areas.'}
+                    </p>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <>
+                <h1 id="recommendation-result-title" className="mt-5 font-display text-2xl font-bold tracking-tight text-primary sm:text-3xl lg:text-4xl">
+                  Your academic matches
+                </h1>
+                <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground sm:text-base">
+                  Compare the programmes generated from your completed assessment.
+                </p>
+              </>
+            )}
+
+            <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3 text-xs sm:text-sm text-muted-foreground">
+              <span className="flex items-center gap-2">
+                <CalendarDays aria-hidden="true" className="size-4" />
+                Generated {formatAssessmentDate(snapshot.generatedAt)}
+              </span>
+              {snapshot.entranceExamination ? (
+                <span>
+                  Programme group: <strong className="font-semibold text-foreground">{snapshot.entranceExamination.eligibilityGroup === 'board' ? 'Board programmes' : 'Non-board programmes'}</strong>
+                </span>
+              ) : null}
+            </div>
+
+            <div className="mt-6 flex flex-wrap gap-3">
+              {onOpenAssessment ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setRetakeOpen(true)}
+                  className="gap-2"
+                >
+                  <RefreshCw aria-hidden="true" className="size-4" />
+                  Retake assessment
+                </Button>
+              ) : null}
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => (onExploreProgrammes ?? (() => onBack()))(snapshot.courses)}
+                className="gap-2"
+              >
+                Explore all programmes
+                <ArrowRight aria-hidden="true" className="size-4" />
               </Button>
-            ) : null}
-            <Button type="button" variant="outline" onClick={() => (onExploreProgrammes ?? (() => onBack()))(snapshot.courses)} className="min-h-12 justify-between bg-card/90 px-5">
-              <span className="flex items-center gap-2"><GraduationCap aria-hidden="true" />Explore all programmes</span><ArrowRight aria-hidden="true" />
-            </Button>
-          </div>
-        </div>
-      </section>
+            </div>
+          </section>
 
-      <div className="student-page pb-16 pt-10 sm:pt-12">
-      <div className="grid items-start gap-7 lg:grid-cols-[minmax(0,1.45fr)_minmax(19rem,0.65fr)]">
-        <section aria-labelledby="top-recommendations-title">
-          <div className="mb-6 flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3"><span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-primary-fixed text-primary"><Award aria-hidden="true" className="size-5" /></span><h2 id="top-recommendations-title" className="font-display text-2xl font-semibold sm:text-3xl">Top recommendations</h2></div>
-            <span className="inline-flex min-h-10 items-center rounded-full bg-primary px-4 font-label text-sm font-semibold text-primary-foreground shadow-sm">
-              {snapshot.showingAll ? `${snapshot.courses.length} programmes` : `Top ${snapshot.courses.length} matches`}
+          {profile ? <RecommendationProfilePanel result={profile} /> : null}
+        </div>
+
+        <div className="mt-12 sm:mt-16">
+          <div className="mb-5 flex items-center justify-between gap-3">
+            <div>
+              <h2 className="font-display text-lg font-semibold sm:text-xl">
+                All ranked matches
+              </h2>
+              <p className="mt-1 text-sm text-muted-foreground">Ranked with the current provisional programme-matching rule.</p>
+            </div>
+            <span className="inline-flex min-h-8 items-center rounded-full bg-primary px-3 font-label text-xs font-semibold text-primary-foreground">
+              {snapshot.showingAll ? `${snapshot.courses.length} programmes` : `Top ${snapshot.courses.length}`}
             </span>
           </div>
 
-          <ol className="space-y-5">
-            {snapshot.courses.map((course, index) => (
+          <ol className="divide-y divide-border border-y border-border">
+            {snapshot.courses.map((course) => (
               <li key={course.id}>
                 <RecommendationMatchCard
                   course={course}
-                  featured={index < 2}
                   onViewDetails={() => setSelectedCourse(course)}
                 />
               </li>
@@ -202,7 +316,7 @@ function StudentRecommendationResultsPage({
               type="button"
               variant="outline"
               disabled={loadingAll}
-              className="mt-6 min-h-12 w-full bg-card"
+              className="mt-5 min-h-11 w-full bg-card"
               onClick={() => {
                 setLoadingAll(true)
                 getLatestRecommendation(true)
@@ -211,39 +325,34 @@ function StudentRecommendationResultsPage({
                   .finally(() => setLoadingAll(false))
               }}
             >
-              {loadingAll ? 'Loading the complete ranking' : `View all ${snapshot.totalEligible} ranked programmes`}
+              {loadingAll ? 'Loading…' : `View all ${snapshot.totalEligible} ranked programmes`}
               {!loadingAll ? <ArrowRight aria-hidden="true" /> : null}
             </Button>
           ) : null}
-        </section>
+        </div>
 
-        <RecommendationProfilePanel result={assessmentResult ?? snapshot.profile ?? null} />
-      </div>
+        {retakeError ? (
+          <p role="alert" className="mt-4 rounded bg-destructive/10 p-4 text-sm font-medium text-destructive">
+            {retakeError}
+          </p>
+        ) : null}
 
-      <div className="mt-8 flex items-start gap-3 rounded bg-primary-fixed/55 px-5 py-4 text-sm leading-6 text-on-primary-fixed-variant"><span className="flex size-9 shrink-0 items-center justify-center rounded bg-primary text-primary-foreground"><GraduationCap aria-hidden="true" className="size-5" /></span><p><strong className="text-on-primary-fixed">Course exploration reminder:</strong> These matches support exploration. Review each programme's published information; a match does not guarantee admission or enrolment.</p></div>
-
-      {retakeError ? (
-        <p role="alert" className="mt-4 rounded bg-destructive/10 p-4 text-sm font-medium text-destructive">
-          {retakeError}
-        </p>
-      ) : null}
-
-      <RetakeAssessmentDialog
-        open={retakeOpen}
-        onOpenChange={setRetakeOpen}
-        description="Your latest completed result and recommendations will remain available while the new attempt is in progress."
-        onConfirm={async (reason) => {
-          try {
-            setRetakeError('')
-            await startAssessment(reason)
-            setRetakeOpen(false)
-            onOpenAssessment?.()
-          } catch (error) {
-            setRetakeOpen(false)
-            setRetakeError(error instanceof Error ? error.message : 'The retake could not be started.')
-          }
-        }}
-      />
+        <RetakeAssessmentDialog
+          open={retakeOpen}
+          onOpenChange={setRetakeOpen}
+          description="Your latest completed result and recommendations will remain available while the new attempt is in progress."
+          onConfirm={async (reason) => {
+            try {
+              setRetakeError('')
+              await startAssessment(reason)
+              setRetakeOpen(false)
+              onOpenAssessment?.()
+            } catch (error) {
+              setRetakeOpen(false)
+              setRetakeError(error instanceof Error ? error.message : 'The retake could not be started.')
+            }
+          }}
+        />
       </div>
     </div>
   )

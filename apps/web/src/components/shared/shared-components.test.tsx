@@ -1,10 +1,9 @@
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
 import { Button } from '@/components/ui/button'
-import { SiteFooter } from '@/components/shared/site-footer'
 import {
   ConfirmActionDialog,
   DataTableToolbar,
@@ -16,20 +15,6 @@ import {
 } from '@/components/shared'
 
 describe('shared frontend foundation components', () => {
-  it('renders the shared institutional footer with the uploaded brand mark', () => {
-    render(<SiteFooter />)
-
-    const footer = screen.getByRole('contentinfo')
-    expect(within(footer).getByRole('img', { name: 'Academic guidance system' })).toBeVisible()
-    expect(
-      within(footer).getByRole('heading', { name: 'Institutional' }),
-    ).toBeVisible()
-    expect(
-      within(footer).getByRole('heading', { name: 'Support' }),
-    ).toBeVisible()
-    expect(footer).toHaveTextContent('2026 Tagoloan Community College')
-  })
-
   it('renders the page header with semantic content and actions', () => {
     render(
       <PageHeader

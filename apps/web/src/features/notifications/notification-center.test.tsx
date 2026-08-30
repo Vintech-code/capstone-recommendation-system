@@ -9,7 +9,7 @@ describe('NotificationCenter', () => {
     vi.mocked(fetch).mockReset()
   })
 
-  it.each(['Student', 'Administrator', 'Counselor'] as const)('loads persistent notifications for the %s workspace', async (workspaceLabel) => {
+  it.each(['Student', 'Administrator'] as const)('loads persistent notifications for the %s workspace', async (workspaceLabel) => {
     vi.mocked(fetch).mockResolvedValueOnce(Response.json({ data: [] }))
     const user = userEvent.setup()
     render(<NotificationCenter workspaceLabel={workspaceLabel} />)
@@ -24,19 +24,19 @@ describe('NotificationCenter', () => {
 
   it('shows real unread records and marks one as read through the API', async () => {
     vi.mocked(fetch)
-      .mockResolvedValueOnce(Response.json({ data: [{ id: 'notice-1', eventType: 'guidance_request_accepted', title: 'Guidance request accepted', message: 'A counselor is reviewing your concern.', context: { guidanceRequestId: 8 }, readAt: null, createdAt: '2026-08-11T08:30:00+08:00' }] }))
+      .mockResolvedValueOnce(Response.json({ data: [{ id: 'notice-1', eventType: 'assessment_result_ready', title: 'Assessment result ready', message: 'Your recorded result is ready.', context: {}, readAt: null, createdAt: '2026-08-11T08:30:00+08:00' }] }))
       .mockResolvedValueOnce(Response.json({ data: { id: 'notice-1', readAt: '2026-08-11T09:00:00+08:00' } }))
     const user = userEvent.setup()
     render(<NotificationCenter workspaceLabel="Student" />)
 
     expect(await screen.findByRole('button', { name: 'Open student notifications, 1 unread' })).toBeVisible()
     await user.click(screen.getByRole('button', { name: /Open student notifications/i }))
-    expect(await screen.findByText('Guidance request accepted')).toBeVisible()
+    expect(await screen.findByText('Assessment result ready')).toBeVisible()
     expect(screen.getByText('1 new')).toBeVisible()
     expect(screen.getByRole('tab', { name: 'All' })).not.toHaveClass('rounded-full')
     expect(screen.getByRole('tab', { name: 'Unread 1' })).not.toHaveClass('rounded-full')
 
-    await user.click(screen.getByRole('button', { name: 'Mark notification as read: Guidance request accepted' }))
+    await user.click(screen.getByRole('button', { name: 'Mark notification as read: Assessment result ready' }))
 
     await user.click(screen.getByRole('tab', { name: 'Unread' }))
     expect(await screen.findByText('No unread notifications')).toBeVisible()
@@ -48,9 +48,9 @@ describe('NotificationCenter', () => {
       .mockResolvedValueOnce(Response.json({ message: 'Unavailable' }, { status: 503 }))
       .mockResolvedValueOnce(Response.json({ data: [] }))
     const user = userEvent.setup()
-    render(<NotificationCenter workspaceLabel="Counselor" />)
+    render(<NotificationCenter workspaceLabel="Administrator" />)
 
-    await user.click(screen.getByRole('button', { name: /Open counselor notifications/i }))
+    await user.click(screen.getByRole('button', { name: /Open administrator notifications/i }))
     expect(await screen.findByRole('alert')).toHaveTextContent('Notifications could not be loaded.')
     await user.click(screen.getByRole('button', { name: 'Try again' }))
 

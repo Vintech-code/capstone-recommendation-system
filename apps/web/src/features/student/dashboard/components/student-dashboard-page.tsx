@@ -13,8 +13,6 @@ import {
   Compass,
   Eye,
   History,
-  MapPin,
-  MessageCircleMore,
   Paintbrush,
   RotateCcw,
   Route,
@@ -25,7 +23,6 @@ import {
 } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 
-import guidanceOfficeImage from '@/assets/student-guidance-office.webp'
 import journeyHeroImage from '@/assets/student-journey-hero.png'
 import { ErrorState, LoadingState } from '@/components/shared'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
@@ -132,27 +129,27 @@ function StudentDashboardPage({ onSelectModule, initialLifecycle, initialRecomme
     <DashboardFrame>
       <article
         data-report-print={result ? true : undefined}
-        data-testid="student-guidance-summary"
+        data-testid="student-dashboard-summary"
         className="w-full space-y-5"
       >
         {result ? (
           <header data-print-only className="hidden">
             <p>TAGOLOAN COMMUNITY COLLEGE</p>
-            <h2>Pathways Student Guidance Summary</h2>
+            <h2>Pathways Student Summary</h2>
             <div>
               <span>Interest profile: {result.topCode}</span>
               <span>Assessment completed: {result.availableAt}</span>
             </div>
           </header>
         ) : null}
-        <section className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_21rem]" aria-labelledby="dashboard-guidance-title">
+        <section className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_21rem]" aria-labelledby="dashboard-journey-title">
           <div className="relative min-h-[18rem] overflow-hidden px-2 py-6 sm:px-0 sm:py-7">
             <img src={journeyHeroImage} alt="" className="pointer-events-none absolute inset-0 size-full object-cover object-center opacity-90" />
             <div className="absolute inset-0 bg-gradient-to-r from-background via-background/90 to-transparent" />
             <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at center, transparent 52%, var(--background) 100%)' }} />
             <div className="relative z-10 flex h-full max-w-xl flex-col justify-center">
               <p className="font-label text-xs font-semibold uppercase tracking-[0.16em] text-primary">Your academic journey</p>
-              <h1 id="dashboard-guidance-title" aria-label="Your journey. Your future." className="mt-2 font-display text-4xl font-bold leading-[0.98] tracking-[-0.045em] text-foreground sm:text-5xl">
+              <h1 id="dashboard-journey-title" aria-label="Your journey. Your future." className="mt-2 font-display text-4xl font-bold leading-[0.98] tracking-[-0.045em] text-foreground sm:text-5xl">
                 Your journey.<br /><span className="bg-gradient-to-r from-primary via-brand-magenta to-chart-blue bg-clip-text text-transparent">Your future.</span>
               </h1>
               <p className="mt-4 max-w-md text-sm leading-6 text-muted-foreground">
@@ -166,7 +163,7 @@ function StudentDashboardPage({ onSelectModule, initialLifecycle, initialRecomme
             </div>
           </div>
 
-          <section aria-labelledby="journey-progress-title" className="rounded-xl bg-card p-5 shadow-sm sm:p-6">
+          <section aria-labelledby="journey-progress-title" className="rounded-3xl border border-border bg-card p-5 shadow-[var(--shadow-card)] sm:p-6">
             <div className="flex items-start justify-between gap-5">
               <div className="min-w-0 pt-1">
                 <div className="flex items-center gap-2 text-primary">
@@ -215,13 +212,13 @@ function StudentDashboardPage({ onSelectModule, initialLifecycle, initialRecomme
             ) : null}
 
             {result ? (
-              <section data-print-profile aria-labelledby="interest-scores-title" className="relative h-full overflow-hidden rounded-xl bg-card p-5 shadow-sm xl:col-span-7 xl:row-start-2 sm:p-6">
+              <section data-print-profile aria-labelledby="interest-scores-title" className="relative h-full overflow-hidden rounded-3xl border border-border bg-card p-5 shadow-[var(--shadow-card)] xl:col-span-12 xl:row-start-2 sm:p-6">
                 <div aria-hidden="true" className="absolute right-6 top-6 grid grid-cols-4 gap-2 opacity-30">{Array.from({ length: 12 }, (_, index) => <span key={index} className="size-1 rounded-full bg-primary-fixed-dim" />)}</div>
                 <div className="relative flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
                   <div>
                     <p className="flex items-center gap-2 font-label text-xs font-semibold uppercase tracking-[0.14em] text-foreground"><span className="flex size-7 items-center justify-center rounded bg-secondary"><Compass aria-hidden="true" className="size-4 text-primary" /></span>Your interest pattern</p>
                     <h3 id="interest-scores-title" aria-label={result.topLabels.join(' and ')} className="mt-3 font-display text-3xl font-bold tracking-[-0.04em] sm:text-4xl">
-                      {result.topLabels.map((label, index) => <span key={label}>{index ? <span className="text-foreground"> and </span> : null}<span className={index === 0 ? 'text-primary' : 'text-secondary-container'}>{label}</span></span>)}
+                      {result.topLabels.map((label, index) => <span key={label}>{index ? <span className="text-foreground"> and </span> : null}<span className="text-primary">{label}</span></span>)}
                     </h3>
                     <p className="mt-2 text-xs font-medium text-muted-foreground">Top code {result.topCode} · completed {result.availableAt}</p>
                   </div>
@@ -233,27 +230,24 @@ function StudentDashboardPage({ onSelectModule, initialLifecycle, initialRecomme
                     const Icon = presentation.icon
                     const isPrimary = dimension.code === result.topCode.split('-')[0]
                     return (
-                      <div key={dimension.code} className={`relative min-w-0 rounded-lg p-3 text-center ${presentation.tile} ${isPrimary ? 'ring-1 ring-success ring-offset-2 ring-offset-card' : ''}`}>
+                      <div key={dimension.code} className={`relative min-w-0 rounded-2xl p-3 text-center ${presentation.tile} ${isPrimary ? 'ring-1 ring-primary ring-offset-2 ring-offset-card' : ''}`}>
                         {isPrimary ? <BadgeCheck aria-label="Primary recorded interest" className="absolute -right-1.5 -top-1.5 size-5 fill-success text-white" /> : null}
                         <dt><span className={`mx-auto flex size-8 items-center justify-center rounded-full text-xs font-bold ${presentation.badge}`}>{dimension.code}</span><Icon aria-hidden="true" className={`mx-auto mt-3 size-6 ${isPrimary ? 'text-success' : 'text-primary'}`} /><span className="sr-only">{dimension.label}</span></dt>
                         <dd className="mt-3 font-display text-2xl font-bold">{dimension.value}</dd>
-                        <span className="mt-1 block truncate text-[10px] font-medium text-muted-foreground">{dimension.label}</span>
+                        <span className="mt-1 block truncate text-[10px] font-semibold text-foreground">{dimension.label}</span>
                         <span aria-hidden="true" className="mt-3 block h-1 overflow-hidden rounded-full bg-card/80"><span className={`block h-full rounded-full ${presentation.accent}`} style={{ width: `${Math.round((dimension.value / highestRecordedScore) * 100)}%` }} /></span>
                       </div>
                     )
                   })}
                 </dl>
-                <div className="relative mt-5 flex items-start gap-3 rounded-lg bg-primary-fixed/35 p-4">
+                <div className="relative mt-5 flex items-start gap-3 rounded-lg bg-secondary p-4">
                   <span className="flex size-9 shrink-0 items-center justify-center rounded bg-primary text-primary-foreground"><BadgeCheck aria-hidden="true" className="size-5" /></span>
-                  <div><p className="text-sm font-bold text-on-primary-fixed">Your highest recorded areas are {result.topLabels.join(' and ')}.</p><p className="mt-1 text-xs leading-5 text-on-primary-fixed-variant">Use this pattern alongside your programme matches when deciding what to explore or discuss with guidance staff.</p></div>
+                  <div><p className="text-sm font-bold text-foreground">Your highest recorded areas are {result.topLabels.join(' and ')}.</p><p className="mt-1 text-xs leading-5 text-muted-foreground">Use this pattern alongside your programme matches when deciding what to explore.</p></div>
                 </div>
               </section>
             ) : null}
           </div>
 
-          <div className="contents">
-            <GuidanceSupportPanel />
-          </div>
         </div>
 
       </article>
@@ -309,7 +303,7 @@ function AssessmentHistorySummary({ history, historyError, lifecycle, selectedAt
     }
   }
   return (
-    <section data-print-hidden aria-labelledby="assessment-history-title" className="overflow-hidden rounded-xl bg-card shadow-sm">
+    <section data-print-hidden aria-labelledby="assessment-history-title" className="overflow-hidden rounded-3xl border border-border bg-card shadow-[var(--shadow-card)]">
       <div className="flex flex-col gap-5 bg-card p-5 sm:flex-row sm:items-center sm:justify-between sm:p-7">
         <div className="flex items-start gap-3">
           <span className="flex size-11 shrink-0 items-center justify-center rounded bg-background text-primary shadow-sm"><History className="size-5" aria-hidden="true" /></span>
@@ -399,7 +393,7 @@ function assessmentStatusLabel(status: AssessmentLifecycle['status']) {
 function CourseDirectionPanel({ course, generatedAt, wide = false, onOpen }: { course: StudentRecommendedCourse | null; generatedAt?: string; wide?: boolean; onOpen: () => void }) {
   const { cover } = getProgrammeImages(course?.id ?? '')
   return (
-    <section data-print-recommendations aria-labelledby="course-direction-title" className={`h-full overflow-hidden rounded-xl bg-card shadow-sm xl:row-start-1 ${wide ? 'xl:col-span-12' : 'xl:col-span-7'}`}>
+    <section data-print-recommendations aria-labelledby="course-direction-title" className={`h-full overflow-hidden rounded-3xl border border-border bg-card shadow-[var(--shadow-card)] xl:row-start-1 ${wide ? 'xl:col-span-12' : 'xl:col-span-7'}`}>
       {course ? (
         <div className="grid min-h-[17rem] sm:grid-cols-[minmax(0,1fr)_13rem]">
           <div className="flex min-w-0 flex-col p-5 sm:p-6">
@@ -453,45 +447,6 @@ function CourseDirectionPanel({ course, generatedAt, wide = false, onOpen }: { c
   )
 }
 
-function GuidanceSupportPanel() {
-  const discussionTopics = [
-    'Your assessment result',
-    'Programmes you are comparing',
-    'Questions about your next step',
-  ]
-
-  return (
-    <section data-guidance-support aria-labelledby="counselor-guidance-title" className="grid h-full overflow-hidden rounded-xl bg-card shadow-sm sm:grid-cols-[minmax(0,1.15fr)_minmax(9rem,0.85fr)] xl:col-span-5 xl:row-start-2">
-      <div className="relative overflow-hidden p-5 sm:p-6">
-        <div aria-hidden="true" className="absolute -bottom-20 -left-10 h-28 w-[120%] rounded-[50%] bg-primary/15" />
-        <div className="flex items-center gap-3">
-          <span className="flex size-9 shrink-0 items-center justify-center rounded bg-primary text-primary-foreground"><MessageCircleMore aria-hidden="true" className="size-4" /></span>
-          <p className="font-label text-xs font-semibold uppercase tracking-[0.14em] text-primary">Need guidance?</p>
-        </div>
-        <h2 id="counselor-guidance-title" className="mt-5 max-w-52 font-display text-2xl font-bold leading-tight text-primary">Visit the Guidance Office</h2>
-        <p className="mt-3 text-xs leading-5 text-muted-foreground">Speak with the guidance staff at the school about your course choices or assessment result.</p>
-        <div className="my-5 h-px bg-outline-variant/70" />
-        <div className="relative">
-          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-primary">Topics you can discuss</p>
-          <ul className="mt-4 grid gap-3 text-xs text-muted-foreground">
-            {discussionTopics.map((topic) => (
-              <li key={topic} className="flex items-center gap-2"><span className="flex size-4 shrink-0 items-center justify-center rounded-full bg-primary/15"><Check aria-hidden="true" className="size-3 text-primary" /></span><span>{topic}</span></li>
-            ))}
-          </ul>
-        </div>
-        <p className="relative mt-7 max-w-44 text-[10px] font-medium leading-4 text-foreground">No online appointment or request is needed.</p>
-      </div>
-      <div className="relative min-h-72 overflow-hidden bg-primary-fixed sm:min-h-full">
-        <div className="absolute inset-x-0 top-0 z-10 flex items-center gap-2 bg-gradient-to-b from-white via-white/90 to-transparent px-4 pb-12 pt-5 text-[10px] font-bold uppercase tracking-[0.14em] text-primary">
-          <MapPin aria-hidden="true" className="size-4" />In-person support
-        </div>
-        <img src={guidanceOfficeImage} alt="" className="pointer-events-none absolute inset-0 size-full object-cover object-center" />
-        <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-primary/35 to-transparent" />
-      </div>
-    </section>
-  )
-}
-
 function DashboardFrame({ children }: { children: ReactNode }) {
   return (
     <div className="student-grid-page student-dashboard-canvas">
@@ -534,7 +489,7 @@ function AssessmentLifecycleCard({ lifecycle, hasCompletedResult, onOpenAssessme
             ? 'Review your profile and programme matches, or open your earlier attempts.'
             : `Answer ${lifecycle.question_count} interest questions to build your RIASEC profile.`
   return (
-    <section data-print-hidden aria-labelledby="current-assessment-title" className="flex h-full flex-col overflow-hidden rounded-xl bg-card shadow-sm xl:col-span-5 xl:row-start-1">
+    <section data-print-hidden aria-labelledby="current-assessment-title" className="flex h-full flex-col overflow-hidden rounded-3xl border border-border bg-card shadow-[var(--shadow-card)] xl:col-span-5 xl:row-start-1">
       <div className="p-5 sm:p-6">
         <span className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">{isPreparing ? <Clock3 className="size-5" /> : <ClipboardList className="size-5" />}</span>
         <p className="mt-3 font-label text-xs font-semibold uppercase tracking-[0.12em] text-primary">Your current assessment</p>

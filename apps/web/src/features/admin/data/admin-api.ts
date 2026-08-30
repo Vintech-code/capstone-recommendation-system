@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 
-import type { StudentProfileData } from '@/features/student/profile/student-profile-types'
+import type { StudentProfileData } from '@/features/admin/data/admin-profile-types'
 
 interface AdminOverview {
   students: number
@@ -9,13 +9,10 @@ interface AdminOverview {
   inProgress: number
   needsAttention: number
   recommendations: number
-  pendingGuidanceRequests: number
   operationalAttention: {
     processingFailures: number
     unverifiedSources: number
     unpublishedDrafts: number
-    suspendedCounselors: number
-    pendingGuidanceRequests: number
   }
   recentActivity: AdminAssessment[]
 }
@@ -66,79 +63,6 @@ interface AdminRecommendation {
 interface AdminStudentRecord extends Omit<AdminStudent, 'attemptCount' | 'latestResultAt' | 'latestTopCode'> {
   profile: StudentProfileData
   attempts: AdminAssessment[]
-  guidanceCase: GuidanceCase | null
-}
-
-interface GuidanceCase {
-  id: number
-  status: 'open' | 'follow_up' | 'closed'
-  followUpOn: string | null
-  assignedTo: string | null
-  assignedToId: number | null
-  notes: GuidanceNote[]
-  summaries: GuidanceSummary[]
-}
-
-interface AdminStaffAssignment {
-  caseId: number
-  studentId: number
-  studentName: string
-  studentEmail: string
-  status: GuidanceCase['status']
-  followUpOn: string | null
-}
-
-interface AdminStaff {
-  id: number
-  name: string
-  email: string
-  accountStatus: string
-  mustChangePassword: boolean
-  assignedCaseCount: number
-  activeCaseCount: number
-  followUpCount: number
-  overdueCount: number
-  assignments: AdminStaffAssignment[]
-}
-
-interface AdminGuidanceRequest {
-  id: number
-  studentId: number
-  studentName: string
-  studentEmail: string
-  programmeId: string | null
-  programmeCode: string | null
-  programmeName: string | null
-  concernCategory: 'programme_comparison' | 'programme_fit' | 'course_requirements' | 'career_direction' | 'general_guidance'
-  message: string
-  preferredFormat: 'in_person' | 'video_call' | 'phone'
-  preferredDate: string | null
-  status: 'pending' | 'accepted' | 'declined' | 'closed' | 'expired' | 'cancelled'
-  acceptedById: number | null
-  acceptedBy: string | null
-  acceptedAt: string | null
-  closedAt: string | null
-  resolutionReason: string | null
-  statusHistory: Array<{ eventType: string; fromStatus: string | null; toStatus: string; reason: string | null; actor: string | null; createdAt: string }>
-  createdAt: string
-}
-
-interface GuidanceNote {
-  id: number
-  body: string
-  author: string
-  createdAt: string
-}
-
-interface GuidanceSummary {
-  id: number
-  body: string
-  author: string
-  status: 'draft' | 'published'
-  publishedBy: string | null
-  publishedAt: string | null
-  createdAt: string
-  updatedAt: string
 }
 
 interface AdminProgramme {
@@ -168,8 +92,8 @@ interface AdminProgramme {
   logoImageUrl: string | null
   monitoring: {
     savedByStudents: number
-    pendingGuidanceRequests: number
   }
+  eligibilityGroup?: 'board' | 'non_board' | null
 }
 
 interface ProgrammeSourceValue {
@@ -191,17 +115,13 @@ interface AdminReport {
   generatedAt: string
   from: string | null
   to: string | null
-  scope: 'institution' | 'counselor'
+  scope: 'institution'
   studentCount: number
   assessmentActivity: number
   completedAssessments: number
   assessmentCompletionRate: number
   recommendationRuns: number
   programmeSaves: number
-  guidanceRequestStatuses: Record<'pending' | 'accepted' | 'closed' | 'declined' | 'cancelled', number>
-  openFollowUps: number
-  overdueFollowUps: number
-  closedGuidanceCases: number
   assessmentCompletionsByMonth: Array<{ month: string; count: number }>
 }
 
@@ -269,10 +189,8 @@ interface AdminActivity {
 
 class AdminApiError extends Error {}
 
-type StaffApiScope = 'admin' | 'counselor'
-
-async function requestWorkspace<T>(scope: StaffApiScope, path: string, signal?: AbortSignal): Promise<T> {
-  const response = await fetch(`/api/v1/${scope}${path}`, {
+async function requestAdmin<T>(path: string, signal?: AbortSignal): Promise<T> {
+  const response = await fetch(`/api/v1/admin${path}`, {
     headers: { Accept: 'application/json' },
     credentials: 'include',
     signal,
@@ -283,14 +201,10 @@ async function requestWorkspace<T>(scope: StaffApiScope, path: string, signal?: 
   }
 
   if (!response.ok || payload.data === undefined) {
-    throw new AdminApiError(payload.message ?? 'The guidance workspace could not be loaded.')
+    throw new AdminApiError(payload.message ?? 'The administration workspace could not be loaded.')
   }
 
   return payload.data
-}
-
-function requestAdmin<T>(path: string, signal?: AbortSignal): Promise<T> {
-  return requestWorkspace<T>('admin', path, signal)
 }
 
 function csrfToken() {
@@ -298,12 +212,12 @@ function csrfToken() {
   return cookie ? decodeURIComponent(cookie.split('=').slice(1).join('=')) : ''
 }
 
-async function mutateWorkspace<T>(scope: StaffApiScope, path: string, method: 'POST' | 'PUT', body?: unknown): Promise<T> {
+async function mutateAdmin<T>(path: string, method: 'POST' | 'PUT', body?: unknown): Promise<T> {
   const headers = new Headers({ Accept: 'application/json' })
   if (body !== undefined) headers.set('Content-Type', 'application/json')
   const token = csrfToken()
   if (token) headers.set('X-XSRF-TOKEN', token)
-  const response = await fetch(`/api/v1/${scope}${path}`, {
+  const response = await fetch(`/api/v1/admin${path}`, {
     method,
     headers,
     credentials: 'include',
@@ -314,10 +228,6 @@ async function mutateWorkspace<T>(scope: StaffApiScope, path: string, method: 'P
     throw new AdminApiError(payload.message ?? 'The change could not be saved.')
   }
   return payload.data
-}
-
-function mutateAdmin<T>(path: string, method: 'POST' | 'PUT', body?: unknown): Promise<T> {
-  return mutateWorkspace<T>('admin', path, method, body)
 }
 
 async function uploadProgrammeMedia(programmeId: string, kind: 'cover' | 'logo', image: File, onProgress?: (percentage: number) => void): Promise<{ kind: 'cover' | 'logo'; url: string }> {
@@ -353,10 +263,6 @@ async function uploadProgrammeMedia(programmeId: string, kind: 'cover' | 'logo',
 }
 
 function useAdminResource<T>(path: string) {
-  return useWorkspaceResource<T>('admin', path)
-}
-
-function useWorkspaceResource<T>(scope: StaffApiScope, path: string) {
   const [data, setData] = useState<T | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
@@ -370,11 +276,11 @@ function useWorkspaceResource<T>(scope: StaffApiScope, path: string) {
 
   useEffect(() => {
     const controller = new AbortController()
-    requestWorkspace<T>(scope, path, controller.signal)
+    requestAdmin<T>(path, controller.signal)
       .then(setData)
       .catch((reason: unknown) => {
         if (!controller.signal.aborted) {
-          setError(reason instanceof Error ? reason.message : 'The guidance workspace could not be loaded.')
+          setError(reason instanceof Error ? reason.message : 'The administration workspace could not be loaded.')
         }
       })
       .finally(() => {
@@ -382,12 +288,12 @@ function useWorkspaceResource<T>(scope: StaffApiScope, path: string) {
       })
 
     return () => controller.abort()
-  }, [path, requestVersion, scope])
+  }, [path, requestVersion])
 
   return { data, error, loading, retry }
 }
 
-export { mutateAdmin, mutateWorkspace, requestAdmin, requestWorkspace, uploadProgrammeMedia, useAdminResource, useWorkspaceResource }
+export { mutateAdmin, requestAdmin, uploadProgrammeMedia, useAdminResource }
 export type {
   AdminActivity,
   AdminAssessment,
@@ -397,16 +303,9 @@ export type {
   AdminReport,
   AdminStudent,
   AdminStudentRecord,
-  AdminStaff,
-  AdminStaffAssignment,
   ConfigurationVersion,
   ConfigurationPreview,
   ConfigurationWorkspace,
-  GuidanceCase,
   ProgrammeSourceRegistryEntry,
-  AdminGuidanceRequest,
-  GuidanceNote,
-  GuidanceSummary,
   RiasecDimension,
-  StaffApiScope,
 }

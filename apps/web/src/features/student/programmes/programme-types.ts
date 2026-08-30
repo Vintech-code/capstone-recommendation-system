@@ -8,6 +8,7 @@ interface StudentProgramme {
   id: string
   name: string
   code: string
+  eligibilityGroup?: 'board' | 'non_board' | null
   majors: string[]
   riasecProfile: string[]
   description: string

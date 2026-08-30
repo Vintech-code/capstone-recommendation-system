@@ -10,7 +10,6 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { Button } from '@/components/ui/button'
 import logo from '@/assets/logo.png'
 import tccBanner from '@/assets/tccbanner.jpg'
-import { ThemeToggle } from '@/components/shared'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -92,9 +91,8 @@ function WorkspacePreview({
   const definition = dashboards[role]
   const { user } = useAuth()
   const currentRole = roleOptions.find((option) => option.value === role)!
-  const isAdmin = role === 'admin'
-  const isStaff = role === 'admin' || role === 'counselor'
-  const [internalActiveId, setInternalActiveId] = useState('overview')
+  const isStaff = role === 'admin'
+  const [internalActiveId, setInternalActiveId] = useState(role === 'student' ? 'assessment' : 'overview')
   const [query, setQuery] = useState('')
   const [mobileNavigationOpen, setMobileNavigationOpen] = useState(false)
   const [desktopNavigationExpanded, setDesktopNavigationExpanded] =
@@ -230,7 +228,7 @@ function WorkspacePreview({
         data-collapsed={!desktopNavigationExpanded}
         className={cn(
           'relative hidden h-svh bg-background shadow-sm lg:sticky lg:top-0 lg:flex lg:flex-col lg:transition-[padding] lg:duration-300',
-          isStaff && 'border-r border-border/70 dark:border-white/8',
+          isStaff && 'border-r border-border',
           desktopNavigationExpanded ? 'p-4' : 'p-3',
         )}
       >
@@ -260,12 +258,12 @@ function WorkspacePreview({
           />
         </div>
 
-        {isStaff && desktopNavigationExpanded ? <div className="relative mt-auto overflow-hidden rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 via-white to-cyan-50 p-5 shadow-sm dark:border-violet-400/15 dark:from-violet-500/10 dark:via-cyan-400/5 dark:to-transparent dark:shadow-[inset_0_1px_0_rgba(255,255,255,.04)]"><img src={tccBanner} alt="" className="absolute inset-x-0 top-0 h-24 w-full object-cover opacity-15 dark:opacity-10" /><span className="relative flex size-12 items-center justify-center rounded-xl bg-blue-100 text-blue-600 dark:bg-gradient-to-br dark:from-violet-500/25 dark:to-cyan-400/20 dark:text-cyan-300"><ChartNoAxesCombined className="size-6" aria-hidden="true" /></span><p className="relative mt-5 text-sm font-bold text-foreground">{isAdmin ? <>Smart guidance.<br />Better futures.</> : <>Guiding today,<br />empowering tomorrow.</>}</p><p className="relative mt-2 text-xs leading-5 text-muted-foreground">{isAdmin ? 'Keep programme and student records ready for guidance.' : 'Keep student concerns, schedules, and follow-ups moving.'}</p></div> : null}
+        {isStaff && desktopNavigationExpanded ? <div className="relative mt-auto overflow-hidden rounded-3xl border border-primary/10 bg-gradient-to-br from-primary-fixed via-card to-success/10 p-5 shadow-[var(--shadow-card)]"><img src={tccBanner} alt="" className="absolute inset-x-0 top-0 h-24 w-full object-cover opacity-[0.06]" /><span className="relative flex size-12 items-center justify-center rounded-2xl bg-card text-primary shadow-sm"><ChartNoAxesCombined className="size-6" aria-hidden="true" /></span><p className="relative mt-5 text-sm font-bold text-foreground">Accurate records.<br />Better decisions.</p><p className="relative mt-2 text-xs leading-5 text-muted-foreground">Keep programme, assessment, and student records current.</p></div> : null}
 
-        <div className={cn('border-t pt-4', isStaff && desktopNavigationExpanded ? 'mt-4 border-border/70 dark:border-white/8' : 'mt-auto')}>
+        <div className={cn('border-t pt-4', isStaff && desktopNavigationExpanded ? 'mt-4 border-border' : 'mt-auto')}>
           {desktopNavigationExpanded ? (
             <>
-              <div className={cn('mb-3 rounded-xl p-3', isStaff ? 'bg-secondary dark:bg-white/5' : 'bg-secondary')}>
+              <div className="mb-3 rounded-2xl bg-secondary p-3">
                 <p className="text-xs font-bold">{user?.name ?? currentRole.shortLabel}</p>
                 <p className="mt-1 truncate text-[10px] text-muted-foreground">
                   Authorized account
@@ -304,7 +302,7 @@ function WorkspacePreview({
       </aside>
 
       <div className="min-w-0">
-        <header className={cn('sticky top-0 z-30 border-b bg-background/88 backdrop-blur-xl', isStaff ? 'border-border/70 dark:border-white/8' : 'border-transparent shadow-sm')}>
+        <header className={cn('sticky top-0 z-30 border-b bg-background/92 backdrop-blur-xl', isStaff ? 'border-border' : 'border-transparent shadow-sm')}>
           <div className="flex h-16 items-center gap-3 px-4 sm:px-6 lg:px-8">
             <Button
               type="button"
@@ -379,15 +377,13 @@ function WorkspacePreview({
                   value={query}
                   onChange={(event) => changeQuery(event.target.value)}
                   onKeyDown={(event) => { if (event.key === 'Enter' && filteredModules[0]) selectModule(filteredModules[0].id) }}
-                  placeholder={isStaff ? `Search ${isAdmin ? 'students, assessments, programmes' : 'students, concerns, follow-ups'}…` : 'Search modules'}
-                  className={cn('h-10 rounded-xl pl-9 shadow-none', isStaff ? 'border-border/70 bg-secondary text-foreground placeholder:text-muted-foreground focus-visible:bg-background dark:border-white/8 dark:bg-white/5 dark:focus-visible:bg-white/8' : 'border-transparent bg-secondary focus-visible:bg-background')}
+                  placeholder={isStaff ? 'Search students, assessments, programmes…' : 'Search modules'}
+                  className={cn('h-11 rounded-xl pl-9 shadow-none', isStaff ? 'border-border bg-secondary text-foreground placeholder:text-muted-foreground focus-visible:bg-background' : 'border-transparent bg-secondary focus-visible:bg-background')}
                 />
               </div>
             ) : null}
 
-            {isStaff ? <NotificationCenter workspaceLabel={isAdmin ? 'Administrator' : 'Counselor'} className="rounded-xl dark:hover:bg-white/8" onNavigate={selectModule} /> : null}
-            <ThemeToggle />
-
+            {isStaff ? <NotificationCenter workspaceLabel="Administrator" className="rounded-xl" onNavigate={selectModule} /> : null}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
@@ -403,7 +399,7 @@ function WorkspacePreview({
                       Authorized account
                     </span>
                   </span>
-                  <span className={cn('flex size-9 items-center justify-center rounded-full text-xs font-bold text-white', isStaff ? 'bg-gradient-to-br from-blue-500 to-indigo-600 dark:from-violet-500 dark:to-blue-600' : 'bg-brand-dark')}>
+                  <span className="flex size-9 items-center justify-center rounded-full bg-primary text-xs font-bold text-white">
                     {(user?.name ?? currentRole.shortLabel).slice(0, 2).toUpperCase()}
                   </span>
                   <ChevronDown

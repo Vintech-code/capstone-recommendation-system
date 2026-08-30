@@ -34,6 +34,7 @@ function mapAssessmentResult(lifecycle: AssessmentLifecycle): AssessmentDisplayR
     topCode: leading.map((dimension) => dimension.code).join('-'),
     topLabels: leading.map((dimension) => dimension.label),
     dimensions: completeDimensions,
+    guidance: payload.guidance ?? null,
   }
 }
 

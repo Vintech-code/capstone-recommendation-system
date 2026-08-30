@@ -75,6 +75,31 @@ interface AssessmentQuestionPayload {
   questions: Array<{ index: number; text: string }>
 }
 
+type EntranceExaminationEligibilityGroup = 'board' | 'non_board'
+
+interface EntranceExaminationResult {
+  id: number
+  score: number
+  eligibilityGroup: EntranceExaminationEligibilityGroup
+  ruleReference: string
+  source: 'student_self_declared'
+  declaredAt: string
+}
+
+interface EntranceExaminationState {
+  status: 'required' | 'declared'
+  result: EntranceExaminationResult | null
+  policy: {
+    ruleReference: string
+    minimum: number
+    maximum: number
+    decimalPlaces: number
+    boardRange: { minimum: number; maximum: number }
+    nonBoardRange: { minimum: number; maximum: number }
+    source: 'student_self_declared'
+  }
+}
+
 class AssessmentApiError extends Error {
   status: number
 
@@ -141,6 +166,17 @@ function getAssessmentQuestions() {
     () => assessmentRequest<AssessmentQuestionPayload>('/api/v1/student/assessments/riasec/questions'),
     5 * 60_000,
   )
+}
+
+function getEntranceExaminationResult() {
+  return assessmentRequest<EntranceExaminationState>('/api/v1/student/entrance-examination')
+}
+
+function declareEntranceExaminationResult(score: number) {
+  return assessmentRequest<EntranceExaminationState>('/api/v1/student/entrance-examination', {
+    method: 'POST',
+    body: JSON.stringify({ score }),
+  })
 }
 
 async function startAssessment(retakeReason?: string) {
@@ -213,6 +249,8 @@ function getAssessmentHistory(): Promise<AssessmentHistoryResponse> {
 export {
   AssessmentApiError,
   getAssessmentQuestions,
+  getEntranceExaminationResult,
+  declareEntranceExaminationResult,
   getCurrentAssessment,
   saveAssessment,
   startAssessment,
@@ -225,4 +263,6 @@ export type {
   AssessmentLifecycle,
   AssessmentLifecycleStatus,
   AssessmentQuestionPayload,
+  EntranceExaminationEligibilityGroup,
+  EntranceExaminationState,
 }

@@ -3,7 +3,6 @@ import { cleanup } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { afterEach, vi } from 'vitest'
 
-import { THEME_STORAGE_KEY } from '@/app/theme-context'
 import { clearStudentResourceCache } from '@/features/student/student-resource-cache'
 
 vi.mock('lottie-web/build/player/lottie_light', () => {
@@ -42,7 +41,6 @@ vi.mock('recharts', async () => {
 afterEach(() => {
   cleanup()
   clearStudentResourceCache()
-  window.localStorage.removeItem(THEME_STORAGE_KEY)
   document.documentElement.classList.remove('dark')
   document.documentElement.dataset.theme = 'light'
   document.documentElement.style.colorScheme = 'light'
@@ -62,7 +60,7 @@ async function defaultFetch(
   if (url === '/api/v1/auth/login') {
     const body = JSON.parse(String(init?.body ?? '{}')) as {
       email: string
-      portal: 'student' | 'admin' | 'counselor'
+      portal: 'student' | 'admin'
     }
     return Response.json({
       user: {
@@ -108,8 +106,8 @@ async function defaultFetch(
   if (url === '/api/v1/admin/overview') {
     return Response.json({ data: {
       students: 2, assessments: 3, completed: 2, inProgress: 1,
-      needsAttention: 0, recommendations: 2, pendingGuidanceRequests: 1,
-      operationalAttention: { processingFailures: 0, unverifiedSources: 3, unpublishedDrafts: 1, suspendedCounselors: 0, pendingGuidanceRequests: 1 },
+      needsAttention: 0, recommendations: 2,
+      operationalAttention: { processingFailures: 0, unverifiedSources: 3, unpublishedDrafts: 1 },
       recentActivity: [{ id: 1, reference: 'ASMT-000001', studentId: 10, studentName: 'Ana Santos', studentEmail: 'ana@example.test', attemptNumber: 1, status: 'result_available', topCode: 'I-C', startedAt: '2026-08-01T08:00:00+08:00', submittedAt: '2026-08-01T08:20:00+08:00', resultAvailableAt: '2026-08-01T08:20:01+08:00', processingErrorCode: null }],
     } })
   }
@@ -125,51 +123,16 @@ async function defaultFetch(
     return Response.json({ data: {
       id: 10, name: 'Ana Santos', email: 'ana@example.test', accountStatus: 'active',
       profile: { student: { id: 10, name: 'Ana Santos', email: 'ana@example.test', photoUrl: null }, questionnaire: { complete: true, strengths: ['Problem-solving'], growthAreas: ['Public speaking'], learningPreferences: ['Hands-on activities'], updatedAt: '2026-08-01T09:00:00+08:00' }, options: { strengths: [], growthAreas: [], learningPreferences: [] }, riasec: { sessionReference: 'ASMT-000001', availableAt: '2026-08-01T08:20:01+08:00', primary: { code: 'I', label: 'Investigative' }, secondary: { code: 'C', label: 'Conventional' }, code: 'I-C', dimensions: [] }, careerInterests: ['Software and application development'], about: 'The latest recorded RIASEC result is I-C (Investigative and Conventional).' },
-      guidanceCase: null,
       attempts: [{ id: 1, reference: 'ASMT-000001', studentId: 10, studentName: 'Ana Santos', studentEmail: 'ana@example.test', attemptNumber: 2, retakeReason: 'I wanted to review my current course interests.', status: 'result_available', topCode: 'I-C', startedAt: '2026-08-01T08:00:00+08:00', submittedAt: '2026-08-01T08:20:00+08:00', resultAvailableAt: '2026-08-01T08:20:01+08:00', processingErrorCode: null, dimensions: [{ code: 'I', label: 'Investigative', value: 19 }, { code: 'C', label: 'Conventional', value: 18 }], recommendations: [{ id: 'bs-information-technology', rank: 1, code: 'BSIT', name: 'BS Information Technology', match: 90 }] }],
     } })
-  }
-
-  if (url === '/api/v1/admin/students/10/guidance-case' && init?.method === 'PUT') {
-    return Response.json({ data: { id: 1, status: 'follow_up', followUpOn: '2026-08-20', assignedTo: 'Authenticated User', assignedToId: 2, notes: [] } })
-  }
-
-  if (url === '/api/v1/admin/students/10/guidance-notes' && init?.method === 'POST') {
-    return Response.json({ data: { id: 1, body: 'Discussed programme options.', author: 'Authenticated User', createdAt: '2026-08-08T12:00:00+08:00' } }, { status: 201 })
   }
 
   if (url === '/api/v1/admin/assessments') {
     return Response.json({ data: [{ id: 1, reference: 'ASMT-000001', studentId: 10, studentName: 'Ana Santos', studentEmail: 'ana@example.test', attemptNumber: 1, status: 'result_available', topCode: 'I-C', startedAt: '2026-08-01T08:00:00+08:00', submittedAt: '2026-08-01T08:20:00+08:00', resultAvailableAt: '2026-08-01T08:20:01+08:00', processingErrorCode: null }] })
   }
 
-  if (url === '/api/v1/admin/counselors' && init?.method === 'POST') {
-    return Response.json({ data: { id: 3, name: 'New Counselor', email: 'new@example.test', accountStatus: 'active', mustChangePassword: true, assignedCaseCount: 0, activeCaseCount: 0, followUpCount: 0, overdueCount: 0, assignments: [] } }, { status: 201 })
-  }
-
-  if (url === '/api/v1/admin/counselors') {
-    return Response.json({ data: [{ id: 2, name: 'Guidance Counselor', email: 'guidance@example.test', accountStatus: 'active', mustChangePassword: false, assignedCaseCount: 1, activeCaseCount: 1, followUpCount: 1, overdueCount: 0, assignments: [{ caseId: 1, studentId: 10, studentName: 'Ana Santos', studentEmail: 'ana@example.test', status: 'follow_up', followUpOn: '2026-08-20' }] }] })
-  }
-
-  if (url.match(/\/api\/v1\/admin\/counselors\/\d+$/) && init?.method === 'PUT') return Response.json({ data: {} })
-  if (url.match(/\/api\/v1\/admin\/counselors\/\d+\/reset-password$/) && init?.method === 'POST') return Response.json({ data: {} })
-
-  if (url.match(/\/api\/v1\/counselor\/guidance-requests\/\d+\/decline$/) && init?.method === 'POST') {
-    const id = Number(url.split('/').at(-2))
-    const body = JSON.parse(String(init.body ?? '{}')) as { reason: string }
-    return Response.json({ data: { id, studentId: 10, studentName: 'Ana Santos', studentEmail: 'ana@example.test', programmeId: 'bs-information-technology', programmeCode: 'BSIT', programmeName: 'BS Information Technology', concernCategory: 'programme_comparison', preferredFormat: 'in_person', preferredDate: '2026-08-20', message: 'I would like help comparing my matched programmes before deciding.', status: 'declined', acceptedBy: null, acceptedAt: null, closedAt: '2026-08-09T11:00:00+08:00', resolutionReason: body.reason, statusHistory: [{ id: 1, eventType: 'submitted', fromStatus: null, toStatus: 'pending', reason: null, actor: 'Ana Santos', createdAt: '2026-08-09T10:00:00+08:00' }, { id: 2, eventType: 'declined', fromStatus: 'pending', toStatus: 'declined', reason: body.reason, actor: 'Guidance Counselor', createdAt: '2026-08-09T11:00:00+08:00' }], createdAt: '2026-08-09T10:00:00+08:00' } })
-  }
-
-  if (url.startsWith('/api/v1/counselor/')) {
-    const adminUrl = url.replace('/api/v1/counselor/', '/api/v1/admin/')
-    return defaultFetch(adminUrl, init)
-  }
-
-  if (url === '/api/v1/admin/guidance-requests') {
-    return Response.json({ data: [{ id: 21, studentId: 10, studentName: 'Ana Santos', studentEmail: 'ana@example.test', programmeId: 'bs-information-technology', programmeCode: 'BSIT', programmeName: 'BS Information Technology', concernCategory: 'programme_comparison', preferredFormat: 'in_person', preferredDate: '2026-08-20', message: 'I would like help comparing my matched programmes before deciding.', status: 'pending', acceptedBy: null, acceptedAt: null, closedAt: null, resolutionReason: null, statusHistory: [{ id: 1, eventType: 'submitted', fromStatus: null, toStatus: 'pending', reason: null, actor: 'Ana Santos', createdAt: '2026-08-09T10:00:00+08:00' }], createdAt: '2026-08-09T10:00:00+08:00' }] })
-  }
-
   if (url === '/api/v1/admin/programmes') {
-    return Response.json({ data: { academicYear: '2026-2027', catalogueVersion: 1, catalogueStatus: 'approved_current_scope', programmes: [{ id: 'bs-information-technology', code: 'BSIT', name: 'BS Information Technology', profile: ['I', 'C', 'R'], profileStatus: 'researcher_proposed_temporary', profileVersion: 'TEMP-2026-01', majors: [], recommendedStrands: ['STEM', 'TVL-ICT'], description: 'Applies computing technologies to organisational needs.', learningAreas: ['Software development'], learningAreaDescriptions: { 'Software development': 'Design, build, test, and maintain applications.' }, learningAreaTopics: { 'Software development': ['Programming fundamentals'] }, careerDirections: ['Software and application development'], strandGuidance: 'STEM and TVL-ICT may be helpful preparation.', requirements: ['Meet published admission requirements.'], readinessPrompt: 'Discuss your interest in technology.', contentVersion: 'GUIDANCE-2026-01', degreeType: "Bachelor's degree", duration: { status: 'ched_psg', display: '4 years', source_name: 'CHED CMO No. 25, series of 2015', source_url: 'https://legacy.ched.gov.ph/2015-ched-memorandum-orders/' }, salary: { status: 'not_published', display: 'Not published', source_name: 'Philippine Statistics Authority', source_url: 'https://psa.gov.ph/', note: 'No official Philippine course-specific figure is available.' }, jobGrowth: { status: 'not_published', display: 'Not published', source_name: 'Philippine Statistics Authority OpenSTAT', source_url: 'https://openstat.psa.gov.ph/', note: 'No official Philippine course-specific percentage is available.' }, outlookVersion: 'PH-OUTLOOK-2026-08-09', monitoring: { savedByStudents: 3, pendingGuidanceRequests: 1 } }] } })
+    return Response.json({ data: { academicYear: '2026-2027', catalogueVersion: 1, catalogueStatus: 'approved_current_scope', programmes: [{ id: 'bs-information-technology', code: 'BSIT', name: 'BS Information Technology', profile: ['I', 'C', 'R'], profileStatus: 'researcher_proposed_temporary', profileVersion: 'TEMP-2026-01', majors: [], recommendedStrands: ['STEM', 'TVL-ICT'], description: 'Applies computing technologies to organisational needs.', learningAreas: ['Software development'], learningAreaDescriptions: { 'Software development': 'Design, build, test, and maintain applications.' }, learningAreaTopics: { 'Software development': ['Programming fundamentals'] }, careerDirections: ['Software and application development'], strandGuidance: 'STEM and TVL-ICT may be helpful preparation.', requirements: ['Meet published admission requirements.'], readinessPrompt: 'Discuss your interest in technology.', contentVersion: 'GUIDANCE-2026-01', degreeType: "Bachelor's degree", duration: { status: 'ched_psg', display: '4 years', source_name: 'CHED CMO No. 25, series of 2015', source_url: 'https://legacy.ched.gov.ph/2015-ched-memorandum-orders/' }, salary: { status: 'not_published', display: 'Not published', source_name: 'Philippine Statistics Authority', source_url: 'https://psa.gov.ph/', note: 'No official Philippine course-specific figure is available.' }, jobGrowth: { status: 'not_published', display: 'Not published', source_name: 'Philippine Statistics Authority OpenSTAT', source_url: 'https://openstat.psa.gov.ph/', note: 'No official Philippine course-specific percentage is available.' }, outlookVersion: 'PH-OUTLOOK-2026-08-09', monitoring: { savedByStudents: 3 } }] } })
   }
 
   if (url === '/api/v1/admin/programmes/bs-information-technology/media' && init?.method === 'POST') {
@@ -204,11 +167,11 @@ async function defaultFetch(
   }
 
   if (url.startsWith('/api/v1/admin/reports')) {
-    return Response.json({ data: { generatedAt: '2026-08-08T12:00:00+08:00', from: null, to: null, scope: 'institution', studentCount: 2, assessmentActivity: 2, completedAssessments: 2, assessmentCompletionRate: 100, recommendationRuns: 2, programmeSaves: 1, guidanceRequestStatuses: { pending: 1, accepted: 1, closed: 0, declined: 0, cancelled: 0 }, openFollowUps: 1, overdueFollowUps: 0, closedGuidanceCases: 1, assessmentCompletionsByMonth: [{ month: '2026-08', count: 2 }] } })
+    return Response.json({ data: { generatedAt: '2026-08-08T12:00:00+08:00', from: null, to: null, scope: 'institution', studentCount: 2, assessmentActivity: 2, completedAssessments: 2, assessmentCompletionRate: 100, recommendationRuns: 2, programmeSaves: 1, assessmentCompletionsByMonth: [{ month: '2026-08', count: 2 }] } })
   }
 
   if (url === '/api/v1/admin/activity') {
-    return Response.json({ data: [{ id: 1, actor: 'Authenticated User', action: 'guidance_note_created', subjectType: 'student', subjectReference: '10', metadata: null, createdAt: '2026-08-08T12:00:00+08:00' }] })
+    return Response.json({ data: [{ id: 1, actor: 'Authenticated User', action: 'configuration.published', subjectType: 'configuration_version', subjectReference: '7', metadata: null, createdAt: '2026-08-08T12:00:00+08:00' }] })
   }
 
   if (url === '/api/v1/student/assessments/riasec/session') {
@@ -235,20 +198,6 @@ async function defaultFetch(
     return Response.json({ data: { programmeIds: [] } })
   }
 
-  if (url === '/api/v1/student/guidance-requests' && init?.method === 'POST') {
-    const body = JSON.parse(String(init.body ?? '{}')) as { programmeId: string | null; concernCategory: string; preferredFormat: string; preferredDate: string | null; message: string }
-    return Response.json({ data: { id: 21, programmeId: body.programmeId, programmeCode: body.programmeId ? 'BSIT' : null, programmeName: body.programmeId ? 'BS Information Technology' : null, concernCategory: body.concernCategory, preferredFormat: body.preferredFormat, preferredDate: body.preferredDate, message: body.message, status: 'pending', acceptedBy: null, acceptedAt: null, closedAt: null, resolutionReason: null, statusHistory: [{ id: 1, eventType: 'submitted', fromStatus: null, toStatus: 'pending', reason: null, actor: 'Student', createdAt: '2026-08-09T10:00:00+08:00' }], createdAt: '2026-08-09T10:00:00+08:00' } }, { status: 201 })
-  }
-
-  if (url.match(/\/api\/v1\/student\/guidance-requests\/\d+\/cancel$/) && init?.method === 'POST') {
-    const body = JSON.parse(String(init.body ?? '{}')) as { reason: string }
-    return Response.json({ data: { id: 21, programmeId: 'bs-information-technology', programmeCode: 'BSIT', programmeName: 'BS Information Technology', concernCategory: 'programme_comparison', preferredFormat: 'in_person', preferredDate: '2026-08-20', message: 'I would like help comparing programmes.', status: 'cancelled', acceptedBy: null, acceptedAt: null, closedAt: '2026-08-09T11:00:00+08:00', resolutionReason: body.reason, statusHistory: [{ id: 1, eventType: 'cancelled', fromStatus: 'pending', toStatus: 'cancelled', reason: body.reason, actor: 'Student', createdAt: '2026-08-09T11:00:00+08:00' }], createdAt: '2026-08-09T10:00:00+08:00' } })
-  }
-
-  if (url === '/api/v1/student/guidance-requests') {
-    return Response.json({ data: [] })
-  }
-
   if (url.startsWith('/api/v1/student/saved-programmes/')) {
     return Response.json({ data: {
       programmeId: decodeURIComponent(url.split('/').at(-1) ?? ''),
@@ -264,6 +213,31 @@ async function defaultFetch(
         version: 'RETAKE-PROPOSED-2026-01',
         minimum_days_between_completed_attempts: 30,
         completed_attempts_are_read_only: true,
+      },
+    })
+  }
+
+  if (url === '/api/v1/student/entrance-examination') {
+    return Response.json({
+      data: {
+        status: 'declared',
+        result: {
+          id: 1,
+          score: 2.5,
+          eligibilityGroup: 'board',
+          ruleReference: 'SELF-DECLARED-TCC-ENTRANCE-2026-01',
+          source: 'student_self_declared',
+          declaredAt: '2026-08-28T09:00:00+08:00',
+        },
+        policy: {
+          ruleReference: 'SELF-DECLARED-TCC-ENTRANCE-2026-01',
+          minimum: 1,
+          maximum: 5,
+          decimalPlaces: 1,
+          boardRange: { minimum: 1, maximum: 2.5 },
+          nonBoardRange: { minimum: 2.6, maximum: 5 },
+          source: 'student_self_declared',
+        },
       },
     })
   }

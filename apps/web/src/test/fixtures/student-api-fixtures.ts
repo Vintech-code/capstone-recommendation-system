@@ -26,10 +26,23 @@ const testRecommendationSnapshot: StudentRecommendationSnapshot = {
   profile: {
     sessionReference: 'TEST-SESSION-001', availableAt: '2026-08-07T00:00:00Z', topCode: 'I-C', topLabels: ['Investigative', 'Conventional'],
     dimensions: [
-      { code: 'R', label: 'Realistic', value: 15 }, { code: 'I', label: 'Investigative', value: 19 },
-      { code: 'A', label: 'Artistic', value: 15 }, { code: 'S', label: 'Social', value: 18 },
-      { code: 'E', label: 'Enterprising', value: 17 }, { code: 'C', label: 'Conventional', value: 19 },
+      { code: 'R', label: 'Realistic', value: 15, minimum: 5, maximum: 25 }, { code: 'I', label: 'Investigative', value: 19, minimum: 5, maximum: 25 },
+      { code: 'A', label: 'Artistic', value: 15, minimum: 5, maximum: 25 }, { code: 'S', label: 'Social', value: 18, minimum: 5, maximum: 25 },
+      { code: 'E', label: 'Enterprising', value: 17, minimum: 5, maximum: 25 }, { code: 'C', label: 'Conventional', value: 19, minimum: 5, maximum: 25 },
     ],
+    guidance: {
+      status: 'proposed',
+      version: 'TEST-GUIDANCE-V1',
+      notice: 'Proposed guidance for testing.',
+      explanations: {
+        R: 'You may enjoy practical activities and producing visible results.',
+        I: 'You may enjoy exploring questions, analysing information, and solving problems.',
+        A: 'You may enjoy creating and expressing ideas.',
+        S: 'You may enjoy helping, teaching, and supporting other people.',
+        E: 'You may enjoy leading, persuading, and organising initiatives.',
+        C: 'You may enjoy organising information and following clear procedures.',
+      },
+    },
   },
   courses: [{
     id: 'test-course', rank: 1, code: 'TEST', name: 'Test Course', department: 'Test Department', duration: '4 years', level: 'Undergraduate', degreeType: "Bachelor's degree", match: 90, eligibility: 'Eligible', summary: '', factors: [], interestAreas: ['I', 'C'], learningAreas: ['Software development'], careerDirections: [], reviewNotes: [],

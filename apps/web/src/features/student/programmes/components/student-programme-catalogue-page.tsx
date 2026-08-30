@@ -1,11 +1,11 @@
 import {
-  BadgeDollarSign,
+  ArrowRight,
   Bookmark,
   BookmarkCheck,
   BookOpen,
   BriefcaseBusiness,
   Building2,
-  CheckCircle2,
+  CalendarDays,
   ChevronDown,
   Clock3,
   GraduationCap,
@@ -13,13 +13,12 @@ import {
   HeartHandshake,
   Laptop,
   LibraryBig,
-  Route,
   Scale,
   Search,
   School,
+  ShieldCheck,
   SlidersHorizontal,
   Stethoscope,
-  TrendingUp,
 } from 'lucide-react'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 
@@ -473,7 +472,7 @@ function ProgrammeCard({
   const category = categoryDefinitions.find((definition) => definition.ids.includes(programme.id))
 
   return (
-    <article className="group relative flex min-h-[27rem] w-full flex-col overflow-hidden rounded-xl bg-card text-left shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-md">
+    <article className="group relative flex min-h-[27rem] w-full flex-col overflow-hidden rounded-3xl border border-border bg-card text-left shadow-[var(--shadow-card)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[var(--shadow-card-hover)]">
       <button type="button" onClick={onSelect} aria-label={`View programme details: ${programme.name}`} className="absolute inset-0 z-10 rounded-xl focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-inset focus-visible:ring-ring/40" />
       <div className="relative flex h-40 items-center justify-center overflow-hidden bg-secondary">
         {cover ? (
@@ -514,12 +513,12 @@ function ProgrammeCard({
 
         <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 text-xs">
           <div className="min-w-0">
-            <dt className="flex items-center gap-1.5 text-muted-foreground"><BadgeDollarSign aria-hidden="true" className="size-4 text-primary" />Starting salary</dt>
-            <dd className="mt-1 truncate font-semibold">{programme.salary?.display || 'Not published'}</dd>
+            <dt className="flex items-center gap-1.5 text-muted-foreground"><ShieldCheck aria-hidden="true" className="size-4 text-primary" />Programme type</dt>
+            <dd className="mt-1 truncate font-semibold">{programme.eligibilityGroup === 'non_board' ? 'Non-board programme' : 'Board programme'}</dd>
           </div>
           <div className="min-w-0">
-            <dt className="flex items-center gap-1.5 text-muted-foreground"><TrendingUp aria-hidden="true" className="size-4 text-primary" />Job growth</dt>
-            <dd className="mt-1 truncate font-semibold">{programme.jobGrowth?.display || 'Not published'}</dd>
+            <dt className="flex items-center gap-1.5 text-muted-foreground"><BriefcaseBusiness aria-hidden="true" className="size-4 text-primary" />Career field</dt>
+            <dd className="mt-1 truncate font-semibold">{programme.careerDirections[0] || 'Various pathways'}</dd>
           </div>
         </dl>
 
@@ -560,128 +559,175 @@ function StudentProgrammeDetail({ programme, academicYear, onBack }: { programme
   const coverStyle = programme.coverImageUrl ? programmeMediaStyle(programme.coverImagePosition) : undefined
   const logoStyle = programme.logoImageUrl ? programmeMediaStyle(programme.logoImagePosition) : undefined
 
+  const facts = [
+    { label: 'Programme code', value: programme.code, icon: BookOpen, accent: false },
+    { label: 'Programme type', value: programme.eligibilityGroup === 'non_board' ? 'Non-board programme' : 'Board programme', icon: ShieldCheck, accent: true },
+    { label: 'Academic year', value: academicYear, icon: CalendarDays, accent: false },
+    { label: 'Degree type', value: programme.degreeType || "Bachelor's degree", icon: GraduationCap, accent: false },
+  ]
+
   return (
-    <article className="pb-10">
+    <article className="pb-16" aria-labelledby="catalogue-detail-title">
       <header className="relative isolate min-h-[24rem] overflow-hidden bg-primary-fixed/45">
         {cover ? <img src={cover} alt="" style={coverStyle} className="absolute inset-0 -z-20 size-full object-cover object-center" /> : null}
         <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-r from-background/90 via-background/50 to-transparent" />
         <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-t from-background via-background/20 to-transparent" />
         <div className="student-page grid min-h-[24rem] items-center gap-8 py-10 lg:grid-cols-[minmax(0,1fr)_12rem] lg:py-14">
-        <div className="pr-0 sm:pr-28 lg:pr-0">
-          <Button type="button" variant="outline" onClick={onBack} className="mb-5 bg-card/80">
-            Back to programmes
-          </Button>
-          <div className="flex flex-wrap gap-2">
-            <span className="outcome-chip">Academic Year {academicYear}</span>
-            {recommendedStrands.map((strand) => <span key={strand} className="outcome-chip">{strand}</span>)}
+          <div className="pr-0 sm:pr-28 lg:pr-0">
+            <Button type="button" variant="outline" onClick={onBack} className="mb-5 bg-card/80">
+              Back to programmes
+            </Button>
+            <div className="flex flex-wrap gap-2">
+              <span className="outcome-chip">Academic Year {academicYear}</span>
+              {recommendedStrands.map((strand) => <span key={strand} className="outcome-chip">{strand}</span>)}
+            </div>
+            <h1 id="catalogue-detail-title" className="mt-4 max-w-4xl font-display text-4xl font-bold tracking-[-0.035em] sm:text-5xl">{programme.name}</h1>
+            <p className="mt-3 max-w-3xl text-base leading-7 text-foreground/70">{programme.description}</p>
           </div>
-          <h1 className="mt-4 max-w-4xl font-display text-4xl font-bold tracking-[-0.035em] sm:text-5xl">{programme.name}</h1>
-          <p className="mt-3 max-w-3xl text-base leading-7 text-foreground/70">{programme.description}</p>
-        </div>
-        {logo ? (
-          <img src={logo} alt={`${programme.name} logo`} style={logoStyle} className={`absolute right-5 top-7 size-20 rounded-xl bg-white/90 p-2 shadow-sm sm:right-8 sm:size-28 lg:static lg:size-44 lg:justify-self-end ${logoStyle ? 'object-cover' : 'object-contain'}`} />
-        ) : (
-          <div className="programme-detail-mark" aria-hidden="true"><DetailIcon className="size-16" /><strong>{programme.code}</strong></div>
-        )}
+          {logo ? (
+            <img src={logo} alt={`${programme.name} logo`} style={logoStyle} className={`absolute right-5 top-7 size-20 rounded-xl bg-white/90 p-2 shadow-sm sm:right-8 sm:size-28 lg:static lg:size-44 lg:justify-self-end ${logoStyle ? 'object-cover' : 'object-contain'}`} />
+          ) : (
+            <div className="programme-detail-mark" aria-hidden="true"><DetailIcon className="size-16" /><strong>{programme.code}</strong></div>
+          )}
         </div>
       </header>
 
-      <div className="student-page">
-      <div className="mt-6 grid gap-5 lg:grid-cols-[minmax(0,1.35fr)_minmax(18rem,0.65fr)]">
-        <section aria-labelledby="learning-title" className="academic-panel">
-          <p className="student-kicker"><span /> Programme overview</p>
-          <h2 id="learning-title" className="mt-3 font-display text-2xl font-semibold">Learning areas</h2>
-          <div className="mt-5 grid gap-3 sm:grid-cols-2">
-            {programme.learningAreas.map((area, index) => (
-              <div key={area} className="learning-row">
-                <span>{String(index + 1).padStart(2, '0')}</span>
-                <div>
-                  <h3>{area}</h3>
-                  {programme.learningAreaDescriptions?.[area] ? (
-                    <p>{programme.learningAreaDescriptions[area]}</p>
-                  ) : null}
-                  {(programme.learningAreaTopics?.[area]?.length ?? 0) > 0 ? (
-                    <ul className="learning-topics" aria-label={`${area} key topics`}>
-                      {programme.learningAreaTopics?.[area]?.map((topic) => <li key={topic}>{topic}</li>)}
-                    </ul>
-                  ) : null}
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <section aria-labelledby="programme-facts-title" className="academic-panel">
-          <h2 id="programme-facts-title" className="font-display text-xl font-semibold">Programme information</h2>
-          <dl className="mt-5 divide-y divide-outline-variant/40">
-            <div className="py-3 first:pt-0">
-              <dt className="font-label text-xs uppercase tracking-[0.1em] text-muted-foreground">Programme code</dt>
-              <dd className="mt-1 font-semibold">{programme.code}</dd>
-            </div>
-            <div className="py-3">
-              <dt className="font-label text-xs uppercase tracking-[0.1em] text-muted-foreground">Academic year</dt>
-              <dd className="mt-1 font-semibold">{academicYear}</dd>
-            </div>
-            <div className="py-3">
-              <dt className="font-label text-xs uppercase tracking-[0.1em] text-muted-foreground">RIASEC profile</dt>
-              <dd className="mt-1 font-semibold">{programme.riasecProfile.join(' / ')}</dd>
-            </div>
-            {programme.majors.length > 0 ? (
-              <div className="py-3 last:pb-0">
-                <dt className="font-label text-xs uppercase tracking-[0.1em] text-muted-foreground">Available majors</dt>
-                <dd className="mt-2">
-                  <ul className="space-y-2">
-                    {programme.majors.map((major) => (
-                      <li key={major} className="flex gap-2 text-sm">
-                        <GraduationCap aria-hidden="true" className="size-4 shrink-0 text-primary" />{major}
-                      </li>
-                    ))}
-                  </ul>
+      <div className="student-page mt-8 grid items-start gap-10 lg:grid-cols-[minmax(0,1.6fr)_minmax(18rem,0.75fr)]">
+        <div className="space-y-8">
+          <dl className="grid grid-cols-2 gap-4 border-b border-border/80 pb-6 sm:grid-cols-4 sm:gap-6">
+            {facts.map((fact) => (
+              <div key={fact.label} className="min-w-0">
+                <dt className="flex items-center gap-1.5 font-label text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
+                  <fact.icon aria-hidden="true" className="size-3.5 text-primary" />
+                  {fact.label}
+                </dt>
+                <dd className="mt-1.5">
+                  <span className={`block font-display text-base font-bold sm:text-lg ${fact.accent ? 'text-primary' : 'text-foreground'}`}>
+                    {fact.value}
+                  </span>
                 </dd>
               </div>
-            ) : null}
+            ))}
           </dl>
-        </section>
-      </div>
 
-      <div className="mt-5 grid gap-5 lg:grid-cols-2">
-        <section aria-labelledby="strand-title" className="academic-panel programme-info-card">
-          <div className="flex items-start gap-4">
-            <span className="programme-section-icon"><School aria-hidden="true" /></span>
-            <div>
-              <p className="font-label text-xs font-medium uppercase tracking-[0.13em] text-primary">Senior High preparation</p>
-              <h2 id="strand-title" className="mt-1 font-display text-2xl font-semibold">Helpful tracks and strands</h2>
+          <section aria-labelledby="learning-title" className="space-y-3.5">
+            <div className="flex items-center gap-2.5">
+              <BookOpen aria-hidden="true" className="size-5 text-primary" />
+              <div>
+                <p className="font-label text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Programme overview</p>
+                <h2 id="learning-title" className="font-display text-lg font-bold text-foreground sm:text-xl">Learning areas</h2>
+              </div>
             </div>
-          </div>
-          <ul className="mt-5 grid gap-3">
-            {recommendedStrands.map((strand) => (
-              <li key={strand} className="strand-row">
-                <span className="strand-chip">{strand}</span>
-                <span>{strandLabels[strand] ?? strand}</span>
-              </li>
-            ))}
-          </ul>
-        </section>
+            {programme.learningAreas.length > 0 ? (
+              <ol className="divide-y divide-border/60 rounded-2xl border border-border/70 bg-card/60 overflow-hidden shadow-xs">
+                {programme.learningAreas.map((area, index) => (
+                  <li key={area} className="flex items-start gap-4 p-4.5 sm:p-5 transition-colors hover:bg-card">
+                    <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-primary-fixed font-label text-xs font-bold text-on-primary-fixed">
+                      {String(index + 1).padStart(2, '0')}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="font-display text-sm font-bold text-foreground sm:text-base">{area}</h3>
+                      {programme.learningAreaDescriptions?.[area] ? (
+                        <p className="mt-1 text-xs leading-relaxed text-muted-foreground sm:text-sm">
+                          {programme.learningAreaDescriptions[area]}
+                        </p>
+                      ) : null}
+                      {(programme.learningAreaTopics?.[area]?.length ?? 0) > 0 ? (
+                        <ul className="mt-2.5 flex flex-wrap gap-1.5" aria-label={`${area} key topics`}>
+                          {programme.learningAreaTopics?.[area]?.map((topic) => (
+                            <li key={topic} className="rounded-md bg-secondary/80 px-2.5 py-0.5 font-label text-[11px] font-medium text-foreground/80">
+                              {topic}
+                            </li>
+                          ))}
+                        </ul>
+                      ) : null}
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                Learning areas are not available for this programme.
+              </p>
+            )}
+          </section>
 
-        <section aria-labelledby="career-title" className="academic-panel programme-info-card">
-          <div className="flex items-start gap-4">
-            <span className="programme-section-icon"><Route aria-hidden="true" /></span>
-            <div>
-              <p className="font-label text-xs font-medium uppercase tracking-[0.13em] text-primary">After graduation</p>
-              <h2 id="career-title" className="mt-1 font-display text-2xl font-semibold">Possible career directions</h2>
-            </div>
-          </div>
-          <ul className="mt-5 grid gap-3">
-            {careerDirections.map((direction) => (
-              <li key={direction} className="flex min-h-14 items-center gap-3 rounded bg-secondary p-4 text-sm font-medium">
-                <CheckCircle2 aria-hidden="true" className="size-5 shrink-0 text-primary" />
-                {direction}
-              </li>
-            ))}
-          </ul>
-        </section>
-      </div>
+          {recommendedStrands.length > 0 ? (
+            <section aria-labelledby="strand-title" className="space-y-3.5">
+              <div className="flex items-center gap-2.5">
+                <School aria-hidden="true" className="size-5 text-primary" />
+                <div>
+                  <p className="font-label text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Senior High preparation</p>
+                  <h2 id="strand-title" className="font-display text-lg font-bold text-foreground sm:text-xl">Helpful tracks and strands</h2>
+                </div>
+              </div>
+              <ul className="divide-y divide-border/60 rounded-2xl border border-border/70 bg-card/60 overflow-hidden shadow-xs">
+                {recommendedStrands.map((strand) => (
+                  <li key={strand} className="flex items-center gap-3.5 p-4 transition-colors hover:bg-card sm:px-5">
+                    <span className="inline-flex min-h-7 items-center rounded-lg bg-primary-fixed px-2.5 font-label text-xs font-bold text-on-primary-fixed">
+                      {strand}
+                    </span>
+                    <span className="text-xs font-medium text-foreground sm:text-sm">
+                      {strandLabels[strand] ?? strand}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
+        </div>
 
+        <aside className="space-y-6">
+          <section aria-labelledby="programme-facts-title" className="rounded-3xl border border-border bg-card p-6 shadow-sm">
+            <h2 id="programme-facts-title" className="font-display text-base font-bold text-foreground">Programme information</h2>
+            <dl className="mt-4 space-y-4 text-xs sm:text-sm">
+              <div>
+                <dt className="font-label text-xs uppercase tracking-[0.1em] text-muted-foreground">Programme code</dt>
+                <dd className="mt-1 font-semibold text-foreground">{programme.code}</dd>
+              </div>
+              <div>
+                <dt className="font-label text-xs uppercase tracking-[0.1em] text-muted-foreground">RIASEC profile</dt>
+                <dd className="mt-2 flex flex-wrap gap-1.5">
+                  {programme.riasecProfile.map((code) => (
+                    <span key={code} className="outcome-chip">{code}</span>
+                  ))}
+                </dd>
+              </div>
+              {programme.majors.length > 0 ? (
+                <div>
+                  <dt className="font-label text-xs uppercase tracking-[0.1em] text-muted-foreground">Available majors</dt>
+                  <dd className="mt-2">
+                    <ul className="space-y-1.5">
+                      {programme.majors.map((major) => (
+                        <li key={major} className="flex items-center gap-2 text-xs font-medium text-foreground">
+                          <GraduationCap aria-hidden="true" className="size-3.5 shrink-0 text-primary" />
+                          {major}
+                        </li>
+                      ))}
+                    </ul>
+                  </dd>
+                </div>
+              ) : null}
+            </dl>
+          </section>
+
+          {careerDirections.length > 0 ? (
+            <section aria-labelledby="career-title" className="space-y-3">
+              <div className="flex items-center gap-2.5">
+                <BriefcaseBusiness aria-hidden="true" className="size-4 text-primary" />
+                <h2 id="career-title" className="font-display text-base font-bold text-foreground">Possible career directions</h2>
+              </div>
+              <ul className="space-y-2">
+                {careerDirections.map((direction) => (
+                  <li key={direction} className="flex min-h-11 items-center justify-between gap-3 rounded-xl bg-secondary/70 px-4 py-2.5 transition-colors">
+                    <span className="text-xs font-medium leading-5 text-foreground sm:text-sm">{direction}</span>
+                    <ArrowRight aria-hidden="true" className="size-3.5 shrink-0 text-muted-foreground" />
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
+        </aside>
       </div>
     </article>
   )

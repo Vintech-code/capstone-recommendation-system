@@ -1,57 +1,28 @@
 import { screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 
-import { THEME_STORAGE_KEY } from '@/app/theme-context'
-import { renderAppAt } from '@/test/render-app'
 import stylesheet from '@/index.css?raw'
+import { renderAppAt } from '@/test/render-app'
 
-describe('application theme', () => {
-  it('uses the Admin dark surface palette for every role surface alias', () => {
-    const darkTheme = stylesheet.match(/\.dark\s*\{([\s\S]*?)\n\}/)?.[1]
+describe('application visual system', () => {
+  it('uses the approved warm coastal palette with Nunito display and Inter body type', () => {
+    const rootTheme = stylesheet.match(/:root\s*\{([\s\S]*?)\n\}/)?.[1]
 
-    expect(darkTheme).toBeDefined()
-    expect(darkTheme).toContain('--card: #121d2d;')
-    expect(darkTheme).toContain('--brand-dark: #121d2d;')
-    expect(darkTheme).toContain('--secondary: #172437;')
-    expect(darkTheme).toContain('--canvas-cream: #172437;')
+    expect(rootTheme).toBeDefined()
+    expect(rootTheme).toContain('--background: #fbfaf5;')
+    expect(rootTheme).toContain('--primary: #0f6b66;')
+    expect(rootTheme).toContain('--secondary-container: #d96f52;')
+    expect(rootTheme).toContain('--border: #d8e1dc;')
+    expect(stylesheet).toContain('--font-sans: "Inter Variable", Inter')
+    expect(stylesheet).toContain('--font-display: "Nunito Variable", Nunito')
   })
 
-  it('switches to dark mode and persists the preference', async () => {
-    const user = userEvent.setup()
-    await renderAppAt('/not-found')
-
-    const toggle = screen.getByRole('button', {
-      name: 'Switch to dark mode',
-    })
-    expect(toggle).toHaveAttribute('aria-pressed', 'false')
-
-    await user.click(toggle)
-
-    expect(document.documentElement).toHaveClass('dark')
-    expect(document.documentElement).toHaveAttribute('data-theme', 'dark')
-    expect(window.localStorage.getItem(THEME_STORAGE_KEY)).toBe('dark')
-    expect(
-      screen.getByRole('button', { name: 'Switch to light mode' }),
-    ).toHaveAttribute('aria-pressed', 'true')
-  })
-
-  it('restores a saved dark theme in an authenticated workspace', async () => {
-    window.localStorage.setItem(THEME_STORAGE_KEY, 'dark')
-
-    await renderAppAt('/counselor')
-
-    expect(document.documentElement).toHaveClass('dark')
-    expect(
-      screen.getByRole('button', { name: 'Switch to light mode' }),
-    ).toBeVisible()
-  })
-
-  it('keeps the theme control available on recovery screens', async () => {
+  it('does not expose an appearance switch on recovery screens', async () => {
     await renderAppAt('/not-found')
 
     expect(
-      screen.getByRole('button', { name: 'Switch to dark mode' }),
-    ).toBeVisible()
+      screen.queryByRole('button', { name: /dark mode|light mode|appearance/i }),
+    ).not.toBeInTheDocument()
+    expect(document.documentElement).not.toHaveClass('dark')
   })
 })

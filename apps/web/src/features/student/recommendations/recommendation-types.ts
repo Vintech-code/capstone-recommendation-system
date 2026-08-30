@@ -15,6 +15,7 @@ interface StudentRecommendedCourse {
   rank: number
   code: string
   name: string
+  eligibilityGroup?: 'board' | 'non_board' | null
   department: string
   duration: string
   durationSource?: PhilippineSourceFact | null
@@ -65,7 +66,15 @@ interface StudentRecommendationProfile {
     code: 'R' | 'I' | 'A' | 'S' | 'E' | 'C'
     label: string
     value: number
+    minimum?: number
+    maximum?: number
   }>
+  guidance?: {
+    status: 'proposed'
+    version: string
+    notice: string
+    explanations: Record<'R' | 'I' | 'A' | 'S' | 'E' | 'C', string>
+  } | null
 }
 
 interface StudentRecommendationSnapshot {
@@ -80,6 +89,14 @@ interface StudentRecommendationSnapshot {
   canViewAll: boolean
   showingAll: boolean
   guidanceContentStatus?: 'proposed'
+  entranceExamination?: {
+    resultId: number
+    score: number
+    eligibilityGroup: 'board' | 'non_board'
+    ruleReference: string
+    source: 'student_self_declared'
+    declaredAt: string
+  } | null
   profile?: StudentRecommendationProfile
   courses: StudentRecommendedCourse[]
 }

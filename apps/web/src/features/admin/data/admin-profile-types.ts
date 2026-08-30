@@ -1,3 +1,9 @@
+/**
+ * Minimal student-profile shape used by the Admin panel
+ * (read-only, staff-facing view of a student's self-declared profile).
+ * Moved here after the student-facing My Profile feature was removed.
+ */
+
 interface StudentProfileIdentity {
   id: number
   name: string
@@ -35,10 +41,4 @@ interface StudentProfileData {
   about: string
 }
 
-interface StudentProfileFields {
-  strengths: string[]
-  growthAreas: string[]
-  learningPreferences: string[]
-}
-
-export type { StudentProfileData, StudentProfileFields, StudentProfileRiasecResult }
+export type { StudentProfileData, StudentProfileRiasecResult }

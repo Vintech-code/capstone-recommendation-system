@@ -1,4 +1,4 @@
-type AccessRole = 'student' | 'admin' | 'counselor'
+type AccessRole = 'student' | 'admin'
 
 interface RoleOption {
   value: AccessRole
@@ -12,19 +12,13 @@ const roleOptions: RoleOption[] = [
     value: 'student',
     label: 'Student Applicant',
     shortLabel: 'Student',
-    description: 'Access your application and guidance workspace.',
+    description: 'Access your assessment and programme recommendation workspace.',
   },
   {
     value: 'admin',
     label: 'Administrator',
     shortLabel: 'Admin',
-    description: 'Govern programmes, counselor accounts, reporting, and audit activity.',
-  },
-  {
-    value: 'counselor',
-    label: 'Counselor',
-    shortLabel: 'Counselor',
-    description: 'Review student records and resolve guidance concerns.',
+    description: 'Govern programmes, student monitoring, reporting, and audit activity.',
   },
 ]
 

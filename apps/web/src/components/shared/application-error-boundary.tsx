@@ -20,7 +20,6 @@ function createErrorReference() {
 
 function recoveryPath(pathname: string) {
   if (pathname.startsWith('/admin')) return '/admin'
-  if (pathname.startsWith('/counselor')) return '/counselor'
   return '/student'
 }
 
@@ -63,7 +62,7 @@ class ApplicationErrorBoundary extends Component<
       <main className="flex min-h-[70svh] items-center justify-center bg-secondary/60 px-4 py-12">
         <section
           aria-labelledby="application-error-title"
-          className="w-full max-w-xl rounded-lg bg-card p-7 text-center shadow-sm sm:p-10"
+          className="w-full max-w-xl rounded-[1.75rem] border border-border bg-card p-7 text-center shadow-[var(--shadow-card)] sm:p-10"
         >
           <span className="mx-auto flex size-14 items-center justify-center rounded bg-destructive/10 text-destructive">
             <AlertTriangle aria-hidden="true" className="size-7" />

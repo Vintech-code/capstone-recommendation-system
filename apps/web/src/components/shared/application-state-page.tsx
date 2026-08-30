@@ -8,7 +8,6 @@ import {
 import { lazy, Suspense, useEffect, useRef } from 'react'
 
 import { Button } from '@/components/ui/button'
-import { ThemeToggle } from '@/components/shared/theme-toggle'
 
 const NotFoundAnimation = lazy(() =>
   import('@/components/shared/not-found-animation').then((module) => ({
@@ -73,9 +72,9 @@ function ApplicationStatePage({
   }, [])
 
   return (
-    <main className="relative flex min-h-svh items-center justify-center bg-secondary/70 px-4 py-12">
-      <ThemeToggle className="absolute right-4 top-4 bg-background shadow-sm sm:right-6 sm:top-6" />
-      <section className="w-full max-w-xl rounded-3xl bg-background p-7 text-center shadow-sm sm:p-10">
+    <main className="relative flex min-h-svh items-center justify-center bg-background px-4 py-12">
+      <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-gradient-to-b from-primary-fixed/70 to-transparent" />
+      <section className="relative w-full max-w-xl rounded-[1.75rem] border border-border bg-card p-7 text-center shadow-[var(--shadow-card)] sm:p-10">
         {kind === 'not-found' ? (
           <Suspense
             fallback={(

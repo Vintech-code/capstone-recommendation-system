@@ -2,7 +2,6 @@ import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 
-import { dashboards } from '@/features/auth/workspace-definitions'
 import { renderAppAt } from '@/test/render-app'
 
 async function signIn(user: ReturnType<typeof userEvent.setup>) {
@@ -15,13 +14,6 @@ async function signIn(user: ReturnType<typeof userEvent.setup>) {
 }
 
 describe('access portals and workspace shell', () => {
-  it('separates Administrator and Counselor responsibilities', () => {
-    expect(dashboards.admin.accessFacts).toContain(
-      'Individual Administrator accounts',
-    )
-    expect(dashboards.counselor.boundary).toMatch(/cannot edit programme governance/i)
-  })
-
   it('opens the Student portal without exposing role selection', async () => {
     await renderAppAt('/student/login')
 
@@ -38,10 +30,9 @@ describe('access portals and workspace shell', () => {
       )
     })
     expect(
-      screen.getByRole('img', { name: 'Student exploring course options online' }),
-    ).toHaveAttribute('src', expect.stringMatching(/login-background1\.png$/))
-    expect(screen.getByText('Discover the right courses')).toBeVisible()
-    expect(screen.getByText('for your future.')).toBeVisible()
+      screen.getByRole('img', { name: /illustrated academic path/i }),
+    ).toHaveAttribute('src', expect.stringMatching(/student-journey-hero\.png$/))
+    expect(screen.getByText('Discover a programme direction built from your recorded interests.')).toBeVisible()
     expect(
       screen.getByRole('button', { name: 'Continue with Google' }),
     ).toBeEnabled()
@@ -125,26 +116,13 @@ describe('access portals and workspace shell', () => {
 
     expect(window.location.pathname).toBe('/student')
     expect(
-      await screen.findByRole('heading', {
-        level: 1,
-        name: 'Your journey. Your future.',
-      }),
-    ).toBeVisible()
-    expect(screen.getByRole('heading', { name: 'Your journey. Your future.' }).closest('.student-page-enter')).not.toBeNull()
-    const studentLogos = screen.getByRole('button', { name: 'Go to dashboard' }).querySelectorAll('img')
-    expect(studentLogos[0]).toHaveAttribute('src', expect.stringMatching(/logo-optimized\.png$/))
-    expect(studentLogos[1]).toHaveAttribute('src', expect.stringMatching(/logo\.png$/))
-    expect(
-      screen.getByRole('navigation', { name: 'Workspace navigation' }),
+      await screen.findByRole('button', { name: 'Go to dashboard' }),
     ).toBeVisible()
     expect(screen.queryByLabelText('Workspace sidebar')).not.toBeInTheDocument()
-    expect(screen.getAllByText('Assessment').length).toBeGreaterThan(0)
-    expect(screen.queryByText('Assessment result')).not.toBeInTheDocument()
-    expect(screen.getAllByText('Explore Programs').length).toBeGreaterThan(0)
-    expect(screen.getAllByText('My Matches').length).toBeGreaterThan(0)
-    expect(screen.queryByText('My report')).not.toBeInTheDocument()
 
-    await user.click(screen.getByRole('button', { name: 'Open user menu' }))
+    // Navigate to dashboard overview to open user menu and sign out
+    await user.click(screen.getByRole('button', { name: 'Go to dashboard' }))
+    await user.click(await screen.findByRole('button', { name: 'Open user menu' }))
     await user.click(await screen.findByRole('menuitem', { name: 'Sign out' }))
 
     expect(window.location.pathname).toBe('/student/login')
@@ -170,7 +148,6 @@ describe('access portals and workspace shell', () => {
       }, { timeout: 5_000 }),
     ).toBeVisible()
     expect(screen.getAllByText('Students').length).toBeGreaterThan(0)
-    expect(screen.getAllByText('Counselor accounts').length).toBeGreaterThan(0)
     expect(screen.queryByRole('button', { name: 'Assessments' })).not.toBeInTheDocument()
     expect(screen.getAllByText('Programmes').length).toBeGreaterThan(0)
     expect(screen.queryByText('Methodology')).not.toBeInTheDocument()
@@ -186,27 +163,6 @@ describe('access portals and workspace shell', () => {
       screen.getByRole('button', { name: 'Expand workspace navigation' }),
     ).toBeVisible()
   }, 10_000)
-
-  it('uses a separate portal and workspace for Counselors', async () => {
-    const user = userEvent.setup()
-    await renderAppAt('/counselor/login')
-
-    expect(screen.queryByText('Counselor')).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Continue with Google' })).not.toBeInTheDocument()
-
-    await signIn(user)
-
-    expect(window.location.pathname).toBe('/counselor')
-    expect(
-      await screen.findByRole('heading', {
-        level: 1,
-        name: /Good day,/,
-      }),
-    ).toBeVisible()
-    expect(screen.getAllByText('Student records').length).toBeGreaterThan(0)
-    expect(screen.getAllByText('Guidance requests').length).toBeGreaterThan(0)
-    expect(screen.queryByRole('contentinfo')).not.toBeInTheDocument()
-  })
 
   it('opens a role module and returns to the dashboard overview', async () => {
     const user = userEvent.setup()

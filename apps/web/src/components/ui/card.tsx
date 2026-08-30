@@ -7,7 +7,7 @@ function Card({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
     <div
       data-slot="card"
       className={cn(
-        'flex flex-col gap-6 rounded-xl bg-card py-6 text-card-foreground shadow-sm',
+        'flex flex-col gap-6 rounded-3xl border border-border bg-card py-6 text-card-foreground shadow-[var(--shadow-card)]',
         className,
       )}
       {...props}

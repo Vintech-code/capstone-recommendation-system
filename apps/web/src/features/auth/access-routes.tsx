@@ -18,23 +18,15 @@ import { PasswordResetPage } from '@/features/auth/password-reset-page'
 import { PasswordChangePage } from '@/features/auth/password-change-page'
 import { StudentAssessmentSessionPage } from '@/features/student/assessment/components/student-assessment-session-page'
 import { StudentAssessmentHistoryPage } from '@/features/student/assessment/components/student-assessment-history-page'
-import { StudentDashboardPage } from '@/features/student/dashboard/components/student-dashboard-page'
 import { StudentRecommendationResultsPage } from '@/features/student/recommendations/components/student-recommendation-results-page'
 import { StudentProgrammeCataloguePage } from '@/features/student/programmes/components/student-programme-catalogue-page'
 import type { StudentProgrammeMatchContext } from '@/features/student/programmes/programme-types'
-import { StudentProfilePage } from '@/features/student/profile/components/student-profile-page'
 
 const AdminWorkspaceRoute = lazy(() =>
   import('@/features/admin/routes/admin-workspace-route').then((module) => ({
     default: module.AdminWorkspaceRoute,
   })),
 )
-const CounselorWorkspaceRoute = lazy(() =>
-  import('@/features/counselor/routes/counselor-workspace-route').then((module) => ({
-    default: module.CounselorWorkspaceRoute,
-  })),
-)
-
 function WorkspaceRoute({ role }: { role: AccessRole }) {
   const navigate = useNavigate()
   const { signOut } = useAuth()
@@ -50,7 +42,18 @@ function WorkspaceRoute({ role }: { role: AccessRole }) {
         renderOverview={
           role === 'student'
             ? ({ onSelect }) => (
-                <StudentDashboardPage onSelectModule={onSelect} />
+                <StudentRecommendationResultsPage
+                  onBack={() => onSelect('recommendations')}
+                  onOpenAssessment={() => onSelect('assessment')}
+                  onExploreProgrammes={(courses) => {
+                    setProgrammeMatchContext(courses.map((course) => ({
+                      programmeId: course.id,
+                      match: course.match,
+                      factors: course.factors,
+                    })))
+                    onSelect('programmes')
+                  }}
+                />
               )
             : undefined
         }
@@ -94,9 +97,6 @@ function WorkspaceRoute({ role }: { role: AccessRole }) {
                 }
                 if (module.id === 'programmes') {
                   return <StudentProgrammeCataloguePage matchContext={programmeMatchContext} />
-                }
-                if (module.id === 'profile') {
-                  return <StudentProfilePage onBack={onBack} />
                 }
                 return undefined
               }
@@ -145,18 +145,12 @@ function AccessRoutes() {
         element={<PortalSignInPage role="admin" />}
       />
       <Route
-        path="/counselor/login"
-        element={<PortalSignInPage role="counselor" />}
-      />
-      <Route
         path="/student"
         element={<WorkspaceRoute role="student" />}
       />
       <Route path="/admin" element={<AdminWorkspaceRoute />} />
       <Route path="/admin/students" element={<AdminWorkspaceRoute />} />
       <Route path="/admin/students/:studentId" element={<AdminWorkspaceRoute />} />
-      <Route path="/admin/counselors" element={<AdminWorkspaceRoute />} />
-      <Route path="/admin/staff" element={<Navigate to="/admin/counselors" replace />} />
       <Route path="/admin/assessments" element={<Navigate to="/admin/students" replace />} />
       <Route path="/admin/programmes" element={<AdminWorkspaceRoute />} />
       <Route path="/admin/programmes/sources" element={<AdminWorkspaceRoute />} />
@@ -172,9 +166,6 @@ function AccessRoutes() {
       <Route path="/admin/decisions" element={<Navigate to="/admin/students" replace />} />
       <Route path="/admin/courses/*" element={<Navigate to="/admin/programmes" replace />} />
       <Route path="/admin/rules/*" element={<Navigate to="/admin/programmes" replace />} />
-      <Route path="/counselor" element={<CounselorWorkspaceRoute />} />
-      <Route path="/counselor/:section" element={<CounselorWorkspaceRoute />} />
-      <Route path="/counselor/students/:studentId" element={<CounselorWorkspaceRoute />} />
       <Route
         path="/forbidden"
         element={<SharedStateRoute kind="forbidden" />}

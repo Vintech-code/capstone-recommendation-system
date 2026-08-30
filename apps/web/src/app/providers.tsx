@@ -3,8 +3,6 @@ import { useState, type ReactNode } from 'react'
 
 import { Toaster } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
-import { useTheme } from '@/app/theme-context'
-import { ThemeProvider } from '@/app/theme-provider'
 import {
   AuthProvider,
   type AuthUser,
@@ -30,23 +28,15 @@ function AppProviders({ children, initialAuthUser }: AppProvidersProps) {
   )
 
   return (
-    <ThemeProvider>
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider initialUser={initialAuthUser}>
-          <TooltipProvider delayDuration={300}>
-            {children}
-            <ThemeAwareToaster />
-          </TooltipProvider>
-        </AuthProvider>
-      </QueryClientProvider>
-    </ThemeProvider>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider initialUser={initialAuthUser}>
+        <TooltipProvider delayDuration={300}>
+          {children}
+          <Toaster theme="light" />
+        </TooltipProvider>
+      </AuthProvider>
+    </QueryClientProvider>
   )
-}
-
-function ThemeAwareToaster() {
-  const { theme } = useTheme()
-
-  return <Toaster theme={theme} />
 }
 
 export { AppProviders }

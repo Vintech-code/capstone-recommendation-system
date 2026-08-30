@@ -23,12 +23,6 @@ const testUsers: Record<AccessRole, AuthUser> = {
     email: 'admin@example.test',
     roles: ['admin'],
   },
-  counselor: {
-    id: 3,
-    name: 'Counselor User',
-    email: 'counselor@example.test',
-    roles: ['counselor'],
-  },
 }
 
 function defaultUserForPath(path: string) {
@@ -37,12 +31,6 @@ function defaultUserForPath(path: string) {
   }
   if (path.startsWith('/student') && !path.startsWith('/student/login')) {
     return testUsers.student
-  }
-  if (
-    path.startsWith('/counselor') &&
-    !path.startsWith('/counselor/login')
-  ) {
-    return testUsers.counselor
   }
   return null
 }
@@ -66,9 +54,9 @@ async function renderAppAt(path: string, options: RenderAppOptions = {}) {
   )
 
   if (
-    (path === '/admin' || path.startsWith('/admin/') || path === '/counselor' || path.startsWith('/counselor/')) &&
+    (path === '/admin' || path.startsWith('/admin/')) &&
     !path.startsWith('/admin/login') &&
-    (initialAuthUser?.roles.includes('admin') || initialAuthUser?.roles.includes('counselor'))
+    initialAuthUser?.roles.includes('admin')
   ) {
     await screen.findByLabelText('Workspace sidebar')
   }

@@ -23,9 +23,6 @@ describe('Student dashboard', () => {
       if (url === '/api/v1/student/recommendations/latest') {
         return Response.json({ data: { status: 'not_available', recommendation: null } })
       }
-      if (url === '/api/v1/student/guidance-summaries') {
-        return Response.json({ data: [{ id: 3, body: 'Compare your shortlisted programmes and record your remaining questions.', counselor: 'Guidance Counselor', publishedBy: 'Guidance Counselor', publishedAt: '2026-08-10T10:00:00+08:00' }] })
-      }
       if (url === '/api/v1/student/programmes') {
         return Response.json({ data: { academicYear: '2026-2027', catalogueVersion: 1, programmes: [{ id: 'bs-information-technology', name: 'BS Information Technology', code: 'BSIT', majors: [], riasecProfile: ['I', 'C', 'R'], description: 'Technology programme', learningAreas: ['Software development'], requirements: ['Meet published admission requirements.'], readinessPrompt: 'Discuss your interest in technology.' }] } })
       }
@@ -52,10 +49,10 @@ describe('Student dashboard', () => {
     expect(screen.getByText('Realistic')).toBeVisible()
     expect(screen.queryAllByRole('progressbar')).toHaveLength(0)
     expect(screen.getByText('No recommendations yet')).toBeVisible()
-    expect(screen.getByTestId('student-guidance-summary')).toHaveClass(
+    expect(screen.getByTestId('student-dashboard-summary')).toHaveClass(
       'w-full',
     )
-    expect(screen.getByTestId('student-guidance-summary')).not.toHaveClass('max-w-[96rem]')
+    expect(screen.getByTestId('student-dashboard-summary')).not.toHaveClass('max-w-[96rem]')
     expect(screen.queryByText('TEST-SESSION-001')).not.toBeInTheDocument()
     expect(screen.queryByText('Profile & application')).not.toBeInTheDocument()
     expect(screen.queryByText('Official result')).not.toBeInTheDocument()
@@ -138,13 +135,6 @@ describe('Student dashboard', () => {
     },
   )
 
-  it('directs students with concerns to the school without an online guidance workflow', () => {
-    render(<StudentDashboardPage onSelectModule={vi.fn()} initialLifecycle={{ status: 'not_started', question_count: 30 }} />)
-    expect(screen.getByRole('heading', { name: 'Visit the Guidance Office' })).toBeVisible()
-    expect(screen.getByText('No online appointment or request is needed.')).toBeVisible()
-    expect(screen.queryByRole('button', { name: /guidance|appointment|request/i })).not.toBeInTheDocument()
-  })
-
   it('uses the clean journey overview without a redundant completed-assessment card', async () => {
     const user = userEvent.setup()
     const onSelectModule = vi.fn()
@@ -162,9 +152,6 @@ describe('Student dashboard', () => {
     expect(onSelectModule).toHaveBeenCalledWith('assessment')
     await user.click(screen.getByRole('button', { name: 'Assessment history' }))
     expect(onSelectModule).toHaveBeenCalledWith('history')
-    expect(screen.getByRole('heading', { name: 'Visit the Guidance Office' })).toBeVisible()
-    expect(screen.getByText('Topics you can discuss')).toBeVisible()
-    expect(screen.getByText('Programmes you are comparing')).toBeVisible()
     expect(screen.getByText('Your highest recorded areas are Investigative and Conventional.')).toBeVisible()
     expect(screen.getByLabelText('Primary recorded interest')).toBeInTheDocument()
     expect(document.querySelector('.lucide-eye')).toBeInTheDocument()

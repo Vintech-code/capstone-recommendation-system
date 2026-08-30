@@ -5,15 +5,22 @@ import { getProgrammeImages } from '@/features/student/programmes/programme-imag
 import { programmeMediaStyle } from '@/features/student/programmes/programme-media-position'
 import type { StudentRecommendedCourse } from '@/features/student/recommendations/recommendation-types'
 
+const interestAreaNames: Record<string, string> = {
+  R: 'Realistic',
+  I: 'Investigative',
+  A: 'Artistic',
+  S: 'Social',
+  E: 'Enterprising',
+  C: 'Conventional',
+}
+
 interface RecommendationMatchCardProps {
   course: StudentRecommendedCourse
-  featured?: boolean
   onViewDetails: () => void
 }
 
 function RecommendationMatchCard({
   course,
-  featured = false,
   onViewDetails,
 }: RecommendationMatchCardProps) {
   const fallback = getProgrammeImages(course.id)
@@ -22,45 +29,31 @@ function RecommendationMatchCard({
 
   return (
     <article
-      className={
-        featured
-          ? 'group relative overflow-hidden rounded-lg bg-card p-5 shadow-sm sm:p-6'
-          : 'group relative overflow-hidden rounded-lg bg-card p-5 shadow-sm'
-      }
+      className="group py-6 sm:py-8"
     >
-      <span
-        aria-hidden="true"
-        className={`absolute inset-y-0 left-0 w-1 ${course.rank === 1 ? 'bg-secondary-container' : course.rank === 2 ? 'bg-success' : 'bg-primary'}`}
-      />
-
-      <div
-        className={
-          featured
-            ? 'grid gap-5 sm:grid-cols-[10rem_minmax(0,1fr)] sm:items-stretch lg:grid-cols-[12rem_minmax(0,1fr)]'
-            : 'grid gap-4 sm:grid-cols-[7rem_minmax(0,1fr)] sm:items-center'
-        }
-      >
+      <div className="grid gap-5 sm:grid-cols-[10rem_minmax(0,1fr)] sm:items-stretch lg:grid-cols-[11rem_minmax(0,1fr)]">
         <div
-          className={`relative flex min-h-32 items-center justify-center overflow-hidden rounded bg-gradient-to-br from-primary via-[#174a7c] to-[#7b94b5] text-primary-foreground ${featured ? 'sm:min-h-48' : ''}`}
+          className="relative flex aspect-[4/3] flex-col items-center justify-center overflow-hidden rounded-2xl bg-secondary text-primary sm:aspect-auto sm:min-h-44"
         >
           {cover ? (
-            <img src={cover} alt={`${course.name} programme`} loading="lazy" decoding="async" style={coverStyle} className={`absolute inset-0 size-full object-cover transition-transform duration-300 ${coverStyle ? '' : 'group-hover:scale-105'}`} />
+            <img src={cover} alt={`${course.name} programme`} loading="lazy" decoding="async" style={coverStyle} className="absolute inset-0 size-full object-cover" />
           ) : (
             <>
-              <BookOpen aria-hidden="true" className="absolute -bottom-3 -right-2 size-24 opacity-15" />
+              <BookOpen aria-hidden="true" className="mb-2 size-8 text-muted-foreground" />
               <span className="font-display text-2xl font-bold tracking-[-0.04em]">{course.code}</span>
             </>
           )}
-          <span aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-primary/50 via-transparent to-transparent" />
-          <span className="absolute left-2 top-2 rounded bg-secondary-container px-2.5 py-1 font-label text-xs font-medium text-[#221b00] shadow-sm">
-            {course.match}% match
-          </span>
         </div>
 
-        <div className="flex min-w-0 flex-col justify-between">
+        <div className="flex min-w-0 flex-col">
           <div>
-            <div className="flex flex-wrap gap-2">
-              <span className="outcome-chip">Recommendation {course.rank}</span>
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+              <span className={course.rank === 1 ? 'inline-flex min-h-8 items-center rounded-full bg-primary px-3 font-label text-xs font-semibold text-primary-foreground' : 'outcome-chip'}>
+                Rank {course.rank}
+              </span>
+              <span className="font-label text-sm font-semibold text-foreground">
+                {course.match}% provisional match
+              </span>
             </div>
             <h3 className="mt-3 font-display text-xl font-semibold leading-7 transition-colors group-hover:text-primary">
               {course.name} <span className="whitespace-nowrap">({course.code})</span>
@@ -71,7 +64,7 @@ function RecommendationMatchCard({
               </p>
             ) : null}
             {course.explanation ? (
-              <div className="mt-4 flex items-start gap-2 rounded bg-primary-fixed/45 px-3 py-2.5 text-xs leading-5 text-on-primary-fixed">
+              <div className="mt-4 flex items-start gap-2 border-l-2 border-primary/25 pl-3 text-xs leading-5 text-muted-foreground">
                 <ListChecks aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
                 <p>
                   {course.explanation.sharedTopAreas.length > 0
@@ -82,19 +75,23 @@ function RecommendationMatchCard({
             ) : null}
           </div>
 
-          <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
-            <div className="flex -space-x-1.5" aria-label="Matched RIASEC areas">
-              {course.interestAreas.slice(0, 3).map((area) => (
-                <span
-                  key={area}
-                  title={`RIASEC area ${area}`}
-                  className="flex size-8 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground ring-2 ring-card"
-                >
-                  {area}
-                </span>
-              ))}
+          <div className="mt-5 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div>
+              <p className="font-label text-xs font-semibold text-muted-foreground">
+                Matched interest areas
+              </p>
+              <div className="mt-2 flex flex-wrap gap-2" aria-label="Matched RIASEC areas">
+                {course.interestAreas.slice(0, 3).map((area) => (
+                  <span
+                    key={area}
+                    className="outcome-chip"
+                  >
+                    {area} · {interestAreaNames[area] ?? 'Recorded area'}
+                  </span>
+                ))}
+              </div>
             </div>
-            <Button type="button" variant="ghost" onClick={onViewDetails} className="text-primary">
+            <Button type="button" variant="ghost" onClick={onViewDetails} className="self-start text-primary md:self-auto">
               View programme
               <ArrowRight aria-hidden="true" />
             </Button>

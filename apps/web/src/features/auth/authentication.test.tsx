@@ -150,10 +150,7 @@ describe('server-backed authentication', () => {
       }),
     )
     expect(
-      await screen.findByRole('heading', {
-        level: 1,
-        name: 'Your journey. Your future.',
-      }),
+      await screen.findByRole('button', { name: 'Go to dashboard' }),
     ).toBeVisible()
   })
 

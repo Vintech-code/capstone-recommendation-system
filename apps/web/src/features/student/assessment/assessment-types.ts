@@ -22,6 +22,8 @@ interface AssessmentDimensionResult {
   code: 'R' | 'I' | 'A' | 'S' | 'E' | 'C'
   label: string
   value: number
+  minimum?: number
+  maximum?: number
   colorClass: string
   surfaceClass: string
 }
@@ -35,6 +37,12 @@ interface AssessmentDisplayResult {
   topCode: string
   topLabels: string[]
   dimensions: AssessmentDimensionResult[]
+  guidance?: {
+    status: 'proposed'
+    version: string
+    notice: string
+    explanations: Record<'R' | 'I' | 'A' | 'S' | 'E' | 'C', string>
+  } | null
 }
 
 export type {

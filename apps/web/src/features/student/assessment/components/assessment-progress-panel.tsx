@@ -1,47 +1,60 @@
-import type { AssessmentResponseValue } from '@/features/student/assessment/assessment-types'
-
 interface AssessmentProgressPanelProps {
-  questionIds: readonly string[]
-  answers: Record<string, AssessmentResponseValue>
+  answeredCount: number
+  currentQuestion: number
+  totalQuestions: number
 }
 
 function AssessmentProgressPanel({
-  questionIds,
-  answers,
+  answeredCount,
+  currentQuestion,
+  totalQuestions,
 }: AssessmentProgressPanelProps) {
-  const answeredCount = questionIds.filter((id) => answers[id]).length
-  const progress = questionIds.length
-    ? Math.round((answeredCount / questionIds.length) * 100)
+  const progress = totalQuestions
+    ? Math.round((answeredCount / totalQuestions) * 100)
     : 0
+  const remainingCount = Math.max(totalQuestions - answeredCount, 0)
 
   return (
-    <aside aria-labelledby="assessment-progress-title">
-      <h2 id="assessment-progress-title" className="sr-only">Assessment progress</h2>
-      <div
-        role="progressbar"
-        aria-label="Assessment completion"
-        aria-valuemin={0}
-        aria-valuemax={100}
-        aria-valuenow={progress}
-        className="h-1 overflow-hidden rounded-full bg-muted"
-      >
-        <div
-          className="h-full rounded-full bg-primary transition-[width] duration-300"
-          style={{ width: `${progress}%` }}
-        />
+    <section
+      aria-labelledby="assessment-progress-title"
+      className="grid grid-cols-[3.5rem_minmax(0,1fr)] items-center gap-4 sm:grid-cols-[4rem_minmax(0,1fr)] sm:gap-5"
+    >
+      <h2 id="assessment-progress-title" className="sr-only">
+        Assessment progress
+      </h2>
+      <div className="flex aspect-square flex-col items-center justify-center rounded-2xl bg-primary text-primary-foreground">
+        <strong className="font-display text-xl leading-none sm:text-2xl">
+          {String(currentQuestion).padStart(2, '0')}
+        </strong>
+        <span className="mt-1 text-[10px] font-semibold uppercase tracking-[0.12em] opacity-75">
+          of {totalQuestions}
+        </span>
       </div>
-      <ol className="mt-3 grid grid-cols-4 gap-3" aria-label="Assessment stages">
-        {['Interests', 'Questions', 'Review', 'Results'].map((label, index) => {
-          const active = index === 0 || (index === 1 && answeredCount > 0) || (index === 2 && answeredCount === questionIds.length)
-          return (
-            <li key={label} className={index === 0 ? '' : index === 3 ? 'text-right' : 'text-center'}>
-              <span className={`font-label text-xs font-medium ${active ? 'text-primary' : 'text-muted-foreground'}`}>{label}</span>
-              <span aria-hidden="true" className={`mt-1.5 block size-1.5 rounded-full ${index === 0 ? '' : index === 3 ? 'ml-auto' : 'mx-auto'} ${active ? 'bg-primary' : 'bg-outline-variant'}`} />
-            </li>
-          )
-        })}
-      </ol>
-    </aside>
+      <div className="min-w-0">
+        <div className="flex items-end justify-between gap-4">
+          <div>
+            <p className="text-sm font-semibold">Interest check-in</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              {answeredCount} answered · {remainingCount} remaining
+            </p>
+          </div>
+          <strong className="text-sm text-primary">{progress}%</strong>
+        </div>
+        <div
+          role="progressbar"
+          aria-label="Assessment completion"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={progress}
+          className="mt-3 h-2 overflow-hidden rounded-full bg-muted"
+        >
+          <div
+            className="h-full rounded-full bg-primary transition-[width] duration-300 motion-reduce:transition-none"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+      </div>
+    </section>
   )
 }
 

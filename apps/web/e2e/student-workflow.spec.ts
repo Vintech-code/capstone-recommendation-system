@@ -86,6 +86,10 @@ async function installStudentApi(page: Page, initiallyComplete = false) {
     }
     if (path === '/api/v1/auth/authorize/student') return json(route, { authorized: true, portal: 'student' })
     if (path === '/api/v1/auth/logout') return json(route, { message: 'Signed out.' })
+    if (path === '/api/v1/notifications') return json(route, { data: [] })
+    if (path === '/api/v1/student/profile') {
+      return json(route, { data: { student: { ...user, photoUrl: null }, questionnaire: { complete: false, strengths: [], growthAreas: [], learningPreferences: [], updatedAt: null }, options: { strengths: [], growthAreas: [], learningPreferences: [] }, riasec: null, careerInterests: [], about: 'No Student profile selections have been recorded.' } })
+    }
 
     if (path === '/api/v1/student/assessments/riasec/session') {
       return json(route, { data: submitted ? completedAssessment() : currentAssessment(answers) })
@@ -126,12 +130,6 @@ async function installStudentApi(page: Page, initiallyComplete = false) {
     }
     if (path === '/api/v1/student/programmes') {
       return json(route, { data: programmeCatalogue() })
-    }
-    if (path === '/api/v1/student/guidance-appointments') {
-      return json(route, { data: [] })
-    }
-    if (path === '/api/v1/student/guidance-requests') {
-      return json(route, { data: [] })
     }
     if (path === '/api/v1/student/saved-programmes') {
       return json(route, { data: { programmeIds: [] } })
@@ -242,6 +240,7 @@ test('completes the student assessment and opens a recommendation detail', async
   await expect(page.getByRole('heading', { name: 'All questions are answered' })).toBeVisible()
   await page.getByRole('button', { name: 'Submit assessment' }).click()
   await page.getByRole('alertdialog').getByRole('button', { name: 'Submit assessment' }).click()
+  await page.getByRole('button', { name: 'View course matches' }).click()
   await expect(page.getByRole('heading', { name: 'Your academic matches' })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Your profile breakdown' })).toBeVisible()
   await page.getByRole('button', { name: 'View programme' }).click()
@@ -255,7 +254,7 @@ test('completes the student assessment and opens a recommendation detail', async
 test('passes responsive, keyboard, contrast, and print smoke checks', async ({ page }) => {
   await installStudentApi(page, true)
   await signIn(page)
-  await expect(page.getByTestId('student-guidance-summary')).toBeVisible()
+  await expect(page.getByTestId('student-dashboard-summary')).toBeVisible()
   await expectNoHorizontalOverflow(page)
 
   const viewportWidth = page.viewportSize()?.width ?? 0
@@ -267,14 +266,14 @@ test('passes responsive, keyboard, contrast, and print smoke checks', async ({ p
   await primaryNavigation.getByRole('button', { name: 'Explore Programs' }).click()
   await expect(page.getByRole('heading', { level: 1, name: 'Explore TCC programmes' })).toBeVisible()
   await dashboardNavigation.click()
-  await expect(page.getByTestId('student-guidance-summary')).toBeVisible()
+  await expect(page.getByTestId('student-dashboard-summary')).toBeVisible()
 
   await page.getByRole('button', { name: 'Assessment history' }).click()
   await expect(page.getByRole('heading', { level: 1, name: 'Assessment history' })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Your assessment timeline' })).toBeVisible()
   await expectNoHorizontalOverflow(page)
   await page.getByRole('button', { name: 'Go to Student dashboard' }).click()
-  await expect(page.getByTestId('student-guidance-summary')).toBeVisible()
+  await expect(page.getByTestId('student-dashboard-summary')).toBeVisible()
 
   const headerPosition = await page.locator('header').first().evaluate((element) =>
     window.getComputedStyle(element).position,

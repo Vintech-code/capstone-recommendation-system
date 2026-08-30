@@ -13,29 +13,53 @@ describe('Student recommendation results', () => {
       initialAssessment={testAssessmentLifecycle}
       initialSnapshot={{ ...testRecommendationSnapshot, status: 'Temporary methodology' }}
     />)
-    expect(screen.getByText('Test Course')).toBeVisible()
-    expect(screen.getByText('Recommendations generated Aug 7, 2026')).toBeVisible()
-    expect(screen.getByText('Top 1 matches')).toBeVisible()
-    expect(screen.getByRole('heading', { name: 'Your profile breakdown' })).toBeVisible()
-    const page = screen.getByRole('heading', { name: 'Your academic matches' }).closest('.student-grid-page')
+    expect(screen.getAllByText(/Test Course/).length).toBeGreaterThan(0)
+    expect(screen.getByText('Generated Aug 7, 2026')).toBeVisible()
+    expect(screen.getByRole('heading', { name: 'RIASEC scores' })).toBeVisible()
+    expect(screen.getByRole('heading', { level: 1, name: 'Investigative and Conventional' })).toBeVisible()
+    expect(screen.getByRole('heading', { level: 1, name: 'Investigative and Conventional' }).closest('section')).not.toHaveClass('border', 'bg-card', 'shadow-[var(--shadow-card)]')
+    expect(screen.queryByRole('img', { name: /RIASEC profile/i })).not.toBeInTheDocument()
+    expect(screen.getByText(/investigative and conventional pursuits/i)).toBeVisible()
+    expect(screen.getByText('Your leading areas')).toBeVisible()
+    expect(screen.getAllByText('Investigative').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Conventional').length).toBeGreaterThan(0)
+    expect(screen.getByRole('heading', { name: 'Recommended career paths' })).toBeVisible()
+    const page = screen.getByRole('heading', { name: 'All ranked matches' }).closest('.student-grid-page')
     expect(page).not.toBeNull()
     expect(page).toHaveClass('student-dashboard-canvas')
-    expect(screen.getByTestId('matches-hero')).toHaveClass('min-h-[19rem]', 'overflow-hidden')
-    expect(screen.getByTestId('matches-hero').querySelector('img')).toHaveAttribute('src', expect.stringContaining('student-matches-hero-v2.webp'))
-    expect(screen.getByText('Assessment complete')).toBeVisible()
-    expect(screen.getByText('I · Investigative')).toBeVisible()
-    expect(screen.getByText('Top code: I-C')).toBeVisible()
-    expect(screen.getByText(/recorded Investigative \(19\) and Conventional \(19\) scores/)).toBeVisible()
-    const recommendationCard = screen.getByText('Test Course').closest('article')
-    expect(recommendationCard?.querySelectorAll('.outcome-chip')).toHaveLength(1)
-    expect(recommendationCard?.querySelector('.outcome-chip')).toHaveTextContent('Recommendation 1')
+    expect(screen.getAllByText('I · Investigative').length).toBeGreaterThan(0)
+    expect(screen.getByText('Top 1')).toBeVisible()
+    expect(screen.getByText(/% provisional match/)).toBeVisible()
+    expect(screen.getByText(/current provisional programme-matching rule/)).toBeVisible()
+    expect(screen.getByText('Matched interest areas')).toBeVisible()
+    expect(screen.getAllByText('C · Conventional').length).toBeGreaterThan(0)
+    expect(screen.getByRole('heading', { level: 3, name: 'Test Course (TEST)' }).closest('article')).not.toHaveClass('border', 'bg-card', 'shadow-[var(--shadow-card)]')
     expect(screen.queryByText('TEST-SESSION-001')).not.toBeInTheDocument()
     expect(screen.queryByText(/temporary methodology/i)).not.toBeInTheDocument()
     expect(screen.queryByText(/programme guidance for review/i)).not.toBeInTheDocument()
     expect(screen.queryByText(/learning areas to explore/i)).not.toBeInTheDocument()
     expect(screen.queryByText(/requirements to confirm with tcc/i)).not.toBeInTheDocument()
-    expect(screen.queryByText(/counselor's note/i)).not.toBeInTheDocument()
     expect(screen.queryByText(/logical reasoning/i)).not.toBeInTheDocument()
+  })
+
+  it('explains the self-declared entrance group used before interest matching', () => {
+    render(<StudentRecommendationResultsPage
+      onBack={vi.fn()}
+      initialAssessment={testAssessmentLifecycle}
+      initialSnapshot={{
+        ...testRecommendationSnapshot,
+        entranceExamination: {
+          resultId: 4,
+          score: 2.5,
+          eligibilityGroup: 'board',
+          ruleReference: 'SELF-DECLARED-TCC-ENTRANCE-2026-01',
+          source: 'student_self_declared',
+          declaredAt: '2026-08-28T09:00:00+08:00',
+        },
+      }}
+    />)
+
+    expect(screen.getByText('Board programmes')).toBeVisible()
   })
 
   it('uses the uploaded programme picture for a matched catalogue course', () => {
@@ -73,7 +97,7 @@ describe('Student recommendation results', () => {
       />,
     )
 
-    expect(screen.getByText('I · Investigative')).toBeVisible()
+    expect(screen.getAllByText('I · Investigative').length).toBeGreaterThan(0)
     expect(screen.getAllByText('19 / 25')).toHaveLength(2)
     expect(screen.queryByLabelText('Interest profile unavailable')).not.toBeInTheDocument()
   })
@@ -114,7 +138,7 @@ describe('Student recommendation results', () => {
     await user.click(screen.getByRole('button', { name: 'View all 2 ranked programmes' }))
 
     expect(fetchMock).toHaveBeenCalledWith('/api/v1/student/recommendations/latest?view=all', expect.any(Object))
-    expect(await screen.findByText('Second Course')).toBeVisible()
+    expect(await screen.findAllByText(/Second Course/)).not.toHaveLength(0)
   })
 
   it('opens a selected match in the reference-informed course detail view', async () => {
@@ -152,13 +176,14 @@ describe('Student recommendation results', () => {
     expect(screen.getByRole('heading', { name: 'Core learning areas' })).toBeVisible()
     expect(screen.getByText('Degree type')).toBeVisible()
     expect(screen.getByText("Bachelor's degree")).toBeVisible()
-    expect(screen.getByText('Starting salary')).toBeVisible()
-    expect(screen.getByText('Job growth')).toBeVisible()
+    expect(screen.getByText('Career field')).toBeVisible()
+    expect(screen.getByText('Programme type')).toBeVisible()
+    expect(screen.getByText('Board programme')).toBeVisible()
     expect(screen.getByRole('heading', { name: 'Related fields' })).toBeVisible()
     expect(screen.queryByRole('heading', { name: 'Career trajectory' })).not.toBeInTheDocument()
     expect(screen.getByText('Software development')).toBeVisible()
     expect(screen.getByText('Design, build, test, and maintain software applications.')).toBeVisible()
-    expect(screen.getByText('Systems support')).toBeVisible()
+    expect(screen.getAllByText('Systems support').length).toBeGreaterThan(0)
     expect(screen.queryByRole('heading', { name: 'Before you decide' })).not.toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Official data sources' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /apply/i })).not.toBeInTheDocument()
@@ -168,7 +193,7 @@ describe('Student recommendation results', () => {
     expect(accessibility.violations).toEqual([])
 
     await user.click(screen.getByRole('button', { name: 'Back to matches' }))
-    expect(screen.getByRole('heading', { name: 'Your academic matches' })).toBeVisible()
+    expect(screen.getByRole('heading', { name: 'All ranked matches' })).toBeVisible()
   })
 
   it('confirms a retake before creating the new assessment', async () => {
