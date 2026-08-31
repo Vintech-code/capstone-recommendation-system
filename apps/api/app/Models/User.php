@@ -40,10 +40,24 @@ class User extends Authenticatable
         return $this->hasMany(AssessmentSession::class);
     }
 
+    /** @return HasOne<AssessmentSession, $this> */
+    public function latestAssessmentSession(): HasOne
+    {
+        return $this->hasOne(AssessmentSession::class)->ofMany('attempt_number', 'max');
+    }
+
     /** @return HasMany<EntranceExaminationResult, $this> */
     public function entranceExaminationResults(): HasMany
     {
         return $this->hasMany(EntranceExaminationResult::class);
+    }
+
+    /** @return HasOne<EntranceExaminationResult, $this> */
+    public function currentEntranceExaminationResult(): HasOne
+    {
+        return $this->hasOne(EntranceExaminationResult::class)
+            ->whereNull('superseded_at')
+            ->latestOfMany();
     }
 
     /** @return HasMany<RecommendationRun, $this> */

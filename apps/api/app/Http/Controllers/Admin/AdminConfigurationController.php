@@ -83,8 +83,12 @@ final class AdminConfigurationController extends Controller
             ? $this->preserveApiFields($validated['payload'], $catalogues->current())
             : $validated['payload'];
         $this->validatePayload($configurationVersion->kind, $payload);
+        $changes = $this->diff($configurationVersion->payload, $payload);
         $configurationVersion->update(['payload' => $payload]);
-        $this->audit($request, 'configuration.draft_updated', $configurationVersion);
+        $this->audit($request, 'configuration.draft_updated', $configurationVersion, null, [
+            'changedSections' => $changes['changedSections'],
+            'changedProgrammeCount' => $changes['changedProgrammeCount'],
+        ]);
 
         return response()->json(['data' => $this->payload($configurationVersion->fresh('creator:id,name'))]);
     }
@@ -109,7 +113,10 @@ final class AdminConfigurationController extends Controller
                 'published_by' => $request->user()->getKey(),
                 'published_at' => now(),
             ]);
-            $this->audit($request, 'configuration.published', $configurationVersion);
+            $this->audit($request, 'configuration.published', $configurationVersion, null, [
+                'beforeStatus' => 'draft',
+                'afterStatus' => 'published',
+            ]);
         });
 
         try {
@@ -286,14 +293,15 @@ final class AdminConfigurationController extends Controller
         return json_encode($before, JSON_THROW_ON_ERROR) !== json_encode($after, JSON_THROW_ON_ERROR);
     }
 
-    private function audit(Request $request, string $action, ConfigurationVersion $version, ?int $sourceVersion = null): void
+    /** @param array<string, mixed> $summary */
+    private function audit(Request $request, string $action, ConfigurationVersion $version, ?int $sourceVersion = null, array $summary = []): void
     {
         AdminAuditEvent::query()->create([
             'actor_id' => $request->user()->getKey(),
             'action' => $action,
             'subject_type' => 'configuration_version',
             'subject_reference' => $version->kind.'-v'.$version->version,
-            'metadata' => ['kind' => $version->kind, 'version' => $version->version, 'status' => $version->status, 'sourceVersion' => $sourceVersion],
+            'metadata' => array_merge(['kind' => $version->kind, 'version' => $version->version, 'status' => $version->status, 'sourceVersion' => $sourceVersion], $summary),
         ]);
     }
 }
