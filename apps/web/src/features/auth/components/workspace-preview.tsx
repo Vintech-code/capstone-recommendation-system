@@ -265,7 +265,7 @@ function WorkspacePreview({
             <>
               <div className="mb-3 rounded-2xl bg-secondary p-3">
                 <p className="text-xs font-bold">{user?.name ?? currentRole.shortLabel}</p>
-                <p className="mt-1 truncate text-[10px] text-muted-foreground">
+                <p className="mt-1 truncate text-xs font-semibold text-foreground">
                   Authorized account
                 </p>
               </div>
@@ -395,7 +395,7 @@ function WorkspacePreview({
                     <span className="block text-xs font-bold">
                       {user?.name ?? currentRole.shortLabel}
                     </span>
-                    <span className="block text-[10px] text-muted-foreground">
+                    <span className="block text-xs font-semibold text-foreground">
                       Authorized account
                     </span>
                   </span>

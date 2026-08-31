@@ -144,7 +144,7 @@ describe('access portals and workspace shell', () => {
     expect(
       await screen.findByRole('heading', {
         level: 1,
-        name: /Welcome back, Admin/i,
+        name: 'System overview',
       }, { timeout: 5_000 }),
     ).toBeVisible()
     expect(screen.getAllByText('Students').length).toBeGreaterThan(0)
@@ -185,7 +185,7 @@ describe('access portals and workspace shell', () => {
     expect(
       within(main).getByRole('heading', {
         level: 1,
-        name: /Welcome back, Admin/i,
+        name: 'System overview',
       }),
     ).toBeVisible()
     expect(window.location.pathname).toBe('/admin')

@@ -1,7 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
 
-import type { StudentProfileData } from '@/features/admin/data/admin-profile-types'
-
 interface AdminOverview {
   students: number
   assessments: number
@@ -9,6 +7,14 @@ interface AdminOverview {
   inProgress: number
   needsAttention: number
   recommendations: number
+  funnel: {
+    registered: number
+    entranceDeclared: number
+    assessmentStarted: number
+    inProgress: number
+    processing: number
+    resultAvailable: number
+  }
   operationalAttention: {
     processingFailures: number
     unverifiedSources: number
@@ -25,6 +31,28 @@ interface AdminStudent {
   attemptCount: number
   latestResultAt: string | null
   latestTopCode: string | null
+  declarationStatus: 'required' | 'declared'
+  selfDeclaredScore: number | null
+  eligibilityGroup: 'board' | 'non_board' | null
+  currentAssessmentStatus: 'not_started' | AdminAssessment['status']
+  currentAssessmentReference: string | null
+  recommendationAvailable: boolean
+  savedProgrammeCount: number
+  lastActivityAt: string | null
+}
+
+interface AdminPagination {
+  currentPage: number
+  lastPage: number
+  perPage: number
+  total: number
+  from: number
+  to: number
+}
+
+interface AdminStudentDirectory {
+  items: AdminStudent[]
+  pagination: AdminPagination
 }
 
 interface RiasecDimension {
@@ -42,12 +70,32 @@ interface AdminAssessment {
   attemptNumber: number
   attemptCount?: number
   retakeReason?: string | null
+  instrumentCode: string
   status: 'in_progress' | 'preparing_result' | 'result_available' | 'result_failed'
+  answerCount: number
+  questionCount: number
   topCode: string | null
   startedAt: string | null
+  savedAt: string | null
   submittedAt: string | null
   resultAvailableAt: string | null
   processingErrorCode: string | null
+  processingFailedAt: string | null
+  entranceExamination: {
+    resultId: number
+    score: number
+    eligibilityGroup: 'board' | 'non_board'
+    ruleReference: string
+    source: 'student_self_declared'
+    declaredAt: string | null
+  } | null
+  recommendationSnapshot: {
+    catalogueReference: string
+    ruleReference: string
+    methodologyStatus: string
+    generatedAt: string | null
+    totalEligible: number
+  } | null
   dimensions?: RiasecDimension[]
   recommendations?: AdminRecommendation[]
 }
@@ -60,8 +108,12 @@ interface AdminRecommendation {
   match: number
 }
 
-interface AdminStudentRecord extends Omit<AdminStudent, 'attemptCount' | 'latestResultAt' | 'latestTopCode'> {
-  profile: StudentProfileData
+interface AdminStudentRecord {
+  id: number
+  name: string
+  email: string
+  accountStatus: string
+  savedProgrammeCount: number
   attempts: AdminAssessment[]
 }
 
@@ -93,7 +145,7 @@ interface AdminProgramme {
   monitoring: {
     savedByStudents: number
   }
-  eligibilityGroup?: 'board' | 'non_board' | null
+  eligibilityGroup: 'board' | 'non_board' | null
 }
 
 interface ProgrammeSourceValue {
@@ -117,11 +169,28 @@ interface AdminReport {
   to: string | null
   scope: 'institution'
   studentCount: number
+  entranceDeclarations: number
+  eligibilityDistribution: { board: number; nonBoard: number }
   assessmentActivity: number
   completedAssessments: number
   assessmentCompletionRate: number
+  assessmentFunnel: {
+    started: number
+    inProgress: number
+    processing: number
+    resultAvailable: number
+    failed: number
+  }
   recommendationRuns: number
+  recommendationsByEligibility: { board: number; nonBoard: number }
   programmeSaves: number
+  programmeSavesByEligibility: { board: number; nonBoard: number }
+  catalogueGovernance: {
+    currentSources: number
+    reviewDueSources: number
+    unverifiedSources: number
+    draftVersions: number
+  }
   assessmentCompletionsByMonth: Array<{ month: string; count: number }>
 }
 
@@ -179,12 +248,24 @@ interface ConfigurationWorkspace {
 
 interface AdminActivity {
   id: number
-  actor: string
+  actorId: number
+  actor: string | null
   action: string
   subjectType: string
   subjectReference: string
   metadata: Record<string, unknown> | null
+  summary: string
   createdAt: string
+}
+
+interface AdminActivityResponse {
+  items: AdminActivity[]
+  pagination: AdminPagination
+  filters: {
+    actors: Array<{ id: number; name: string }>
+    actions: string[]
+    subjectTypes: string[]
+  }
 }
 
 class AdminApiError extends Error {}
@@ -302,7 +383,10 @@ export type {
   AdminProgrammeCatalogue,
   AdminReport,
   AdminStudent,
+  AdminStudentDirectory,
   AdminStudentRecord,
+  AdminPagination,
+  AdminActivityResponse,
   ConfigurationVersion,
   ConfigurationPreview,
   ConfigurationWorkspace,

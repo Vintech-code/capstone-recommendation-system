@@ -48,23 +48,23 @@ function RecommendationMatchCard({
         <div className="flex min-w-0 flex-col">
           <div>
             <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-              <span className={course.rank === 1 ? 'inline-flex min-h-8 items-center rounded-full bg-primary px-3 font-label text-xs font-semibold text-primary-foreground' : 'outcome-chip'}>
+              <span className={course.rank === 1 ? 'inline-flex min-h-9 items-center rounded-full bg-primary px-3.5 font-label text-sm font-bold text-primary-foreground' : 'outcome-chip'}>
                 Rank {course.rank}
               </span>
-              <span className="font-label text-sm font-semibold text-foreground">
+              <span className="font-label text-sm font-bold text-foreground sm:text-base">
                 {course.match}% provisional match
               </span>
             </div>
-            <h3 className="mt-3 font-display text-xl font-semibold leading-7 transition-colors group-hover:text-primary">
+            <h3 className="mt-3 font-display text-2xl font-bold leading-8 transition-colors group-hover:text-primary">
               {course.name} <span className="whitespace-nowrap">({course.code})</span>
             </h3>
             {course.summary ? (
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">
+              <p className="mt-2 text-base font-medium leading-7 text-muted-foreground">
                 {course.summary}
               </p>
             ) : null}
             {course.explanation ? (
-              <div className="mt-4 flex items-start gap-2 border-l-2 border-primary/25 pl-3 text-xs leading-5 text-muted-foreground">
+              <div className="mt-4 flex items-start gap-2 border-l-2 border-primary/25 pl-3 text-sm font-medium leading-6 text-muted-foreground sm:text-base sm:leading-7">
                 <ListChecks aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
                 <p>
                   {course.explanation.sharedTopAreas.length > 0
@@ -77,7 +77,7 @@ function RecommendationMatchCard({
 
           <div className="mt-5 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div>
-              <p className="font-label text-xs font-semibold text-muted-foreground">
+              <p className="font-label text-sm font-bold text-muted-foreground">
                 Matched interest areas
               </p>
               <div className="mt-2 flex flex-wrap gap-2" aria-label="Matched RIASEC areas">

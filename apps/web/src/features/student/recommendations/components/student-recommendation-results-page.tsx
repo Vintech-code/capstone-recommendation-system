@@ -173,15 +173,15 @@ function StudentRecommendationResultsPage({
 
             {profile ? (
               <>
-                <h1 id="recommendation-result-title" className="mt-4 max-w-2xl font-display text-2xl font-bold tracking-tight text-primary sm:text-3xl lg:text-4xl">
+                <h1 id="recommendation-result-title" className="mt-5 max-w-2xl font-display text-3xl font-black leading-[0.98] tracking-[-0.045em] text-primary sm:text-4xl lg:text-5xl">
                   {profile.topLabels.join(' and ')}
                 </h1>
-                <p className="mt-2 font-label text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground sm:text-xs">
+                <p className="mt-3 font-label text-xs font-bold uppercase tracking-[0.14em] text-muted-foreground sm:text-sm">
                   {leadingDimensions.map((d) => d.label.toUpperCase()).join(' AND ')}{' '}
                   · {profile.topCode}
                 </p>
 
-                <p className="mt-4 max-w-xl text-sm leading-relaxed text-foreground/85 sm:text-base sm:leading-7">
+                <p className="mt-5 max-w-xl text-base font-medium leading-7 text-foreground/90 sm:text-lg sm:leading-8">
                   {leadingDimensions.length === 2
                     ? `You care about ${leadingDimensions[0].label.toLowerCase()} and ${leadingDimensions[1].label.toLowerCase()} pursuits. Programmes that match these interest areas often align with how you learn best.`
                     : 'These are the interest areas with the highest recorded counts in your completed assessment.'}
@@ -189,14 +189,14 @@ function StudentRecommendationResultsPage({
 
                 {leadingDimensions.length > 0 ? (
                   <div className="mt-6">
-                    <p className="font-label text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground sm:text-xs">
+                    <p className="font-label text-xs font-bold uppercase tracking-[0.14em] text-muted-foreground sm:text-sm">
                       Your leading areas
                     </p>
                     <div className="mt-2.5 flex flex-wrap gap-2">
                       {leadingDimensions.map((dimension) => (
                         <span
                           key={dimension.code}
-                          className="inline-flex items-center gap-1.5 rounded-full border border-primary/15 bg-primary-fixed px-3.5 py-1 font-label text-xs font-medium text-on-primary-fixed sm:text-sm"
+                          className="inline-flex items-center gap-1.5 rounded-full border border-primary/15 bg-primary-fixed px-4 py-1.5 font-label text-sm font-semibold text-on-primary-fixed sm:text-base"
                         >
                           {dimension.label}
                         </span>
@@ -207,29 +207,29 @@ function StudentRecommendationResultsPage({
 
                 <div className="mt-7 max-w-xl rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-sm">
                   <div className="flex items-center gap-2 text-primary">
-                    <Compass aria-hidden="true" className="size-5 shrink-0" />
-                    <h2 className="font-display text-base font-bold sm:text-lg">Recommended career paths</h2>
+                    <Compass aria-hidden="true" className="size-6 shrink-0" />
+                    <h2 className="font-display text-xl font-extrabold sm:text-2xl">Recommended career paths</h2>
                   </div>
-                  <p className="mt-1 text-xs text-muted-foreground">
+                  <p className="mt-2 text-sm font-medium leading-6 text-muted-foreground sm:text-base">
                     Built for your strongest pattern: <strong className="font-semibold text-foreground">{profile.topCode}</strong>
                   </p>
 
                   {topCareerPaths.length > 0 ? (
                     <div className="mt-4">
-                      <p className="font-label text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
+                      <p className="font-label text-xs font-bold uppercase tracking-[0.12em] text-muted-foreground sm:text-sm">
                         Career opportunities
                       </p>
-                      <p className="mt-1 font-display text-sm font-bold text-foreground sm:text-base">
+                      <p className="mt-2 font-display text-base font-bold leading-7 text-foreground sm:text-lg">
                         {topCareerPaths.join(', ')}
                       </p>
                     </div>
                   ) : null}
 
                   <div className="mt-4 border-t border-border/70 pt-3.5">
-                    <p className="font-label text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
+                    <p className="font-label text-xs font-bold uppercase tracking-[0.12em] text-muted-foreground sm:text-sm">
                       Why it fits you
                     </p>
-                    <p className="mt-1 text-xs leading-relaxed text-muted-foreground sm:text-sm">
+                    <p className="mt-2 text-sm font-medium leading-6 text-foreground/80 sm:text-base sm:leading-7">
                       {leadingDimensions.length === 2
                         ? `Applying ${leadingDimensions[0].label.toLowerCase()} and ${leadingDimensions[1].label.toLowerCase()} strengths to practical professional opportunities.`
                         : 'Matching careers align with your highest recorded interest areas.'}
@@ -239,16 +239,16 @@ function StudentRecommendationResultsPage({
               </>
             ) : (
               <>
-                <h1 id="recommendation-result-title" className="mt-5 font-display text-2xl font-bold tracking-tight text-primary sm:text-3xl lg:text-4xl">
+                <h1 id="recommendation-result-title" className="mt-5 font-display text-3xl font-black leading-[0.98] tracking-[-0.045em] text-primary sm:text-4xl lg:text-5xl">
                   Your academic matches
                 </h1>
-                <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground sm:text-base">
+                <p className="mt-4 max-w-xl text-base font-medium leading-7 text-muted-foreground sm:text-lg sm:leading-8">
                   Compare the programmes generated from your completed assessment.
                 </p>
               </>
             )}
 
-            <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3 text-xs sm:text-sm text-muted-foreground">
+            <div className="mt-7 flex flex-wrap items-center gap-x-6 gap-y-3 text-sm font-medium text-muted-foreground sm:text-base">
               <span className="flex items-center gap-2">
                 <CalendarDays aria-hidden="true" className="size-4" />
                 Generated {formatAssessmentDate(snapshot.generatedAt)}
@@ -290,12 +290,12 @@ function StudentRecommendationResultsPage({
         <div className="mt-12 sm:mt-16">
           <div className="mb-5 flex items-center justify-between gap-3">
             <div>
-              <h2 className="font-display text-lg font-semibold sm:text-xl">
+              <h2 className="font-display text-2xl font-bold sm:text-3xl">
                 All ranked matches
               </h2>
-              <p className="mt-1 text-sm text-muted-foreground">Ranked with the current provisional programme-matching rule.</p>
+              <p className="mt-1 text-sm font-medium leading-6 text-muted-foreground sm:text-base">Ranked with the current provisional programme-matching rule.</p>
             </div>
-            <span className="inline-flex min-h-8 items-center rounded-full bg-primary px-3 font-label text-xs font-semibold text-primary-foreground">
+            <span className="inline-flex min-h-9 items-center rounded-full bg-primary px-3.5 font-label text-sm font-bold text-primary-foreground">
               {snapshot.showingAll ? `${snapshot.courses.length} programmes` : `Top ${snapshot.courses.length}`}
             </span>
           </div>

@@ -36,19 +36,9 @@ function programmeGroup(programmeId: string) {
 }
 
 function getProgrammeType(programme: AdminProgramme) {
-  if (programme.eligibilityGroup) {
-    return programme.eligibilityGroup === 'non_board' ? 'Non-board programme' : 'Board programme'
-  }
-  const nonBoardIds = [
-    'bs-information-technology',
-    'bs-business-administration',
-    'bs-hospitality-management',
-    'bachelor-library-information-science',
-    'bs-sociology',
-    'bs-community-development',
-    'bachelor-physical-education',
-  ]
-  return nonBoardIds.includes(programme.id) ? 'Non-board programme' : 'Board programme'
+  if (programme.eligibilityGroup === 'board') return 'Board programme'
+  if (programme.eligibilityGroup === 'non_board') return 'Non-board programme'
+  return 'Classification unavailable'
 }
 
 function AdminProgrammesPage({ onNavigate }: { onNavigate: (path: string) => void }) {

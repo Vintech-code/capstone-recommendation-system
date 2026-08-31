@@ -8,11 +8,11 @@ describe('Administration workspace', () => {
   it('shows the system dashboard without removed staff workflows', async () => {
     await renderAppAt('/admin')
 
-    expect(await screen.findByRole('heading', { name: /Welcome back, Admin/i })).toBeVisible()
-    expect(screen.getByText('Results ready')).toBeVisible()
-    expect(screen.getByText('Generate reports')).toBeVisible()
+    expect(await screen.findByRole('heading', { name: 'System overview' })).toBeVisible()
+    expect(screen.getByRole('heading', { name: 'Assessment funnel' })).toBeVisible()
+    expect(screen.getByText(/Entrance declared/)).toBeVisible()
     expect(screen.getByText('Recent assessment activity')).toBeVisible()
-    expect(screen.getByRole('heading', { name: 'Operational attention' })).toBeVisible()
+    expect(screen.getByRole('heading', { name: 'Action queues' })).toBeVisible()
   })
 
   it('opens a student record with immutable results and recommendations', async () => {
@@ -22,11 +22,12 @@ describe('Administration workspace', () => {
     const row = (await screen.findAllByText('ana@example.test'))
       .map((match) => match.closest('tr')).find(Boolean)
     expect(row).toBeDefined()
-    await user.click(within(row as HTMLTableRowElement).getByRole('button', { name: 'Open student record' }))
+    await user.click(within(row as HTMLTableRowElement).getByRole('button', { name: 'Open' }))
 
     expect(window.location.pathname).toBe('/admin/students/10')
     expect(await screen.findByRole('heading', { name: 'Ana Santos' })).toBeVisible()
-    expect(screen.getByText('Problem-solving')).toBeVisible()
+    expect(screen.getByText('SELF-DECLARED-TCC-ENTRANCE-2026-01')).toBeVisible()
+    expect(screen.getByRole('heading', { name: 'Exact RIASEC raw scores' })).toBeVisible()
     expect(screen.getAllByText('BS Information Technology').length).toBeGreaterThan(0)
   })
 
@@ -47,7 +48,8 @@ describe('Administration workspace', () => {
 
     expect(await screen.findByRole('heading', { name: 'Student records' })).toBeVisible()
     await user.type(screen.getByRole('searchbox', { name: 'Search student records' }), 'Ana')
-    expect(screen.getAllByRole('button', { name: /Open student record/i }).length).toBeGreaterThan(0)
+    await user.click(screen.getByRole('button', { name: 'Search' }))
+    expect(screen.getAllByRole('button', { name: 'Open' }).length).toBeGreaterThan(0)
   })
 
   it('shows a retryable error when an Admin endpoint fails', async () => {
