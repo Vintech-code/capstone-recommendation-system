@@ -64,9 +64,7 @@ export function AdminReportsPage() {
   return (
     <div className="mx-auto w-full max-w-[1500px] space-y-8" data-report-print>
       <AdminPageHeader
-        eyebrow="Assessment insights"
         title="System reports"
-        description="Explore Student assessment progress, entrance score distribution, and recommendation engagement across the institution."
         action={
           <Button variant="outline" onClick={() => window.print()}>
             <Printer className="size-4" /> Print report

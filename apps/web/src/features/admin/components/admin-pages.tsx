@@ -68,11 +68,7 @@ function AdminStudentsPage({ onNavigate }: NavigateProps) {
   const data = resource.data;
   return (
     <div className="min-w-0 space-y-7">
-      <AdminPageHeader
-        eyebrow="Student journey index"
-        title="Student records"
-        description="Search authoritative Student journeys and open immutable assessment evidence."
-      />
+      <AdminPageHeader title="Student records" />
       <section data-student-records className="min-w-0">
         <form
           className="grid gap-3 border-y border-border p-4 md:grid-cols-2 xl:grid-cols-[minmax(16rem,1fr)_12rem_12rem_11rem_auto]"
@@ -351,9 +347,7 @@ function AdminStudentDetailPage({
   return (
     <div className="space-y-8" data-report-print>
       <AdminPageHeader
-        eyebrow="Immutable student evidence"
         title={student.name}
-        description="One authoritative view of declarations, assessment attempts, scores, and recommendation snapshots."
         action={
           <Button
             variant="outline"
@@ -567,11 +561,7 @@ function AdminActivityPage() {
   const data = resource.data;
   return (
     <div className="space-y-8">
-      <AdminPageHeader
-        eyebrow="Account history"
-        title="Admin activity"
-        description="Review when an Administrator made a recorded change."
-      />
+      <AdminPageHeader title="Admin activity" />
       <section
         aria-label="Activity filters"
         className="grid gap-3 border-y border-border p-4 md:grid-cols-2 xl:grid-cols-4"

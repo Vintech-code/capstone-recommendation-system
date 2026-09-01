@@ -1,109 +1,150 @@
-import { ArrowRight, CheckCircle2, CircleAlert, History, ShieldCheck } from 'lucide-react'
-import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from 'recharts'
+import {
+  ArrowRight,
+  CheckCircle2,
+  CircleAlert,
+  History,
+  ShieldCheck,
+} from "lucide-react";
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
   type ChartConfig,
-} from '@/components/ui/chart'
-import { Progress } from '@/components/ui/progress'
+} from "@/components/ui/chart";
+import { Progress } from "@/components/ui/progress";
 import {
   AdminPageError,
   AdminPageHeader,
   AdminPageSkeleton,
   EmptyPanel,
-} from '@/features/admin/components/admin-shared'
-import { formatDate } from '@/features/admin/data/admin-formatters'
+} from "@/features/admin/components/admin-shared";
+import { formatDate } from "@/features/admin/data/admin-formatters";
 import {
   useAdminResource,
   type AdminAssessment,
   type AdminOverview,
   type AdminProgrammeCatalogue,
   type AdminReport,
-} from '@/features/admin/data/admin-api'
+} from "@/features/admin/data/admin-api";
 
 interface NavigateProps {
-  onNavigate: (path: string) => void
+  onNavigate: (path: string) => void;
 }
 
 const journeyChartConfig = {
   students: {
-    label: 'Students',
-    color: 'var(--primary)',
+    label: "Students",
+    color: "var(--primary)",
   },
-} satisfies ChartConfig
+} satisfies ChartConfig;
 
 export function AdminDashboardPage({ onNavigate }: NavigateProps) {
-  const resource = useAdminResource<AdminOverview>('/overview')
-  const catalogueResource = useAdminResource<AdminProgrammeCatalogue>('/programmes')
-  const reportResource = useAdminResource<AdminReport>('/reports')
+  const resource = useAdminResource<AdminOverview>("/overview");
+  const catalogueResource =
+    useAdminResource<AdminProgrammeCatalogue>("/programmes");
+  const reportResource = useAdminResource<AdminReport>("/reports");
 
-  if (resource.loading) return <AdminPageSkeleton />
+  if (resource.loading) return <AdminPageSkeleton />;
   if (resource.error || !resource.data) {
     return (
       <AdminPageError
-        message={resource.error ?? 'No dashboard data was returned.'}
+        message={resource.error ?? "No dashboard data was returned."}
         onRetry={resource.retry}
       />
-    )
+    );
   }
 
-  const data = resource.data
-  const programmes = catalogueResource.data?.programmes ?? []
-  const report = reportResource.data
+  const data = resource.data;
+  const programmes = catalogueResource.data?.programmes ?? [];
+  const report = reportResource.data;
 
   const funnel = [
-    ['Registered', data.funnel.registered],
-    ['Entrance declared', data.funnel.entranceDeclared],
-    ['Assessment started', data.funnel.assessmentStarted],
-    ['In progress', data.funnel.inProgress],
-    ['Processing', data.funnel.processing],
-    ['Result available', data.funnel.resultAvailable],
-  ] as const
+    ["Registered", data.funnel.registered],
+    ["Entrance declared", data.funnel.entranceDeclared],
+    ["Assessment started", data.funnel.assessmentStarted],
+    ["In progress", data.funnel.inProgress],
+    ["Processing", data.funnel.processing],
+    ["Result available", data.funnel.resultAvailable],
+  ] as const;
 
   const completionRate = data.funnel.assessmentStarted
-    ? Math.round((data.funnel.resultAvailable / data.funnel.assessmentStarted) * 100)
-    : 0
+    ? Math.round(
+        (data.funnel.resultAvailable / data.funnel.assessmentStarted) * 100,
+      )
+    : 0;
 
   const chartData = funnel.map(([label, value]) => ({
     stage: label,
     students: value,
-  }))
+  }));
 
   const accessibleFunnelLabel = funnel
     .map(([label, value]) => `${label}: ${value}`)
-    .join(', ')
+    .join(", ");
 
   // Real catalogue programmes or fallback to standard institutional catalogue
-  const topProgrammes = (programmes.length ? programmes : [
-    { id: 'bs-it', name: 'BS Information Technology', monitoring: { savedByStudents: 24 } },
-    { id: 'bs-cs', name: 'BS Computer Science', monitoring: { savedByStudents: 19 } },
-    { id: 'bs-hm', name: 'BS Hospitality Management', monitoring: { savedByStudents: 15 } },
-    { id: 'bs-crim', name: 'BS Criminology', monitoring: { savedByStudents: 12 } },
-    { id: 'bs-ba', name: 'BS Business Administration', monitoring: { savedByStudents: 9 } },
-  ]).slice(0, 5)
+  const topProgrammes = (
+    programmes.length
+      ? programmes
+      : [
+          {
+            id: "bs-it",
+            name: "BS Information Technology",
+            monitoring: { savedByStudents: 24 },
+          },
+          {
+            id: "bs-cs",
+            name: "BS Computer Science",
+            monitoring: { savedByStudents: 19 },
+          },
+          {
+            id: "bs-hm",
+            name: "BS Hospitality Management",
+            monitoring: { savedByStudents: 15 },
+          },
+          {
+            id: "bs-crim",
+            name: "BS Criminology",
+            monitoring: { savedByStudents: 12 },
+          },
+          {
+            id: "bs-ba",
+            name: "BS Business Administration",
+            monitoring: { savedByStudents: 9 },
+          },
+        ]
+  ).slice(0, 5);
 
-  const maxProgrammeSaves = Math.max(1, ...topProgrammes.map((p) => p.monitoring?.savedByStudents || 0))
+  const maxProgrammeSaves = Math.max(
+    1,
+    ...topProgrammes.map((p) => p.monitoring?.savedByStudents || 0),
+  );
 
   // Real track/eligibility data
-  const boardEligible = report?.eligibilityDistribution?.board ?? (data.funnel.entranceDeclared ? Math.ceil(data.funnel.entranceDeclared * 0.6) : 1)
-  const nonBoardEligible = report?.eligibilityDistribution?.nonBoard ?? (data.funnel.entranceDeclared ? Math.floor(data.funnel.entranceDeclared * 0.4) : 1)
-  const totalEligible = Math.max(1, boardEligible + nonBoardEligible)
-  const boardPct = Math.round((boardEligible / totalEligible) * 100)
-  const nonBoardPct = Math.round((nonBoardEligible / totalEligible) * 100)
+  const boardEligible =
+    report?.eligibilityDistribution?.board ??
+    (data.funnel.entranceDeclared
+      ? Math.ceil(data.funnel.entranceDeclared * 0.6)
+      : 1);
+  const nonBoardEligible =
+    report?.eligibilityDistribution?.nonBoard ??
+    (data.funnel.entranceDeclared
+      ? Math.floor(data.funnel.entranceDeclared * 0.4)
+      : 1);
+  const totalEligible = Math.max(1, boardEligible + nonBoardEligible);
+  const boardPct = Math.round((boardEligible / totalEligible) * 100);
+  const nonBoardPct = Math.round((nonBoardEligible / totalEligible) * 100);
 
   return (
     <div className="mx-auto w-full max-w-[1500px] space-y-8">
-      {/* Signature Admin Page Header */}
       <AdminPageHeader
-        eyebrow="Administrator workspace"
         title="System overview"
-        description="Track Student assessment progress, available results, and records that need attention."
         action={
-          <Button onClick={() => onNavigate('/admin/students')}>
+          <Button onClick={() => onNavigate("/admin/students")}>
             Open student directory <ArrowRight className="size-4" />
           </Button>
         }
@@ -133,7 +174,7 @@ export function AdminDashboardPage({ onNavigate }: NavigateProps) {
           label="Needs attention"
           value={data.needsAttention}
           detail="Operational exceptions"
-          tone={data.needsAttention ? 'warning' : 'success'}
+          tone={data.needsAttention ? "warning" : "success"}
         />
       </section>
 
@@ -152,7 +193,10 @@ export function AdminDashboardPage({ onNavigate }: NavigateProps) {
           />
 
           <div className="mt-6" role="img" aria-label={accessibleFunnelLabel}>
-            <ChartContainer config={journeyChartConfig} className="aspect-auto h-[240px] w-full">
+            <ChartContainer
+              config={journeyChartConfig}
+              className="aspect-auto h-[240px] w-full"
+            >
               <AreaChart
                 data={chartData}
                 margin={{
@@ -163,9 +207,23 @@ export function AdminDashboardPage({ onNavigate }: NavigateProps) {
                 }}
               >
                 <defs>
-                  <linearGradient id="fillJourneyStudents" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.7} />
-                    <stop offset="95%" stopColor="var(--primary)" stopOpacity={0.05} />
+                  <linearGradient
+                    id="fillJourneyStudents"
+                    x1="0"
+                    y1="0"
+                    x2="0"
+                    y2="1"
+                  >
+                    <stop
+                      offset="5%"
+                      stopColor="var(--primary)"
+                      stopOpacity={0.7}
+                    />
+                    <stop
+                      offset="95%"
+                      stopColor="var(--primary)"
+                      stopOpacity={0.05}
+                    />
                   </linearGradient>
                 </defs>
                 <CartesianGrid vertical={false} strokeDasharray="3 3" />
@@ -182,7 +240,7 @@ export function AdminDashboardPage({ onNavigate }: NavigateProps) {
                   className="font-label text-[10px]"
                 />
                 <ChartTooltip
-                  cursor={{ stroke: 'var(--border)', strokeWidth: 1 }}
+                  cursor={{ stroke: "var(--border)", strokeWidth: 1 }}
                   content={<ChartTooltipContent indicator="dot" />}
                 />
                 <Area
@@ -192,16 +250,24 @@ export function AdminDashboardPage({ onNavigate }: NavigateProps) {
                   fillOpacity={0.4}
                   stroke="var(--primary)"
                   strokeWidth={2.5}
-                  dot={{ fill: 'var(--primary)', r: 4 }}
-                  activeDot={{ r: 6, fill: 'var(--primary)' }}
+                  dot={{ fill: "var(--primary)", r: 4 }}
+                  activeDot={{ r: 6, fill: "var(--primary)" }}
                 />
               </AreaChart>
             </ChartContainer>
           </div>
 
           <div className="mt-4 flex items-center justify-between border-t border-border pt-4 text-xs text-muted-foreground font-label">
-            <span>Overall journey completion: <strong className="font-display text-sm font-bold text-foreground">{completionRate}%</strong></span>
-            <span>{data.funnel.resultAvailable} of {data.funnel.assessmentStarted} started assessments ready</span>
+            <span>
+              Overall journey completion:{" "}
+              <strong className="font-display text-sm font-bold text-foreground">
+                {completionRate}%
+              </strong>
+            </span>
+            <span>
+              {data.funnel.resultAvailable} of {data.funnel.assessmentStarted}{" "}
+              started assessments ready
+            </span>
           </div>
         </div>
 
@@ -217,14 +283,14 @@ export function AdminDashboardPage({ onNavigate }: NavigateProps) {
 
           <div className="mt-5 divide-y divide-border border-y border-border">
             {topProgrammes.map((prog, index) => {
-              const saves = prog.monitoring?.savedByStudents || 0
-              const percentage = Math.round((saves / maxProgrammeSaves) * 100)
+              const saves = prog.monitoring?.savedByStudents || 0;
+              const percentage = Math.round((saves / maxProgrammeSaves) * 100);
               return (
                 <div key={prog.id} className="py-3">
                   <div className="flex items-center justify-between gap-3">
                     <span className="flex items-center gap-2.5 font-semibold text-sm">
                       <span className="font-display text-xs font-black text-muted-foreground">
-                        {String(index + 1).padStart(2, '0')}
+                        {String(index + 1).padStart(2, "0")}
                       </span>
                       <span className="truncate">{prog.name}</span>
                     </span>
@@ -236,7 +302,7 @@ export function AdminDashboardPage({ onNavigate }: NavigateProps) {
                     <Progress value={percentage} className="h-1.5" />
                   </div>
                 </div>
-              )
+              );
             })}
           </div>
 
@@ -244,7 +310,7 @@ export function AdminDashboardPage({ onNavigate }: NavigateProps) {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => onNavigate('/admin/programmes')}
+              onClick={() => onNavigate("/admin/programmes")}
               className="gap-1.5 text-xs font-semibold p-0 h-auto hover:bg-transparent text-primary hover:underline"
             >
               View all programmes <ArrowRight className="size-3.5" />
@@ -268,7 +334,7 @@ export function AdminDashboardPage({ onNavigate }: NavigateProps) {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => onNavigate('/admin/students')}
+              onClick={() => onNavigate("/admin/students")}
             >
               View all <ArrowRight className="size-4" />
             </Button>
@@ -288,18 +354,24 @@ export function AdminDashboardPage({ onNavigate }: NavigateProps) {
                 </thead>
                 <tbody className="divide-y divide-border">
                   {data.recentActivity.slice(0, 6).map((item) => {
-                    const track = item.entranceExamination?.eligibilityGroup === 'board'
-                      ? 'Board Eligible'
-                      : item.entranceExamination
-                        ? 'Non-Board'
-                        : 'Not Declared'
-                    const topMatch = item.recommendations?.[0]?.name ||
-                      (item.topCode ? `BS ${item.topCode}` : 'BS Information Technology')
+                    const track =
+                      item.entranceExamination?.eligibilityGroup === "board"
+                        ? "Board Eligible"
+                        : item.entranceExamination
+                          ? "Non-Board"
+                          : "Not Declared";
+                    const topMatch =
+                      item.recommendations?.[0]?.name ||
+                      (item.topCode
+                        ? `BS ${item.topCode}`
+                        : "BS Information Technology");
 
                     return (
                       <tr
                         key={item.id}
-                        onClick={() => onNavigate(`/admin/students/${item.studentId}`)}
+                        onClick={() =>
+                          onNavigate(`/admin/students/${item.studentId}`)
+                        }
                         className="group cursor-pointer hover:bg-secondary/40 transition-colors"
                       >
                         <td className="py-3 pr-3 font-semibold text-foreground group-hover:text-primary">
@@ -315,10 +387,12 @@ export function AdminDashboardPage({ onNavigate }: NavigateProps) {
                           <StatusBadge status={item.status} />
                         </td>
                         <td className="py-3 pl-3 text-right font-label text-[11px] text-muted-foreground whitespace-nowrap">
-                          {formatDate(item.resultAvailableAt ?? item.submittedAt)}
+                          {formatDate(
+                            item.resultAvailableAt ?? item.submittedAt,
+                          )}
                         </td>
                       </tr>
-                    )
+                    );
                   })}
                 </tbody>
               </table>
@@ -334,7 +408,10 @@ export function AdminDashboardPage({ onNavigate }: NavigateProps) {
         </section>
 
         {/* 2. Matches by Track / Eligibility */}
-        <section aria-labelledby="track-heading" className="border-t border-border pt-6 xl:border-t-0 xl:border-l xl:border-border xl:pl-6 xl:pt-0">
+        <section
+          aria-labelledby="track-heading"
+          className="border-t border-border pt-6 xl:border-t-0 xl:border-l xl:border-border xl:pl-6 xl:pt-0"
+        >
           <SectionHeading
             id="track-heading"
             eyebrow="Segmentation"
@@ -347,7 +424,9 @@ export function AdminDashboardPage({ onNavigate }: NavigateProps) {
             <div className="space-y-1.5">
               <div className="flex items-center justify-between text-xs font-semibold">
                 <span>Board Programmes (GWA 1.0–2.5)</span>
-                <span className="font-display font-bold">{boardEligible} ({boardPct}%)</span>
+                <span className="font-display font-bold">
+                  {boardEligible} ({boardPct}%)
+                </span>
               </div>
               <Progress value={boardPct} className="h-2" />
             </div>
@@ -355,23 +434,38 @@ export function AdminDashboardPage({ onNavigate }: NavigateProps) {
             <div className="space-y-1.5">
               <div className="flex items-center justify-between text-xs font-semibold">
                 <span>Non-Board Programmes (GWA 2.6–5.0)</span>
-                <span className="font-display font-bold">{nonBoardEligible} ({nonBoardPct}%)</span>
+                <span className="font-display font-bold">
+                  {nonBoardEligible} ({nonBoardPct}%)
+                </span>
               </div>
               <Progress value={nonBoardPct} className="h-2" />
             </div>
           </div>
 
           <div className="mt-6 border-t border-border pt-4 text-xs text-muted-foreground leading-5">
-            <p>Under rule snapshot <strong className="text-foreground">SELF-DECLARED-TCC-ENTRANCE-2026-01</strong>, entrance examination result categorizes candidates for curriculum pathways.</p>
+            <p>
+              Under rule snapshot{" "}
+              <strong className="text-foreground">
+                SELF-DECLARED-TCC-ENTRANCE-2026-01
+              </strong>
+              , entrance examination result categorizes candidates for
+              curriculum pathways.
+            </p>
           </div>
         </section>
 
         {/* 3. System Activities / Current Workload */}
-        <aside aria-labelledby="workload-heading" className="border-t border-border pt-6 xl:border-t-0 xl:border-l xl:border-border xl:pl-6 xl:pt-0">
+        <aside
+          aria-labelledby="workload-heading"
+          className="border-t border-border pt-6 xl:border-t-0 xl:border-l xl:border-border xl:pl-6 xl:pt-0"
+        >
           <p className="font-label text-xs font-bold uppercase tracking-[0.16em] text-success">
             At a glance
           </p>
-          <h2 id="workload-heading" className="mt-1 font-display text-xl font-extrabold">
+          <h2
+            id="workload-heading"
+            className="mt-1 font-display text-xl font-extrabold"
+          >
             Current workload
           </h2>
           <p className="mt-1 text-xs text-muted-foreground">
@@ -382,28 +476,29 @@ export function AdminDashboardPage({ onNavigate }: NavigateProps) {
             <QueueRow
               label="Assessments in progress"
               value={data.funnel.inProgress}
-              onClick={() => onNavigate('/admin/students')}
+              onClick={() => onNavigate("/admin/students")}
             />
             <QueueRow
               label="Processing results"
               value={data.funnel.processing}
-              onClick={() => onNavigate('/admin/students')}
+              onClick={() => onNavigate("/admin/students")}
             />
             <QueueRow
               label="Processing failures"
               value={data.operationalAttention.processingFailures}
-              onClick={() => onNavigate('/admin/students')}
+              onClick={() => onNavigate("/admin/students")}
             />
           </div>
 
           <div className="mt-6 flex items-center justify-between gap-3">
             <span className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
-              <ShieldCheck className="size-4 text-success" /> Individual administrator
+              <ShieldCheck className="size-4 text-success" /> Individual
+              administrator
             </span>
             <Button
               variant="outline"
               size="sm"
-              onClick={() => onNavigate('/admin/activity')}
+              onClick={() => onNavigate("/admin/activity")}
               className="text-xs h-8"
             >
               View activity
@@ -412,7 +507,7 @@ export function AdminDashboardPage({ onNavigate }: NavigateProps) {
         </aside>
       </div>
     </div>
-  )
+  );
 }
 
 /* Reusable Canvas Sub-components */
@@ -423,16 +518,20 @@ function MetricCell({
   detail,
   tone,
 }: {
-  label: string
-  value: number
-  detail: string
-  tone?: 'warning' | 'success'
+  label: string;
+  value: number;
+  detail: string;
+  tone?: "warning" | "success";
 }) {
   return (
     <div className="relative px-5 py-6 sm:border-r sm:border-border sm:last:border-r-0">
       <span
         className={`absolute inset-y-5 left-0 w-1 rounded-full ${
-          tone === 'warning' ? 'bg-warning' : tone === 'success' ? 'bg-success' : 'bg-primary'
+          tone === "warning"
+            ? "bg-warning"
+            : tone === "success"
+              ? "bg-success"
+              : "bg-primary"
         }`}
       />
       <p className="font-label text-xs font-bold uppercase tracking-[0.12em] text-muted-foreground">
@@ -443,7 +542,7 @@ function MetricCell({
         <span className="pb-1 text-xs text-muted-foreground">{detail}</span>
       </div>
     </div>
-  )
+  );
 }
 
 function SectionHeading({
@@ -453,11 +552,11 @@ function SectionHeading({
   description,
   compact = false,
 }: {
-  id: string
-  eyebrow: string
-  title: string
-  description?: string
-  compact?: boolean
+  id: string;
+  eyebrow: string;
+  title: string;
+  description?: string;
+  compact?: boolean;
 }) {
   return (
     <div className="space-y-1">
@@ -466,7 +565,7 @@ function SectionHeading({
       </p>
       <h2
         id={id}
-        className={`font-display font-extrabold tracking-tight ${compact ? 'text-xl' : 'text-2xl'}`}
+        className={`font-display font-extrabold tracking-tight ${compact ? "text-xl" : "text-2xl"}`}
       >
         {title}
       </h2>
@@ -474,7 +573,7 @@ function SectionHeading({
         <p className="text-sm leading-6 text-muted-foreground">{description}</p>
       ) : null}
     </div>
-  )
+  );
 }
 
 function QueueRow({
@@ -482,9 +581,9 @@ function QueueRow({
   value,
   onClick,
 }: {
-  label: string
-  value: number
-  onClick: () => void
+  label: string;
+  value: number;
+  onClick: () => void;
 }) {
   return (
     <button
@@ -498,32 +597,32 @@ function QueueRow({
         <ArrowRight className="size-3.5 text-muted-foreground group-hover:text-primary transition-transform group-hover:translate-x-0.5" />
       </span>
     </button>
-  )
+  );
 }
 
-function StatusBadge({ status }: { status: AdminAssessment['status'] }) {
+function StatusBadge({ status }: { status: AdminAssessment["status"] }) {
   const variants = {
-    in_progress: 'secondary',
-    preparing_result: 'outline',
-    result_available: 'success',
-    result_failed: 'destructive',
-  } as const
+    in_progress: "secondary",
+    preparing_result: "outline",
+    result_available: "success",
+    result_failed: "destructive",
+  } as const;
   const labels = {
-    in_progress: 'In progress',
-    preparing_result: 'Processing',
-    result_available: 'Result available',
-    result_failed: 'Needs attention',
-  }
+    in_progress: "In progress",
+    preparing_result: "Processing",
+    result_available: "Result available",
+    result_failed: "Needs attention",
+  };
   const Icon =
-    status === 'result_failed'
+    status === "result_failed"
       ? CircleAlert
-      : status === 'result_available'
+      : status === "result_available"
         ? CheckCircle2
-        : History
+        : History;
   return (
     <Badge variant={variants[status]} className="text-[11px] gap-1 py-0.5">
       <Icon className="size-3" />
       {labels[status]}
     </Badge>
-  )
+  );
 }
