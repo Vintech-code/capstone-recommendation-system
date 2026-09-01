@@ -17,8 +17,6 @@ interface AdminOverview {
   }
   operationalAttention: {
     processingFailures: number
-    unverifiedSources: number
-    unpublishedDrafts: number
   }
   recentActivity: AdminAssessment[]
 }
@@ -169,9 +167,7 @@ interface AdminReport {
   to: string | null
   scope: 'institution'
   studentCount: number
-  entranceDeclarations: number
   eligibilityDistribution: { board: number; nonBoard: number }
-  assessmentActivity: number
   completedAssessments: number
   assessmentCompletionRate: number
   assessmentFunnel: {
@@ -179,18 +175,9 @@ interface AdminReport {
     inProgress: number
     processing: number
     resultAvailable: number
-    failed: number
   }
   recommendationRuns: number
-  recommendationsByEligibility: { board: number; nonBoard: number }
   programmeSaves: number
-  programmeSavesByEligibility: { board: number; nonBoard: number }
-  catalogueGovernance: {
-    currentSources: number
-    reviewDueSources: number
-    unverifiedSources: number
-    draftVersions: number
-  }
   assessmentCompletionsByMonth: Array<{ month: string; count: number }>
 }
 
@@ -251,10 +238,6 @@ interface AdminActivity {
   actorId: number
   actor: string | null
   action: string
-  subjectType: string
-  subjectReference: string
-  metadata: Record<string, unknown> | null
-  summary: string
   createdAt: string
 }
 
@@ -264,7 +247,6 @@ interface AdminActivityResponse {
   filters: {
     actors: Array<{ id: number; name: string }>
     actions: string[]
-    subjectTypes: string[]
   }
 }
 

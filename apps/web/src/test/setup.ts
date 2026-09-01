@@ -108,7 +108,7 @@ async function defaultFetch(
       students: 2, assessments: 3, completed: 2, inProgress: 1,
       needsAttention: 0, recommendations: 2,
       funnel: { registered: 2, entranceDeclared: 2, assessmentStarted: 2, inProgress: 1, processing: 0, resultAvailable: 1 },
-      operationalAttention: { processingFailures: 0, unverifiedSources: 3, unpublishedDrafts: 1 },
+      operationalAttention: { processingFailures: 0 },
       recentActivity: [{ id: 1, reference: 'ASMT-000001', studentId: 10, studentName: 'Ana Santos', studentEmail: 'ana@example.test', attemptNumber: 1, instrumentCode: 'tcc-riasec-30-v1', status: 'result_available', answerCount: 30, questionCount: 30, topCode: 'I-C', startedAt: '2026-08-01T08:00:00+08:00', savedAt: '2026-08-01T08:19:00+08:00', submittedAt: '2026-08-01T08:20:00+08:00', resultAvailableAt: '2026-08-01T08:20:01+08:00', processingErrorCode: null, processingFailedAt: null, entranceExamination: null, recommendationSnapshot: null }],
     } })
   }
@@ -167,11 +167,11 @@ async function defaultFetch(
   }
 
   if (url.startsWith('/api/v1/admin/reports')) {
-    return Response.json({ data: { generatedAt: '2026-08-08T12:00:00+08:00', from: null, to: null, scope: 'institution', studentCount: 2, entranceDeclarations: 2, eligibilityDistribution: { board: 1, nonBoard: 1 }, assessmentActivity: 2, completedAssessments: 2, assessmentCompletionRate: 100, assessmentFunnel: { started: 2, inProgress: 0, processing: 0, resultAvailable: 2, failed: 0 }, recommendationRuns: 2, recommendationsByEligibility: { board: 1, nonBoard: 1 }, programmeSaves: 1, programmeSavesByEligibility: { board: 1, nonBoard: 0 }, catalogueGovernance: { currentSources: 0, reviewDueSources: 0, unverifiedSources: 1, draftVersions: 1 }, assessmentCompletionsByMonth: [{ month: '2026-08', count: 2 }] } })
+    return Response.json({ data: { generatedAt: '2026-08-08T12:00:00+08:00', from: null, to: null, scope: 'institution', studentCount: 2, eligibilityDistribution: { board: 1, nonBoard: 1 }, completedAssessments: 2, assessmentCompletionRate: 100, assessmentFunnel: { started: 2, inProgress: 0, processing: 0, resultAvailable: 2 }, recommendationRuns: 2, programmeSaves: 1, assessmentCompletionsByMonth: [{ month: '2026-08', count: 2 }] } })
   }
 
   if (url.startsWith('/api/v1/admin/activity')) {
-    return Response.json({ data: { items: [{ id: 1, actorId: 1, actor: 'Authenticated User', action: 'configuration.published', subjectType: 'configuration_version', subjectReference: 'catalogue-v2', metadata: { kind: 'catalogue', version: 2, beforeStatus: 'draft', afterStatus: 'published' }, summary: 'Catalogue version 2 · draft to published', createdAt: '2026-08-08T12:00:00+08:00' }], pagination: { currentPage: 1, lastPage: 1, perPage: 25, total: 1, from: 1, to: 1 }, filters: { actors: [{ id: 1, name: 'Authenticated User' }], actions: ['configuration.published'], subjectTypes: ['configuration_version'] } } })
+    return Response.json({ data: { items: [{ id: 1, actorId: 1, actor: 'Authenticated User', action: 'configuration.published', createdAt: '2026-08-08T12:00:00+08:00' }], pagination: { currentPage: 1, lastPage: 1, perPage: 25, total: 1, from: 1, to: 1 }, filters: { actors: [{ id: 1, name: 'Authenticated User' }], actions: ['configuration.published'] } } })
   }
 
   if (url === '/api/v1/student/assessments/riasec/session') {

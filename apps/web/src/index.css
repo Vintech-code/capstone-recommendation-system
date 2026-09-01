@@ -58,10 +58,9 @@
   --shadow-card-hover: 0 14px 38px rgba(32, 67, 62, 0.11);
 }
 
-.portal-sign-in-theme,
-.staff-workspace-theme {
+.portal-sign-in-theme {
   color-scheme: light;
-  --background: #f8f5ed;
+  --background: #fbfaf5;
   --foreground: #23312f;
   --card: #fffdf8;
   --card-foreground: #23312f;
@@ -82,11 +81,53 @@
   --access-panel-shadow: rgba(32, 67, 62, 0.14);
 }
 
+.staff-workspace-theme {
+  color-scheme: light;
+  --background: #ffffff;
+  --foreground: #181a19;
+  --card: #ffffff;
+  --card-foreground: #181a19;
+  --popover: #ffffff;
+  --popover-foreground: #181a19;
+  --primary: #181a19;
+  --primary-foreground: #ffffff;
+  --primary-fixed: #f1f2f0;
+  --on-primary-fixed: #181a19;
+  --secondary: #f5f6f4;
+  --secondary-foreground: #181a19;
+  --muted: #eff1ee;
+  --muted-foreground: #6b706d;
+  --accent: #d7ff45;
+  --accent-foreground: #181a19;
+  --border: #e4e6e3;
+  --input: #cfd3cf;
+  --ring: #181a19;
+  --success: #12b94f;
+  --success-foreground: #07140b;
+  --warning: #e4f52e;
+  --warning-foreground: #181a19;
+  --info: #d7ff45;
+  --info-foreground: #181a19;
+  --secondary-container: #b7ec22;
+  --outline-variant: #e4e6e3;
+  --chart-teal: #12b94f;
+  --chart-yellow: #d7ff45;
+  --chart-slate: #606662;
+}
+
 .staff-dashboard-canvas {
   min-height: calc(100svh - 4rem);
-  background-image:
-    radial-gradient(circle at 62% 0%, rgba(15, 107, 102, 0.08), transparent 28rem),
-    linear-gradient(#f8f5ed, #f8f5ed);
+  background: var(--background);
+}
+
+.staff-dashboard-canvas [class*="bg-card"] {
+  background-color: transparent;
+}
+
+.staff-dashboard-canvas [class*="rounded-3xl"],
+.staff-dashboard-canvas [class*="rounded-[1.75rem]"] {
+  border-radius: 0;
+  box-shadow: none;
 }
 
 [data-student-records] th:last-child {

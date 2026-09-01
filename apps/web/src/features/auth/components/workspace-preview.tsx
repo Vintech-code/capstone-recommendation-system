@@ -1,5 +1,4 @@
 import {
-  ChartNoAxesCombined,
   ChevronDown,
   LogOut,
   Menu,
@@ -9,7 +8,6 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react'
 
 import { Button } from '@/components/ui/button'
 import logo from '@/assets/logo.png'
-import tccBanner from '@/assets/tccbanner.jpg'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -94,9 +92,8 @@ function WorkspacePreview({
   const isStaff = role === 'admin'
   const [internalActiveId, setInternalActiveId] = useState(role === 'student' ? 'assessment' : 'overview')
   const [query, setQuery] = useState('')
+  const [desktopNavigationExpanded, setDesktopNavigationExpanded] = useState(true)
   const [mobileNavigationOpen, setMobileNavigationOpen] = useState(false)
-  const [desktopNavigationExpanded, setDesktopNavigationExpanded] =
-    useState(true)
   const activeId = activeModuleId ?? internalActiveId
 
   useEffect(() => {
@@ -227,8 +224,7 @@ function WorkspacePreview({
         aria-label="Workspace sidebar"
         data-collapsed={!desktopNavigationExpanded}
         className={cn(
-          'relative hidden h-svh bg-background shadow-sm lg:sticky lg:top-0 lg:flex lg:flex-col lg:transition-[padding] lg:duration-300',
-          isStaff && 'border-r border-border',
+          'relative hidden h-svh bg-background lg:sticky lg:top-0 lg:flex lg:flex-col lg:border-r lg:border-border lg:transition-[padding] lg:duration-300',
           desktopNavigationExpanded ? 'p-4' : 'p-3',
         )}
       >
@@ -239,13 +235,7 @@ function WorkspacePreview({
           )}
         >
           <img src={logo} alt="Academic guidance system" className={cn('h-9 object-contain', desktopNavigationExpanded ? 'w-auto max-w-36' : 'w-12')} />
-          {desktopNavigationExpanded ? (
-            <div>
-              <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
-                {currentRole.shortLabel} portal
-              </p>
-            </div>
-          ) : null}
+          {desktopNavigationExpanded ? <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-muted-foreground">{currentRole.shortLabel} portal</p> : null}
         </div>
 
         <div className="mt-6">
@@ -258,63 +248,16 @@ function WorkspacePreview({
           />
         </div>
 
-        {isStaff && desktopNavigationExpanded ? <div className="relative mt-auto overflow-hidden rounded-3xl border border-primary/10 bg-gradient-to-br from-primary-fixed via-card to-success/10 p-5 shadow-[var(--shadow-card)]"><img src={tccBanner} alt="" className="absolute inset-x-0 top-0 h-24 w-full object-cover opacity-[0.06]" /><span className="relative flex size-12 items-center justify-center rounded-2xl bg-card text-primary shadow-sm"><ChartNoAxesCombined className="size-6" aria-hidden="true" /></span><p className="relative mt-5 text-sm font-bold text-foreground">Accurate records.<br />Better decisions.</p><p className="relative mt-2 text-xs leading-5 text-muted-foreground">Keep programme, assessment, and student records current.</p></div> : null}
-
-        <div className={cn('border-t pt-4', isStaff && desktopNavigationExpanded ? 'mt-4 border-border' : 'mt-auto')}>
-          {desktopNavigationExpanded ? (
-            <>
-              <div className="mb-3 rounded-2xl bg-secondary p-3">
-                <p className="text-xs font-bold">{user?.name ?? currentRole.shortLabel}</p>
-                <p className="mt-1 truncate text-xs font-semibold text-foreground">
-                  Authorized account
-                </p>
-              </div>
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={onExit}
-                className="w-full justify-start text-muted-foreground"
-              >
-                <LogOut aria-hidden="true" />
-                Sign out
-              </Button>
-            </>
-          ) : (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={onExit}
-                  aria-label="Sign out"
-                  className="mx-auto text-muted-foreground"
-                >
-                  <LogOut aria-hidden="true" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="right" sideOffset={12}>
-                Sign out
-              </TooltipContent>
-            </Tooltip>
-          )}
+        <div className="mt-auto border-t border-border pt-4">
+          {desktopNavigationExpanded ? <div className="mb-3 px-3 py-2"><p className="text-xs font-bold">{user?.name ?? currentRole.shortLabel}</p><p className="mt-1 truncate text-xs text-muted-foreground">Authorized account</p></div> : null}
+          {desktopNavigationExpanded ? <Button type="button" variant="ghost" onClick={onExit} className="w-full justify-start text-muted-foreground"><LogOut aria-hidden="true" />Sign out</Button> : <Tooltip><TooltipTrigger asChild><Button type="button" variant="ghost" size="icon" onClick={onExit} aria-label="Sign out" className="mx-auto text-muted-foreground"><LogOut aria-hidden="true" /></Button></TooltipTrigger><TooltipContent side="right" sideOffset={12}>Sign out</TooltipContent></Tooltip>}
         </div>
       </aside>
 
       <div className="min-w-0">
-        <header className={cn('sticky top-0 z-30 border-b bg-background/92 backdrop-blur-xl', isStaff ? 'border-border' : 'border-transparent shadow-sm')}>
+        <header className={cn('sticky top-0 z-30 border-b bg-background/95 backdrop-blur-xl', isStaff ? 'border-border' : 'border-transparent shadow-sm')}>
           <div className="flex h-16 items-center gap-3 px-4 sm:px-6 lg:px-8">
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              aria-label={desktopNavigationExpanded ? 'Collapse workspace navigation' : 'Expand workspace navigation'}
-              aria-expanded={desktopNavigationExpanded}
-              onClick={() => setDesktopNavigationExpanded((isExpanded) => !isExpanded)}
-              className="hidden rounded lg:inline-flex"
-            >
-              <Menu aria-hidden="true" />
-            </Button>
+            <Button type="button" variant="ghost" size="icon" aria-label={desktopNavigationExpanded ? 'Collapse workspace navigation' : 'Expand workspace navigation'} aria-expanded={desktopNavigationExpanded} onClick={() => setDesktopNavigationExpanded((isExpanded) => !isExpanded)} className="hidden rounded lg:inline-flex"><Menu aria-hidden="true" /></Button>
             <Sheet
               open={mobileNavigationOpen}
               onOpenChange={setMobileNavigationOpen}

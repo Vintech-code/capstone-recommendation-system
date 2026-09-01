@@ -29,10 +29,13 @@ describe('access portals and workspace shell', () => {
         expect.stringMatching(/logo-optimized\.png$/),
       )
     })
+    expect(document.querySelector('img[alt=""]')).toHaveAttribute(
+      'src',
+      expect.stringMatching(/login-background1\.png$/),
+    )
     expect(
-      screen.getByRole('img', { name: /illustrated academic path/i }),
-    ).toHaveAttribute('src', expect.stringMatching(/student-journey-hero\.png$/))
-    expect(screen.getByText('Discover a programme direction built from your recorded interests.')).toBeVisible()
+      screen.queryByText('Discover a programme direction built from your recorded interests.'),
+    ).not.toBeInTheDocument()
     expect(
       screen.getByRole('button', { name: 'Continue with Google' }),
     ).toBeEnabled()
@@ -59,6 +62,10 @@ describe('access portals and workspace shell', () => {
     ).toBeVisible()
     expect(screen.getByRole('main')).toHaveClass('portal-sign-in-theme', 'text-foreground')
     expect(screen.getAllByRole('img', { name: 'Pathways' })).toHaveLength(1)
+    expect(document.querySelector('img[alt=""]')).toHaveAttribute(
+      'src',
+      expect.stringMatching(/login-background1\.png$/),
+    )
     expect(screen.getByRole('textbox', { name: 'Full name' })).toHaveAttribute(
       'placeholder',
       ' ',
@@ -135,6 +142,10 @@ describe('access portals and workspace shell', () => {
     const user = userEvent.setup()
     await renderAppAt('/admin/login')
 
+    expect(document.querySelector('img[alt=""]')).toHaveAttribute(
+      'src',
+      expect.stringMatching(/login-background1\.png$/),
+    )
     expect(screen.queryByText('Administrator')).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Continue with Google' })).not.toBeInTheDocument()
 
@@ -159,9 +170,7 @@ describe('access portals and workspace shell', () => {
       name: 'Collapse workspace navigation',
     })
     await user.click(navigationToggle)
-    expect(
-      screen.getByRole('button', { name: 'Expand workspace navigation' }),
-    ).toBeVisible()
+    expect(screen.getByRole('button', { name: 'Expand workspace navigation' })).toBeVisible()
   }, 10_000)
 
   it('opens a role module and returns to the dashboard overview', async () => {

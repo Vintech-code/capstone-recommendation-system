@@ -9,10 +9,10 @@ describe('Administration workspace', () => {
     await renderAppAt('/admin')
 
     expect(await screen.findByRole('heading', { name: 'System overview' })).toBeVisible()
-    expect(screen.getByRole('heading', { name: 'Assessment funnel' })).toBeVisible()
-    expect(screen.getByText(/Entrance declared/)).toBeVisible()
+    expect(screen.getByRole('heading', { name: 'Student journey' })).toBeVisible()
+    expect(screen.getByRole('img', { name: /Registered: 2/ })).toBeVisible()
     expect(screen.getByText('Recent assessment activity')).toBeVisible()
-    expect(screen.getByRole('heading', { name: 'Action queues' })).toBeVisible()
+    expect(screen.getByRole('heading', { name: 'Current workload' })).toBeVisible()
   })
 
   it('opens a student record with immutable results and recommendations', async () => {
@@ -36,10 +36,37 @@ describe('Administration workspace', () => {
     await renderAppAt('/admin/programmes')
 
     expect(await screen.findByRole('heading', { name: 'Programme monitoring' })).toBeVisible()
+    expect(screen.queryByRole('button', { name: 'Open catalogue evidence' })).not.toBeInTheDocument()
     expect(screen.getByText('BS Information Technology')).toBeVisible()
     await user.click(screen.getByRole('button', { name: 'View details' }))
     expect(screen.getByRole('dialog')).toBeVisible()
     expect(screen.getByRole('heading', { name: 'Possible career directions' })).toBeVisible()
+  })
+
+  it('redirects the removed catalogue-evidence route to programme monitoring', async () => {
+    await renderAppAt('/admin/programmes/sources')
+
+    expect(window.location.pathname).toBe('/admin/programmes')
+    expect(await screen.findByRole('heading', { name: 'Programme monitoring' })).toBeVisible()
+  })
+
+  it('keeps reports focused on assessment and engagement charts', async () => {
+    await renderAppAt('/admin/reports')
+
+    expect(await screen.findByRole('heading', { name: 'System reports' })).toBeVisible()
+    expect(screen.queryByRole('button', { name: /Export aggregate/i })).not.toBeInTheDocument()
+    expect(screen.queryByText('Catalogue governance')).not.toBeInTheDocument()
+    expect(screen.getByRole('img', { name: /Board eligible: 1/ })).toBeVisible()
+    expect(screen.getByRole('img', { name: /Recommendations: 2/ })).toBeVisible()
+  })
+
+  it('shows a concise activity timeline without raw record metadata', async () => {
+    await renderAppAt('/admin/activity')
+
+    expect(await screen.findByRole('heading', { name: 'Admin activity' })).toBeVisible()
+    expect(screen.getByText('Configuration Published')).toBeVisible()
+    expect(screen.queryByText(/catalogue-v2/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/Before Status/i)).not.toBeInTheDocument()
   })
 
   it('combines students and assessments in one searchable ledger', async () => {

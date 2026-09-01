@@ -1,10 +1,8 @@
 import {
   AlertTriangle,
-  ArrowRight,
   BookOpen,
   BriefcaseBusiness,
   Clock3,
-  Database,
   ExternalLink,
   Eye,
   GraduationCap,
@@ -41,7 +39,7 @@ function getProgrammeType(programme: AdminProgramme) {
   return 'Classification unavailable'
 }
 
-function AdminProgrammesPage({ onNavigate }: { onNavigate: (path: string) => void }) {
+function AdminProgrammesPage() {
   const resource = useAdminResource<AdminProgrammeCatalogue>('/programmes')
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState<'all' | 'confirmed' | 'review'>('all')
@@ -69,8 +67,7 @@ function AdminProgrammesPage({ onNavigate }: { onNavigate: (path: string) => voi
     <AdminPageHeader
       eyebrow={`Academic Year ${catalogue.academicYear}`}
       title="Programme monitoring"
-      description="Monitor the same catalogue content students see, its official-source coverage, and how programmes appear across saved choices and recommendations."
-      action={<Button type="button" variant="outline" className="rounded-lg" onClick={() => onNavigate('/admin/programmes/sources')}><Database aria-hidden="true" />Open catalogue evidence <ArrowRight aria-hidden="true" /></Button>}
+      description="Monitor the programme information students see and how programmes appear across saved choices and recommendations."
     />
 
     <section className="grid gap-4 rounded-3xl border border-border bg-card p-5 shadow-[var(--shadow-card)] sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-center" aria-labelledby="catalogue-monitoring-heading">

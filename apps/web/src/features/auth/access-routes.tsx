@@ -153,7 +153,7 @@ function AccessRoutes() {
       <Route path="/admin/students/:studentId" element={<AdminWorkspaceRoute />} />
       <Route path="/admin/assessments" element={<Navigate to="/admin/students" replace />} />
       <Route path="/admin/programmes" element={<AdminWorkspaceRoute />} />
-      <Route path="/admin/programmes/sources" element={<AdminWorkspaceRoute />} />
+      <Route path="/admin/programmes/sources" element={<Navigate to="/admin/programmes" replace />} />
       <Route path="/admin/reports" element={<AdminWorkspaceRoute />} />
       <Route path="/admin/activity" element={<AdminWorkspaceRoute />} />
       <Route path="/admin/applicants/*" element={<Navigate to="/admin/students" replace />} />
