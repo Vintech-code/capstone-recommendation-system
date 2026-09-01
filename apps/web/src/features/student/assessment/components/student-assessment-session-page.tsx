@@ -620,11 +620,6 @@ function EntranceExaminationGate({
             Entrance Exam Result
           </h1>
 
-          {/* STEP 1 OF 2 · ONBOARDING Badge */}
-          <p className="mt-1.5 font-label text-xs font-semibold uppercase tracking-[0.14em] text-primary">
-            Step 1 of 2 · Self-Declaration
-          </p>
-
           {/* Instructions */}
           <p
             id="entrance-result-help"
