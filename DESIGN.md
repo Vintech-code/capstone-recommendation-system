@@ -1,603 +1,485 @@
 ---
-version: gamma
-name: TCC Guidance Provisional Product System
-description: A scalable UI system for the TCC Course Recommendation application. The root opens the Student sign-in portal, while the combined Admin and System Administrator use dedicated portal URLs. Manrope typography, clear role boundaries, production-style forms, high-contrast hierarchy, and responsive role workspaces create a deployment-ready frontend surface.
-
+name: TCC Course Recommendation Design System
+status: APPROVED working product direction; PROVISIONAL institutional identity
+version: 2.4
+last_updated: 2026-09-01
+font_family: Nunito Sans headings / Montserrat body
+theme: light
 colors:
-  primary: "#533afd"
-  primary-deep: "#4434d4"
-  primary-press: "#2e2b8c"
-  primary-soft: "#b9b9f9"
-  brand-dark: "#1c1e54"
-  ink: "#0d253d"
-  ink-secondary: "#273951"
-  ink-muted: "#64748d"
-  on-primary: "#ffffff"
-  canvas: "#ffffff"
-  canvas-soft: "#f6f9fc"
-  canvas-warm: "#f5e9d4"
-  border: "#e3e8ee"
-  input: "#a8c3de"
-  ruby: "#ea2261"
-  magenta: "#f96bee"
-  chart-blue: "#4f8df7"
-  chart-teal: "#42b8a5"
-  chart-slate: "#a9b2ca"
-
-darkColors:
-  background: "#0b1220"
-  surface: "#121d2d"
-  surface-muted: "#172437"
-  foreground: "#edf3fa"
-  foreground-muted: "#a8b7ca"
-  border: "#2a394d"
-  input: "#40536b"
-  primary: "#8b7fff"
-  brand-dark: "#121d2d"
-  brand-soft: "#cbc9ff"
-  canvas-warm: "#172437"
-
-typography:
-  display-access:
-    fontFamily: "'Manrope Variable', Manrope, system-ui, sans-serif"
-    fontSize: 60px
-    fontWeight: 650
-    lineHeight: 1.02
-    letterSpacing: -3.6px
-  page-title:
-    fontFamily: "'Manrope Variable', Manrope, system-ui, sans-serif"
-    fontSize: 40px
-    fontWeight: 700
-    lineHeight: 1.08
-    letterSpacing: -1.8px
-  card-title:
-    fontFamily: "'Manrope Variable', Manrope, system-ui, sans-serif"
-    fontSize: 18px
-    fontWeight: 700
-    lineHeight: 1.25
-    letterSpacing: -0.3px
-  body-large:
-    fontFamily: "'Manrope Variable', Manrope, system-ui, sans-serif"
-    fontSize: 16px
-    fontWeight: 450
-    lineHeight: 1.6
-    letterSpacing: 0
-  body:
-    fontFamily: "'Manrope Variable', Manrope, system-ui, sans-serif"
-    fontSize: 15px
-    fontWeight: 450
-    lineHeight: 1.6
-    letterSpacing: 0
-  label:
-    fontFamily: "'Manrope Variable', Manrope, system-ui, sans-serif"
-    fontSize: 14px
-    fontWeight: 700
-    lineHeight: 1.3
-    letterSpacing: 0
-  micro:
-    fontFamily: "'Manrope Variable', Manrope, system-ui, sans-serif"
-    fontSize: 10px
-    fontWeight: 700
-    lineHeight: 1.2
-    letterSpacing: 1.6px
-  button:
-    fontFamily: "'Manrope Variable', Manrope, system-ui, sans-serif"
-    fontSize: 14px
-    fontWeight: 650
-    lineHeight: 1
-    letterSpacing: 0
-
-rounded:
-  sm: 8px
-  md: 12px
-  lg: 16px
-  xl: 24px
+  background: '#F8F5ED'
+  surface: '#FFFDF8'
+  surface_subtle: '#EDF2EF'
+  foreground: '#23312F'
+  foreground_muted: '#65736F'
+  border: '#D8E1DC'
+  border_strong: '#C5D2CC'
+  primary: '#0F6B66'
+  primary_hover: '#0B5955'
+  primary_pressed: '#084A47'
+  primary_soft: '#DDF3EF'
+  on_primary: '#FFFFFF'
+  accent: '#D96F52'
+  accent_soft: '#FBE8E1'
+  success: '#2F7D5D'
+  success_soft: '#E3F1E9'
+  warning: '#9B6717'
+  warning_soft: '#F5E9D3'
+  danger: '#B64752'
+  danger_soft: '#F8E7E9'
+  info: '#356B8C'
+  info_soft: '#E6F0F5'
+radii:
+  control: 12px
+  nested: 16px
+  card: 24px
+  hero: 28px
   pill: 9999px
-
-spacing:
-  xs: 4px
-  sm: 8px
-  md: 12px
-  lg: 16px
-  xl: 24px
-  xxl: 32px
-  panel: 40px
-  page: 56px
-
-components:
-  button-primary:
-    backgroundColor: "{colors.primary}"
-    textColor: "{colors.on-primary}"
-    typography: "{typography.button}"
-    rounded: "{rounded.md}"
-    padding: 12px 24px
-  button-secondary:
-    backgroundColor: "{colors.canvas}"
-    textColor: "{colors.ink}"
-    typography: "{typography.button}"
-    rounded: "{rounded.md}"
-    padding: 10px 16px
-  credential-input:
-    backgroundColor: "{colors.canvas}"
-    textColor: "{colors.ink}"
-    typography: "{typography.body}"
-    rounded: "{rounded.md}"
-    padding: 12px 40px
-  portal-identity:
-    backgroundColor: "{colors.canvas}"
-    textColor: "{colors.ink}"
-    typography: "{typography.micro}"
-    rounded: "{rounded.md}"
-    padding: 12px
-  access-brand-panel:
-    backgroundColor: "{colors.brand-dark}"
-    textColor: "{colors.on-primary}"
-    typography: "{typography.body-large}"
-    rounded: "{rounded.sm}"
-    padding: 56px
-  access-form-panel:
-    backgroundColor: "{colors.canvas}"
-    textColor: "{colors.ink}"
-    typography: "{typography.body}"
-    rounded: "{rounded.sm}"
-    padding: 48px
-  workspace-header:
-    backgroundColor: "{colors.canvas-soft}"
-    textColor: "{colors.ink-secondary}"
-    typography: "{typography.body}"
-    rounded: "{rounded.md}"
-    padding: 12px 16px
-  workspace-sidebar:
-    backgroundColor: "{colors.canvas}"
-    textColor: "{colors.ink}"
-    typography: "{typography.body}"
-    rounded: "{rounded.sm}"
-    padding: 16px
-  workspace-card:
-    backgroundColor: "{colors.canvas}"
-    textColor: "{colors.ink}"
-    typography: "{typography.body}"
-    rounded: "{rounded.lg}"
-    padding: 20px
-  workspace-topbar:
-    backgroundColor: "{colors.canvas}"
-    textColor: "{colors.ink-secondary}"
-    typography: "{typography.body}"
-    rounded: "{rounded.sm}"
-    padding: 12px 32px
-  workflow-card:
-    backgroundColor: "{colors.canvas}"
-    textColor: "{colors.ink}"
-    typography: "{typography.body}"
-    rounded: "{rounded.lg}"
-    padding: 24px
-  module-card:
-    backgroundColor: "{colors.canvas}"
-    textColor: "{colors.ink}"
-    typography: "{typography.body}"
-    rounded: "{rounded.lg}"
-    padding: 20px
+shadows:
+  card: '0 8px 30px rgba(32, 67, 62, 0.07)'
+  card_hover: '0 14px 38px rgba(32, 67, 62, 0.11)'
+  overlay: '0 20px 60px rgba(32, 67, 62, 0.16)'
+layout:
+  content_max: 1200px
+  reading_max: 720px
+  desktop_gutter: 32px
+  tablet_gutter: 24px
+  mobile_gutter: 16px
 ---
 
-# TCC Guidance Provisional Product System
+# TCC Course Recommendation Design System
 
-## Status
+## 1. Authority and reference boundary
 
-This system is **PROVISIONAL** under D-009. It is not an approved TCC visual
-identity. Official branding, authentication policy, privacy content, account
-lifecycle, and production credentials remain blocked by their recorded open
-questions.
+This file is the visual and interaction authority for the responsive TCC course-recommendation application. Version 2.1 replaces the reference-adjacent purple direction with an original warm coastal educational product language: deep teal, oat, coral, and mineral neutrals.
 
-The frontend now uses Laravel Sanctum cookie sessions for portal login, session
-restoration, logout, and server-confirmed portal entry. Laravel role middleware
-protects the Student, Admin, and System Administrator portal boundaries, while
-React maps expired and forbidden responses to focused recovery screens.
-Registration, recovery, approved account states, detailed feature
-authorization, and protected domain data remain separate implementation work.
+The repository owner approved this working direction on 2026-08-28. It is not an official Tagoloan Community College identity. Its palette, illustration style, typography, and product presentation remain **PROVISIONAL institutional branding** until institutionally approved.
 
-## Product entry model
+The supplied screenshots informed composition, rhythm, hierarchy, shape, and interaction patterns only. Never copy their logo, characters, wording, course names, scores, proprietary artwork, or product identity. Implemented content must come from authenticated records, the controlled catalogue, and versioned assessment and recommendation rules.
 
-The application root redirects directly to the Student sign-in portal. There
-is no marketing homepage or public product introduction in the MVP interface.
+When this file conflicts with approved business, security, accessibility, or data-integrity rules, the nonvisual rule wins. Never alter scoring, eligibility, authorization, or recommendation behavior to imitate a reference.
 
-The system exposes three dedicated portal paths:
+## 2. Product character and principles
 
-1. Student Applicant: `/student/login`
-2. Guidance / Psychometrician / Admin: `/admin/login`
-3. System Administrator: `/system-admin/login`
+The interface should feel like a calm, knowledgeable guide for a high-stakes student decision:
 
-All portals reuse the same sign-in component. Users never choose or change their
-role on the sign-in form. The production backend remains authoritative for role
-authorization and must reject cross-role access.
+1. **Clarity:** one primary task or conclusion per section.
+2. **Personality:** gentle color and illustration without game-like distraction.
+3. **Friendly guidance:** direct, reassuring language and generous touch targets.
+4. **Easy scanning:** concise headings, grouped evidence, and consistent anatomy.
+5. **Visual storytelling:** illustration orients; recorded data carries meaning.
+6. **Truthfulness:** every result, count, percentage, status, and reason is backed by stored evidence.
+7. **Accessibility:** color never works alone; keyboard, screen reader, zoom, touch, and reduced motion are first-class.
 
-## Visual hierarchy
+The experience is light-only. A dark theme is out of scope for this direction. Existing dark-theme code may be retired only in a separately tested implementation slice; do not expand it or use it to shape new components.
 
-- Desktop uses a split screen: a dark identity panel and a focused white form
-  panel.
-- Mobile removes the decorative identity panel and keeps a compact wordmark
-  above the form.
-- The portal identity, access title, credentials, and submit action appear in
-  that order.
-- Workspaces use a white desktop sidebar that collapses into a persistent icon
-  rail, a compact sticky top bar, a light-gray canvas, and a responsive content
-  grid.
-- The Admin dashboard follows the approved reference hierarchy: one
-  guidance-focused hero, five compact summary cards, operational activity,
-  assessment and recommendation review visualizations, recent applicants, and
-  latest activity. Dashboard-only breadcrumbs, module search, module cards,
-  priority cards, work queue, quick actions, and workflow-stage cards are
-  excluded; module navigation remains in the persistent Sidebar/Sheet.
-- Application cards are borderless. Use Tailwind `shadow-sm` as the standard
-  card elevation; do not use `border`, `border-b`, or `border-r` to define card
-  edges.
-- Text stays concise; access screens are task interfaces, not marketing pages.
+## 3. Visual foundation
 
-## Theme modes
+### 3.1 Color system
 
-Dark mode is an APPROVED provisional UI capability under D-019, not an
-official TCC identity. Light mode remains the initial default when no saved
-preference exists.
+Use semantic CSS variables and Tailwind utilities. Do not scatter raw hex values through route or feature components.
 
-- Apply light and dark appearance through semantic CSS variables and the
-  root `.dark` class. Feature components must not maintain separate theme
-  state or duplicate palette logic.
-- Provide one accessible theme toggle on every sign-in screen, authenticated
-  workspace top bar, and recovery screen. Its accessible name must describe
-  the resulting action, and `aria-pressed` must expose the current state.
-- Persist only the non-sensitive `light` or `dark` preference in local storage.
-  Apply a stored dark class before React starts to avoid a light-theme flash.
-- Shared inputs, textareas, selects, cards, popovers, dialogs, charts, status
-  text, and focus indicators must use semantic tokens in both themes.
-- Student, Admin, and System Administrator surfaces use the same dark canvas
-  palette. Role-specific layouts and content may differ, but they must not
-  introduce a separate navy, violet, or warm dark-mode surface family.
-- Preserve intentional dark brand panels and high-contrast white actions;
-  dark mode must not flatten visual hierarchy into one undifferentiated navy
-  surface.
-- Theme changes may animate surface and text colors for 200ms. Do not animate
-  validation, authentication, permission, or status meaning.
-- Printed reports always use a white canvas and black text regardless of the
-  selected screen theme.
+| Role | Value | Use |
+| --- | --- | --- |
+| Canvas | `#F8F5ED` | Warm oat page background |
+| Surface | `#FFFDF8` | Cards, dialogs, menus, and inputs |
+| Subtle surface | `#EDF2EF` | Quiet grouped content and insets |
+| Foreground | `#23312F` | Primary text and icons |
+| Muted foreground | `#65736F` | Descriptions and metadata |
+| Border | `#D8E1DC` | Default card and control outline |
+| Strong border | `#C5D2CC` | Dividers and emphasized control outlines |
+| Primary | `#0F6B66` | Primary actions, active navigation, focus, highlights |
+| Primary hover | `#0B5955` | Hovered primary controls |
+| Primary pressed | `#084A47` | Pressed primary controls |
+| Primary soft | `#DDF3EF` | Selected controls and quiet highlights |
+| Coral accent | `#D96F52` | Restrained emphasis and secondary visual rhythm |
+| Success | `#2F7D5D` | Completed and successful states |
+| Warning | `#9B6717` | Review or attention states |
+| Danger | `#B64752` | Errors and destructive actions |
+| Information | `#356B8C` | Neutral information and analytical data |
 
-## Typography
+Muted tones support hierarchy without becoming a competing rainbow:
 
-Manrope is bundled locally as the open-source working font.
+- Seafoam `#DDF3EF` for selected and guidance states.
+- Sage `#E3F1E9` for completed steps.
+- Sand `#F5E9D3` for gentle attention.
+- Clay `#FBE8E1` for restrained accent surfaces.
+- Mineral blue `#E6F0F5` for analytical information.
 
-- Access display: `{typography.display-access}`.
-- Page headings: `{typography.page-title}`.
-- Card headings: `{typography.card-title}`.
-- Form labels: `{typography.label}`.
-- Supporting content: `{typography.body}`.
-- System-state labels: `{typography.micro}`.
-- Do not use thin weights for form labels, controls, or status information.
+### 3.2 RIASEC mapping
 
-## Access components
+Use one stable mapping wherever the six recorded dimensions appear:
 
-### Access shell
+| Code | Category | Indicator | Soft surface |
+| --- | --- | --- | --- |
+| R | Realistic | `#B65338` | `#FBE8E1` |
+| I | Investigative | `#3D6F91` | `#E6F0F5` |
+| A | Artistic | `#A84F72` | `#F7E6ED` |
+| S | Social | `#3E7C61` | `#E3F1E9` |
+| E | Enterprising | `#A36B16` | `#F7EDD8` |
+| C | Conventional | `#5E668F` | `#EAEBF4` |
 
-`access-brand-panel` occupies the left side on desktop and identifies the
-system and the three approved roles. It is not a public introduction.
+Always pair color with code, full name, score, and accessible label. These colors identify categories only; they never mean good, bad, passing, aptitude, or expected success.
 
-`access-form-panel` contains the only access interaction. Keep its content width
-below 576px for scanability.
+### 3.3 Typography
 
-### Portal identity
+Use bundled open-source **Nunito Sans Variable** for display headings and **Montserrat Variable** for paragraphs, controls, labels, and data. Keep `ui-sans-serif`, `system-ui`, and `sans-serif` fallbacks. Do not introduce proprietary fonts.
 
-`portal-identity` names the current portal above the form and in the responsive
-wordmark. It is informational, not selectable. The combined Admin portal must
-always remain one surface; do not create separate Guidance, Psychometrician,
-Admission, or Testing portals.
+| Token | Desktop | Mobile | Weight | Use |
+| --- | --- | --- | --- | --- |
+| Display | 52/56px | 38/42px | 900 | Recorded result hero statement |
+| Heading 1 | 40/48px | 30/38px | 800 | Page title |
+| Heading 2 | 30/38px | 26/34px | 700 | Major section |
+| Heading 3 | 22/30px | 20/28px | 700 | Card title |
+| Body large | 18/30px | 17/28px | 500 | Hero description |
+| Body | 16/27px | 16/26px | 500 | Default copy |
+| Label | 14/20px | 14/20px | 700 | Buttons and fields |
+| Overline | 12/16px | 12/16px | 700 | Rank and category labels |
+| Caption | 14/20px | 14/20px | 500 | Timestamps and helpers |
 
-The combined Admin role may be assigned to multiple authorized guidance
-counselors and psychometricians. Each person signs in with an individual
-account; the single portal and role type must never imply one staff member or
-shared credentials.
+Use sentence case. Reserve uppercase for short overlines with `0.10em` tracking. Result hero headings use Nunito Sans at weight 900, tight but readable line height, and restrained negative tracking to create the bold reference-inspired treatment without copying its archetype wording. Result summaries, score labels, evidence copy, metadata, and recommendation explanations use the body, label, or caption tokens above rather than 10–12px utility text. Keep prose near 65 characters per line. Primary teal may emphasize one key idea in a heading, not multiple competing phrases.
 
-### Credential fields
+### 3.4 Spacing and grid
 
-`credential-input` uses a visible label, icon, autocomplete metadata, inline
-error association, and a minimum 48px control height. Password visibility is a
-real keyboard-accessible button.
+Use a 4px primitive scale with layout rhythm aligned mainly to 8px: `4, 8, 12, 16, 20, 24, 32, 40, 48, 64, 80, 96`.
 
-Only validate requirements known to the UI:
+- Content maximum: `1200px`; reading maximum: `720px`.
+- Gutters: `32px` desktop, `24px` tablet, `16px` mobile.
+- Section gap: `64px` desktop, `48px` tablet, `40px` mobile.
+- Card padding: `32px` desktop, `24px` tablet/mobile.
+- Compact card padding: `24px` desktop, `20px` mobile.
+- Student page entry rhythm: `16px` mobile, `24px` from `sm`.
+- Grid: 12 desktop columns/24px gap; 8 tablet/20px; 4 mobile/16px.
 
-- Email is required and must be syntactically valid.
-- Password is required.
+Use one strong alignment line. Center page titles, short prompts, and empty states; left-align long copy, results, tables, and explanations.
 
-Do not invent password complexity, institutional email domains, account status,
-or recovery policy.
+### 3.5 Shape, border, and elevation
 
-### Route behavior
+- Primary cards: 24px radius, 1px semantic border, white surface, soft shadow.
+- Hero/result cards: 28px radius.
+- Nested panels: 16px radius and subtle surface; never nest more than one level.
+- Inputs and buttons: 12px radius.
+- Badges and progress tracks: full pill radius.
+- Icon-only controls: circular only with a clear accessible name.
 
-The primary button says “Sign in” and authenticates against Laravel for the
-current portal. No role-switching control appears on the form. Successful
-submission requires a server session and a portal-matching role before the
-protected workspace opens.
+Default shadow: `0 8px 30px rgba(32, 67, 62, 0.07)`. Interactive cards may rise at most 2px and use `0 14px 38px rgba(32, 67, 62, 0.11)`. Avoid hard shadows, glassmorphism, thick outlines, and excessive elevation.
 
-## Role dashboard shell
+Subtle card borders are part of this revision. Use spacing, tone, or dividers for internal structure so every block does not become another bordered card.
 
-- Desktop uses a 256px expanded `workspace-sidebar` and an 80px collapsed icon
-  rail. A labelled chevron control sits on the sidebar edge and switches
-  between the two widths without removing navigation. Collapsed items retain
-  their active state, accessible names, and right-side tooltips. Mobile uses
-  the same navigation in a left-opening Sheet. The toggle must remain keyboard
-  accessible and expose its expanded state.
-- `workspace-topbar` contains a labelled `Search modules` control and account
-  context for Student and System Administrator workspaces. In the Admin
-  workspace, module search belongs within the dashboard content instead of the
-  global top bar. It filters module access only; it is not a global applicant
-  or record search.
-- Keep the workspace chrome and feature introduction compact. The desktop top
-  bar uses a 64px height, and the shared Admin page header contains one title,
-  one concise description, optional actions, then its breadcrumb. Search and
-  filter controls follow the breadcrumb. Do not repeat an `Admin workspace`
-  eyebrow on every feature or stack large empty margins before the primary
-  task surface.
-- Every role dashboard, feature list, detail view, module surface, and
-  breadcrumb is fluid within the available workspace rather than capped at a
-  fixed desktop width. Workspace-level surfaces must continue using the
-  available canvas at wide viewports and browser zoom levels without creating
-  excessive outer gutters. Intentional reading-width constraints remain
-  appropriate for forms, dialogs, notices, and document content.
-- The workspace shell provides a semantic Breadcrumb and a Radix-based
-  Dropdown Menu for account context and sign-out. On Admin landing pages the
-  breadcrumb appears below the heading and above search/filter controls.
-  Detail pages without search retain the breadcrumb before the record surface.
-  Breadcrumb controls use distinct accessible names from sidebar navigation.
-- The sidebar and quick-access cards expose only the current role's modules.
-- Workspace search filters the quick-access module grid. Module cards open a
-  dedicated module surface and provide a functional return to Dashboard.
-- `workflow-card` shows approved process labels only. It must not imply that a
-  step is complete until real status data exists.
-- Select the information pattern from the task, not from CRUD convention.
-  Reserve tables for dense operational comparison across stable columns.
-  Use workflow lanes for lifecycle work, ranked review cards for decisions,
-  catalogues for browsable entities, timelines for history, and document
-  libraries for reports. Do not reuse one table shell across unrelated modules.
-- Applicant Management uses a borderless `shadow-sm` toolbar, desktop table
-  surface, mobile record cards, pagination surface, and record-detail cards.
-  Form controls and table row separators may retain functional borders.
-- Official Results Management follows the same responsive list/detail pattern
-  and shows source, review state, version, and immutable history. D-015 permits
-  clearly isolated synthetic score-format examples for complete prototype
-  states, but they must never be represented as official values, scales,
-  thresholds, correction rules, or validation evidence.
-- Manual Result Entry uses a form-first three-stage workflow: enter source
-  values, review the complete record, then add it to verification review.
-  Inputs use accessible labels and neutral shape validation only. Do not encode
-  a passing threshold or automatic verification rule in the interface.
-- CSV Result Import uses a source-file panel and a horizontally scrollable
-  preview table because row-by-row column comparison is the primary task.
-  Import reconciliation switches to status-filtered outcome cards so errors,
-  duplicates, and next actions remain readable without another dense table.
-- Assessments & Questionnaires uses workflow lanes for in-progress and
-  submitted sessions, with progress-focused session cards, plus separate
-  questionnaire version/detail views. Prototype content is isolated synthetic
-  data. Session cards use a lane-native vertical sequence for identity, status,
-  progress, and an activity/action footer; fixed inner widths must not compress
-  applicant metadata or cause content overlap in half-width lanes. Synthetic
-  content must not be represented or reused as an official instrument or
-  scoring policy.
-- Recommendations Management uses a responsive review-card grid that makes the
-  applicant, top course, match, status, and generated date scannable before
-  opening the ranked detail view. All prototype courses, matches, factors, and
-  eligibility states are isolated synthetic UI data under D-015.
-- Algorithm Validation Cases uses a searchable case library and a selected-case
-  comparison surface for expected and deterministic snapshots. Student Decision
-  Review uses selectable decision cards and a sticky detail summary; it must
-  state that a preference is not admission or enrolment.
-- Courses & Rules Management uses separate catalogue and rule-version
-  list/detail views with lifecycle badges, searchable course cards, program
-  metadata, interest profiles, career paths, eligibility conditions, effective
-  periods, and version history. All prototype catalogue and rule content is
-  isolated synthetic UI data under D-015.
-- Reports Management uses a visual document library with one featured report,
-  responsive preview cards, report-type and lifecycle filters, document-style
-  detail preview, source-version references, linked-record navigation, and a
-  real print action. Print media hides the application shell and prints only
-  the selected report surface. Synthetic layouts and metadata are not official
-  institutional report formats.
-- Stakeholder-facing prototype screens show complete mock interface states.
-  Keep internal OQ identifiers and approval-blocker notices in documentation,
-  not in the visible product UI.
-- The Admin dashboard may use isolated synthetic counts, applicant references,
-  task timestamps, activity, and workflow states under D-015. Every dashboard
-  card and queue item must perform a real frontend action such as filtering,
-  expanding content, or navigating to an implemented route. Synthetic content
-  must never imply operational performance, validation success, admission, or
-  enrolment.
-- The Admin dashboard uses the provisional violet system through a
-  guidance-focused hero, five summary cards with decorative sparklines,
-  operational activity chart, assessment-state chart, recommendation-review
-  chart, responsive recent-applicant overview, and latest activity. Recharts
-  is isolated from the Admin route bundle. Charts must include visible text
-  labels and legends, respond to the selected period, and collapse cleanly on
-  smaller screens.
-  Chart-blue, chart-teal, and chart-slate are supporting visualization tokens,
-  not institutional branding.
-- Summary cards, recent-applicant actions, latest-activity rows, the hero
-  action, and period controls must remain functional. Detailed queues,
-  workflow stages, and module actions belong to their dedicated Admin routes.
-- The Student dashboard is task-oriented rather than analytical. Use one
-  next-action hero, six text-labelled journey-status cards, a recommended
-  next-step panel, available actions, and the guidance-not-enrolment boundary.
-  Do not add vanity charts, admission likelihood, success rates, invented
-  scores, or unsupported completion percentages.
-- Student dashboard actions open only Student modules. Official result access
-  is read-only, course guidance can show prerequisite status without implying
-  admission, and Admin/System Administrator controls must never appear.
-- Student profile and application work is mobile-first, not mobile-only, and
-  remains intentionally different from the Admin information-dense layout.
-  Use one readable column on small screens, 48px form controls, 16px mobile
-  input text, full-width mobile primary actions, concise completion guidance,
-  and an organized multi-column desktop composition where it improves
-  scanning. Reading-width constraints may apply to form content, but the
-  Student workspace shell must use the available desktop canvas.
-- Student feature pages use the same compact header hierarchy as Admin feature
-  pages: title and description first, then the breadcrumb directly below.
-  Do not place the shell breadcrumb above the heading or repeat a separate
-  Dashboard back row. Editable pages route the breadcrumb through their
-  dirty-change protection.
-- Profile editing uses explicit Edit, Cancel, and Save actions with inline
-  labelled validation, disabled/loading feedback, dirty-change protection,
-  and non-critical Sonner confirmation. Application submission uses a titled
-  confirmation dialog and becomes read-only after the demonstrated submit
-  transition.
-- D-015 profile fields, application references, completion, and lifecycle
-  states are isolated synthetic UI examples. They are not approved TCC fields,
-  admission-cycle policy, submission rules, or production data.
-- Student Official Result uses a read-only summary, visible verification badge,
-  source/provenance details, verification history, and correction-contact
-  guidance. It must never expose edit, encode, verify, reject, or replace
-  actions to Students, and it must not infer pass/fail, eligibility, admission,
-  or enrolment from a recorded value.
-- Student assessment introductions use the shared Student feature header, one
-  concise orientation surface, plain-language expectations, active-version and
-  readiness context, and a separate notice surface. Beginning requires an
-  explicit acknowledgement and confirmation. Keep controls at least 48px on
-  mobile, stack actions on narrow screens, and provide inactive, loading,
-  empty, and retryable-error states.
-- D-015 assessment-introduction content may demonstrate only general
-  interaction and safety boundaries. It must not present mock questions,
-  response options, mappings, scoring, interpretations, or validation results
-  as approved instrument content.
-- Student assessment sessions use a mobile-first question flow with one prompt
-  at a time, large labelled response controls, explicit answered/unanswered
-  progress, direct question navigation, and full-width mobile actions. Desktop
-  may place the progress navigator beside the question while preserving a
-  focused reading width and the fluid application canvas.
-- Assessment responses distinguish saving, saved, saved-on-device, and
-  unsaved states in text. Review lists every response, incomplete submission
-  remains disabled, final submission uses a titled confirmation dialog, and
-  completed responses become visibly locked. Offline, loading, empty,
-  retryable-error, and stale-version recovery states are required.
-- D-015 session prompts and response choices must remain isolated from
-  production data. Never calculate, expose, or imply RIASEC dimensions,
-  mappings, scores, interpretations, validation results, or course outcomes
-  until their controlling approvals exist.
-- Student assessment results use a focused mobile-first summary rather than an
-  Admin analytics dashboard. Show the top code, all six dimension labels and
-  numeric values, accessible bars, leading-dimension order, submitted-session
-  and assessment-version provenance, and a visible read-only boundary.
-- Every assessment-result value must remain understandable without colour.
-  Keep course rankings, eligibility, admission likelihood, enrolment actions,
-  diagnosis language, and unsupported certainty out of this screen. Loading,
-  empty, retryable-error, and result-preparation states are required.
-- D-015 result values and ordering are isolated visualization fixtures only.
-  They are not approved scoring, norms, interpretations, mappings, validation
-  evidence, research findings, or production seed data.
-- Student recommendation results use ranked, borderless `shadow-sm` course
-  cards rather than a dense table. Each option keeps its rank, course code,
-  recorded match, requirement status, explanation factors, and details
-  readable without relying on colour.
-- Recommendation filters, a two-to-three-course comparison flow, and focused
-  course details must remain usable with 44px touch targets on mobile and a
-  balanced multi-column composition on wider screens. Comparison selection is
-  explicit, reversible, and preserved while viewing course details.
-- Always label recommendations as guidance rather than admission or
-  enrolment. D-015 ranks, courses, match values, requirement states, factors,
-  and version references are isolated UI fixtures only; they are not approved
-  TCC catalogue data, eligibility rules, weights, validation evidence, or
-  production seed data.
-- Student course details extend the recommendation card with learning areas,
-  general career directions, recorded factors, and review notes. Career
-  directions must be framed as discussion prompts rather than employment
-  promises, and comparison remains card-based on mobile instead of forcing a
-  wide table.
-- Student decisions use a labelled course selector, large radio-card choices,
-  a required note, review confirmation, editable current state, and visible
-  local history. Preference is always described separately from application
-  submission, admission, course assignment, slot reservation, and enrolment.
-- Student reports use a document preview with own-record references,
-  recommendation summary, current decision, limitations, and real print and
-  download controls. The application shell is hidden for print. D-015 report
-  content, version, layout, and text export are presentation fixtures only,
-  not an approved institutional report format or signatory record.
-- Show access and responsibility boundaries as text, never through colour
-  alone.
-- Do not present synthetic counts, names, scores, courses, alerts, or workload
-  states as official or production data. Do not use vanity charts or
-  unsupported success metrics.
-- Provide one functional sign-out action that returns to the matching portal.
-- Reusable LoadingState, EmptyState, and ErrorState surfaces use borderless
-  `shadow-sm` cards. Admin routes expose consistent loading, empty, and
-  retryable error boundaries. Forbidden, session-expired, and not-found routes
-  use focused recovery pages with semantic heading focus.
-- The Student dashboard keeps official results read-only. The combined Admin
-  dashboard groups applicants, official results, assessments/questionnaires,
-  recommendations, courses/rules, and reports.
-- The System Administrator dashboard is visually distinct from the Admin and
-  Student dashboards. Use a technical-operations hero, period-responsive
-  access summaries, a ranked access-review list, text-labelled service states,
-  recent audit activity, and an explicit responsibility boundary.
-- System Administrator dashboard controls may open only technical account,
-  role, cycle, and audit workspaces. Service, job, and backup states remain
-  informational until their approved operator actions exist. Do not expose
-  applicant scoring, psychometric interpretation, recommendation review,
-  admission decisions, or completed-record mutation.
-- D-015 System Administrator counts, tasks, events, and service states are
-  isolated presentation fixtures, not production monitoring, audit evidence,
-  backup evidence, or approval of account and role policy.
+### 3.6 Icons and illustrations
 
-## Responsive behavior
+Use Lucide React for functional icons, normally 18–22px with consistent line weight. Ambiguous icons require visible or assistive labels.
 
-- Mobile `< 768px`: one-column access form, compact brand, left-opening Sheet
-  navigation, and single-column workspace cards.
-- Tablet `768–1023px`: access form remains one panel; role options use three
-  columns when space permits.
-- Desktop `>= 1024px`: split access shell and persistent
-  sidebar/topbar/content workspace layout. Student, Admin, and System
-  Administrator use the same full responsive web-shell quality,
-  available-canvas behavior, collapsible Sidebar, readable spacing, and
-  overflow protection. Student content remains task-specific, but must not
-  become a stretched mobile layout or leave excessive unused desktop space.
-- No horizontal page scrolling at 320px.
-- Interactive controls must meet a 44px minimum touch target on small screens.
+Illustrations must be original or properly licensed flat/vector-style assets with inclusive rounded characters, simple shapes, limited detail, quiet outlines, generous transparent space, and at most one soft gradient or glow. Favor educational activities, exploration, making, analysis, community, and study.
 
-## Motion
+Avoid realistic photography, copied reference characters, other products' mascots, heavy gradients, 3D chrome, dark scenes, generic AI sparkles, and art that implies an unsupported personality or career conclusion. Existing photographic presentation assets should migrate separately to approved vector art; until then, they remain decorative and never serve as evidence.
 
-- Access content may enter once with the shared 700–750ms transition.
-- Field and button states use 200–300ms color, border, and shadow transitions.
-- Do not animate validation messages, credentials, authentication state, or
-  permission meaning.
-- Respect `prefers-reduced-motion: reduce`.
+## 4. Responsive application shell
 
-## Accessibility
+### 4.1 Student top navigation
 
-- Every field has a persistent visible label.
-- Validation messages use `aria-invalid` and `aria-describedby`.
-- Password visibility has a changing accessible name.
-- Focus indicators stay visible.
-- Status is never conveyed through color alone.
-- Workspace headings maintain a logical order.
+Use one sticky light top bar, not a sidebar:
 
-## Content guardrails
+- 72px desktop and 64px mobile height.
+- Warm canvas/white background at 92–96% opacity with a subtle bottom divider.
+- Left: context-aware Back or Home action.
+- Center: page title visually centered independently of side widths.
+- Right: real notification control and authenticated identity.
+- Keep one row on mobile; use icons with accessible names and tooltips when labels do not fit.
 
-### Do
+The identity control shows uploaded photo, then verified Google avatar, then recorded-name initials. Unread counts come only from the authenticated API.
 
-- Use exactly the three approved role names.
-- Keep official examination results read-only in Student descriptions.
-- Describe Admin-controlled workflows without inventing permission details.
-- Use borderless `shadow-sm` card surfaces consistently.
+The application uses no global page footer. Keep route content focused within its shell and place any required support, policy, or institutional information in an explicit, functional destination instead of repeating it beneath every page.
 
-### Do not
+### 4.2 Administrator shell
 
-- Add a role picker to a sign-in form.
-- Store prototype credentials.
-- Add fake forgot-password, registration, or social-login controls.
-- Present synthetic dashboard or applicant data as official, measured, or
-  production data.
-- Add public marketing sections to the application root.
+Administrator governance retains the collapsible desktop sidebar and uses a shadcn Sheet on mobile. Dashboard, Students, Programmes, Reports, and Activity remain in the sidebar; the former Assessments destination redirects to Students and is not listed. Each Administrator has an individual account.
 
-## Validation
+Admin content uses one plain continuous canvas. Thin horizontal and vertical dividers, tables, split analytical regions, timelines, and whitespace define hierarchy. Do not wrap routine metrics, filters, table groups, evidence fields, or audit entries in cards. Reserve rounded surfaces for shadcn overlays and controls that require them. For Admin only, use the owner-approved reference palette of white, near-black, light neutral gray, and restrained bright-green data accents; never copy reference branding, financial data, proprietary assets, or irrelevant labels.
 
-After each access or workspace UI change:
+### 4.3 Breakpoints
 
-1. Run frontend lint, tests, and the production build.
-2. Run `npx @google/design.md lint DESIGN.md`.
-3. Test validation, portal isolation, password visibility, workspace entry, and
-   sign-out behavior.
-4. Verify desktop/mobile rendering, keyboard focus, overflow, console output,
-   and computed contrast in the in-app browser.
-5. Keep authentication and workspace features IN PROGRESS until backend,
-   authorization, stakeholder approval, and browser evidence exist.
+- Base: one-column composition.
+- `sm` 640px: two-column catalogue cards where readable.
+- `md` 768px: expanded labels and selected two-column content.
+- `lg` 1024px: result split and collapsible Administrator desktop sidebar.
+- `xl` 1280px: maximum content width; do not keep stretching lines.
+
+No horizontal document scrolling is permitted at 320 CSS pixels. Support 200% text zoom and WCAG-required 400% reflow.
+
+## 5. Shared components
+
+### 5.1 Buttons
+
+- **Primary:** deep-teal fill, white label, 12px radius, 44px minimum height.
+- **Secondary:** white, strong-neutral border, foreground label.
+- **Tertiary:** text or soft seafoam for low-emphasis navigation.
+- **Danger:** only for genuinely destructive actions with confirmation.
+- **Icon:** 44x44px minimum with tooltip and accessible name.
+
+Hover increases contrast; active darkens slightly; disabled remains readable; loading preserves width and announces status. Color is never the sole state signal.
+
+### 5.2 Inputs and forms
+
+Use persistent labels. Floating labels are allowed only if they remain visible after entry and with browser autofill.
+
+- 48px minimum height; multiline fields size to content.
+- 1px strong-neutral border and 3px visible primary focus ring.
+- Helper and error text sits below its field.
+- Errors state the field, problem, and recovery.
+- Number inputs show scale and accepted precision nearby.
+
+### 5.3 Card variants
+
+- **Standard:** white, subtle border, 24px radius, soft shadow.
+- **Feature:** 28px radius with one controlled pastel area or illustration.
+- **Compact:** reduced padding for timelines and mobile lists.
+- **Interactive:** standard plus hover, focus, selected, and real action states.
+- **Inset:** subtle surface, 16px radius, no shadow.
+
+Cards are exceptional containers, not automatic wrappers. Prefer open-canvas composition, whitespace, alignment, and dividers. Do not place every result, list item, action group, or explanation inside its own card.
+
+### 5.4 Badges and pills
+
+- **Top fit:** solid primary for rank 1, with visible rank and label.
+- **Category tag:** soft RIASEC color, code, and full category.
+- **Evidence pill:** soft seafoam and primary text, only for recorded/configured evidence.
+- **Status badge:** semantic icon, label, and soft state color.
+
+Use 28–32px height, 12–14px labels, and 12–14px horizontal padding. Wrap cleanly and avoid more than five pills in one row.
+
+### 5.5 Progress
+
+- Track: 8–10px, `#E9E7EA`, pill ends.
+- Overall progress: deep teal; category progress: stable RIASEC mapping.
+- Always show a label and exact value.
+- Animate a known final value once; never make indeterminate work look measured.
+- Circular progress is for compact overall completion and never replaces exact text.
+
+### 5.6 Result Hero Card
+
+The result hero gives a calm summary before detail.
+
+- Desktop uses a 7/5 or 8/4 split.
+- Narrative region: overline, large recorded result heading, short evidence-based description, code badge, and at most three evidence pills.
+- Illustration region: bounded to roughly 280–360px and never obscures content.
+- A quiet inset may list recommended paths or next actions from actual records.
+- The Score Breakdown may sit beside the narrative as its own card.
+- Mobile stacks illustration, title, description, evidence, and actions.
+
+Do not label a Student with a fictional personality archetype unless the label and explanation belong to the approved versioned result model. Prefer recorded interest pattern names and codes.
+
+### 5.7 Score Breakdown Card
+
+Every RIASEC row contains code and full name, exact stored score with denominator or valid percentage, horizontal bar, and accessible value text. Use 16–20px row gaps. Align values on desktop and keep each beside its label on mobile.
+
+A `Your recorded pattern` inset may show the stored top code and factual scoring note. Never infer personality, aptitude, intelligence, diagnosis, academic ability, or likely career success.
+
+### 5.8 Recommendation Card
+
+Use the reference-inspired split composition:
+
+- Main region: rank overline, one rank badge, programme name, code/degree type, and configured summary.
+- Summary region: exact match percentage, accessible bar, eligibility group, and disclosure action.
+- A broad pastel shape may support top items but must remain readable and not encode an unofficial threshold.
+- Expanded details show recorded scores, configured programme areas, catalogue learning areas, generation date, and rule version.
+
+Display **Strong match**, **Good match**, or **Explore match** only if thresholds exist in a versioned approved backend configuration. Otherwise use **Recorded match** with the exact percentage. Never invent thresholds in frontend code.
+
+Ranking is relative to eligible programmes in that recommendation snapshot. It is not an admission guarantee, enrolment decision, ability judgment, or promise of success. Board/non-board eligibility remains separate from RIASEC fit.
+
+On mobile, place the summary below the title. Do not preserve a desktop shape if it clips text or creates large empty space.
+
+### 5.9 Assessment Question Card
+
+#### Current approved binary instrument
+
+The production questionnaire presents one locally stored statement at a time with two full-size choices: **Agree** and **Do not agree**. Every statement requires an explicit response. Selected controls use a strong teal border, seafoam fill, check icon, and programmatic selected state.
+
+The page includes top navigation, `Question n of total`, exact progress, a centered readable question, two 48px-minimum response controls, Previous/Next in a stable navigation region, and visible saving, saved, retry, and validation feedback. The last action is **Finish assessment**; do not insert a full answer-review list between the last question and result processing.
+
+After Finish, replace the questionnaire with one full-page calculation state. Use a large custom two-tone teal/coral spinner, the factual heading **Calculating your programme matches**, a concise scoring/comparison explanation, and an accessible live status. Keep this state visible while the server reports `preparing_result`. Redirect to **My Matches** only after the authoritative assessment status is `result_available`. A processing or connection failure must preserve recorded answers and expose a retryable error instead of fabricating a result.
+
+#### PROPOSED future comparison instrument
+
+The screenshot-inspired two-activity comparison is documented only for a future approved questionnaire. It may show two illustrated activities with a central `or` and a rating group such as **Just okay**, **Great**, and **Love it** for each choice. Labels, levels, pairing, scoring, illustrations, mappings, and interpretation are **BLOCKED** until an instrument contract and validation evidence are approved.
+
+If approved later, use real radio semantics, text labels in addition to emoji/icons, keyboard operation, visible selection, and a one-column mobile layout. Never add this as a visual layer over the current binary scoring contract.
+
+### 5.10 Entrance Examination Gate
+
+Before a first assessment or retake starts or continues, a Student without a declaration sees one focused Standard Card:
+
+- labelled decimal input and **Save and continue** action;
+- explicit self-declared, not Administrator-verified wording;
+- project ranges 1.0–2.5 board-programme eligible and 2.6–5.0 non-board-programme eligible;
+- group preview only after valid input;
+- clear invalid, saving, saved, and retryable-error states;
+- read-only evidence once attached to an assessment;
+- explanation that eligibility filters the pool before RIASEC ranking and does not guarantee admission.
+
+This is the project rule `SELF-DECLARED-TCC-ENTRANCE-2026-01`; never call it a CHED- or TCC-published cutoff.
+
+### 5.11 Navigation, notifications, and overlays
+
+Active navigation uses primary text plus a soft-seafoam fill or short underline and `aria-current`. Menus use a warm-white 16px surface, visible focus, and overlay shadow.
+
+Notifications open as a compact anchored feed with real unread counts, All/Unread filters, event markers, timestamps, and explicit loading, empty, error, retry, unread, and read states. Selecting an unread item changes only that recipient's record and opens an authorized destination.
+
+Use dialogs for short confirmations and sheets for focused editing or mobile navigation. Toasts may confirm transient success but never carry the only completion, permission, or failure explanation.
+
+### 5.12 Tables and filters
+
+Administrator tables sit directly on the plain canvas with top, bottom, header, and row dividers. On mobile, use divided record rows or a labelled internal scroll region, never card-per-record layouts or page overflow.
+
+Filters use the existing compact single-open-section accordion. Closed rows expose selected counts. Search, sort, pagination, and reset actions operate on real data and define empty states.
+
+## 6. Page patterns
+
+### 6.1 Student dashboard
+
+- Open with **Your academic journey** as eyebrow and one guidance heading; no duplicate title strip.
+- Preserve the 16px mobile/24px desktop entry rhythm.
+- Use an open hero canvas or Feature Card with original flat educational art, not a photograph.
+- Place strongest programme direction, progress, and recorded interest pattern in a balanced two-column wide layout.
+- Do not add a redundant completed-result card. Keep **View assessment result** and **Assessment history** near progress.
+- Lifecycle cards appear only for actionable not-started, in-progress, preparing, or failure states.
+- Never fabricate counts, testimonials, dates, social proof, or activity.
+
+### 6.2 Assessment
+
+- Keep one prerequisite or question at a time in a quiet reading width.
+- Keep progress near the top and Previous/Next stable.
+- Disable Next until an explicit required response exists.
+- Preserve valid responses during navigation and restoration.
+- Finish directly from the last answered question; omit the redundant answer-review list.
+- Show the custom full-page calculation state until the server result is available, then open My Matches.
+- Completed state shows recorded date, read-only status, result/match actions, and a separately confirmed retake when available.
+- Opening Assessment from a completed result never creates a retake.
+
+### 6.3 Results, recommendations, and history
+
+- Begin with one open-canvas illustrated result narrative and at most one bordered Score Breakdown surface in a two-column desktop composition.
+- Present ranked recommendations as one divided list; do not wrap every programme row in a separate elevated card.
+- Follow with an open-canvas heading and ranked list at 20–24px gaps.
+- Explain eligibility and RIASEC evidence as separate concepts.
+- Explanations contain only assessment reference, stored scores/code, configured programme areas, catalogue learning areas, and versioned rules.
+- History uses a compact attempt timeline beside the selected result; stack on mobile.
+- Identify Current and Previous results and compare exact score differences without interpreting the change.
+
+### 6.4 Programme catalogue and detail
+
+- Use one column on narrow phones and two from `sm` when readable.
+- Cards show only recorded imagery, name, code, degree type, duration availability, summary, and relevant evidence.
+- Show recommendation rank once; matched codes stay in a labelled evidence group.
+- Supported filters: field, RIASEC area, official duration availability, recommended SHS strand, and saved status.
+- Distinguish institution-controlled facts, external-source facts, unavailable data, and recommendation evidence.
+
+### 6.5 Student profile
+
+- Use a strong identity header with authenticated image fallback.
+- Place learning snapshot beside recorded-interest and career-direction areas on wide screens; stack on mobile.
+- RIASEC scores and interests remain read-only.
+- Label strengths, growth areas, and learning preferences as Student-reported.
+- Editing remains an inline three-step flow with Previous/Next and final Save.
+- Factual summaries never infer personality, intelligence, diagnosis, or success.
+
+### 6.6 Authentication
+
+Student and Administrator URLs remain separate; sign-in never asks the user to select a role. Use a split desktop layout with original flat educational art and a 520–560px credential surface; put the form first on mobile.
+
+Apply deep teal to actions, links, and focus. Reuse one labelled field pattern. The global footer is omitted throughout the application, including full-screen authentication and session restoration. Student Google authentication appears only when its real development/testing flow is active. Administrator access uses individually provisioned credentials; social login never creates or infers a staff role.
+
+### 6.7 Administrator workspace
+
+- Use an operational column and narrower attention rail on wide screens.
+- Dashboard charts use only recorded journey counts and clearly label zero values; the workload rail is limited to current assessment states and processing failures.
+- Students and assessments remain one protected Students workflow.
+- Programme editing uses a focused sheet with autosave state, manual recovery, preview, publication confirmation, and immutable history.
+- Locked facts remain visibly and programmatically read-only.
+- Reports are privacy-aware and limited to Student totals, assessment progress, completion history, eligibility distribution, recommendations, and programme saves. Do not expose CSV export or catalogue-governance sections in the Admin interface.
+- Activity rows show the recorded action, responsible Administrator, and date without raw metadata, internal subject references, or generated summaries.
+- Do not expose a separate catalogue-evidence page or entry point.
+- Never show ambiguous `Top-three placements` or `Programme match frequency` labels.
+
+## 7. States and language
+
+Every data surface defines Loading, Refreshing, Empty, Error, Offline/timeout, Permission denied, Blocked, Saving, Success, and Disabled states as applicable. Skeletons match final geometry and never show fabricated values. Errors identify the failed task, preserve input, and offer recovery. Permission states reveal no protected data.
+
+Use calm direct language: `Your result is ready`, `programme recommendation`, `recorded match`, `eligible programme group`, and `may help you explore`. Avoid `perfect course`, `you belong here`, `guaranteed`, `passed`, `officially approved`, and unverified career claims.
+
+## 8. Motion
+
+- Micro interaction: 120–160ms.
+- Button/card: 180–220ms.
+- Section/disclosure: 240–320ms.
+- Easing: `cubic-bezier(0.2, 0.8, 0.2, 1)`.
+- Hover lift: maximum 2px.
+- Known progress fill: 400–600ms once on entry.
+- Section entry: 8–12px rise with fade; no long-list staggering.
+
+Under `prefers-reduced-motion: reduce`, remove transforms, progress animation, decorative motion, and nonessential fades. Animation never delays content.
+
+## 9. Accessibility
+
+- Target WCAG 2.2 AA contrast, keyboard operation, focus, names, roles, values, and error association.
+- Minimum target 44x44px; prefer 48px for assessment choices.
+- Keep focus visible against white and pastel surfaces.
+- Preserve logical DOM and heading order when columns rearrange.
+- Give progress bars min, max, current value, and accessible label.
+- Use native-equivalent radio, checkbox, button, link, table, dialog, and navigation semantics.
+- Announce async saving, completion, and errors without stealing focus.
+- Emoji never acts as the only response label.
+- Decorative art has empty alt text; informative art has meaningful alt text.
+- Charts and colored data provide equivalent text or tabular values.
+- Test keyboard, landmarks, 200% zoom, 400% reflow, touch targets, and reduced motion.
+
+## 10. Implementation architecture
+
+- React is presentation; Laravel remains the authoritative REST API.
+- Use Tailwind CSS v4 via `@tailwindcss/vite`, shadcn/ui with Radix, and Lucide React.
+- Store tokens as semantic CSS variables connected to Tailwind.
+- Put primitives in `src/components/ui`, shared application components in `src/components/shared`, and feature composition in `src/features/<feature>/components`.
+- Limit global CSS to Tailwind import, tokens, bundled font, body defaults, print, and rare global rules.
+- Do not add a competing component library or a second plain-CSS design system.
+- Use component variants; avoid copied class strings and unexplained arbitrary values.
+- API authorization, ownership, validation, scoring, and eligibility stay server-side.
+
+Recommended shared components: `AppTopBar`, `PageHeading`, `SurfaceCard`, `StatusBadge`, `EvidencePill`, `AccessibleProgress`, `EmptyState`, `ErrorState`, `ResultHero`, `RiasecScoreBreakdown`, `RecommendationCard`, `AssessmentChoice`, and `EntranceExamGate`.
+
+## 11. Migration and validation
+
+Implement in reviewable slices:
+
+1. Semantic tokens and bundled typography.
+2. Shared buttons, inputs, cards, badges, progress, focus, and states.
+3. Student and authentication shells.
+4. Entrance gate, binary questions, completion, and history.
+5. Results, scores, recommendations, catalogue, and profile.
+6. Administrator shell and operational modules.
+7. Approved flat illustrations replacing photo-led presentation.
+8. Obsolete theme/style removal after route verification.
+
+Each slice requires affected component/content/accessibility tests, lint, production build, and real-browser desktop/mobile checks for keyboard focus, overflow, console, contrast, zoom, and reduced motion. Automated checks are not visual evidence.
+
+## 12. Review checklist
+
+- Warm oat canvas, deep-teal primary, restrained earth tones, and spacious hierarchy.
+- Nunito Sans/Montserrat hierarchy, the Student 20–28px subtle-bordered surface family, and the Administrator line-led canvas exception.
+- One dominant task/conclusion per section.
+- Pastels remain accessible and never carry meaning alone.
+- Data, labels, thresholds, and reasons come from approved stored evidence.
+- Eligibility and RIASEC match remain separate.
+- No reference branding, characters, wording, or proprietary art is copied.
+- Current questionnaire still matches its backend contract.
+- Desktop split layouts stack cleanly on mobile.
+- Loading, empty, error, blocked, permission, saving, and success states exist.
+- Keyboard, touch, zoom, screen reader, focus, contrast, and reduced motion are verified.
+- Tests, documentation, and implementation stay synchronized.
+
+## 13. Status boundaries
+
+- **APPROVED:** Warm coastal light direction, Nunito Sans/Montserrat typography, oat canvas, deep-teal primary, coral accent, subtle bordered surfaces, responsive layout, accessibility, and reusable architecture.
+- **APPROVED:** Current binary questionnaire UI, self-declared examination gate, programme-group filtering before RIASEC ranking, and truthful evidence boundaries.
+- **PROVISIONAL:** Colors, illustrations, typography, and product identity as institutional branding.
+- **PROPOSED / BLOCKED:** Illustrated activity-comparison questions and three-level enjoyment ratings until an instrument and scoring evidence are approved.
+- **OUT OF SCOPE:** Dark theme, copied reference content/branding, realistic-photo-led design, fabricated qualitative match thresholds, and frontend-only policy enforcement.
