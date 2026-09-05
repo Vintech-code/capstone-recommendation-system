@@ -5,21 +5,8 @@
     <link rel="icon" type="image/png" href="/src/assets/logo-optimized.png" />
     <link rel="apple-touch-icon" href="/src/assets/logo-optimized.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#f8f5ed" />
+    <meta name="theme-color" content="#f8fbf7" />
     <title>Pathways</title>
-    <script>
-      try {
-        const theme = localStorage.getItem('tcc-ui-theme')
-        if (theme === 'dark') {
-          document.documentElement.classList.add('dark')
-          document.documentElement.dataset.theme = 'dark'
-          document.documentElement.style.colorScheme = 'dark'
-          document
-            .querySelector('meta[name="theme-color"]')
-            ?.setAttribute('content', '#0b1220')
-        }
-      } catch {}
-    </script>
   </head>
   <body>
     <div id="root"></div>

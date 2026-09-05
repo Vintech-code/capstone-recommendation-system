@@ -104,7 +104,7 @@ function DashboardOverview({
       <ModuleGrid modules={modules} query={query} onSelect={onSelect} />
 
       <section className="mt-4 flex items-start gap-4 rounded-2xl bg-background p-5 shadow-sm">
-        <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-canvas-cream">
+        <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-canvas-sun">
           <ShieldCheck aria-hidden="true" className="size-4.5" />
         </span>
         <div>

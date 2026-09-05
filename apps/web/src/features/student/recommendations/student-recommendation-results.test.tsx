@@ -159,6 +159,19 @@ describe('Student recommendation results', () => {
         'Information management': 'Organise and protect information using structured data practices.',
       },
       careerDirections: ['Systems support'],
+      careerOpportunities: [{
+        label: 'ICT system administrator',
+        description: 'Maintains reliable information and communication technology systems.',
+        escoUri: 'http://data.europa.eu/esco/occupation/ict-system-administrator',
+        escoCode: '2522.2',
+        iscoCode: '2522',
+        skills: ['manage ICT systems'],
+        source: 'esco' as const,
+        sourceLanguage: 'en',
+        sourceVersion: 'v1.2.0',
+        retrievedAt: '2026-09-06T12:00:00+08:00',
+        reviewStatus: 'proposed' as const,
+      }],
       reviewNotes: ['Review the published programme guidance before deciding.'],
     }
 
@@ -181,10 +194,14 @@ describe('Student recommendation results', () => {
     expect(screen.getByRole('heading', { name: 'Core learning areas' })).toBeVisible()
     expect(screen.getByText('Degree type')).toBeVisible()
     expect(screen.getByText("Bachelor's degree")).toBeVisible()
-    expect(screen.getByText('Career field')).toBeVisible()
+    expect(screen.getByText('Career directions')).toBeVisible()
+    expect(screen.getByText('1 to explore')).toBeVisible()
     expect(screen.getByText('Programme type')).toBeVisible()
     expect(screen.getByText('Board programme')).toBeVisible()
-    expect(screen.getByRole('heading', { name: 'Related fields' })).toBeVisible()
+    expect(screen.getByRole('heading', { name: 'Possible career directions' })).toBeVisible()
+    expect(screen.getByRole('heading', { name: 'ICT system administrator' })).toBeVisible()
+    expect(screen.getByText('manage ICT systems')).toBeVisible()
+    expect(screen.getByRole('link', { name: /View ESCO record/i })).toHaveAttribute('href', 'http://data.europa.eu/esco/occupation/ict-system-administrator')
     expect(screen.queryByRole('heading', { name: 'Career trajectory' })).not.toBeInTheDocument()
     expect(screen.getByText('Software development')).toBeVisible()
     expect(screen.getByText('Design, build, test, and maintain software applications.')).toBeVisible()

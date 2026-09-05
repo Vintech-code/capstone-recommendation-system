@@ -150,7 +150,7 @@ function StudentDashboardPage({ onSelectModule, initialLifecycle, initialRecomme
             <div className="relative z-10 flex h-full max-w-xl flex-col justify-center">
               <p className="font-label text-xs font-semibold uppercase tracking-[0.16em] text-primary">Your academic journey</p>
               <h1 id="dashboard-journey-title" aria-label="Your journey. Your future." className="mt-2 font-display text-4xl font-bold leading-[0.98] tracking-[-0.045em] text-foreground sm:text-5xl">
-                Your journey.<br /><span className="bg-gradient-to-r from-primary via-brand-magenta to-chart-blue bg-clip-text text-transparent">Your future.</span>
+                Your journey.<br /><span className="bg-gradient-to-r from-primary via-brand-green to-chart-blue bg-clip-text text-transparent">Your future.</span>
               </h1>
               <p className="mt-4 max-w-md text-sm leading-6 text-muted-foreground">
                 {result

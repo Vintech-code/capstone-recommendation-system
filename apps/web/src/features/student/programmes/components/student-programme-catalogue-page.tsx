@@ -1,5 +1,4 @@
 import {
-  ArrowRight,
   Bookmark,
   BookmarkCheck,
   BookOpen,
@@ -29,6 +28,7 @@ import { ProgrammeComparisonSheet } from '@/features/student/programmes/componen
 import { getProgrammeCatalogue, getSavedProgrammeIds, updateSavedProgramme } from '@/features/student/programmes/programme-api'
 import { getProgrammeImages } from '@/features/student/programmes/programme-images'
 import { programmeMediaStyle } from '@/features/student/programmes/programme-media-position'
+import { CareerDirectionsSection } from '@/features/student/programmes/components/career-directions-section'
 import type { StudentProgramme, StudentProgrammeCatalogue, StudentProgrammeMatchContext } from '@/features/student/programmes/programme-types'
 
 interface StudentProgrammeCataloguePageProps {
@@ -517,8 +517,8 @@ function ProgrammeCard({
             <dd className="mt-1 truncate font-semibold">{programme.eligibilityGroup === 'non_board' ? 'Non-board programme' : 'Board programme'}</dd>
           </div>
           <div className="min-w-0">
-            <dt className="flex items-center gap-1.5 text-muted-foreground"><BriefcaseBusiness aria-hidden="true" className="size-4 text-primary" />Career field</dt>
-            <dd className="mt-1 truncate font-semibold">{programme.careerDirections[0] || 'Various pathways'}</dd>
+            <dt className="flex items-center gap-1.5 text-muted-foreground"><BriefcaseBusiness aria-hidden="true" className="size-4 text-primary" />Career directions</dt>
+            <dd className="mt-1 truncate font-semibold">{programme.careerDirections.length > 0 ? `${programme.careerDirections.length} to explore` : 'Not configured'}</dd>
           </div>
         </dl>
 
@@ -711,22 +711,7 @@ function StudentProgrammeDetail({ programme, academicYear, onBack }: { programme
             </dl>
           </section>
 
-          {careerDirections.length > 0 ? (
-            <section aria-labelledby="career-title" className="space-y-3">
-              <div className="flex items-center gap-2.5">
-                <BriefcaseBusiness aria-hidden="true" className="size-4 text-primary" />
-                <h2 id="career-title" className="font-display text-base font-bold text-foreground">Possible career directions</h2>
-              </div>
-              <ul className="space-y-2">
-                {careerDirections.map((direction) => (
-                  <li key={direction} className="flex min-h-11 items-center justify-between gap-3 rounded-xl bg-secondary/70 px-4 py-2.5 transition-colors">
-                    <span className="text-xs font-medium leading-5 text-foreground sm:text-sm">{direction}</span>
-                    <ArrowRight aria-hidden="true" className="size-3.5 shrink-0 text-muted-foreground" />
-                  </li>
-                ))}
-              </ul>
-            </section>
-          ) : null}
+          <CareerDirectionsSection directions={careerDirections} opportunities={programme.careerOpportunities} />
         </aside>
       </div>
     </article>

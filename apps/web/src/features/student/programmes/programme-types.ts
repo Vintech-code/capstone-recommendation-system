@@ -4,6 +4,20 @@ interface ProgrammeMediaPosition {
   zoom: number
 }
 
+interface CareerOpportunity {
+  label: string
+  description?: string
+  escoUri: string
+  escoCode?: string | null
+  iscoCode?: string | null
+  skills: string[]
+  source: 'esco'
+  sourceLanguage: string
+  sourceVersion: string
+  retrievedAt: string
+  reviewStatus: 'proposed'
+}
+
 interface StudentProgramme {
   id: string
   name: string
@@ -16,6 +30,7 @@ interface StudentProgramme {
   learningAreaDescriptions?: Record<string, string>
   learningAreaTopics?: Record<string, string[]>
   careerDirections: string[]
+  careerOpportunities?: CareerOpportunity[]
   recommendedStrands: string[]
   strandGuidance: string
   requirements: string[]
@@ -50,4 +65,4 @@ interface StudentProgrammeMatchContext {
   factors: string[]
 }
 
-export type { ProgrammeMediaPosition, StudentProgramme, StudentProgrammeCatalogue, StudentProgrammeMatchContext }
+export type { CareerOpportunity, ProgrammeMediaPosition, StudentProgramme, StudentProgrammeCatalogue, StudentProgrammeMatchContext }

@@ -1,11 +1,11 @@
 <svg width="1600" height="760" viewBox="0 0 1600 760" fill="none" xmlns="http://www.w3.org/2000/svg">
   <g filter="url(#blur)">
-    <ellipse cx="90" cy="110" rx="430" ry="285" fill="#F5E9D4"/>
-    <ellipse cx="510" cy="78" rx="390" ry="300" fill="#9B6829" fill-opacity=".38"/>
-    <ellipse cx="850" cy="105" rx="430" ry="310" fill="#B9B9F9"/>
-    <ellipse cx="1190" cy="55" rx="390" ry="280" fill="#665EFD" fill-opacity=".78"/>
-    <ellipse cx="1510" cy="175" rx="380" ry="320" fill="#EA2261" fill-opacity=".7"/>
-    <ellipse cx="1120" cy="330" rx="520" ry="250" fill="#F96BEE" fill-opacity=".3"/>
+    <ellipse cx="90" cy="110" rx="430" ry="285" fill="#E9F7EF"/>
+    <ellipse cx="510" cy="78" rx="390" ry="300" fill="#65C96B" fill-opacity=".38"/>
+    <ellipse cx="850" cy="105" rx="430" ry="310" fill="#A9DCF2"/>
+    <ellipse cx="1190" cy="55" rx="390" ry="280" fill="#2DAF88" fill-opacity=".78"/>
+    <ellipse cx="1510" cy="175" rx="380" ry="320" fill="#F2C94C" fill-opacity=".7"/>
+    <ellipse cx="1120" cy="330" rx="520" ry="250" fill="#BFECC8" fill-opacity=".3"/>
     <ellipse cx="630" cy="370" rx="670" ry="275" fill="#FFFFFF" fill-opacity=".7"/>
   </g>
   <defs>

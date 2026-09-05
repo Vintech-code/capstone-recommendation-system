@@ -8,12 +8,12 @@ interface RecommendationProfilePanelProps {
 }
 
 const dimensionColors: Record<string, string> = {
-  R: "#b65338",
-  I: "#3d6f91",
-  A: "#a84f72",
-  S: "#3e7c61",
-  E: "#a36b16",
-  C: "#5e668f",
+  R: "var(--riasec-r)",
+  I: "var(--riasec-i)",
+  A: "var(--riasec-a)",
+  S: "var(--riasec-s)",
+  E: "var(--riasec-e)",
+  C: "var(--riasec-c)",
 };
 
 function normalizeScore(value: number, minimum: number, maximum: number) {

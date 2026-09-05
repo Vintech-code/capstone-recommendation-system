@@ -25,6 +25,19 @@ const catalogue = {
       'Information management': ['Database design', 'Information security'],
     },
     careerDirections: ['Software and application development', 'Network and systems administration'],
+    careerOpportunities: [{
+      label: 'software developer',
+      description: 'Builds software systems from specifications and designs.',
+      escoUri: 'http://data.europa.eu/esco/occupation/software-developer',
+      escoCode: '2512.3',
+      iscoCode: '2512',
+      skills: ['analyse software specifications'],
+      source: 'esco' as const,
+      sourceLanguage: 'en',
+      sourceVersion: 'v1.2.0',
+      retrievedAt: '2026-09-06T12:00:00+08:00',
+      reviewStatus: 'proposed' as const,
+    }],
     recommendedStrands: ['STEM', 'TVL-ICT'],
     strandGuidance: 'STEM supports analytical preparation while TVL-ICT provides practical computer experience.',
     requirements: ['Meet the published general admission requirements.'],
@@ -198,6 +211,8 @@ describe('Student programme catalogue', () => {
     expect(screen.getByRole('heading', { name: 'Helpful tracks and strands' })).toBeVisible()
     expect(screen.getByRole('heading', { name: 'Possible career directions' })).toBeVisible()
     expect(screen.getByText('Software and application development')).toBeVisible()
+    expect(screen.getByRole('heading', { name: 'software developer' })).toBeVisible()
+    expect(screen.getByText('analyse software specifications')).toBeVisible()
     expect(screen.queryByText(/not admission requirements/i)).not.toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Is this programme for you?' })).not.toBeInTheDocument()
     expect(screen.getAllByText('BSIT').length).toBeGreaterThan(0)

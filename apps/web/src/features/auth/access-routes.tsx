@@ -7,6 +7,7 @@ import {
 } from 'react-router'
 
 import { ApplicationStatePage } from '@/components/shared'
+import { LandingPage } from '@/features/landing/landing-page'
 import type { AccessRole } from '@/features/auth/access-types'
 import { useAuth } from '@/features/auth/auth-context'
 import { ProtectedRoute } from '@/features/auth/components/protected-route'
@@ -128,7 +129,7 @@ function AccessRoutes() {
   return (
     <Suspense fallback={<span role="status" className="sr-only">Opening workspace.</span>}>
       <Routes>
-      <Route path="/" element={<Navigate to="/student/login" replace />} />
+      <Route path="/" element={<LandingPage />} />
       <Route
         path="/student/login"
         element={<PortalSignInPage role="student" />}

@@ -54,6 +54,19 @@ const recommendation = {
     interestAreas: ['I', 'C', 'R'],
     learningAreas: ['Software development', 'Information management'],
     careerDirections: ['Software development', 'Systems administration'],
+    careerOpportunities: [{
+      label: 'software developer',
+      description: 'Builds software systems from specifications and designs.',
+      escoUri: 'http://data.europa.eu/esco/occupation/software-developer',
+      escoCode: '2512.3',
+      iscoCode: '2512',
+      skills: ['analyse software specifications'],
+      source: 'esco',
+      sourceLanguage: 'en',
+      sourceVersion: 'v1.2.0',
+      retrievedAt: '2026-09-06T12:00:00+08:00',
+      reviewStatus: 'proposed',
+    }],
     reviewNotes: [],
   }],
 }
@@ -89,6 +102,9 @@ async function installStudentApi(page: Page, initiallyComplete = false) {
     if (path === '/api/v1/notifications') return json(route, { data: [] })
     if (path === '/api/v1/student/profile') {
       return json(route, { data: { student: { ...user, photoUrl: null }, questionnaire: { complete: false, strengths: [], growthAreas: [], learningPreferences: [], updatedAt: null }, options: { strengths: [], growthAreas: [], learningPreferences: [] }, riasec: null, careerInterests: [], about: 'No Student profile selections have been recorded.' } })
+    }
+    if (path === '/api/v1/student/entrance-examination') {
+      return json(route, { data: { status: 'declared', result: { id: 1, score: 2.5, eligibilityGroup: 'board', ruleReference: 'SELF-DECLARED-TCC-ENTRANCE-2026-01', source: 'student_self_declared', declaredAt: '2026-08-08T07:00:00+08:00' } } })
     }
 
     if (path === '/api/v1/student/assessments/riasec/session') {
@@ -229,26 +245,43 @@ test('completes the student assessment and opens a recommendation detail', async
     if (message.type() === 'error') consoleErrors.push(message.text())
   })
 
-  await page.getByRole('button', { name: /^(Interest assessment|Assessment)$/ }).click()
-  await expect(page.getByRole('heading', { name: 'Assessment session' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Interest assessment' })).toBeVisible()
 
   for (let index = 1; index <= 6; index += 1) {
-    await expect(page.getByText(`Question ${index} of 6`).first()).toBeVisible()
+    await expect(page.getByRole('group', { name: `Response for question ${index}` })).toBeVisible()
     await page.getByText('Agree', { exact: true }).click()
+    await page.getByRole('button', { name: index === 6 ? 'Finish assessment' : 'Next' }).click()
   }
 
-  await expect(page.getByRole('heading', { name: 'All questions are answered' })).toBeVisible()
-  await page.getByRole('button', { name: 'Submit assessment' }).click()
-  await page.getByRole('alertdialog').getByRole('button', { name: 'Submit assessment' }).click()
-  await page.getByRole('button', { name: 'View course matches' }).click()
-  await expect(page.getByRole('heading', { name: 'Your academic matches' })).toBeVisible()
-  await expect(page.getByRole('heading', { name: 'Your profile breakdown' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'All ranked matches' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'RIASEC scores' })).toBeVisible()
   await page.getByRole('button', { name: 'View programme' }).click()
   await expect(page.getByRole('navigation', { name: 'Breadcrumb' })).toHaveCount(0)
   await expect(page.getByRole('heading', { level: 1, name: 'BS Information Technology' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Possible career directions' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'software developer' })).toBeVisible()
+  await expect(page.getByText('analyse software specifications')).toBeVisible()
 
   await expectNoHorizontalOverflow(page)
   expect(consoleErrors).toEqual([])
+})
+
+test('shows multiple programme career directions and published ESCO details', async ({ page }) => {
+  await installStudentApi(page, true)
+  await signIn(page)
+
+  await page.getByRole('button', { name: 'My Matches' }).first().click()
+  await expect(page.getByRole('heading', { name: 'All ranked matches' })).toBeVisible()
+  await page.getByRole('button', { name: 'View programme' }).click()
+
+  await expect(page.getByText('2 to explore')).toBeVisible()
+  const careerSection = page.getByRole('region', { name: 'Possible career directions' })
+  await expect(careerSection.getByText('Software development')).toBeVisible()
+  await expect(careerSection.getByText('Systems administration')).toBeVisible()
+  await expect(careerSection.getByRole('heading', { name: 'software developer' })).toBeVisible()
+  await expect(careerSection.getByText('analyse software specifications')).toBeVisible()
+  await expect(careerSection.getByText('Taxonomy v1.2.0')).toBeVisible()
+  await expectNoHorizontalOverflow(page)
 })
 
 test('passes responsive, keyboard, contrast, and print smoke checks', async ({ page }) => {

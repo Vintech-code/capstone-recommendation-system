@@ -2,12 +2,12 @@ import type { AssessmentLifecycle } from '@/features/student/assessment/assessme
 import type { AssessmentDimensionResult, AssessmentDisplayResult } from '@/features/student/assessment/assessment-types'
 
 const dimensionPresentation: Record<string, Omit<AssessmentDimensionResult, 'label' | 'value'>> = {
-  Realistic: { code: 'R', colorClass: 'bg-chart-slate', surfaceClass: 'bg-chart-slate/10 text-foreground' },
-  Investigative: { code: 'I', colorClass: 'bg-primary', surfaceClass: 'bg-primary/10 text-primary' },
-  Artistic: { code: 'A', colorClass: 'bg-magenta', surfaceClass: 'bg-magenta/10 text-magenta' },
-  Social: { code: 'S', colorClass: 'bg-chart-teal', surfaceClass: 'bg-chart-teal/10 text-chart-teal' },
-  Enterprising: { code: 'E', colorClass: 'bg-warning', surfaceClass: 'bg-warning/10 text-warning' },
-  Conventional: { code: 'C', colorClass: 'bg-chart-blue', surfaceClass: 'bg-chart-blue/10 text-chart-blue' },
+  Realistic: { code: 'R', colorClass: 'bg-riasec-r', surfaceClass: 'bg-riasec-r/10 text-riasec-r' },
+  Investigative: { code: 'I', colorClass: 'bg-riasec-i', surfaceClass: 'bg-riasec-i/10 text-riasec-i' },
+  Artistic: { code: 'A', colorClass: 'bg-riasec-a', surfaceClass: 'bg-riasec-a/10 text-riasec-a' },
+  Social: { code: 'S', colorClass: 'bg-riasec-s', surfaceClass: 'bg-riasec-s/10 text-riasec-s' },
+  Enterprising: { code: 'E', colorClass: 'bg-riasec-e', surfaceClass: 'bg-riasec-e/10 text-riasec-e' },
+  Conventional: { code: 'C', colorClass: 'bg-riasec-c', surfaceClass: 'bg-riasec-c/10 text-riasec-c' },
 }
 
 function mapAssessmentResult(lifecycle: AssessmentLifecycle): AssessmentDisplayResult | null {

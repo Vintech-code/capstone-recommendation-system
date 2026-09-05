@@ -5,114 +5,125 @@
 :root {
   color-scheme: light;
   --radius: 0.75rem;
-  --background: #fbfaf5;
-  --foreground: #23312f;
-  --card: #fffdf8;
-  --card-foreground: #23312f;
-  --popover: #fffdf8;
-  --popover-foreground: #23312f;
-  --primary: #0f6b66;
+  --background: #f8fbf7;
+  --foreground: #123b5d;
+  --card: #ffffff;
+  --card-foreground: #123b5d;
+  --popover: #ffffff;
+  --popover-foreground: #123b5d;
+  --primary: #087f6a;
   --primary-foreground: #ffffff;
-  --secondary: #edf2ef;
-  --secondary-foreground: #23312f;
-  --muted: #e7ede9;
-  --muted-foreground: #65736f;
-  --accent: #ddf3ef;
-  --accent-foreground: #084a47;
-  --destructive: #b64752;
+  --secondary: #edf7f1;
+  --secondary-foreground: #123b5d;
+  --muted: #e9f2ee;
+  --muted-foreground: #536b80;
+  --accent: #ddf5e2;
+  --accent-foreground: #0a6f5e;
+  --destructive: #b54550;
   --destructive-foreground: #ffffff;
-  --border: #d8e1dc;
-  --input: #c5d2cc;
-  --ring: #0f6b66;
-  --success: #2f7d5d;
+  --border: #d8e8de;
+  --input: #bbd3c5;
+  --ring: #087f6a;
+  --success: #2f855a;
   --success-foreground: #ffffff;
-  --warning: #9b6717;
-  --warning-foreground: #23312f;
-  --info: #356b8c;
+  --warning: #9a6700;
+  --warning-foreground: #123b5d;
+  --info: #32759f;
   --info-foreground: #ffffff;
-  --brand-dark: #084a47;
-  --brand-ruby: #a94f35;
-  --brand-magenta: #a84f72;
-  --brand-soft: #ddf3ef;
-  --canvas-cream: #f5e9d3;
-  --primary-fixed: #ddf3ef;
-  --on-primary-fixed: #084a47;
-  --on-primary-fixed-variant: #42635f;
-  --secondary-container: #d96f52;
-  --outline-variant: #d8e1dc;
-  --surface-container: #f8f5ed;
-  --surface-container-high: #edf2ef;
-  --chart-blue: #3d6f91;
-  --chart-teal: #3e7c61;
-  --chart-slate: #697872;
-  --chart-pink: #a84f72;
-  --chart-orange: #b65338;
-  --chart-yellow: #a36b16;
-  --shadow-primary: rgba(15, 107, 102, 0.12);
-  --shadow-primary-strong: rgba(15, 107, 102, 0.2);
-  --shadow-brand-soft: rgba(32, 67, 62, 0.07);
-  --shadow-brand-dark: rgba(32, 67, 62, 0.16);
-  --shadow-cream: rgba(155, 103, 23, 0.08);
+  --brand-dark: #123b5d;
+  --brand-teal: #2daf88;
+  --brand-green: #65c96b;
+  --brand-soft: #ddf5e2;
+  --canvas-sun: #fff3c7;
+  --primary-fixed: #ddf6ec;
+  --on-primary-fixed: #0a6f5e;
+  --on-primary-fixed-variant: #3d665f;
+  --secondary-container: #f2c94c;
+  --on-secondary-container: #123b5d;
+  --secondary-fixed-dim: #ddb239;
+  --outline-variant: #d8e8de;
+  --surface-container: #f8fbf7;
+  --surface-container-high: #edf7f1;
+  --chart-blue: #32759f;
+  --chart-teal: #087f6a;
+  --chart-slate: #536b80;
+  --chart-coral: #b54550;
+  --chart-green: #2f855a;
+  --chart-yellow: #9a6700;
+  --riasec-r: #536b80;
+  --riasec-i: #087f6a;
+  --riasec-a: #b54550;
+  --riasec-s: #2f855a;
+  --riasec-e: #9a6700;
+  --riasec-c: #32759f;
+  --shadow-primary: rgba(8, 127, 106, 0.12);
+  --shadow-primary-strong: rgba(8, 127, 106, 0.2);
+  --shadow-brand-soft: rgba(18, 59, 93, 0.07);
+  --shadow-brand-dark: rgba(18, 59, 93, 0.16);
+  --shadow-cream: rgba(154, 103, 0, 0.08);
   --shadow-highlight: rgba(255, 255, 255, 0.7);
-  --shadow-card: 0 8px 30px rgba(32, 67, 62, 0.07);
-  --shadow-card-hover: 0 14px 38px rgba(32, 67, 62, 0.11);
+  --shadow-card: 0 8px 30px rgba(18, 59, 93, 0.07);
+  --shadow-card-hover: 0 14px 38px rgba(18, 59, 93, 0.11);
 }
 
 .portal-sign-in-theme {
   color-scheme: light;
-  --background: #fbfaf5;
-  --foreground: #23312f;
-  --card: #fffdf8;
-  --card-foreground: #23312f;
-  --primary: #0f6b66;
+  --background: #f8fbf7;
+  --foreground: #123b5d;
+  --card: #ffffff;
+  --card-foreground: #123b5d;
+  --primary: #087f6a;
   --primary-foreground: #ffffff;
-  --primary-fixed: #ddf3ef;
-  --on-primary-fixed: #084a47;
-  --secondary: #edf2ef;
-  --secondary-foreground: #23312f;
-  --muted: #e7ede9;
-  --muted-foreground: #65736f;
-  --border: #d8e1dc;
-  --input: #c5d2cc;
-  --ring: #0f6b66;
-  --access-scene: #e8f3ef;
-  --access-caption: #084a47;
-  --access-caption-strong: #0f6b66;
-  --access-panel-shadow: rgba(32, 67, 62, 0.14);
+  --primary-fixed: #ddf6ec;
+  --on-primary-fixed: #0a6f5e;
+  --secondary: #edf7f1;
+  --secondary-foreground: #123b5d;
+  --muted: #e9f2ee;
+  --muted-foreground: #536b80;
+  --border: #d8e8de;
+  --input: #bbd3c5;
+  --ring: #087f6a;
+  --access-scene: #e8f7ef;
+  --access-caption: #123b5d;
+  --access-caption-strong: #087f6a;
+  --access-panel-shadow: rgba(18, 59, 93, 0.14);
 }
 
 .staff-workspace-theme {
   color-scheme: light;
   --background: #ffffff;
-  --foreground: #181a19;
+  --foreground: #123b5d;
   --card: #ffffff;
-  --card-foreground: #181a19;
+  --card-foreground: #123b5d;
   --popover: #ffffff;
-  --popover-foreground: #181a19;
-  --primary: #181a19;
+  --popover-foreground: #123b5d;
+  --primary: #087f6a;
   --primary-foreground: #ffffff;
-  --primary-fixed: #f1f2f0;
-  --on-primary-fixed: #181a19;
-  --secondary: #f5f6f4;
-  --secondary-foreground: #181a19;
-  --muted: #eff1ee;
-  --muted-foreground: #6b706d;
-  --accent: #d7ff45;
-  --accent-foreground: #181a19;
-  --border: #e4e6e3;
-  --input: #cfd3cf;
-  --ring: #181a19;
-  --success: #12b94f;
-  --success-foreground: #07140b;
-  --warning: #e4f52e;
-  --warning-foreground: #181a19;
-  --info: #d7ff45;
-  --info-foreground: #181a19;
-  --secondary-container: #b7ec22;
-  --outline-variant: #e4e6e3;
-  --chart-teal: #12b94f;
-  --chart-yellow: #d7ff45;
-  --chart-slate: #606662;
+  --primary-fixed: #ddf6ec;
+  --on-primary-fixed: #0a6f5e;
+  --secondary: #edf7f1;
+  --secondary-foreground: #123b5d;
+  --muted: #e9f2ee;
+  --muted-foreground: #536b80;
+  --accent: #ddf5e2;
+  --accent-foreground: #0a6f5e;
+  --border: #d8e8de;
+  --input: #bbd3c5;
+  --ring: #087f6a;
+  --success: #2f855a;
+  --success-foreground: #ffffff;
+  --warning: #9a6700;
+  --warning-foreground: #123b5d;
+  --info: #32759f;
+  --info-foreground: #ffffff;
+  --secondary-container: #f2c94c;
+  --on-secondary-container: #123b5d;
+  --secondary-fixed-dim: #ddb239;
+  --outline-variant: #d8e8de;
+  --chart-blue: #32759f;
+  --chart-teal: #087f6a;
+  --chart-yellow: #9a6700;
+  --chart-slate: #536b80;
 }
 
 .staff-dashboard-canvas {
@@ -168,20 +179,28 @@
   --color-info: var(--info);
   --color-info-foreground: var(--info-foreground);
   --color-brand-dark: var(--brand-dark);
-  --color-brand-ruby: var(--brand-ruby);
-  --color-brand-magenta: var(--brand-magenta);
+  --color-brand-teal: var(--brand-teal);
+  --color-brand-green: var(--brand-green);
   --color-brand-soft: var(--brand-soft);
-  --color-canvas-cream: var(--canvas-cream);
+  --color-canvas-sun: var(--canvas-sun);
   --color-chart-blue: var(--chart-blue);
   --color-chart-teal: var(--chart-teal);
   --color-chart-slate: var(--chart-slate);
-  --color-chart-pink: var(--chart-pink);
-  --color-chart-orange: var(--chart-orange);
+  --color-chart-coral: var(--chart-coral);
+  --color-chart-green: var(--chart-green);
   --color-chart-yellow: var(--chart-yellow);
+  --color-riasec-r: var(--riasec-r);
+  --color-riasec-i: var(--riasec-i);
+  --color-riasec-a: var(--riasec-a);
+  --color-riasec-s: var(--riasec-s);
+  --color-riasec-e: var(--riasec-e);
+  --color-riasec-c: var(--riasec-c);
   --color-primary-fixed: var(--primary-fixed);
   --color-on-primary-fixed: var(--on-primary-fixed);
   --color-on-primary-fixed-variant: var(--on-primary-fixed-variant);
   --color-secondary-container: var(--secondary-container);
+  --color-on-secondary-container: var(--on-secondary-container);
+  --color-secondary-fixed-dim: var(--secondary-fixed-dim);
   --color-outline-variant: var(--outline-variant);
   --color-surface-container: var(--surface-container);
   --color-surface-container-high: var(--surface-container-high);
@@ -301,7 +320,7 @@
   }
 
   .programme-visual {
-    @apply flex min-h-32 items-center justify-between overflow-hidden bg-gradient-to-br from-primary via-info to-brand-ruby p-5 text-white md:min-h-44 md:min-w-[34%];
+    @apply flex min-h-32 items-center justify-between overflow-hidden bg-gradient-to-br from-primary via-info to-brand-teal p-5 text-white md:min-h-44 md:min-w-[34%];
   }
 
   .programme-monogram {
@@ -313,7 +332,7 @@
   }
 
   .match-chip {
-    @apply inline-flex min-h-8 items-center gap-1.5 rounded-full bg-canvas-cream px-3.5 py-1.5 font-label text-sm font-semibold text-warning;
+    @apply inline-flex min-h-8 items-center gap-1.5 rounded-full bg-canvas-sun px-3.5 py-1.5 font-label text-sm font-semibold text-warning;
   }
 
   .programme-detail-hero {
@@ -507,7 +526,7 @@
   width: 0.5rem;
   height: 0.5rem;
   border-radius: 9999px;
-  background: var(--brand-ruby);
+  background: var(--brand-teal);
 }
 
 .eyebrow {

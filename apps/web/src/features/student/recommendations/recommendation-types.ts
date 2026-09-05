@@ -1,4 +1,4 @@
-import type { ProgrammeMediaPosition } from '@/features/student/programmes/programme-types'
+import type { CareerOpportunity, ProgrammeMediaPosition } from '@/features/student/programmes/programme-types'
 
 type StudentRecommendationEligibility = 'Eligible' | 'Needs review' | 'Provisional'
 
@@ -32,6 +32,7 @@ interface StudentRecommendedCourse {
   learningAreas: string[]
   learningAreaDescriptions?: Record<string, string>
   careerDirections: string[]
+  careerOpportunities?: CareerOpportunity[]
   reviewNotes: string[]
   contentStatus?: 'proposed'
   contentVersion?: string

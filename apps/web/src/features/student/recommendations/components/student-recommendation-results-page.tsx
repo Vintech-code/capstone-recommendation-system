@@ -256,10 +256,7 @@ function StudentRecommendationResultsPage({
                     </h2>
                   </div>
                   <p className="mt-2 text-sm font-medium leading-6 text-muted-foreground sm:text-base">
-                    Built for your strongest pattern:{" "}
-                    <strong className="font-semibold text-foreground">
-                      {profile.topCode}
-                    </strong>
+                    Possible directions collected from your currently displayed recommended programmes.
                   </p>
 
                   {topCareerPaths.length > 0 ? (
@@ -267,9 +264,13 @@ function StudentRecommendationResultsPage({
                       <p className="font-label text-xs font-bold uppercase tracking-[0.12em] text-muted-foreground sm:text-sm">
                         Career opportunities
                       </p>
-                      <p className="mt-2 font-display text-base font-bold leading-7 text-foreground sm:text-lg">
-                        {topCareerPaths.join(", ")}
-                      </p>
+                      <ul className="mt-2 grid gap-2 sm:grid-cols-2">
+                        {topCareerPaths.map((path) => (
+                          <li key={path} className="rounded-2xl bg-primary-fixed px-3.5 py-2.5 text-sm font-semibold leading-5 text-on-primary-fixed">
+                            {path}
+                          </li>
+                        ))}
+                      </ul>
                     </div>
                   ) : null}
 
@@ -278,9 +279,7 @@ function StudentRecommendationResultsPage({
                       Why it fits you
                     </p>
                     <p className="mt-2 text-sm font-medium leading-6 text-foreground/80 sm:text-base sm:leading-7">
-                      {leadingDimensions.length === 2
-                        ? `Applying ${leadingDimensions[0].label.toLowerCase()} and ${leadingDimensions[1].label.toLowerCase()} strengths to practical professional opportunities.`
-                        : "Matching careers align with your highest recorded interest areas."}
+                      These directions come from the catalogue entries attached to your recommended programmes. They do not predict employment or guarantee that a career will suit you.
                     </p>
                   </div>
                 </div>

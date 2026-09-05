@@ -12,6 +12,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { getProgrammeImages } from '@/features/student/programmes/programme-images'
 import { programmeMediaStyle } from '@/features/student/programmes/programme-media-position'
+import { CareerDirectionsSection } from '@/features/student/programmes/components/career-directions-section'
 import type { StudentRecommendedCourse } from '@/features/student/recommendations/recommendation-types'
 
 interface StudentRecommendationDetailPageProps {
@@ -73,15 +74,11 @@ function StudentRecommendationDetailPage({
     ? 'Non-board programme'
     : 'Board programme'
 
-  const primaryCareer = course.careerDirections.length > 0
-    ? course.careerDirections[0]
-    : 'Technology & Applied'
-
   const facts = [
     { label: 'Duration', value: course.duration || 'Not published', accent: false, icon: Clock3 },
     { label: 'Degree type', value: course.degreeType || 'Not published', accent: false, icon: GraduationCap },
     { label: 'Programme type', value: programmeTypeLabel, accent: true, icon: ShieldCheck },
-    { label: 'Career field', value: primaryCareer, accent: false, icon: BriefcaseBusiness },
+    { label: 'Career directions', value: course.careerDirections.length > 0 ? `${course.careerDirections.length} to explore` : 'Not configured', accent: false, icon: BriefcaseBusiness },
   ]
 
   return (
@@ -261,22 +258,7 @@ function StudentRecommendationDetailPage({
             </div>
           </section>
 
-          {course.careerDirections.length > 0 ? (
-            <section aria-labelledby="career-directions-title" className="space-y-3">
-              <div className="flex items-center gap-2.5">
-                <BriefcaseBusiness aria-hidden="true" className="size-4 text-primary" />
-                <h2 id="career-directions-title" className="font-display text-base font-bold">Related fields</h2>
-              </div>
-              <ul className="space-y-2">
-                {course.careerDirections.map((direction) => (
-                  <li key={direction} className="flex min-h-11 items-center justify-between gap-3 rounded-xl bg-secondary/70 px-4 py-2.5 transition-colors">
-                    <span className="text-xs font-medium leading-5 text-foreground sm:text-sm">{direction}</span>
-                    <ArrowRight aria-hidden="true" className="size-3.5 shrink-0 text-muted-foreground" />
-                  </li>
-                ))}
-              </ul>
-            </section>
-          ) : null}
+          <CareerDirectionsSection directions={course.careerDirections} opportunities={course.careerOpportunities} />
 
         </aside>
       </div>

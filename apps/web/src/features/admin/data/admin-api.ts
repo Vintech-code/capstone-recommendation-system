@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 
+import type { CareerOpportunity } from '@/features/student/programmes/programme-types'
+
 interface AdminOverview {
   students: number
   assessments: number
@@ -129,6 +131,7 @@ interface AdminProgramme {
   learningAreaDescriptions: Record<string, string>
   learningAreaTopics: Record<string, string[]>
   careerDirections: string[]
+  careerOpportunities?: CareerOpportunity[]
   strandGuidance: string
   requirements: string[]
   readinessPrompt: string
@@ -293,6 +296,21 @@ async function mutateAdmin<T>(path: string, method: 'POST' | 'PUT', body?: unkno
   return payload.data
 }
 
+interface EscoOccupationSearchResult {
+  uri: string
+  title: string
+  escoCode: string | null
+  iscoCode: string | null
+}
+
+async function searchEscoOccupations(query: string, signal?: AbortSignal): Promise<EscoOccupationSearchResult[]> {
+  return requestAdmin<EscoOccupationSearchResult[]>(`/esco/occupations?query=${encodeURIComponent(query)}`, signal)
+}
+
+async function getEscoOccupation(uri: string): Promise<CareerOpportunity> {
+  return requestAdmin<CareerOpportunity>(`/esco/occupation?uri=${encodeURIComponent(uri)}`)
+}
+
 async function uploadProgrammeMedia(programmeId: string, kind: 'cover' | 'logo', image: File, onProgress?: (percentage: number) => void): Promise<{ kind: 'cover' | 'logo'; url: string }> {
   const body = new FormData()
   body.append('kind', kind)
@@ -356,7 +374,7 @@ function useAdminResource<T>(path: string) {
   return { data, error, loading, retry }
 }
 
-export { mutateAdmin, requestAdmin, uploadProgrammeMedia, useAdminResource }
+export { getEscoOccupation, mutateAdmin, requestAdmin, searchEscoOccupations, uploadProgrammeMedia, useAdminResource }
 export type {
   AdminActivity,
   AdminAssessment,
@@ -374,4 +392,5 @@ export type {
   ConfigurationWorkspace,
   ProgrammeSourceRegistryEntry,
   RiasecDimension,
+  EscoOccupationSearchResult,
 }
