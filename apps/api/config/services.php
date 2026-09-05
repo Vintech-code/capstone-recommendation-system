@@ -40,4 +40,11 @@ return [
         'client_secret' => env('GOOGLE_CLIENT_SECRET'),
         'redirect' => env('GOOGLE_REDIRECT_URI'),
     ],
+
+    'esco' => [
+        'base_url' => env('ESCO_API_BASE_URL', 'https://ec.europa.eu/esco/api'),
+        'language' => env('ESCO_API_LANGUAGE', 'en'),
+        'version' => env('ESCO_API_VERSION', 'v1.2.0'),
+        'timeout' => (int) env('ESCO_API_TIMEOUT', 12),
+    ],
 ];

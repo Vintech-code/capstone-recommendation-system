@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AdminConfigurationController;
+use App\Http\Controllers\Admin\AdminEscoOccupationController;
 use App\Http\Controllers\Admin\AdminProgrammeMediaController;
 use App\Http\Controllers\Admin\AdminProgrammeSourceController;
 use App\Http\Controllers\Admin\AdminWorkspaceController;
@@ -113,6 +114,8 @@ Route::prefix('v1/admin')
         Route::get('/students/{student}', [AdminWorkspaceController::class, 'student']);
         Route::get('/assessments', [AdminWorkspaceController::class, 'assessments']);
         Route::get('/programmes', [AdminWorkspaceController::class, 'programmes']);
+        Route::get('/esco/occupations', [AdminEscoOccupationController::class, 'index'])->middleware('throttle:30,1');
+        Route::get('/esco/occupation', [AdminEscoOccupationController::class, 'show'])->middleware('throttle:30,1');
         Route::post('/programmes/{programme}/media', [AdminProgrammeMediaController::class, 'store']);
         Route::get('/reports', [AdminWorkspaceController::class, 'reports']);
         Route::get('/reports/export', [AdminWorkspaceController::class, 'exportReports']);

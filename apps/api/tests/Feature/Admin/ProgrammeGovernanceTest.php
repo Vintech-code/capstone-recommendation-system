@@ -28,6 +28,19 @@ class ProgrammeGovernanceTest extends TestCase
         ], ['Accept' => 'application/json'])->assertCreated()->json('data');
 
         $draft['payload']['programmes'][0]['description'] = 'Updated student-facing programme description.';
+        $draft['payload']['programmes'][0]['career_opportunities'] = [[
+            'label' => 'software developer',
+            'description' => 'Builds software systems from specifications and designs.',
+            'escoUri' => 'http://data.europa.eu/esco/occupation/test-software-developer',
+            'escoCode' => '2512.3',
+            'iscoCode' => '2512',
+            'skills' => ['analyse software specifications'],
+            'source' => 'esco',
+            'sourceLanguage' => 'en',
+            'sourceVersion' => 'v1.2.0',
+            'retrievedAt' => '2026-09-06T12:00:00+08:00',
+            'reviewStatus' => 'proposed',
+        ]];
         $draft['payload']['programmes'][0]['cover_image_url'] = $media['url'];
         $draft['payload']['programmes'][0]['degree_type'] = 'Tampered value';
         $draft['payload']['programmes'][0]['duration'] = ['display' => '99 years'];
@@ -44,6 +57,9 @@ class ProgrammeGovernanceTest extends TestCase
             ->assertOk()
             ->assertJsonPath('data.description', 'Updated student-facing programme description.')
             ->assertJsonPath('data.coverImageUrl', $media['url'])
+            ->assertJsonPath('data.careerDirections.0', 'Software and application development')
+            ->assertJsonPath('data.careerOpportunities.0.label', 'software developer')
+            ->assertJsonPath('data.careerOpportunities.0.iscoCode', '2512')
             ->assertJsonPath('data.degreeType', "Bachelor's degree")
             ->assertJsonPath('data.duration.display', '4 years');
     }

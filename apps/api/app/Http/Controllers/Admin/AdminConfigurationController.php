@@ -211,6 +211,37 @@ final class AdminConfigurationController extends Controller
                 if (! is_array($profile) || $profile === [] || array_diff($profile, ['R', 'I', 'A', 'S', 'E', 'C']) !== []) {
                     throw ValidationException::withMessages(['payload.programmes' => 'Every programme requires a valid RIASEC profile.']);
                 }
+                $opportunities = $programme['career_opportunities'] ?? [];
+                if (! is_array($opportunities)) {
+                    throw ValidationException::withMessages(['payload.programmes' => 'Career opportunities must be a list.']);
+                }
+                if (count($opportunities) > 8) {
+                    throw ValidationException::withMessages(['payload.programmes' => 'Each programme can publish up to eight ESCO career opportunities.']);
+                }
+                foreach ($opportunities as $opportunity) {
+                    $skills = is_array($opportunity) && is_array($opportunity['skills'] ?? null) ? $opportunity['skills'] : null;
+                    if (! is_array($opportunity)
+                        || ! is_string($opportunity['label'] ?? null)
+                        || trim($opportunity['label']) === ''
+                        || mb_strlen($opportunity['label']) > 160
+                        || ! is_string($opportunity['description'] ?? null)
+                        || mb_strlen($opportunity['description']) > 2000
+                        || ! is_string($opportunity['escoUri'] ?? null)
+                        || ! str_starts_with($opportunity['escoUri'], 'http://data.europa.eu/esco/occupation/')
+                        || $skills === null
+                        || count($skills) > 6
+                        || collect($skills)->contains(fn (mixed $skill): bool => ! is_string($skill) || trim($skill) === '' || mb_strlen($skill) > 160)
+                        || ($opportunity['source'] ?? null) !== 'esco'
+                        || ! is_string($opportunity['sourceLanguage'] ?? null)
+                        || ! preg_match('/^[a-z]{2}(?:-[a-z]{2})?$/', $opportunity['sourceLanguage'])
+                        || ! is_string($opportunity['sourceVersion'] ?? null)
+                        || ! preg_match('/^v[0-9]+\.[0-9]+\.[0-9]+$/', $opportunity['sourceVersion'])
+                        || ! is_string($opportunity['retrievedAt'] ?? null)
+                        || strtotime($opportunity['retrievedAt']) === false
+                        || ($opportunity['reviewStatus'] ?? null) !== 'proposed') {
+                        throw ValidationException::withMessages(['payload.programmes' => 'Every ESCO career opportunity requires bounded source fields, a valid occupation URI and taxonomy version, and proposed review status.']);
+                    }
+                }
                 foreach (['cover_image_position', 'logo_image_position'] as $field) {
                     if (isset($programme[$field]) && ! $this->validMediaPosition($programme[$field])) {
                         throw ValidationException::withMessages(["payload.programmes.{$field}" => 'Image framing requires x and y values from 0 to 100 and zoom from 1 to 2.5.']);

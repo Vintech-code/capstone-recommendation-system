@@ -94,6 +94,7 @@ final class ProvisionalRiasecRecommendationEngine
                 'learning_areas' => array_values($programme['learning_areas'] ?? []),
                 'learning_area_descriptions' => $programme['learning_area_descriptions'] ?? [],
                 'career_directions' => array_values($programme['career_directions'] ?? []),
+                'career_opportunities' => array_values($programme['career_opportunities'] ?? []),
                 'requirements' => array_values($programme['requirements'] ?? []),
                 'readiness_prompt' => (string) ($programme['readiness_prompt'] ?? ''),
                 'content_status' => (string) ($programme['content_status'] ?? 'proposed'),

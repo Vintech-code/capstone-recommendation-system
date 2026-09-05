@@ -136,6 +136,7 @@ final class StudentRecommendationController extends Controller
             'learningAreas' => $course['learning_areas'],
             'learningAreaDescriptions' => $course['learning_area_descriptions'] ?? [],
             'careerDirections' => $course['career_directions'] ?? [],
+            'careerOpportunities' => $course['career_opportunities'] ?? [],
             'reviewNotes' => array_values(array_filter([
                 ...$course['requirements'],
                 $course['readiness_prompt'],
@@ -173,7 +174,8 @@ final class StudentRecommendationController extends Controller
                 'summary' => $programme['description'] ?? '',
                 'learningAreas' => $programme['learning_areas'] ?? [],
                 'learningAreaDescriptions' => $programme['learning_area_descriptions'] ?? [],
-                'careerDirections' => $programme['career_directions'] ?? [],
+                'careerDirections' => ! empty($course['careerDirections']) ? $course['careerDirections'] : ($programme['career_directions'] ?? []),
+                'careerOpportunities' => array_key_exists('careerOpportunities', $course) ? $course['careerOpportunities'] : ($programme['career_opportunities'] ?? []),
                 'reviewNotes' => array_values(array_filter([
                     ...($programme['requirements'] ?? []),
                     $programme['readiness_prompt'] ?? null,

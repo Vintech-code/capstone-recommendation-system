@@ -49,7 +49,7 @@ class TccProgrammeCatalogueRepository
             $editable = array_intersect_key($programme, array_flip([
                 'display_name', 'short_label', 'majors', 'riasec_profile', 'description',
                 'learning_areas', 'learning_area_descriptions', 'learning_area_topics',
-                'career_directions', 'recommended_strands', 'strand_guidance',
+                'career_directions', 'career_opportunities', 'recommended_strands', 'strand_guidance',
                 'requirements', 'readiness_prompt', 'cover_image_url', 'logo_image_url',
                 'cover_image_position', 'logo_image_position',
             ]));

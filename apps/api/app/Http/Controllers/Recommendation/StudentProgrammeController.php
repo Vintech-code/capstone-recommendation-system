@@ -45,6 +45,7 @@ class StudentProgrammeController extends Controller
             'learningAreaDescriptions' => $programme['learning_area_descriptions'] ?? [],
             'learningAreaTopics' => $programme['learning_area_topics'] ?? [],
             'careerDirections' => $programme['career_directions'] ?? [],
+            'careerOpportunities' => $programme['career_opportunities'] ?? [],
             'recommendedStrands' => $programme['recommended_strands'] ?? [],
             'strandGuidance' => $programme['strand_guidance'] ?? '',
             'requirements' => $programme['requirements'] ?? [],
