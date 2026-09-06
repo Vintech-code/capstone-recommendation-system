@@ -97,14 +97,14 @@ function NotificationCenter({ workspaceLabel, className, onNavigate }: Notificat
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-2">
           {state === 'loading' ? <NotificationLoading /> : null}
-          {state === 'error' ? <div role="alert" className="m-2 rounded-xl bg-destructive/10 p-5"><p className="font-semibold text-destructive">Notifications could not be loaded.</p><p className="mt-2 text-sm text-muted-foreground">Your records were not changed. Try loading this list again.</p><Button type="button" variant="outline" size="sm" className="mt-4" onClick={load}><RefreshCw aria-hidden="true" />Try again</Button></div> : null}
+          {state === 'error' ? <div role="alert" className="m-2 rounded-xl bg-destructive/10 p-5"><p className="font-semibold text-destructive-ink">Notifications could not be loaded.</p><p className="mt-2 text-sm text-muted-foreground">Your records were not changed. Try loading this list again.</p><Button type="button" variant="outline" size="sm" className="mt-4" onClick={load}><RefreshCw aria-hidden="true" />Try again</Button></div> : null}
           {state === 'ready' && notifications.length === 0 ? <NotificationEmpty title="You’re all caught up" description="Assessment and programme updates will appear here." /> : null}
           {state === 'ready' && notifications.length > 0 && visibleNotifications.length === 0 ? <NotificationEmpty title="No unread notifications" description="New activity will appear here when it is recorded." /> : null}
           {state === 'ready' && visibleNotifications.length > 0 ? <ol>{visibleNotifications.map((notification) => {
             const navigable = Boolean(onNavigate && resolveNotificationDestination(workspaceLabel, notification))
             return <NotificationRow key={notification.id} notification={notification} busy={markingId === notification.id} navigable={navigable} onSelect={() => void selectNotification(notification)} />
           })}</ol> : null}
-          {interactionError ? <p role="alert" className="m-2 rounded-lg bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive">{interactionError}</p> : null}
+          {interactionError ? <p role="alert" className="m-2 rounded-lg bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive-ink">{interactionError}</p> : null}
         </div>
       </PopoverContent>
     </Popover>
@@ -114,7 +114,7 @@ function NotificationCenter({ workspaceLabel, className, onNavigate }: Notificat
 function NotificationRow({ notification, busy, navigable, onSelect }: { notification: PathwaysNotification; busy: boolean; navigable: boolean; onSelect: () => void }) {
   const Icon = notification.eventType === 'assessment_result_ready' ? ClipboardCheck : notification.eventType === 'programme_updated' ? BookOpenText : MessageSquareText
   const unread = notification.readAt === null
-  const content = <div className="flex min-w-0 items-start gap-3"><span className={cn('relative flex size-12 shrink-0 items-center justify-center rounded-full', unread ? 'bg-primary-fixed text-on-primary-fixed' : 'bg-secondary text-muted-foreground')}><Icon aria-hidden="true" className="size-5" /><span className={cn('absolute -bottom-0.5 -right-0.5 size-4 rounded-full ring-2 ring-background', notification.eventType === 'programme_updated' ? 'bg-success' : 'bg-primary')} /></span><span className="min-w-0 flex-1"><span className="block text-sm leading-5"><strong className="font-bold">{notification.title}</strong> <span className="text-muted-foreground">{notification.message}</span></span><time dateTime={notification.createdAt} className={cn('mt-1 block text-xs font-semibold', unread ? 'text-primary' : 'text-muted-foreground')}>{formatNotificationDate(notification.createdAt)}</time>{busy ? <span className="mt-1 block text-xs text-muted-foreground">Updating…</span> : null}</span>{unread ? <span className="mt-5 size-2.5 shrink-0 rounded-full bg-primary"><span className="sr-only">Unread</span></span> : null}</div>
+  const content = <div className="flex min-w-0 items-start gap-3"><span className={cn('relative flex size-12 shrink-0 items-center justify-center rounded-full', unread ? 'bg-primary-fixed text-on-primary-fixed' : 'bg-secondary text-muted-foreground')}><Icon aria-hidden="true" className="size-5" /><span className={cn('absolute -bottom-0.5 -right-0.5 size-4 rounded-full ring-2 ring-background', notification.eventType === 'programme_updated' ? 'bg-success' : 'bg-primary')} /></span><span className="min-w-0 flex-1"><span className="block text-sm leading-5"><strong className="font-bold">{notification.title}</strong> <span className="text-muted-foreground">{notification.message}</span></span><time dateTime={notification.createdAt} className={cn('mt-1 block text-xs font-semibold', unread ? 'text-primary-ink' : 'text-muted-foreground')}>{formatNotificationDate(notification.createdAt)}</time>{busy ? <span className="mt-1 block text-xs text-muted-foreground">Updating…</span> : null}</span>{unread ? <span className="mt-5 size-2.5 shrink-0 rounded-full bg-primary"><span className="sr-only">Unread</span></span> : null}</div>
   const interactive = unread || navigable
   return <li>{interactive ? <button type="button" disabled={busy} onClick={onSelect} aria-label={navigable ? `Open notification: ${notification.title}` : `Mark notification as read: ${notification.title}`} className="block w-full rounded-xl px-3 py-3 text-left transition-colors duration-150 hover:bg-secondary/70 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-inset focus-visible:ring-ring/40">{content}</button> : <div className="rounded-xl px-3 py-3">{content}</div>}</li>
 }
@@ -151,7 +151,7 @@ function FilterTab({ selected, onClick, children }: { selected: boolean; onClick
 }
 
 function NotificationEmpty({ title, description }: { title: string; description: string }) {
-  return <div className="px-6 py-12 text-center"><span className="mx-auto flex size-14 items-center justify-center rounded-full bg-secondary text-primary"><Check aria-hidden="true" className="size-6" /></span><p className="mt-4 font-bold">{title}</p><p className="mx-auto mt-2 max-w-64 text-sm leading-6 text-muted-foreground">{description}</p></div>
+  return <div className="px-6 py-12 text-center"><span className="mx-auto flex size-14 items-center justify-center rounded-full bg-secondary text-primary-ink"><Check aria-hidden="true" className="size-6" /></span><p className="mt-4 font-bold">{title}</p><p className="mx-auto mt-2 max-w-64 text-sm leading-6 text-muted-foreground">{description}</p></div>
 }
 
 function formatNotificationDate(value: string) {

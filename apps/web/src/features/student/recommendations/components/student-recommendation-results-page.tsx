@@ -213,7 +213,7 @@ function StudentRecommendationResultsPage({
               <>
                 <h1
                   id="recommendation-result-title"
-                  className="mt-5 max-w-2xl font-display text-3xl font-black leading-[0.98] tracking-[-0.045em] text-primary sm:text-4xl lg:text-5xl"
+                  className="mt-5 max-w-2xl font-display text-3xl font-black leading-[0.98] tracking-[-0.045em] text-primary-ink sm:text-4xl lg:text-5xl"
                 >
                   {profile.topLabels.join(" and ")}
                 </h1>
@@ -247,48 +247,12 @@ function StudentRecommendationResultsPage({
                     </div>
                   </div>
                 ) : null}
-
-                <div className="mt-7 max-w-xl rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-sm">
-                  <div className="flex items-center gap-2 text-primary">
-                    <Compass aria-hidden="true" className="size-6 shrink-0" />
-                    <h2 className="font-display text-xl font-extrabold sm:text-2xl">
-                      Recommended career paths
-                    </h2>
-                  </div>
-                  <p className="mt-2 text-sm font-medium leading-6 text-muted-foreground sm:text-base">
-                    Possible directions collected from your currently displayed recommended programmes.
-                  </p>
-
-                  {topCareerPaths.length > 0 ? (
-                    <div className="mt-4">
-                      <p className="font-label text-xs font-bold uppercase tracking-[0.12em] text-muted-foreground sm:text-sm">
-                        Career opportunities
-                      </p>
-                      <ul className="mt-2 grid gap-2 sm:grid-cols-2">
-                        {topCareerPaths.map((path) => (
-                          <li key={path} className="rounded-2xl bg-primary-fixed px-3.5 py-2.5 text-sm font-semibold leading-5 text-on-primary-fixed">
-                            {path}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ) : null}
-
-                  <div className="mt-4 border-t border-border/70 pt-3.5">
-                    <p className="font-label text-xs font-bold uppercase tracking-[0.12em] text-muted-foreground sm:text-sm">
-                      Why it fits you
-                    </p>
-                    <p className="mt-2 text-sm font-medium leading-6 text-foreground/80 sm:text-base sm:leading-7">
-                      These directions come from the catalogue entries attached to your recommended programmes. They do not predict employment or guarantee that a career will suit you.
-                    </p>
-                  </div>
-                </div>
               </>
             ) : (
               <>
                 <h1
                   id="recommendation-result-title"
-                  className="mt-5 font-display text-3xl font-black leading-[0.98] tracking-[-0.045em] text-primary sm:text-4xl lg:text-5xl"
+                  className="mt-5 font-display text-3xl font-black leading-[0.98] tracking-[-0.045em] text-primary-ink sm:text-4xl lg:text-5xl"
                 >
                   Your academic matches
                 </h1>
@@ -343,6 +307,74 @@ function StudentRecommendationResultsPage({
           </section>
 
           {profile ? <RecommendationProfilePanel result={profile} /> : null}
+
+          {profile ? (
+            <section
+              aria-labelledby="recommended-career-paths-title"
+              className="border-y border-border py-8 sm:py-10 lg:col-span-2"
+            >
+              <div className="grid gap-8 lg:grid-cols-[minmax(20rem,1fr)_minmax(0,1.35fr)] lg:gap-16 xl:gap-20">
+                <div className="flex flex-col">
+                  <div className="flex items-start gap-3 text-primary-ink">
+                    <Compass
+                      aria-hidden="true"
+                      className="mt-1 size-6 shrink-0"
+                    />
+                    <h2
+                      id="recommended-career-paths-title"
+                      className="max-w-sm font-display text-2xl font-extrabold leading-tight sm:text-3xl sm:leading-tight"
+                    >
+                      Recommended career paths
+                    </h2>
+                  </div>
+                  <p className="mt-4 max-w-[26rem] text-sm font-medium leading-6 text-muted-foreground sm:text-base sm:leading-7">
+                    Possible directions collected from your currently displayed
+                    recommended programmes.
+                  </p>
+
+                  <div className="mt-8 max-w-[27rem] border-l-2 border-primary pl-5">
+                    <p className="font-label text-xs font-bold uppercase tracking-[0.12em] text-primary-ink sm:text-sm">
+                      Why it fits you
+                    </p>
+                    <p className="mt-2 text-sm font-medium leading-6 text-muted-foreground sm:text-base sm:leading-7">
+                      These directions come from the catalogue entries attached
+                      to your recommended programmes. They do not predict
+                      employment or guarantee that a career will suit you.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="min-w-0">
+                  {topCareerPaths.length > 0 ? (
+                    <div>
+                      <div className="flex items-center justify-between gap-4 border-b border-border pb-3">
+                        <p className="font-label text-xs font-bold uppercase tracking-[0.12em] text-muted-foreground sm:text-sm">
+                          Career opportunities
+                        </p>
+                        <span className="text-xs font-semibold text-muted-foreground sm:text-sm">
+                          {topCareerPaths.length} directions
+                        </span>
+                      </div>
+                      <ul className="grid sm:grid-cols-2">
+                        {topCareerPaths.map((path) => (
+                          <li
+                            key={path}
+                            className="flex min-h-16 items-center gap-3 border-b border-border py-4 text-sm font-semibold leading-6 text-foreground sm:min-h-20 sm:text-base sm:odd:pr-8 sm:even:border-l sm:even:pl-8"
+                          >
+                            <span
+                              aria-hidden="true"
+                              className="size-2.5 shrink-0 rounded-full bg-primary"
+                            />
+                            {path}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+            </section>
+          ) : null}
         </div>
 
         <div className="mt-12 sm:mt-16">
@@ -401,7 +433,7 @@ function StudentRecommendationResultsPage({
         {retakeError ? (
           <p
             role="alert"
-            className="mt-4 rounded bg-destructive/10 p-4 text-sm font-medium text-destructive"
+            className="mt-4 rounded bg-destructive/10 p-4 text-sm font-medium text-destructive-ink"
           >
             {retakeError}
           </p>

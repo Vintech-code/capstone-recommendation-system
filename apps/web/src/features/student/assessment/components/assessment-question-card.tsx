@@ -47,7 +47,7 @@ function AssessmentQuestionCard({
               key={option.value}
               className={`relative flex min-h-20 cursor-pointer items-center gap-4 rounded-2xl border px-5 py-4 text-left transition-colors focus-within:ring-3 focus-within:ring-primary/25 ${
                 selected
-                  ? 'border-primary bg-primary-fixed text-primary'
+                  ? 'border-primary bg-primary-fixed text-primary-ink'
                   : 'border-border-strong bg-background text-foreground hover:border-primary/45 hover:bg-primary-fixed/25'
               }`}
             >

@@ -30,15 +30,24 @@ function contrastRatio(first: string, second: string) {
 }
 
 describe('application visual system', () => {
-  it('uses the approved navy, teal, and learning-accent palette with Nunito Sans headings and Montserrat body type', () => {
+  it('uses the approved light-green-primary pastel palette with Nunito Sans headings and Montserrat body type', () => {
     const rootTheme = stylesheet.match(/:root\s*\{([\s\S]*?)\n\}/)?.[1]
+    const normalizedRootTheme = rootTheme?.toLowerCase()
 
     expect(rootTheme).toBeDefined()
-    expect(rootTheme).toContain('--background: #f8fbf7;')
-    expect(rootTheme).toContain('--foreground: #123b5d;')
-    expect(rootTheme).toContain('--primary: #087f6a;')
-    expect(rootTheme).toContain('--secondary-container: #f2c94c;')
-    expect(rootTheme).toContain('--border: #d8e8de;')
+    expect(normalizedRootTheme).toContain('--background: rgb(255, 254, 249);')
+    expect(normalizedRootTheme).toContain('--foreground: #40534a;')
+    expect(normalizedRootTheme).toContain('--primary: #51b885;')
+    expect(normalizedRootTheme).toContain('--primary-ink: #3f7d57;')
+    expect(normalizedRootTheme).toContain('--brand-green: #8ad3a2;')
+    expect(normalizedRootTheme).toContain('--chart-coral: #e58b91;')
+    expect(normalizedRootTheme).toContain('--riasec-s: #69b98a;')
+    expect(normalizedRootTheme).toContain('--riasec-c: #79b4dc;')
+    expect(normalizedRootTheme).toContain('--secondary-container: #f4b740;')
+    expect(normalizedRootTheme).toContain('--border: #dce7df;')
+    expect(normalizedRootTheme).not.toContain('#2563eb')
+    expect(normalizedRootTheme).not.toContain('#2e7d4f')
+    expect(normalizedRootTheme).not.toContain('#9a6700')
     expect(stylesheet).toContain('--font-sans: "Montserrat Variable", Montserrat')
     expect(stylesheet).toContain('--font-display: "Nunito Sans Variable", "Nunito Sans"')
     expect(stylesheet).toContain('--font-label: "Montserrat Variable", Montserrat')
@@ -46,13 +55,14 @@ describe('application visual system', () => {
 
   it('keeps core text and solid semantic controls at WCAG AA contrast', () => {
     const colorPairs = [
-      ['#123b5d', '#f8fbf7'],
-      ['#536b80', '#f8fbf7'],
-      ['#ffffff', '#087f6a'],
-      ['#ffffff', '#2f855a'],
-      ['#ffffff', '#32759f'],
-      ['#ffffff', '#b54550'],
-      ['#123b5d', '#f2c94c'],
+      ['#40534a', '#fffef9'],
+      ['#5f7369', '#fffef9'],
+      ['#1f392b', '#51b885'],
+      ['#3f7d57', '#fffef9'],
+      ['#1f3d2c', '#69b98a'],
+      ['#203b4d', '#79b4dc'],
+      ['#51272b', '#e58b91'],
+      ['#4b3a12', '#e2b34f'],
     ]
 
     for (const [foreground, background] of colorPairs) {

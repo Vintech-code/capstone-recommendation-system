@@ -29,8 +29,8 @@ function PasswordResetPage() {
   }
 
   return <AuthRecoveryFrame title="Choose a new password" description="Use at least eight characters and keep your account password private.">
-    {message ? <><p role="status" className="rounded-xl bg-success/10 p-4 text-sm font-semibold text-success">{message}</p><Link to="/student/login" className="mt-6 block text-center text-sm font-bold text-primary hover:underline">Continue to sign in</Link></> : <form onSubmit={submit} className="space-y-5">
-      {error ? <p role="alert" className="rounded-xl bg-destructive/10 p-4 text-sm font-semibold text-destructive">{error}</p> : null}
+    {message ? <><p role="status" className="rounded-xl bg-success/10 p-4 text-sm font-semibold text-success-ink">{message}</p><Link to="/student/login" className="mt-6 block text-center text-sm font-bold text-primary-ink hover:underline">Continue to sign in</Link></> : <form onSubmit={submit} className="space-y-5">
+      {error ? <p role="alert" className="rounded-xl bg-destructive/10 p-4 text-sm font-semibold text-destructive-ink">{error}</p> : null}
       <div className="space-y-2"><Label htmlFor="reset-email">Email address</Label><Input id="reset-email" type="email" required autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} className="h-12" /></div>
       <div className="space-y-2"><Label htmlFor="reset-password">New password</Label><Input id="reset-password" type="password" minLength={8} required autoComplete="new-password" value={password} onChange={(event) => setPassword(event.target.value)} className="h-12" /></div>
       <div className="space-y-2"><Label htmlFor="reset-confirmation">Confirm new password</Label><Input id="reset-confirmation" type="password" minLength={8} required autoComplete="new-password" value={confirmation} onChange={(event) => setConfirmation(event.target.value)} className="h-12" /></div>

@@ -32,7 +32,7 @@ function RecommendationCourseCard({
             {course.rank}
           </span>
           <div className="min-w-0">
-            <p className="text-xs font-bold uppercase tracking-[0.1em] text-primary">
+            <p className="text-xs font-bold uppercase tracking-[0.1em] text-primary-ink">
               {course.code}
             </p>
             <h2 className="mt-1 text-lg font-extrabold leading-6">
@@ -50,7 +50,7 @@ function RecommendationCourseCard({
       <div className="mt-5 rounded-xl bg-secondary/50 p-4">
         <div className="flex items-center justify-between gap-3">
           <span className="inline-flex items-center gap-2 text-xs font-bold text-muted-foreground">
-            <Target aria-hidden="true" className="size-4 text-primary" />
+            <Target aria-hidden="true" className="size-4 text-primary-ink" />
             Recorded match
           </span>
           <span className="text-lg font-extrabold">{course.match}%</span>
@@ -85,12 +85,12 @@ function RecommendationCourseCard({
               {factor.includes('review') ? (
                 <CircleAlert
                   aria-hidden="true"
-                  className="mt-0.5 size-4 shrink-0 text-warning"
+                  className="mt-0.5 size-4 shrink-0 text-warning-ink"
                 />
               ) : (
                 <Check
                   aria-hidden="true"
-                  className="mt-0.5 size-4 shrink-0 text-success"
+                  className="mt-0.5 size-4 shrink-0 text-success-ink"
                 />
               )}
               {factor}

@@ -144,10 +144,10 @@ function LandingPage() {
           </a>
 
           <nav aria-label="Landing page" className="hidden items-center gap-7 text-sm font-semibold lg:flex">
-            <a className="transition-colors hover:text-primary" href="#riasec">RIASEC</a>
-            <a className="transition-colors hover:text-primary" href="#how-it-works">How it works</a>
-            <a className="transition-colors hover:text-primary" href="#why-pathways">Why Pathways</a>
-            <a className="transition-colors hover:text-primary" href="#questions">Questions</a>
+            <a className="transition-colors hover:text-primary-ink" href="#riasec">RIASEC</a>
+            <a className="transition-colors hover:text-primary-ink" href="#how-it-works">How it works</a>
+            <a className="transition-colors hover:text-primary-ink" href="#why-pathways">Why Pathways</a>
+            <a className="transition-colors hover:text-primary-ink" href="#questions">Questions</a>
           </nav>
 
           <Button asChild className="h-11 rounded-full px-5 sm:px-6">
@@ -166,13 +166,13 @@ function LandingPage() {
             <div aria-hidden="true" className="absolute bottom-0 right-0 h-48 w-2/3 rounded-tl-full bg-info/8" />
 
             <div className="relative z-10 max-w-xl">
-              <p className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-white/80 px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-primary shadow-sm">
+              <p className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-white/80 px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-primary-ink shadow-sm">
                 <GraduationCap aria-hidden="true" className="size-4" />
                 For TCC Student Applicants
               </p>
               <h1 id="landing-title" className="mt-7 font-display text-4xl font-black leading-[1.05] tracking-[-0.05em] text-brand-dark sm:text-5xl lg:text-6xl">
                 Explore your interests.
-                <span className="mt-1 block text-primary">Understand your options.</span>
+                <span className="mt-1 block text-primary-ink">Understand your options.</span>
               </h1>
               <p className="mt-6 max-w-[36rem] text-base font-medium leading-7 text-muted-foreground sm:text-lg sm:leading-8">
                 Complete a locally managed RIASEC assessment and review programme recommendations supported by your recorded scores, eligible programme group, and configured catalogue evidence.
@@ -207,7 +207,7 @@ function LandingPage() {
           <div className="mx-auto grid max-w-[1200px] grid-cols-2 overflow-hidden rounded-3xl border border-border bg-white shadow-[var(--shadow-card)] lg:grid-cols-4">
             {highlights.map(({ icon: Icon, title, detail }, index) => (
               <div key={title} className={`flex min-h-36 flex-col items-center justify-center px-4 py-6 text-center ${index % 2 ? 'border-l border-border' : ''} ${index > 1 ? 'border-t border-border lg:border-t-0' : ''} ${index === 2 ? 'lg:border-l' : ''}`}>
-                <span className="flex size-11 items-center justify-center rounded-2xl bg-primary-fixed text-primary">
+                <span className="flex size-11 items-center justify-center rounded-2xl bg-primary-fixed text-primary-ink">
                   <Icon aria-hidden="true" className="size-5" />
                 </span>
                 <strong className="mt-3 font-display text-base font-extrabold">{title}</strong>
@@ -255,8 +255,8 @@ function LandingPage() {
               {journeySteps.map(({ number, icon: Icon, title, description }) => (
                 <li key={number} className="relative overflow-hidden rounded-3xl border border-border bg-white p-6 shadow-[var(--shadow-card)] sm:p-7">
                   <div className="flex items-center justify-between">
-                    <span className="font-display text-sm font-black tracking-[0.12em] text-primary">{number}</span>
-                    <span className="flex size-12 items-center justify-center rounded-2xl bg-primary-fixed text-primary"><Icon aria-hidden="true" className="size-6" /></span>
+                    <span className="font-display text-sm font-black tracking-[0.12em] text-primary-ink">{number}</span>
+                    <span className="flex size-12 items-center justify-center rounded-2xl bg-primary-fixed text-primary-ink"><Icon aria-hidden="true" className="size-6" /></span>
                   </div>
                   <h3 className="mt-8 font-display text-xl font-extrabold">{title}</h3>
                   <p className="mt-3 text-sm font-medium leading-6 text-muted-foreground">{description}</p>
@@ -271,11 +271,11 @@ function LandingPage() {
         </section>
 
         <section id="why-pathways" className="scroll-mt-24 px-4 py-16 sm:px-6 lg:px-8 lg:py-24" aria-labelledby="why-title">
-          <div className="mx-auto overflow-hidden rounded-[2rem] bg-brand-dark px-6 py-10 text-white shadow-[var(--shadow-card)] sm:px-10 sm:py-12 lg:px-14 lg:py-16">
+          <div className="mx-auto overflow-hidden rounded-[2rem] bg-brand-dark px-6 py-10 text-primary-foreground shadow-[var(--shadow-card)] sm:px-10 sm:py-12 lg:px-14 lg:py-16">
             <div className="max-w-2xl">
               <p className="text-xs font-bold uppercase tracking-[0.14em] text-brand-green">Why Pathways</p>
               <h2 id="why-title" className="mt-3 font-display text-3xl font-black tracking-[-0.04em] sm:text-4xl">Guidance you can understand and revisit</h2>
-              <p className="mt-4 text-base font-medium leading-7 text-white/75">The system keeps eligibility and interest matching separate, then presents the recorded basis for each recommendation.</p>
+              <p className="mt-4 text-base font-medium leading-7 text-primary-foreground/80">The system keeps eligibility and interest matching separate, then presents the recorded basis for each recommendation.</p>
             </div>
 
             <div className="mt-10 grid gap-4 md:grid-cols-2">
@@ -283,7 +283,7 @@ function LandingPage() {
                 <article key={title} className="rounded-3xl border border-white/15 bg-white/8 p-6">
                   <span className="flex size-11 items-center justify-center rounded-2xl bg-white/12 text-brand-green"><Icon aria-hidden="true" className="size-5" /></span>
                   <h3 className="mt-5 font-display text-xl font-extrabold">{title}</h3>
-                  <p className="mt-2 text-sm font-medium leading-6 text-white/72">{description}</p>
+                  <p className="mt-2 text-sm font-medium leading-6 text-primary-foreground/80">{description}</p>
                 </article>
               ))}
             </div>
@@ -302,7 +302,7 @@ function LandingPage() {
                 <details key={question} className="group px-5 py-1 open:bg-secondary/45 sm:px-7">
                   <summary className="flex min-h-16 cursor-pointer list-none items-center justify-between gap-5 py-4 font-display text-base font-extrabold focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-inset focus-visible:ring-ring/35 sm:text-lg">
                     {question}
-                    <span aria-hidden="true" className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary-fixed text-xl font-medium text-primary transition-transform group-open:rotate-45">+</span>
+                    <span aria-hidden="true" className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary-fixed text-xl font-medium text-primary-ink transition-transform group-open:rotate-45">+</span>
                   </summary>
                   <p className="max-w-3xl pb-5 pr-10 text-sm font-medium leading-6 text-muted-foreground sm:text-base sm:leading-7">{answer}</p>
                 </details>
@@ -330,9 +330,9 @@ function LandingPage() {
             <p className="max-w-sm text-xs font-medium leading-5 text-muted-foreground">TCC course-recommendation decision support for Student Applicants.</p>
           </div>
           <nav aria-label="Portal links" className="flex flex-wrap gap-x-6 gap-y-3 text-sm font-semibold">
-            <Link className="hover:text-primary" to="/student/login">Student sign in</Link>
-            <Link className="hover:text-primary" to="/student/register">Create account</Link>
-            <Link className="hover:text-primary" to="/admin/login">Administrator sign in</Link>
+            <Link className="hover:text-primary-ink" to="/student/login">Student sign in</Link>
+            <Link className="hover:text-primary-ink" to="/student/register">Create account</Link>
+            <Link className="hover:text-primary-ink" to="/admin/login">Administrator sign in</Link>
           </nav>
         </div>
       </footer>

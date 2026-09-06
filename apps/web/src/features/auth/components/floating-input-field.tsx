@@ -46,7 +46,7 @@ function FloatingInputField({
           htmlFor={id}
           className={cn(
             'pointer-events-none absolute left-10 top-1/2 z-20 -translate-y-1/2 bg-card px-1 text-sm font-normal text-muted-foreground transition-all duration-150',
-            'peer-focus:left-3 peer-focus:top-0 peer-focus:text-xs peer-focus:font-medium peer-focus:text-primary',
+            'peer-focus:left-3 peer-focus:top-0 peer-focus:text-xs peer-focus:font-medium peer-focus:text-primary-ink',
             'peer-[:not(:placeholder-shown)]:left-3 peer-[:not(:placeholder-shown)]:top-0 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:font-medium',
           )}
         >
@@ -55,7 +55,7 @@ function FloatingInputField({
         {endAdornment}
       </div>
       {error ? (
-        <p id={errorId} className="text-xs font-semibold text-destructive">
+        <p id={errorId} className="text-xs font-semibold text-destructive-ink">
           {error}
         </p>
       ) : null}

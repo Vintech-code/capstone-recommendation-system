@@ -33,7 +33,7 @@ function RecommendationMatchCard({
     >
       <div className="grid gap-5 sm:grid-cols-[10rem_minmax(0,1fr)] sm:items-stretch lg:grid-cols-[11rem_minmax(0,1fr)]">
         <div
-          className="relative flex aspect-[4/3] flex-col items-center justify-center overflow-hidden rounded-2xl bg-secondary text-primary sm:aspect-auto sm:min-h-44"
+          className="relative flex aspect-[4/3] flex-col items-center justify-center overflow-hidden rounded-2xl bg-secondary text-primary-ink sm:aspect-auto sm:min-h-44"
         >
           {cover ? (
             <img src={cover} alt={`${course.name} programme`} loading="lazy" decoding="async" style={coverStyle} className="absolute inset-0 size-full object-cover" />
@@ -55,7 +55,7 @@ function RecommendationMatchCard({
                 {course.match}% provisional match
               </span>
             </div>
-            <h3 className="mt-3 font-display text-2xl font-bold leading-8 transition-colors group-hover:text-primary">
+            <h3 className="mt-3 font-display text-2xl font-bold leading-8 transition-colors group-hover:text-primary-ink">
               {course.name} <span className="whitespace-nowrap">({course.code})</span>
             </h3>
             {course.summary ? (
@@ -91,7 +91,7 @@ function RecommendationMatchCard({
                 ))}
               </div>
             </div>
-            <Button type="button" variant="ghost" onClick={onViewDetails} className="self-start text-primary md:self-auto">
+            <Button type="button" variant="ghost" onClick={onViewDetails} className="self-start text-primary-ink md:self-auto">
               View programme
               <ArrowRight aria-hidden="true" />
             </Button>

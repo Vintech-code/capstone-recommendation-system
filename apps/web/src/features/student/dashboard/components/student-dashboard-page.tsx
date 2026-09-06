@@ -42,10 +42,10 @@ interface StudentDashboardPageProps {
 
 const dimensionPresentation: Record<string, { icon: LucideIcon; tile: string; badge: string; accent: string }> = {
   R: { icon: Eye, tile: 'bg-primary-fixed/45', badge: 'bg-primary/65 text-primary-foreground', accent: 'bg-primary/65' },
-  I: { icon: Search, tile: 'bg-chart-blue/8', badge: 'bg-chart-blue text-white', accent: 'bg-chart-blue' },
-  A: { icon: Paintbrush, tile: 'bg-success/8', badge: 'bg-success text-white', accent: 'bg-success' },
+  I: { icon: Search, tile: 'bg-chart-blue/8', badge: 'bg-chart-blue text-foreground', accent: 'bg-chart-blue' },
+  A: { icon: Paintbrush, tile: 'bg-success/8', badge: 'bg-success text-success-foreground', accent: 'bg-success' },
   S: { icon: UsersRound, tile: 'bg-secondary-container/12', badge: 'bg-secondary-container text-on-secondary-container', accent: 'bg-secondary-container' },
-  E: { icon: ChartNoAxesColumnIncreasing, tile: 'bg-warning/10', badge: 'bg-warning text-white', accent: 'bg-warning' },
+  E: { icon: ChartNoAxesColumnIncreasing, tile: 'bg-warning/10', badge: 'bg-warning text-warning-foreground', accent: 'bg-warning' },
   C: { icon: ClipboardCheck, tile: 'bg-secondary/75', badge: 'bg-muted-foreground text-background', accent: 'bg-muted-foreground' },
 }
 
@@ -148,7 +148,7 @@ function StudentDashboardPage({ onSelectModule, initialLifecycle, initialRecomme
             <div className="absolute inset-0 bg-gradient-to-r from-background via-background/90 to-transparent" />
             <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at center, transparent 52%, var(--background) 100%)' }} />
             <div className="relative z-10 flex h-full max-w-xl flex-col justify-center">
-              <p className="font-label text-xs font-semibold uppercase tracking-[0.16em] text-primary">Your academic journey</p>
+              <p className="font-label text-xs font-semibold uppercase tracking-[0.16em] text-primary-ink">Your academic journey</p>
               <h1 id="dashboard-journey-title" aria-label="Your journey. Your future." className="mt-2 font-display text-4xl font-bold leading-[0.98] tracking-[-0.045em] text-foreground sm:text-5xl">
                 Your journey.<br /><span className="bg-gradient-to-r from-primary via-brand-green to-chart-blue bg-clip-text text-transparent">Your future.</span>
               </h1>
@@ -166,7 +166,7 @@ function StudentDashboardPage({ onSelectModule, initialLifecycle, initialRecomme
           <section aria-labelledby="journey-progress-title" className="rounded-3xl border border-border bg-card p-5 shadow-[var(--shadow-card)] sm:p-6">
             <div className="flex items-start justify-between gap-5">
               <div className="min-w-0 pt-1">
-                <div className="flex items-center gap-2 text-primary">
+                <div className="flex items-center gap-2 text-primary-ink">
                   <Route className="size-4" aria-hidden="true" />
                   <p className="font-label text-xs font-semibold uppercase tracking-[0.12em]">Your progress</p>
                 </div>
@@ -174,7 +174,7 @@ function StudentDashboardPage({ onSelectModule, initialLifecycle, initialRecomme
               </div>
               <div role="progressbar" aria-label="Academic journey progress" aria-valuemin={0} aria-valuemax={100} aria-valuenow={journeyProgress} className="relative flex size-24 shrink-0 items-center justify-center rounded-full" style={{ background: `conic-gradient(var(--primary) ${journeyProgress}%, var(--secondary) 0)` }}>
                 <span className="flex size-[4.5rem] flex-col items-center justify-center rounded-full bg-card">
-                  <strong className="font-display text-2xl font-bold leading-none text-primary">{journeyProgress}%</strong>
+                  <strong className="font-display text-2xl font-bold leading-none text-primary-ink">{journeyProgress}%</strong>
                   <span className="mt-1 text-[9px] font-semibold uppercase tracking-wide text-muted-foreground">Complete</span>
                 </span>
               </div>
@@ -182,7 +182,7 @@ function StudentDashboardPage({ onSelectModule, initialLifecycle, initialRecomme
             <ol className="mt-8 divide-y divide-outline-variant/55">
               {journeySteps.map((step) => (
                 <li key={step.label} className="flex min-h-11 items-center gap-3 py-3 text-sm">
-                  <span className={`flex size-5 shrink-0 items-center justify-center rounded-full ${step.complete ? 'bg-success text-white' : 'bg-secondary text-muted-foreground'}`}>{step.complete ? <Check className="size-3.5" aria-hidden="true" /> : <span className="size-1.5 rounded-full bg-current" />}</span>
+                  <span className={`flex size-5 shrink-0 items-center justify-center rounded-full ${step.complete ? 'bg-success text-success-foreground' : 'bg-secondary text-muted-foreground'}`}>{step.complete ? <Check className="size-3.5" aria-hidden="true" /> : <span className="size-1.5 rounded-full bg-current" />}</span>
                   <span className="min-w-0 flex-1 font-medium leading-snug">{step.label}</span>
                   <span className="max-w-28 shrink-0 truncate text-right text-xs text-muted-foreground">{step.detail ?? 'Pending'}</span>
                 </li>
@@ -216,9 +216,9 @@ function StudentDashboardPage({ onSelectModule, initialLifecycle, initialRecomme
                 <div aria-hidden="true" className="absolute right-6 top-6 grid grid-cols-4 gap-2 opacity-30">{Array.from({ length: 12 }, (_, index) => <span key={index} className="size-1 rounded-full bg-primary-fixed-dim" />)}</div>
                 <div className="relative flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
                   <div>
-                    <p className="flex items-center gap-2 font-label text-xs font-semibold uppercase tracking-[0.14em] text-foreground"><span className="flex size-7 items-center justify-center rounded bg-secondary"><Compass aria-hidden="true" className="size-4 text-primary" /></span>Your interest pattern</p>
+                    <p className="flex items-center gap-2 font-label text-xs font-semibold uppercase tracking-[0.14em] text-foreground"><span className="flex size-7 items-center justify-center rounded bg-secondary"><Compass aria-hidden="true" className="size-4 text-primary-ink" /></span>Your interest pattern</p>
                     <h3 id="interest-scores-title" aria-label={result.topLabels.join(' and ')} className="mt-3 font-display text-3xl font-bold tracking-[-0.04em] sm:text-4xl">
-                      {result.topLabels.map((label, index) => <span key={label}>{index ? <span className="text-foreground"> and </span> : null}<span className="text-primary">{label}</span></span>)}
+                      {result.topLabels.map((label, index) => <span key={label}>{index ? <span className="text-foreground"> and </span> : null}<span className="text-primary-ink">{label}</span></span>)}
                     </h3>
                     <p className="mt-2 text-xs font-medium text-muted-foreground">Top code {result.topCode} · completed {result.availableAt}</p>
                   </div>
@@ -231,8 +231,8 @@ function StudentDashboardPage({ onSelectModule, initialLifecycle, initialRecomme
                     const isPrimary = dimension.code === result.topCode.split('-')[0]
                     return (
                       <div key={dimension.code} className={`relative min-w-0 rounded-2xl p-3 text-center ${presentation.tile} ${isPrimary ? 'ring-1 ring-primary ring-offset-2 ring-offset-card' : ''}`}>
-                        {isPrimary ? <BadgeCheck aria-label="Primary recorded interest" className="absolute -right-1.5 -top-1.5 size-5 fill-success text-white" /> : null}
-                        <dt><span className={`mx-auto flex size-8 items-center justify-center rounded-full text-xs font-bold ${presentation.badge}`}>{dimension.code}</span><Icon aria-hidden="true" className={`mx-auto mt-3 size-6 ${isPrimary ? 'text-success' : 'text-primary'}`} /><span className="sr-only">{dimension.label}</span></dt>
+                        {isPrimary ? <BadgeCheck aria-label="Primary recorded interest" className="absolute -right-1.5 -top-1.5 size-5 fill-success text-success-foreground" /> : null}
+                        <dt><span className={`mx-auto flex size-8 items-center justify-center rounded-full text-xs font-bold ${presentation.badge}`}>{dimension.code}</span><Icon aria-hidden="true" className={`mx-auto mt-3 size-6 ${isPrimary ? 'text-success-ink' : 'text-primary-ink'}`} /><span className="sr-only">{dimension.label}</span></dt>
                         <dd className="mt-3 font-display text-2xl font-bold">{dimension.value}</dd>
                         <span className="mt-1 block truncate text-[10px] font-semibold text-foreground">{dimension.label}</span>
                         <span aria-hidden="true" className="mt-3 block h-1 overflow-hidden rounded-full bg-card/80"><span className={`block h-full rounded-full ${presentation.accent}`} style={{ width: `${Math.round((dimension.value / highestRecordedScore) * 100)}%` }} /></span>
@@ -306,8 +306,8 @@ function AssessmentHistorySummary({ history, historyError, lifecycle, selectedAt
     <section data-print-hidden aria-labelledby="assessment-history-title" className="overflow-hidden rounded-3xl border border-border bg-card shadow-[var(--shadow-card)]">
       <div className="flex flex-col gap-5 bg-card p-5 sm:flex-row sm:items-center sm:justify-between sm:p-7">
         <div className="flex items-start gap-3">
-          <span className="flex size-11 shrink-0 items-center justify-center rounded bg-background text-primary shadow-sm"><History className="size-5" aria-hidden="true" /></span>
-          <div><p className="text-xs font-bold uppercase tracking-[0.12em] text-primary">Recorded attempts</p><h3 id="assessment-history-title" className="mt-1 font-display text-2xl font-semibold">Your assessment timeline</h3><p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">Choose a completed attempt to open its interest profile and saved programme matches.</p></div>
+          <span className="flex size-11 shrink-0 items-center justify-center rounded bg-background text-primary-ink shadow-sm"><History className="size-5" aria-hidden="true" /></span>
+          <div><p className="text-xs font-bold uppercase tracking-[0.12em] text-primary-ink">Recorded attempts</p><h3 id="assessment-history-title" className="mt-1 font-display text-2xl font-semibold">Your assessment timeline</h3><p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">Choose a completed attempt to open its interest profile and saved programme matches.</p></div>
         </div>
         <Button type="button" variant="outline" className="shrink-0 bg-background" disabled={!lifecycle.can_retake || starting} onClick={() => setConfirmingRetake(true)}>
           <RotateCcw aria-hidden="true" />{starting ? 'Starting retake…' : retakeLabel}
@@ -327,11 +327,11 @@ function AssessmentHistorySummary({ history, historyError, lifecycle, selectedAt
               const isCurrentResult = item.id === latestCompletedId
               return (
                 <li key={item.id} className="relative before:absolute before:-left-[1.55rem] before:top-6 before:size-2 before:rounded-full before:bg-primary">
-                  <button type="button" disabled={item.status !== 'result_available'} aria-pressed={isSelected} onClick={() => item.id && void onSelectAttempt(item.id)} className={`group min-h-32 w-full rounded-xl p-4 text-left shadow-sm transition duration-200 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/40 motion-reduce:transform-none motion-reduce:transition-none ${isSelected ? 'bg-brand-dark text-white' : 'bg-secondary/55 hover:bg-primary-fixed/55 disabled:cursor-default disabled:hover:bg-secondary/55'}`}>
-                    <span className="flex items-start justify-between gap-3"><span><span className={`text-xs font-extrabold uppercase tracking-[0.12em] ${isSelected ? 'text-white/70' : 'text-primary'}`}>Attempt {item.attempt_number}</span><span className="mt-2 block text-xl font-extrabold">{result?.topCode ?? assessmentStatusLabel(item.status)}</span></span>{item.status === 'result_available' ? <ChevronRight aria-hidden="true" className="size-5 transition-transform group-hover:translate-x-0.5" /> : <Clock3 aria-hidden="true" className="size-5 text-muted-foreground" />}</span>
-                    <span className={`mt-5 flex items-center gap-2 text-xs ${isSelected ? 'text-white/70' : 'text-muted-foreground'}`}><CalendarDays aria-hidden="true" className="size-4" />{formatAssessmentDate(item.result_available_at ?? item.started_at)}</span>
-                    {item.retake_reason ? <span className={`mt-3 line-clamp-2 block text-xs leading-5 ${isSelected ? 'text-white/80' : 'text-muted-foreground'}`}><strong>Reason:</strong> {item.retake_reason}</span> : null}
-                    <span className="mt-3 flex flex-wrap gap-2">{isCurrent && item.status !== 'result_available' ? <span className={`rounded-full px-2.5 py-1 text-[10px] font-extrabold ${isSelected ? 'bg-white/15' : 'bg-primary/10 text-primary'}`}>Current attempt</span> : null}{isCurrentResult ? <span className={`rounded-full px-2.5 py-1 text-[10px] font-extrabold ${isSelected ? 'bg-white/15' : 'bg-success/15 text-foreground'}`}>Current result</span> : null}{!isCurrentResult && item.status === 'result_available' ? <span className="rounded-full bg-background px-2.5 py-1 text-[10px] font-bold text-muted-foreground">Previous result</span> : null}</span>
+                  <button type="button" disabled={item.status !== 'result_available'} aria-pressed={isSelected} onClick={() => item.id && void onSelectAttempt(item.id)} className={`group min-h-32 w-full rounded-xl p-4 text-left shadow-sm transition duration-200 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/40 motion-reduce:transform-none motion-reduce:transition-none ${isSelected ? 'bg-brand-dark text-primary-foreground' : 'bg-secondary/55 hover:bg-primary-fixed/55 disabled:cursor-default disabled:hover:bg-secondary/55'}`}>
+                    <span className="flex items-start justify-between gap-3"><span><span className={`text-xs font-extrabold uppercase tracking-[0.12em] ${isSelected ? 'text-primary-foreground/75' : 'text-primary-ink'}`}>Attempt {item.attempt_number}</span><span className="mt-2 block text-xl font-extrabold">{result?.topCode ?? assessmentStatusLabel(item.status)}</span></span>{item.status === 'result_available' ? <ChevronRight aria-hidden="true" className="size-5 transition-transform group-hover:translate-x-0.5" /> : <Clock3 aria-hidden="true" className="size-5 text-muted-foreground" />}</span>
+                    <span className={`mt-5 flex items-center gap-2 text-xs ${isSelected ? 'text-primary-foreground/75' : 'text-muted-foreground'}`}><CalendarDays aria-hidden="true" className="size-4" />{formatAssessmentDate(item.result_available_at ?? item.started_at)}</span>
+                    {item.retake_reason ? <span className={`mt-3 line-clamp-2 block text-xs leading-5 ${isSelected ? 'text-primary-foreground/85' : 'text-muted-foreground'}`}><strong>Reason:</strong> {item.retake_reason}</span> : null}
+                    <span className="mt-3 flex flex-wrap gap-2">{isCurrent && item.status !== 'result_available' ? <span className={`rounded-full px-2.5 py-1 text-[10px] font-extrabold ${isSelected ? 'bg-white/15' : 'bg-primary/10 text-primary-ink'}`}>Current attempt</span> : null}{isCurrentResult ? <span className={`rounded-full px-2.5 py-1 text-[10px] font-extrabold ${isSelected ? 'bg-white/15' : 'bg-success/15 text-foreground'}`}>Current result</span> : null}{!isCurrentResult && item.status === 'result_available' ? <span className="rounded-full bg-background px-2.5 py-1 text-[10px] font-bold text-muted-foreground">Previous result</span> : null}</span>
                   </button>
                 </li>
               )
@@ -340,7 +340,7 @@ function AssessmentHistorySummary({ history, historyError, lifecycle, selectedAt
         ) : <LoadingState title="Loading assessment history" description="Restoring your recorded attempts." />}
 
         <div className="min-w-0 lg:sticky lg:top-24">
-          {selectedAttempt ? <HistoricalAttemptDetails attempt={selectedAttempt} previousAttempt={previousCompletedAttempt} recommendation={selectedRecommendation} recommendationState={selectedRecommendationState} /> : <div className="flex min-h-72 flex-col justify-between rounded-2xl bg-primary-fixed/45 p-6 sm:p-8"><span className="flex size-12 items-center justify-center rounded-xl bg-primary text-primary-foreground"><History className="size-5" aria-hidden="true" /></span><div className="mt-12"><p className="text-xs font-bold uppercase tracking-[0.13em] text-primary">Recorded evidence</p><h4 className="mt-2 font-display text-2xl font-bold">Select a completed attempt</h4><p className="mt-3 max-w-xl text-sm leading-6 text-muted-foreground">Open an attempt from the timeline to review its recorded interest profile and programme matches here.</p>{history ? <p className="mt-5 text-sm font-semibold text-primary">{history.attempts.length} recorded {history.attempts.length === 1 ? 'attempt' : 'attempts'}</p> : null}</div></div>}
+          {selectedAttempt ? <HistoricalAttemptDetails attempt={selectedAttempt} previousAttempt={previousCompletedAttempt} recommendation={selectedRecommendation} recommendationState={selectedRecommendationState} /> : <div className="flex min-h-72 flex-col justify-between rounded-2xl bg-primary-fixed/45 p-6 sm:p-8"><span className="flex size-12 items-center justify-center rounded-xl bg-primary text-primary-foreground"><History className="size-5" aria-hidden="true" /></span><div className="mt-12"><p className="text-xs font-bold uppercase tracking-[0.13em] text-primary-ink">Recorded evidence</p><h4 className="mt-2 font-display text-2xl font-bold">Select a completed attempt</h4><p className="mt-3 max-w-xl text-sm leading-6 text-muted-foreground">Open an attempt from the timeline to review its recorded interest profile and programme matches here.</p>{history ? <p className="mt-5 text-sm font-semibold text-primary-ink">{history.attempts.length} recorded {history.attempts.length === 1 ? 'attempt' : 'attempts'}</p> : null}</div></div>}
         </div>
         </div>
       </div>
@@ -359,7 +359,7 @@ function HistoricalAttemptDetails({ attempt, previousAttempt, recommendation, re
 
   return (
     <div className="rounded-2xl bg-secondary/55 p-5 sm:p-7" aria-live="polite">
-      <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between"><div><p className="text-xs font-extrabold uppercase tracking-[0.12em] text-primary">Attempt {attempt.attempt_number} result</p><h4 className="mt-2 text-2xl font-extrabold">{result.topLabels.join(' and ')}</h4><p className="mt-2 text-sm text-muted-foreground">Completed {result.availableAt}</p><p className="mt-1 text-xs text-muted-foreground">Assessment version: {result.assessmentVersion}</p></div><div className="rounded-2xl bg-brand-dark px-5 py-4 text-white"><p className="text-[10px] font-bold uppercase tracking-[0.12em] text-brand-soft">Top code</p><p className="mt-1 text-3xl font-extrabold">{result.topCode}</p></div></div>
+      <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between"><div><p className="text-xs font-extrabold uppercase tracking-[0.12em] text-primary-ink">Attempt {attempt.attempt_number} result</p><h4 className="mt-2 text-2xl font-extrabold">{result.topLabels.join(' and ')}</h4><p className="mt-2 text-sm text-muted-foreground">Completed {result.availableAt}</p><p className="mt-1 text-xs text-muted-foreground">Assessment version: {result.assessmentVersion}</p></div><div className="rounded-2xl bg-brand-dark px-5 py-4 text-primary-foreground"><p className="text-[10px] font-bold uppercase tracking-[0.12em] text-primary-foreground/75">Top code</p><p className="mt-1 text-3xl font-extrabold">{result.topCode}</p></div></div>
       <dl className="mt-5 grid grid-cols-3 gap-2 sm:grid-cols-6">{result.dimensions.map((dimension) => <div key={dimension.code} className="rounded-xl bg-background p-3 text-center shadow-sm"><dt className="text-xs font-bold text-muted-foreground">{dimension.code}</dt><dd className="mt-1 text-xl font-extrabold">{dimension.value}</dd></div>)}</dl>
       {previousResult ? (
         <section aria-labelledby={`attempt-${attempt.id}-comparison`} className="mt-6">
@@ -381,7 +381,7 @@ function HistoricalAttemptDetails({ attempt, previousAttempt, recommendation, re
           </dl>
         </section>
       ) : null}
-      <div className="mt-6"><h5 className="font-extrabold">Programme matches from this attempt</h5>{recommendationState === 'loading' ? <LoadingState className="mt-3" title="Loading saved matches" description="Connecting this attempt to its recommendation record." /> : null}{recommendationState === 'error' ? <p role="alert" className="mt-3 rounded-xl bg-destructive/10 p-4 text-sm font-bold text-destructive">The saved programme matches could not be loaded.</p> : null}{recommendationState === 'idle' && courses.length > 0 ? <ol className="mt-3 grid gap-3 md:grid-cols-3">{courses.map((course) => <li key={course.id} className="rounded-2xl bg-background p-4 shadow-sm"><div className="flex items-center justify-between gap-3"><span className="text-xs font-extrabold text-primary">#{course.rank} · {course.code}</span><span className="text-lg font-extrabold text-primary">{course.match}%</span></div><p className="mt-2 font-extrabold">{course.name}</p></li>)}</ol> : null}{recommendationState === 'idle' && courses.length === 0 ? <p className="mt-3 text-sm text-muted-foreground">No saved programme matches are available for this attempt.</p> : null}</div>
+      <div className="mt-6"><h5 className="font-extrabold">Programme matches from this attempt</h5>{recommendationState === 'loading' ? <LoadingState className="mt-3" title="Loading saved matches" description="Connecting this attempt to its recommendation record." /> : null}{recommendationState === 'error' ? <p role="alert" className="mt-3 rounded-xl bg-destructive/10 p-4 text-sm font-bold text-destructive-ink">The saved programme matches could not be loaded.</p> : null}{recommendationState === 'idle' && courses.length > 0 ? <ol className="mt-3 grid gap-3 md:grid-cols-3">{courses.map((course) => <li key={course.id} className="rounded-2xl bg-background p-4 shadow-sm"><div className="flex items-center justify-between gap-3"><span className="text-xs font-extrabold text-primary-ink">#{course.rank} · {course.code}</span><span className="text-lg font-extrabold text-primary-ink">{course.match}%</span></div><p className="mt-2 font-extrabold">{course.name}</p></li>)}</ol> : null}{recommendationState === 'idle' && courses.length === 0 ? <p className="mt-3 text-sm text-muted-foreground">No saved programme matches are available for this attempt.</p> : null}</div>
     </div>
   )
 }
@@ -397,18 +397,18 @@ function CourseDirectionPanel({ course, generatedAt, wide = false, onOpen }: { c
       {course ? (
         <div className="grid min-h-[17rem] sm:grid-cols-[minmax(0,1fr)_13rem]">
           <div className="flex min-w-0 flex-col p-5 sm:p-6">
-            <p className="flex items-center gap-2 font-label text-xs font-semibold uppercase tracking-[0.14em] text-primary"><Target className="size-4" aria-hidden="true" />Your top course match</p>
-            <h3 id="course-direction-title" className="mt-3 max-w-xl font-display text-2xl font-bold leading-tight tracking-[-0.03em] text-primary sm:text-[1.75rem]">{course.name}</h3>
+            <p className="flex items-center gap-2 font-label text-xs font-semibold uppercase tracking-[0.14em] text-primary-ink"><Target className="size-4" aria-hidden="true" />Your top course match</p>
+            <h3 id="course-direction-title" className="mt-3 max-w-xl font-display text-2xl font-bold leading-tight tracking-[-0.03em] text-primary-ink sm:text-[1.75rem]">{course.name}</h3>
             <p className="mt-3 max-w-xl text-sm leading-6 text-muted-foreground">{course.summary}</p>
 
             <div className="mt-5 bg-secondary/55 p-3.5">
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Recommended programme</p>
-                  <p className="mt-1 text-sm font-bold text-primary">#{course.rank} <span aria-hidden="true">·</span> {course.code}</p>
+                  <p className="mt-1 text-sm font-bold text-primary-ink">#{course.rank} <span aria-hidden="true">·</span> {course.code}</p>
                 </div>
                 <div className="shrink-0 text-right">
-                  <p className="font-display text-2xl font-bold leading-none text-primary">{course.match}%</p>
+                  <p className="font-display text-2xl font-bold leading-none text-primary-ink">{course.match}%</p>
                   <p className="mt-1 text-[10px] font-medium text-muted-foreground">Course match</p>
                 </div>
               </div>
@@ -426,19 +426,19 @@ function CourseDirectionPanel({ course, generatedAt, wide = false, onOpen }: { c
 
             <div className="mt-4 flex flex-wrap items-center justify-between gap-x-5 gap-y-3">
               {generatedAt ? <p className="flex items-center gap-2 text-xs text-muted-foreground"><CalendarDays className="size-3.5" aria-hidden="true" />Updated {formatAssessmentDate(generatedAt)}</p> : <span />}
-              <Button data-print-hidden type="button" variant="link" onClick={onOpen} className="h-auto w-fit p-0 text-primary">
+              <Button data-print-hidden type="button" variant="link" onClick={onOpen} className="h-auto w-fit p-0 text-primary-ink">
                 View all matches <ArrowRight aria-hidden="true" />
               </Button>
             </div>
           </div>
           <div className="relative min-h-48 overflow-hidden bg-secondary sm:m-4 sm:ml-0" aria-hidden="true">
-            {cover ? <img src={cover} alt="" className="absolute inset-0 size-full object-cover" /> : <BookOpenCheck className="absolute inset-0 m-auto size-20 text-primary/25" />}
+            {cover ? <img src={cover} alt="" className="absolute inset-0 size-full object-cover" /> : <BookOpenCheck className="absolute inset-0 m-auto size-20 text-primary-ink/25" />}
             <div className="absolute inset-0 bg-gradient-to-t from-primary/25 via-transparent to-transparent" />
           </div>
         </div>
       ) : (
         <div className="min-h-[15rem] p-5 sm:p-6">
-          <p className="flex items-center gap-2 font-label text-xs font-semibold uppercase tracking-[0.14em] text-primary"><Compass className="size-4" aria-hidden="true" />Course direction</p>
+          <p className="flex items-center gap-2 font-label text-xs font-semibold uppercase tracking-[0.14em] text-primary-ink"><Compass className="size-4" aria-hidden="true" />Course direction</p>
           <h3 id="course-direction-title" className="mt-2 font-display text-2xl font-semibold">Your strongest match will appear here</h3>
           <p className="mt-3 max-w-xl text-sm leading-6 text-muted-foreground">Complete the interest assessment to generate course matches from the current TCC catalogue.</p>
         </div>
@@ -491,8 +491,8 @@ function AssessmentLifecycleCard({ lifecycle, hasCompletedResult, onOpenAssessme
   return (
     <section data-print-hidden aria-labelledby="current-assessment-title" className="flex h-full flex-col overflow-hidden rounded-3xl border border-border bg-card shadow-[var(--shadow-card)] xl:col-span-5 xl:row-start-1">
       <div className="p-5 sm:p-6">
-        <span className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">{isPreparing ? <Clock3 className="size-5" /> : <ClipboardList className="size-5" />}</span>
-        <p className="mt-3 font-label text-xs font-semibold uppercase tracking-[0.12em] text-primary">Your current assessment</p>
+        <span className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary-ink">{isPreparing ? <Clock3 className="size-5" /> : <ClipboardList className="size-5" />}</span>
+        <p className="mt-3 font-label text-xs font-semibold uppercase tracking-[0.12em] text-primary-ink">Your current assessment</p>
         <h2 id="current-assessment-title" className="mt-2 font-display text-2xl font-semibold">{heading}</h2>
         <p className="mt-2 text-sm leading-6 text-muted-foreground">{description}</p>
         {isProgress && !isEmptyRetake ? <div className="mt-5 max-w-xl"><div className="flex justify-between text-sm font-bold"><span>{hasCompletedResult ? 'Retake progress' : 'Assessment progress'}</span><span>{progress}%</span></div><div role="progressbar" aria-label="Saved assessment progress" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress} className="mt-2 h-2 overflow-hidden rounded-full bg-secondary"><div className="h-full bg-primary" style={{ width: `${progress}%` }} /></div></div> : null}

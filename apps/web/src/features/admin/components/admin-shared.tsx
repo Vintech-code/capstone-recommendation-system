@@ -24,7 +24,7 @@ function AdminPageHeader({
               className="h-7 w-1 rounded-full bg-secondary-container"
               aria-hidden="true"
             />
-            <p className="font-label text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+            <p className="font-label text-xs font-semibold uppercase tracking-[0.18em] text-primary-ink">
               {eyebrow}
             </p>
           </div>
@@ -76,7 +76,7 @@ function AdminPageError({
       role="alert"
       className="flex min-h-72 flex-col items-center justify-center rounded-3xl border border-border bg-card px-6 text-center shadow-[var(--shadow-card)]"
     >
-      <span className="flex size-12 items-center justify-center rounded-lg bg-destructive/10 text-destructive">
+      <span className="flex size-12 items-center justify-center rounded-lg bg-destructive/10 text-destructive-ink">
         <AlertCircle aria-hidden="true" />
       </span>
       <h1 className="mt-4 font-display text-2xl font-semibold">

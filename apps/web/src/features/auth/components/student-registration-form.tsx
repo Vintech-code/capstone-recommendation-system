@@ -70,7 +70,7 @@ function StudentRegistrationForm({ onRegister }: StudentRegistrationFormProps) {
       {errors.root ? (
         <div
           role="alert"
-          className="rounded-lg bg-destructive/8 px-4 py-3 text-sm font-semibold text-destructive"
+          className="rounded-lg bg-destructive/8 px-4 py-3 text-sm font-semibold text-destructive-ink"
         >
           {errors.root.message}
         </div>

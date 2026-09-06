@@ -18,7 +18,7 @@ function StudentBreadcrumbs({
           <button
             type="button"
             onClick={onParentSelect}
-            className="min-h-11 rounded px-2 font-medium text-primary hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
+            className="min-h-11 rounded px-2 font-medium text-primary-ink hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
           >
             {parentLabel}
           </button>

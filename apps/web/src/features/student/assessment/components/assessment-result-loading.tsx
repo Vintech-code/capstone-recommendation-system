@@ -12,7 +12,7 @@ function AssessmentResultLoading() {
           <span className="absolute inset-[2.65rem] rounded-full bg-card shadow-[var(--shadow-card)] sm:inset-12" />
         </div>
 
-        <p className="mt-8 text-xs font-bold uppercase tracking-[0.16em] text-primary">
+        <p className="mt-8 text-xs font-bold uppercase tracking-[0.16em] text-primary-ink">
           Assessment complete
         </p>
         <h1

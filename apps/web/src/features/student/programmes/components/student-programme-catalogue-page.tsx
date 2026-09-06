@@ -220,8 +220,6 @@ function StudentProgrammeCataloguePage({ initialCatalogue, matchContext = [] }: 
           alt=""
           className="absolute inset-0 -z-20 size-full object-cover object-center"
         />
-        <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-r from-primary/80 via-primary/35 to-transparent" />
-        <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-t from-primary/35 via-transparent to-white/5" />
         <div className="student-page py-12 sm:py-16 lg:py-20">
           <div className="max-w-2xl">
           <p className="flex items-center gap-3 font-label text-xs font-semibold uppercase tracking-[0.16em] text-secondary-fixed sm:text-sm">
@@ -240,13 +238,13 @@ function StudentProgrammeCataloguePage({ initialCatalogue, matchContext = [] }: 
         <aside aria-labelledby="programme-filters-title" className="rounded-xl bg-secondary p-5 shadow-sm lg:sticky lg:top-24">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
-              <SlidersHorizontal aria-hidden="true" className="size-5 text-primary" />
+              <SlidersHorizontal aria-hidden="true" className="size-5 text-primary-ink" />
               <h2 id="programme-filters-title" className="font-display text-xl font-semibold">Filters</h2>
             </div>
             <button
               type="button"
               onClick={() => { setSelectedCategories([]); setSelectedRiasec([]); setSelectedStrands([]); setDurationFilter('all'); setSavedOnly(false); setQuery(''); setVisibleCount(programmesPerBatch) }}
-              className="min-h-11 text-sm font-semibold text-primary hover:underline"
+              className="min-h-11 text-sm font-semibold text-primary-ink hover:underline"
             >
               Clear all
             </button>
@@ -269,7 +267,7 @@ function StudentProgrammeCataloguePage({ initialCatalogue, matchContext = [] }: 
                       }}
                       className="size-4 rounded accent-primary"
                     />
-                    <category.icon aria-hidden="true" className="size-4 text-primary" />
+                    <category.icon aria-hidden="true" className="size-4 text-primary-ink" />
                     <span>{category.title}</span>
                   </label>
                 )
@@ -292,7 +290,7 @@ function StudentProgrammeCataloguePage({ initialCatalogue, matchContext = [] }: 
                       }}
                       className="peer sr-only"
                     />
-                    <span className="flex min-h-9 items-center justify-center rounded border border-outline-variant bg-card text-sm font-bold text-primary transition peer-checked:border-primary peer-checked:bg-primary peer-checked:text-primary-foreground peer-focus-visible:ring-3 peer-focus-visible:ring-ring/30">
+                    <span className="flex min-h-9 items-center justify-center rounded border border-outline-variant bg-card text-sm font-bold text-primary-ink transition peer-checked:border-primary peer-checked:bg-primary peer-checked:text-primary-foreground peer-focus-visible:ring-3 peer-focus-visible:ring-ring/30">
                       {code}
                     </span>
                   </label>
@@ -343,7 +341,7 @@ function StudentProgrammeCataloguePage({ initialCatalogue, matchContext = [] }: 
                 onChange={(event) => { setSavedOnly(event.target.checked); setVisibleCount(programmesPerBatch) }}
                 className="size-4 rounded accent-primary"
               />
-              <BookmarkCheck aria-hidden="true" className="size-4 text-primary" />
+              <BookmarkCheck aria-hidden="true" className="size-4 text-primary-ink" />
               Show saved only
             </label>
           </div>
@@ -419,7 +417,7 @@ function StudentProgrammeCataloguePage({ initialCatalogue, matchContext = [] }: 
               </p>
             </div>
           ) : null}
-          {saveError ? <p role="alert" className="mt-5 rounded-lg bg-destructive/10 p-4 text-sm font-medium text-destructive">{saveError}</p> : null}
+          {saveError ? <p role="alert" className="mt-5 rounded-lg bg-destructive/10 p-4 text-sm font-medium text-destructive-ink">{saveError}</p> : null}
         </main>
       </div>
 
@@ -492,14 +490,14 @@ function ProgrammeCard({
           aria-pressed={saved}
           aria-label={saved ? `Remove ${programme.name} from saved programmes` : `Save ${programme.name}`}
           onClick={onToggleSaved}
-          className="absolute right-4 top-4 z-20 flex size-11 items-center justify-center rounded-full bg-card/95 text-primary shadow-sm focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/40"
+          className="absolute right-4 top-4 z-20 flex size-11 items-center justify-center rounded-full bg-card/95 text-primary-ink shadow-sm focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/40"
         >
           {saved ? <BookmarkCheck aria-hidden="true" className="size-5" /> : <Bookmark aria-hidden="true" className="size-5" />}
         </button>
         <span className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/55 to-transparent" />
       </div>
       <div className="flex min-w-0 flex-1 flex-col p-5">
-        <h3 className="font-display text-xl font-bold leading-7 transition-colors group-hover:text-primary">
+        <h3 className="font-display text-xl font-bold leading-7 transition-colors group-hover:text-primary-ink">
           {programme.name}
         </h3>
         <p className="mt-2 line-clamp-2 text-sm leading-6 text-muted-foreground">{programme.description}</p>
@@ -513,21 +511,21 @@ function ProgrammeCard({
 
         <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 text-xs">
           <div className="min-w-0">
-            <dt className="flex items-center gap-1.5 text-muted-foreground"><ShieldCheck aria-hidden="true" className="size-4 text-primary" />Programme type</dt>
+            <dt className="flex items-center gap-1.5 text-muted-foreground"><ShieldCheck aria-hidden="true" className="size-4 text-primary-ink" />Programme type</dt>
             <dd className="mt-1 truncate font-semibold">{programme.eligibilityGroup === 'non_board' ? 'Non-board programme' : 'Board programme'}</dd>
           </div>
           <div className="min-w-0">
-            <dt className="flex items-center gap-1.5 text-muted-foreground"><BriefcaseBusiness aria-hidden="true" className="size-4 text-primary" />Career directions</dt>
+            <dt className="flex items-center gap-1.5 text-muted-foreground"><BriefcaseBusiness aria-hidden="true" className="size-4 text-primary-ink" />Career directions</dt>
             <dd className="mt-1 truncate font-semibold">{programme.careerDirections.length > 0 ? `${programme.careerDirections.length} to explore` : 'Not configured'}</dd>
           </div>
         </dl>
 
         <div className="mt-auto grid grid-cols-2 gap-3 border-t border-outline-variant/45 pt-4 text-xs">
           <span className="font-semibold">
-            <span className="flex items-center gap-1.5" title={programme.duration?.source_name}><Clock3 aria-hidden="true" className="size-4 text-primary" />{programme.duration?.display || 'Not published'}</span>
-            {programme.duration?.source_url ? <a href={programme.duration.source_url} target="_blank" rel="noreferrer" className="relative z-20 mt-1 inline-block text-[11px] text-primary underline underline-offset-4">CHED source</a> : null}
+            <span className="flex items-center gap-1.5" title={programme.duration?.source_name}><Clock3 aria-hidden="true" className="size-4 text-primary-ink" />{programme.duration?.display || 'Not published'}</span>
+            {programme.duration?.source_url ? <a href={programme.duration.source_url} target="_blank" rel="noreferrer" className="relative z-20 mt-1 inline-block text-[11px] text-primary-ink underline underline-offset-4">CHED source</a> : null}
           </span>
-          <span className="flex items-center justify-end gap-1.5 truncate text-right text-muted-foreground"><GraduationCap aria-hidden="true" className="size-4 shrink-0 text-primary" />{programme.degreeType || 'Not published'}</span>
+          <span className="flex items-center justify-end gap-1.5 truncate text-right text-muted-foreground"><GraduationCap aria-hidden="true" className="size-4 shrink-0 text-primary-ink" />{programme.degreeType || 'Not published'}</span>
         </div>
         <Button
           type="button"
@@ -598,11 +596,11 @@ function StudentProgrammeDetail({ programme, academicYear, onBack }: { programme
             {facts.map((fact) => (
               <div key={fact.label} className="min-w-0">
                 <dt className="flex items-center gap-1.5 font-label text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
-                  <fact.icon aria-hidden="true" className="size-3.5 text-primary" />
+                  <fact.icon aria-hidden="true" className="size-3.5 text-primary-ink" />
                   {fact.label}
                 </dt>
                 <dd className="mt-1.5">
-                  <span className={`block font-display text-base font-bold sm:text-lg ${fact.accent ? 'text-primary' : 'text-foreground'}`}>
+                  <span className={`block font-display text-base font-bold sm:text-lg ${fact.accent ? 'text-primary-ink' : 'text-foreground'}`}>
                     {fact.value}
                   </span>
                 </dd>
@@ -612,7 +610,7 @@ function StudentProgrammeDetail({ programme, academicYear, onBack }: { programme
 
           <section aria-labelledby="learning-title" className="space-y-3.5">
             <div className="flex items-center gap-2.5">
-              <BookOpen aria-hidden="true" className="size-5 text-primary" />
+              <BookOpen aria-hidden="true" className="size-5 text-primary-ink" />
               <div>
                 <p className="font-label text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Programme overview</p>
                 <h2 id="learning-title" className="font-display text-lg font-bold text-foreground sm:text-xl">Learning areas</h2>
@@ -655,7 +653,7 @@ function StudentProgrammeDetail({ programme, academicYear, onBack }: { programme
           {recommendedStrands.length > 0 ? (
             <section aria-labelledby="strand-title" className="space-y-3.5">
               <div className="flex items-center gap-2.5">
-                <School aria-hidden="true" className="size-5 text-primary" />
+                <School aria-hidden="true" className="size-5 text-primary-ink" />
                 <div>
                   <p className="font-label text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Senior High preparation</p>
                   <h2 id="strand-title" className="font-display text-lg font-bold text-foreground sm:text-xl">Helpful tracks and strands</h2>
@@ -700,7 +698,7 @@ function StudentProgrammeDetail({ programme, academicYear, onBack }: { programme
                     <ul className="space-y-1.5">
                       {programme.majors.map((major) => (
                         <li key={major} className="flex items-center gap-2 text-xs font-medium text-foreground">
-                          <GraduationCap aria-hidden="true" className="size-3.5 shrink-0 text-primary" />
+                          <GraduationCap aria-hidden="true" className="size-3.5 shrink-0 text-primary-ink" />
                           {major}
                         </li>
                       ))}

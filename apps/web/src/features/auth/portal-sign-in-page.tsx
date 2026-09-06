@@ -72,7 +72,7 @@ function PortalSignInPage({ role }: PortalSignInPageProps) {
       <p className="mt-4 text-right text-sm">
         <Link
           to={`/forgot-password?portal=${role}`}
-          className="font-bold text-primary underline-offset-4 hover:underline"
+          className="font-bold text-primary-ink underline-offset-4 hover:underline"
         >
           Forgot password?
         </Link>
@@ -83,7 +83,7 @@ function PortalSignInPage({ role }: PortalSignInPageProps) {
           {googleError ? (
             <p
               role="alert"
-              className="mt-5 rounded-xl bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive"
+              className="mt-5 rounded-xl bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive-ink"
             >
               {googleErrorMessages[googleError] ?? googleErrorMessages.oauth_failed}
             </p>
@@ -111,7 +111,7 @@ function PortalSignInPage({ role }: PortalSignInPageProps) {
           Don&apos;t have an account?{' '}
           <Link
             to="/student/register"
-            className="font-extrabold text-primary underline-offset-4 hover:underline"
+            className="font-extrabold text-primary-ink underline-offset-4 hover:underline"
           >
             Create an account
           </Link>

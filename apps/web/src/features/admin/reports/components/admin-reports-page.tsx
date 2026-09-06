@@ -120,7 +120,7 @@ export function AdminReportsPage() {
           Clear
         </Button>
         {invalid ? (
-          <p role="alert" className="text-sm text-destructive sm:col-span-4">
+          <p role="alert" className="text-sm text-destructive-ink sm:col-span-4">
             The end date must be on or after the start date.
           </p>
         ) : null}
@@ -256,7 +256,7 @@ function SectionHeading({
 }) {
   return (
     <div>
-      <p className="font-label text-xs font-bold uppercase tracking-[0.15em] text-primary">
+      <p className="font-label text-xs font-bold uppercase tracking-[0.15em] text-primary-ink">
         {eyebrow}
       </p>
       <h2

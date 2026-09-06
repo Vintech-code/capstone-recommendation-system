@@ -78,7 +78,7 @@ function ApplicationStatePage({
         {kind === 'not-found' ? (
           <Suspense
             fallback={(
-              <div className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-primary/8 text-primary">
+              <div className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-primary/8 text-primary-ink">
                 <content.icon aria-hidden="true" className="size-6" />
               </div>
             )}
@@ -86,11 +86,11 @@ function ApplicationStatePage({
             <NotFoundAnimation />
           </Suspense>
         ) : (
-          <div className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-primary/8 text-primary">
+          <div className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-primary/8 text-primary-ink">
             <content.icon aria-hidden="true" className="size-6" />
           </div>
         )}
-        <p className={kind === 'not-found' ? 'mt-2 text-xs font-bold uppercase tracking-[0.14em] text-primary' : 'mt-7 text-xs font-bold uppercase tracking-[0.14em] text-primary'}>
+        <p className={kind === 'not-found' ? 'mt-2 text-xs font-bold uppercase tracking-[0.14em] text-primary-ink' : 'mt-7 text-xs font-bold uppercase tracking-[0.14em] text-primary-ink'}>
           {content.eyebrow}
         </p>
         <h1

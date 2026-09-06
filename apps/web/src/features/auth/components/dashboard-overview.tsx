@@ -47,14 +47,14 @@ function DashboardOverview({
         >
           <div className="flex items-center justify-between gap-4">
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.12em] text-primary">
+              <p className="text-xs font-bold uppercase tracking-[0.12em] text-primary-ink">
                 Core workflow
               </p>
               <h2 id="workflow-title" className="mt-2 text-xl font-extrabold">
                 {definition.workflowTitle}
               </h2>
             </div>
-            <span className="flex size-10 items-center justify-center rounded-xl bg-primary/8 text-primary">
+            <span className="flex size-10 items-center justify-center rounded-xl bg-primary/8 text-primary-ink">
               <Activity aria-hidden="true" className="size-4.5" />
             </span>
           </div>
@@ -63,7 +63,7 @@ function DashboardOverview({
             {definition.workflow.map((step, index) => (
               <li key={step} className="relative">
                 <div className="rounded-xl bg-secondary/60 p-4">
-                  <span className="text-[10px] font-extrabold text-primary">
+                  <span className="text-[10px] font-extrabold text-primary-ink">
                     {String(index + 1).padStart(2, '0')}
                   </span>
                   <p className="mt-8 text-sm font-bold leading-5">{step}</p>
@@ -81,9 +81,9 @@ function DashboardOverview({
 
         <section
           aria-labelledby="access-title"
-          className="rounded-2xl bg-brand-dark p-5 text-white shadow-sm sm:p-6"
+          className="rounded-2xl bg-brand-dark p-5 text-primary-foreground shadow-sm sm:p-6"
         >
-          <ShieldCheck aria-hidden="true" className="size-5 text-brand-soft" />
+          <ShieldCheck aria-hidden="true" className="size-5 text-primary-foreground" />
           <h2 id="access-title" className="mt-8 text-lg font-extrabold">
             Access & responsibility
           </h2>
@@ -91,7 +91,7 @@ function DashboardOverview({
             {definition.accessFacts.map((fact) => (
               <li
                 key={fact}
-                className="flex items-start gap-3 text-xs leading-5 text-white/65"
+                className="flex items-start gap-3 text-xs leading-5 text-primary-foreground/80"
               >
                 <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-brand-soft" />
                 {fact}
@@ -156,14 +156,14 @@ function ModuleGrid({
               onClick={() => onSelect(module.id)}
               className="group min-h-48 rounded-2xl bg-background p-5 text-left shadow-sm transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/40"
             >
-              <span className="flex size-10 items-center justify-center rounded-xl bg-primary/8 text-primary">
+              <span className="flex size-10 items-center justify-center rounded-xl bg-primary/8 text-primary-ink">
                 <module.icon aria-hidden="true" className="size-4.5" />
               </span>
               <h3 className="mt-8 font-extrabold">{module.title}</h3>
               <p className="mt-2 text-xs leading-5 text-muted-foreground">
                 {module.description}
               </p>
-              <span className="mt-5 inline-flex items-center gap-1 text-xs font-bold text-primary">
+              <span className="mt-5 inline-flex items-center gap-1 text-xs font-bold text-primary-ink">
                 Open module
                 <ChevronRight
                   aria-hidden="true"
@@ -204,10 +204,10 @@ function ModuleView({
       </Button>
 
       <div className="mt-6 rounded-2xl bg-background p-6 shadow-sm sm:p-8">
-        <span className="flex size-12 items-center justify-center rounded-xl bg-primary/8 text-primary">
+        <span className="flex size-12 items-center justify-center rounded-xl bg-primary/8 text-primary-ink">
           <module.icon aria-hidden="true" className="size-5" />
         </span>
-        <p className="mt-8 text-xs font-bold uppercase tracking-[0.14em] text-primary">
+        <p className="mt-8 text-xs font-bold uppercase tracking-[0.14em] text-primary-ink">
           Workspace module
         </p>
         <h1 className="mt-2 text-3xl font-extrabold tracking-[-0.04em]">

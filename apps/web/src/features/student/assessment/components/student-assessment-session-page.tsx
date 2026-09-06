@@ -462,7 +462,7 @@ function StudentAssessmentSessionPage({
 
       {connectionState === "offline" ? (
         <Alert className="student-page mt-6 border-warning/30 bg-warning/8">
-          <CloudOff aria-hidden="true" className="text-warning" />
+          <CloudOff aria-hidden="true" className="text-warning-ink" />
           <AlertTitle>You are working offline</AlertTitle>
           <AlertDescription>
             <p>
@@ -611,7 +611,7 @@ function EntranceExaminationGate({
         {/* CENTER MAIN CARD */}
         <div className="w-full rounded-3xl border border-border bg-card p-6 text-center shadow-[var(--shadow-card)] sm:p-8">
           {/* Top Circle Icon */}
-          <div className="mx-auto mb-3 flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+          <div className="mx-auto mb-3 flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary-ink">
             <GraduationCap aria-hidden="true" className="size-6" />
           </div>
 
@@ -647,7 +647,7 @@ function EntranceExaminationGate({
             <div className="relative mt-2">
               <BarChart3
                 aria-hidden="true"
-                className="absolute left-4 top-1/2 size-5 -translate-y-1/2 text-primary"
+                className="absolute left-4 top-1/2 size-5 -translate-y-1/2 text-primary-ink"
               />
               <Input
                 id="entrance-examination-score"
@@ -675,7 +675,7 @@ function EntranceExaminationGate({
             >
               <span>Allowed range: 1.0 – 5.0</span>
               {group ? (
-                <span className="inline-flex items-center rounded-full bg-primary-fixed px-3 py-1 font-label text-xs font-semibold text-primary">
+                <span className="inline-flex items-center rounded-full bg-primary-fixed px-3 py-1 font-label text-xs font-semibold text-primary-ink">
                   {group}
                 </span>
               ) : null}
@@ -741,15 +741,15 @@ function CompletedAssessmentState({
           className="mt-6 overflow-hidden rounded-3xl border border-border bg-card shadow-[var(--shadow-card)]"
         >
           <div className="flex flex-col justify-center p-7 sm:p-10 lg:p-12">
-            <span className="flex size-11 items-center justify-center rounded bg-success/15 text-success">
+            <span className="flex size-11 items-center justify-center rounded bg-success/15 text-success-ink">
               <Check aria-hidden="true" className="size-5" />
             </span>
-            <p className="mt-5 font-label text-xs font-semibold uppercase tracking-[0.14em] text-primary">
+            <p className="mt-5 font-label text-xs font-semibold uppercase tracking-[0.14em] text-primary-ink">
               Assessment complete
             </p>
             <h2
               id="assessment-complete-title"
-              className="mt-2 max-w-2xl font-display text-3xl font-bold tracking-[-0.04em] text-primary sm:text-4xl"
+              className="mt-2 max-w-2xl font-display text-3xl font-bold tracking-[-0.04em] text-primary-ink sm:text-4xl"
             >
               Responses submitted successfully
             </h2>

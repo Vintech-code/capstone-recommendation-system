@@ -128,11 +128,11 @@ function StudentRecommendationDetailPage({
             {facts.map((fact) => (
               <div key={fact.label} className="min-w-0">
                 <dt className="flex items-center gap-1.5 font-label text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
-                  <fact.icon aria-hidden="true" className="size-3.5 text-primary" />
+                  <fact.icon aria-hidden="true" className="size-3.5 text-primary-ink" />
                   {fact.label}
                 </dt>
                 <dd className="mt-1.5">
-                  <span className={`block font-display text-base font-bold sm:text-lg ${fact.accent ? 'text-primary' : 'text-foreground'}`}>
+                  <span className={`block font-display text-base font-bold sm:text-lg ${fact.accent ? 'text-primary-ink' : 'text-foreground'}`}>
                     {fact.value}
                   </span>
                 </dd>
@@ -142,7 +142,7 @@ function StudentRecommendationDetailPage({
 
           <section aria-labelledby="learning-areas-title" className="space-y-3.5">
             <div className="flex items-center gap-2.5">
-              <BookOpen aria-hidden="true" className="size-5 text-primary" />
+              <BookOpen aria-hidden="true" className="size-5 text-primary-ink" />
               <div>
                 <p className="font-label text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Programme overview</p>
                 <h2 id="learning-areas-title" className="font-display text-lg font-bold text-foreground sm:text-xl">Core learning areas</h2>
@@ -173,7 +173,7 @@ function StudentRecommendationDetailPage({
 
           <section aria-labelledby="fit-reasons-title" className="space-y-3.5">
             <div className="flex items-center gap-2.5">
-              <Target aria-hidden="true" className="size-5 text-primary" />
+              <Target aria-hidden="true" className="size-5 text-primary-ink" />
               <div>
                 <p className="font-label text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Assessment connection</p>
                 <h2 id="fit-reasons-title" className="font-display text-lg font-bold tracking-tight text-foreground sm:text-xl">Why this fits you</h2>
@@ -218,11 +218,11 @@ function StudentRecommendationDetailPage({
                   className="text-accent"
                 />
               </svg>
-              <strong className="absolute inset-0 flex items-center justify-center font-display text-3xl font-bold text-primary tabular-nums">
+              <strong className="absolute inset-0 flex items-center justify-center font-display text-3xl font-bold text-primary-ink tabular-nums">
                 {course.match}%
               </strong>
             </div>
-            <p className="mt-3 text-center text-sm font-semibold text-primary">{fitLabel}</p>
+            <p className="mt-3 text-center text-sm font-semibold text-primary-ink">{fitLabel}</p>
             <p className="mt-2 text-center text-xs leading-5 text-muted-foreground sm:text-sm">
               Based on the interest profile recorded in your completed assessment.
             </p>

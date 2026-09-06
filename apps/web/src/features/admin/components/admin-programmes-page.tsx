@@ -238,7 +238,7 @@ function AdminProgrammeCard({
         ) : (
           <BookOpen
             aria-hidden="true"
-            className="absolute inset-0 m-auto size-16 text-primary/25"
+            className="absolute inset-0 m-auto size-16 text-primary-ink/25"
           />
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-primary/55 via-transparent to-transparent" />
@@ -255,7 +255,7 @@ function AdminProgrammeCard({
       <div className="p-5 sm:p-6">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary-ink">
               {programme.code}
             </p>
             <h3 className="mt-2 font-display text-xl font-semibold leading-7">
@@ -307,7 +307,7 @@ function AdminProgrammeCard({
               href={programme.duration.source_url}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex min-h-11 items-center gap-2 text-xs font-semibold text-primary underline underline-offset-4"
+              className="inline-flex min-h-11 items-center gap-2 text-xs font-semibold text-primary-ink underline underline-offset-4"
             >
               {programme.duration.source_name || "CHED source"}
               <ExternalLink aria-hidden="true" className="size-3" />
@@ -409,7 +409,7 @@ function AdminProgrammeSheet({
         </div>
         <div className="p-6">
           <SheetHeader>
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary-ink">
               {programme.code} · {programmeGroup(programme.id)}
             </p>
             <SheetTitle className="font-display text-3xl font-semibold">
@@ -465,7 +465,7 @@ function CardDatum({
   return (
     <div>
       <dt className="flex items-center gap-2 text-xs text-muted-foreground">
-        <Icon aria-hidden="true" className="size-4 text-primary" />
+        <Icon aria-hidden="true" className="size-4 text-primary-ink" />
         {label}
       </dt>
       <dd className="mt-1 font-semibold">{value}</dd>
@@ -492,11 +492,11 @@ function SourcePanel({
     <section className="mt-4 rounded-xl bg-secondary/80 p-4">
       <div className="flex items-start gap-3">
         {value.status === "ched_psg" ? (
-          <BookOpen aria-hidden="true" className="mt-0.5 size-5 text-primary" />
+          <BookOpen aria-hidden="true" className="mt-0.5 size-5 text-primary-ink" />
         ) : (
           <AlertTriangle
             aria-hidden="true"
-            className="mt-0.5 size-5 text-warning"
+            className="mt-0.5 size-5 text-warning-ink"
           />
         )}
         <div>
@@ -509,7 +509,7 @@ function SourcePanel({
               href={value.source_url}
               target="_blank"
               rel="noreferrer"
-              className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-primary underline underline-offset-4"
+              className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-primary-ink underline underline-offset-4"
             >
               {value.source_name || "Open source"}
               <ExternalLink aria-hidden="true" className="size-3" />

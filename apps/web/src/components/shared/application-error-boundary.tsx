@@ -64,10 +64,10 @@ class ApplicationErrorBoundary extends Component<
           aria-labelledby="application-error-title"
           className="w-full max-w-xl rounded-[1.75rem] border border-border bg-card p-7 text-center shadow-[var(--shadow-card)] sm:p-10"
         >
-          <span className="mx-auto flex size-14 items-center justify-center rounded bg-destructive/10 text-destructive">
+          <span className="mx-auto flex size-14 items-center justify-center rounded bg-destructive/10 text-destructive-ink">
             <AlertTriangle aria-hidden="true" className="size-7" />
           </span>
-          <p className="mt-6 font-label text-xs font-semibold uppercase tracking-[0.12em] text-destructive">
+          <p className="mt-6 font-label text-xs font-semibold uppercase tracking-[0.12em] text-destructive-ink">
             Application recovery
           </p>
           <h1

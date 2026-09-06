@@ -74,7 +74,7 @@ function StudentWorkspaceShell({
                       aria-current={visibleActiveId === item.id ? 'page' : undefined}
                       className={cn(
                         'relative flex min-h-12 w-full items-center justify-center rounded-xl px-0.5 text-muted-foreground focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-inset focus-visible:ring-ring/30 sm:px-1',
-                        visibleActiveId === item.id && 'bg-primary-fixed font-semibold text-primary',
+                        visibleActiveId === item.id && 'bg-primary-fixed font-semibold text-primary-ink',
                       )}
                     >
                       <Icon aria-hidden="true" className="size-5" />
@@ -104,8 +104,8 @@ function StudentWorkspaceShell({
                           aria-label={item.title}
                           aria-current={visibleActiveId === item.id ? 'page' : undefined}
                           className={cn(
-                            'relative flex h-full min-h-11 items-center justify-center px-1 font-label text-sm font-medium text-muted-foreground transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-inset focus-visible:ring-ring/30',
-                            visibleActiveId === item.id && 'font-semibold text-primary',
+                            'relative flex h-full min-h-11 items-center justify-center px-1 font-label text-sm font-medium text-muted-foreground transition-colors hover:text-primary-ink focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-inset focus-visible:ring-ring/30',
+                            visibleActiveId === item.id && 'font-semibold text-primary-ink',
                           )}
                         >
                           {item.title === 'Interest assessment' ? 'Assessment' : item.title}

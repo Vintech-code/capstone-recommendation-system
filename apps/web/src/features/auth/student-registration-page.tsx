@@ -44,7 +44,7 @@ function StudentRegistrationPage() {
         Already registered?{' '}
         <Link
           to="/student/login"
-          className="font-extrabold text-primary underline-offset-4 hover:underline"
+          className="font-extrabold text-primary-ink underline-offset-4 hover:underline"
         >
           Sign in
         </Link>

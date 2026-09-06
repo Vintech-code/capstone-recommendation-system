@@ -342,7 +342,7 @@ function WorkspacePreview({
                       Authorized account
                     </span>
                   </span>
-                  <span className="flex size-9 items-center justify-center rounded-full bg-primary text-xs font-bold text-white">
+                  <span className="flex size-9 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
                     {(user?.name ?? currentRole.shortLabel).slice(0, 2).toUpperCase()}
                   </span>
                   <ChevronDown

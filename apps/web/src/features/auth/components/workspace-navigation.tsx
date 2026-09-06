@@ -44,10 +44,10 @@ function WorkspaceNavigation({
                     collapsed && 'justify-center px-0',
                     activeId === item.id
                       ? tone === 'staff'
-                        ? 'bg-primary-fixed text-primary ring-1 ring-primary/10'
+                        ? 'bg-primary-fixed text-primary-ink ring-1 ring-primary/10'
                         : 'bg-foreground text-background'
                       : tone === 'staff'
-                        ? 'text-muted-foreground hover:bg-primary-fixed/70 hover:text-primary'
+                        ? 'text-muted-foreground hover:bg-primary-fixed/70 hover:text-primary-ink'
                         : 'text-muted-foreground hover:bg-secondary hover:text-foreground',
                   )}
                 >

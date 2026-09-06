@@ -120,7 +120,7 @@ function AdminStudentsPage({ onNavigate }: NavigateProps) {
         </form>
         <div className="mt-5 flex items-end justify-between gap-3">
           <div>
-            <p className="font-label text-xs font-bold uppercase tracking-[0.14em] text-primary">
+            <p className="font-label text-xs font-bold uppercase tracking-[0.14em] text-primary-ink">
               Authoritative ledger
             </p>
             <h2 className="mt-1 font-display text-2xl font-extrabold">
@@ -395,10 +395,10 @@ function AdminStudentDetailPage({
                 className="grid border-b border-border py-7 lg:grid-cols-[10rem_minmax(0,1fr)] lg:gap-8"
               >
                 <div className="mb-5 lg:mb-0">
-                  <span className="font-display text-5xl font-black text-primary/20">
+                  <span className="font-display text-5xl font-black text-primary-ink/20">
                     {String(attempt.attemptNumber).padStart(2, "0")}
                   </span>
-                  <p className="mt-1 font-label text-xs font-bold uppercase tracking-[0.14em] text-primary">
+                  <p className="mt-1 font-label text-xs font-bold uppercase tracking-[0.14em] text-primary-ink">
                     Attempt {attempt.attemptNumber}
                   </p>
                   <div className="mt-3">
@@ -418,7 +418,7 @@ function AdminStudentDetailPage({
                       </p>
                     </div>
                     {attempt.recommendationSnapshot ? (
-                      <span className="flex items-center gap-2 text-sm font-bold text-success">
+                      <span className="flex items-center gap-2 text-sm font-bold text-success-ink">
                         <CheckCircle2 className="size-4" /> Snapshot preserved
                       </span>
                     ) : null}
@@ -462,7 +462,7 @@ function AdminStudentDetailPage({
                             <dt className="font-label text-xs font-bold uppercase tracking-wide text-muted-foreground">
                               {dimension.code} · {dimension.label}
                             </dt>
-                            <dd className="mt-2 font-display text-3xl font-black text-primary">
+                            <dd className="mt-2 font-display text-3xl font-black text-primary-ink">
                               {dimension.value}
                             </dd>
                           </div>
@@ -499,7 +499,7 @@ function AdminStudentDetailPage({
                             key={programme.id}
                             className="grid gap-2 py-4 sm:grid-cols-[3rem_minmax(0,1fr)_auto] sm:items-center"
                           >
-                            <span className="font-display text-2xl font-black text-primary/35">
+                            <span className="font-display text-2xl font-black text-primary-ink/35">
                               #{programme.rank}
                             </span>
                             <span>
@@ -510,7 +510,7 @@ function AdminStudentDetailPage({
                                 {programme.code}
                               </span>
                             </span>
-                            <strong className="font-display text-xl font-black text-primary">
+                            <strong className="font-display text-xl font-black text-primary-ink">
                               {programme.match}% match
                             </strong>
                           </li>
@@ -690,7 +690,7 @@ function SectionHeading({
 }) {
   return (
     <div>
-      <p className="font-label text-xs font-bold uppercase tracking-[0.15em] text-primary">
+      <p className="font-label text-xs font-bold uppercase tracking-[0.15em] text-primary-ink">
         {eyebrow}
       </p>
       <h2

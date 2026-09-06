@@ -38,7 +38,7 @@ function AssessmentProgressPanel({
               {answeredCount} answered · {remainingCount} remaining
             </p>
           </div>
-          <strong className="text-sm text-primary">{progress}%</strong>
+          <strong className="text-sm text-primary-ink">{progress}%</strong>
         </div>
         <div
           role="progressbar"

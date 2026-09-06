@@ -311,7 +311,7 @@ export function AdminDashboardPage({ onNavigate }: NavigateProps) {
               variant="ghost"
               size="sm"
               onClick={() => onNavigate("/admin/programmes")}
-              className="gap-1.5 text-xs font-semibold p-0 h-auto hover:bg-transparent text-primary hover:underline"
+              className="gap-1.5 text-xs font-semibold p-0 h-auto hover:bg-transparent text-primary-ink hover:underline"
             >
               View all programmes <ArrowRight className="size-3.5" />
             </Button>
@@ -374,7 +374,7 @@ export function AdminDashboardPage({ onNavigate }: NavigateProps) {
                         }
                         className="group cursor-pointer hover:bg-secondary/40 transition-colors"
                       >
-                        <td className="py-3 pr-3 font-semibold text-foreground group-hover:text-primary">
+                        <td className="py-3 pr-3 font-semibold text-foreground group-hover:text-primary-ink">
                           {item.studentName}
                         </td>
                         <td className="px-3 py-3 font-medium text-muted-foreground">
@@ -459,7 +459,7 @@ export function AdminDashboardPage({ onNavigate }: NavigateProps) {
           aria-labelledby="workload-heading"
           className="border-t border-border pt-6 xl:border-t-0 xl:border-l xl:border-border xl:pl-6 xl:pt-0"
         >
-          <p className="font-label text-xs font-bold uppercase tracking-[0.16em] text-success">
+          <p className="font-label text-xs font-bold uppercase tracking-[0.16em] text-success-ink">
             At a glance
           </p>
           <h2
@@ -492,7 +492,7 @@ export function AdminDashboardPage({ onNavigate }: NavigateProps) {
 
           <div className="mt-6 flex items-center justify-between gap-3">
             <span className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
-              <ShieldCheck className="size-4 text-success" /> Individual
+              <ShieldCheck className="size-4 text-success-ink" /> Individual
               administrator
             </span>
             <Button
@@ -560,7 +560,7 @@ function SectionHeading({
 }) {
   return (
     <div className="space-y-1">
-      <p className="font-label text-xs font-bold uppercase tracking-[0.16em] text-success">
+      <p className="font-label text-xs font-bold uppercase tracking-[0.16em] text-success-ink">
         {eyebrow}
       </p>
       <h2
@@ -589,12 +589,12 @@ function QueueRow({
     <button
       type="button"
       onClick={onClick}
-      className="group flex min-h-12 w-full items-center justify-between gap-4 py-2.5 text-left transition-colors hover:text-primary"
+      className="group flex min-h-12 w-full items-center justify-between gap-4 py-2.5 text-left transition-colors hover:text-primary-ink"
     >
       <span className="text-xs font-semibold">{label}</span>
       <span className="flex items-center gap-2">
         <strong className="font-display text-lg font-black">{value}</strong>
-        <ArrowRight className="size-3.5 text-muted-foreground group-hover:text-primary transition-transform group-hover:translate-x-0.5" />
+        <ArrowRight className="size-3.5 text-muted-foreground group-hover:text-primary-ink transition-transform group-hover:translate-x-0.5" />
       </span>
     </button>
   );
