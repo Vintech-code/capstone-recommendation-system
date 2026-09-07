@@ -13,6 +13,7 @@ use App\Models\StudentSavedProgramme;
 use App\Models\User;
 use App\Services\Recommendation\ProgrammeSourceRegistry;
 use App\Services\Recommendation\TccProgrammeCatalogueRepository;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -108,6 +109,7 @@ final class AdminWorkspaceController extends Controller
             ->with([
                 'latestAssessmentSession.recommendationRun',
                 'currentEntranceExaminationResult',
+                'studentProfile',
             ])
             ->when($status === 'not_started', fn (Builder $query) => $query->whereDoesntHave('assessmentSessions'))
             ->when($status !== null && $status !== 'not_started', fn (Builder $query) => $query->whereHas(
@@ -144,6 +146,9 @@ final class AdminWorkspaceController extends Controller
                     'name' => $student->name,
                     'email' => $student->email,
                     'accountStatus' => $student->account_status,
+                    'photoUrl' => $student->studentProfile?->photo_path
+                        ? '/api/v1/profile-photos/'.$student->getKey().'?v='.$student->studentProfile->updated_at?->getTimestamp()
+                        : $student->google_avatar_url,
                     'attemptCount' => $student->assessment_sessions_count,
                     'latestResultAt' => $latest?->result_available_at?->toAtomString(),
                     'latestTopCode' => $latest ? $this->topCode($latest) : null,
@@ -167,6 +172,7 @@ final class AdminWorkspaceController extends Controller
     public function student(User $student): JsonResponse
     {
         abort_unless($student->roles()->where('slug', RoleSlug::Student->value)->exists(), 404);
+        $student->loadMissing('studentProfile');
 
         $attempts = $student->assessmentSessions()
             ->with(['recommendationRun', 'entranceExaminationResult'])
@@ -184,8 +190,30 @@ final class AdminWorkspaceController extends Controller
             'id' => $student->getKey(),
             'name' => $student->name,
             'email' => $student->email,
+            'photoUrl' => $student->studentProfile?->photo_path
+                ? '/api/v1/profile-photos/'.$student->getKey().'?v='.$student->studentProfile->updated_at?->getTimestamp()
+                : $student->google_avatar_url,
             'accountStatus' => $student->account_status,
             'savedProgrammeCount' => $student->savedProgrammes()->count(),
+            'profile' => $student->studentProfile ? [
+                'photoUrl' => $student->studentProfile->photo_path
+                    ? '/api/v1/profile-photos/'.$student->getKey().'?v='.$student->studentProfile->updated_at?->getTimestamp()
+                    : $student->google_avatar_url,
+                'lrn' => $student->studentProfile->lrn,
+                'birthDate' => $student->studentProfile->birth_date,
+                'age' => $student->studentProfile->birth_date
+                    ? CarbonImmutable::parse($student->studentProfile->birth_date)->age
+                    : null,
+                'phone' => $student->studentProfile->phone,
+                'location' => $student->studentProfile->locationSelection(),
+                'addressLine' => $student->studentProfile->address_line,
+                'barangay' => $student->studentProfile->barangay,
+                'municipality' => $student->studentProfile->municipality,
+                'province' => $student->studentProfile->province,
+                'shsSchoolName' => $student->studentProfile->shs_school_name,
+                'shsStrand' => $student->studentProfile->shs_strand,
+                'shsGraduationYear' => $student->studentProfile->shs_graduation_year,
+            ] : null,
             'attempts' => $attempts,
         ]]);
     }

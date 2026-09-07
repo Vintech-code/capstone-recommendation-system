@@ -8,6 +8,7 @@ use App\Models\EntranceExaminationResult;
 use App\Models\RecommendationRun;
 use App\Models\Role;
 use App\Models\RoleSlug;
+use App\Models\StudentProfile;
 use App\Models\StudentSavedProgramme;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -23,6 +24,21 @@ class AdminWorkspaceTest extends TestCase
         $student = $this->userWithRole(RoleSlug::Student);
         $session = $this->completedSession($student);
         $this->createRecommendation($student, $session);
+        StudentProfile::query()->create([
+            'user_id' => $student->getKey(),
+            'lrn' => '128490000011',
+            'lrn_lookup_hash' => hash('sha256', '128490000011'),
+            'birth_date' => now()->subYears(18)->format('Y-m-d'),
+            'phone' => '+63 917 842 1928',
+            'municipality' => 'Tagoloan',
+            'province' => 'Misamis Oriental',
+            'shs_school_name' => 'Tagoloan National High School',
+            'shs_strand' => 'STEM',
+            'shs_graduation_year' => 2026,
+            'strengths' => [],
+            'growth_areas' => [],
+            'learning_preferences' => [],
+        ]);
         StudentSavedProgramme::query()->create(['user_id' => $student->getKey(), 'programme_id' => 'bs-information-technology']);
 
         $this->actingAs($admin)->getJson('/api/v1/admin/overview')
@@ -45,6 +61,9 @@ class AdminWorkspaceTest extends TestCase
             ->assertJsonPath('data.attempts.0.entranceExamination.ruleReference', 'SELF-DECLARED-TCC-ENTRANCE-2026-01')
             ->assertJsonPath('data.attempts.0.recommendationSnapshot.catalogueReference', 'TCC-AY-2026-2027-V1')
             ->assertJsonPath('data.attempts.0.recommendations.0.code', 'BSIT')
+            ->assertJsonPath('data.profile.lrn', '128490000011')
+            ->assertJsonPath('data.profile.shsStrand', 'STEM')
+            ->assertJsonMissingPath('data.profile.shsGwa')
             ->assertJsonMissingPath('data.guidanceCase');
 
         $this->getJson('/api/v1/admin/programmes')

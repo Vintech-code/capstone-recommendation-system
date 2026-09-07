@@ -13,6 +13,7 @@ use App\Http\Controllers\Auth\PasswordChangeController;
 use App\Http\Controllers\Auth\PasswordRecoveryController;
 use App\Http\Controllers\Auth\PortalAccessController;
 use App\Http\Controllers\Auth\RegisteredStudentController;
+use App\Http\Controllers\LocationController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Recommendation\StudentProgrammeController;
 use App\Http\Controllers\Recommendation\StudentRecommendationController;
@@ -129,3 +130,11 @@ Route::prefix('v1/admin')
         Route::get('/programme-sources', [AdminProgrammeSourceController::class, 'index']);
         Route::put('/programme-sources/{sourceReference}', [AdminProgrammeSourceController::class, 'update']);
     });
+
+Route::prefix('v1/locations')->middleware(['auth:sanctum', 'active', 'throttle:120,1'])->group(function (): void {
+    Route::get('/regions', [LocationController::class, 'regions']);
+    Route::get('/regions/{region}/provinces', [LocationController::class, 'provinces']);
+    Route::get('/regions/{region}/independent-cities', [LocationController::class, 'independentCities']);
+    Route::get('/provinces/{province}/cities-municipalities', [LocationController::class, 'cities']);
+    Route::get('/cities-municipalities/{cityMunicipality}/barangays', [LocationController::class, 'barangays']);
+});

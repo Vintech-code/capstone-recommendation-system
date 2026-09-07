@@ -3,7 +3,11 @@
 namespace Tests\Feature\Student;
 
 use App\Models\AssessmentSession;
+use App\Models\Barangay;
+use App\Models\CityMunicipality;
+use App\Models\Province;
 use App\Models\RecommendationRun;
+use App\Models\Region;
 use App\Models\Role;
 use App\Models\RoleSlug;
 use App\Models\StudentProfile;
@@ -44,7 +48,23 @@ class StudentProfileTest extends TestCase
             'learning_preferences' => ['Reading'],
         ]);
 
+        $region = Region::create(['code' => '0100000000', 'name' => 'Test region']);
+        $province = Province::create(['code' => '0100100000', 'name' => 'Test province', 'region_id' => $region->id]);
+        $city = CityMunicipality::create(['code' => '0100101000', 'name' => 'Test city', 'type' => 'City', 'region_id' => $region->id, 'province_id' => $province->id]);
+        $barangay = Barangay::create(['code' => '0100101001', 'name' => 'Test barangay', 'city_municipality_id' => $city->id]);
+
         $payload = [
+            'location' => ['regionId' => $region->id, 'provinceId' => $province->id, 'cityMunicipalityId' => $city->id, 'barangayId' => $barangay->id],
+            'lrn' => '128490000011',
+            'birthDate' => '2007-04-18',
+            'phone' => '+63 917 842 1928',
+            'addressLine' => 'Zone 2',
+            'barangay' => 'Poblacion',
+            'municipality' => 'Tagoloan',
+            'province' => 'Misamis Oriental',
+            'shsSchoolName' => 'Tagoloan National High School',
+            'shsStrand' => 'STEM',
+            'shsGraduationYear' => 2026,
             'strengths' => ['Problem-solving', 'Logical thinking'],
             'growthAreas' => ['Time management'],
             'learningPreferences' => ['Hands-on activities', 'Independent work'],
@@ -55,6 +75,9 @@ class StudentProfileTest extends TestCase
             ->assertOk()
             ->assertJsonPath('data.questionnaire.complete', true)
             ->assertJsonPath('data.questionnaire.strengths.0', 'Problem-solving')
+            ->assertJsonPath('data.personalAcademic.complete', true)
+            ->assertJsonPath('data.personalAcademic.lrn', '128490000011')
+            ->assertJsonPath('data.personalAcademic.shsStrand', 'STEM')
             ->assertJsonPath('data.student.id', $student->getKey())
             ->assertJsonPath('data.riasec', null)
             ->assertJsonPath('data.careerInterests', []);
@@ -70,8 +93,31 @@ class StudentProfileTest extends TestCase
             ->assertJsonPath('data.questionnaire.strengths', ['Creativity']);
 
         $this->assertDatabaseHas('student_profiles', ['user_id' => $student->getKey()]);
+        $stored = StudentProfile::query()->where('user_id', $student->getKey())->firstOrFail();
+        $this->assertSame('128490000011', $stored->lrn);
+        $this->assertNotSame('128490000011', $stored->getRawOriginal('lrn'));
+        $this->assertNotSame('+63 917 842 1928', $stored->getRawOriginal('phone'));
+        $this->assertArrayNotHasKey('shs_gwa', $stored->getAttributes());
         $this->assertDatabaseHas('student_profiles', ['user_id' => $other->getKey()]);
         $this->assertSame(['Leadership'], $other->studentProfile()->firstOrFail()->strengths);
+    }
+
+    public function test_lrn_cannot_be_connected_to_multiple_student_accounts(): void
+    {
+        $first = $this->userWithRole(RoleSlug::Student);
+        $second = $this->userWithRole(RoleSlug::Student);
+        $payload = [
+            'lrn' => '128490000011',
+            'strengths' => ['Problem-solving'],
+            'growthAreas' => ['Time management'],
+            'learningPreferences' => ['Reading'],
+        ];
+
+        $this->actingAs($first)->putJson('/api/v1/student/profile', $payload)->assertOk();
+        $this->actingAs($second)
+            ->putJson('/api/v1/student/profile', $payload)
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('lrn');
     }
 
     public function test_profile_submission_rejects_unapproved_or_malformed_values(): void

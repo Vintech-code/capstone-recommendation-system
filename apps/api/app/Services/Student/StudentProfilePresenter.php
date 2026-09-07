@@ -6,6 +6,7 @@ use App\Models\AssessmentSession;
 use App\Models\User;
 use App\Services\Assessment\RiasecQuestionnaire;
 use App\Services\Recommendation\TccProgrammeCatalogueRepository;
+use Carbon\CarbonImmutable;
 
 final class StudentProfilePresenter
 {
@@ -36,6 +37,8 @@ final class StudentProfilePresenter
         $strengths = $profile?->strengths ?? [];
         $growthAreas = $profile?->growth_areas ?? [];
         $learningPreferences = $profile?->learning_preferences ?? [];
+        $birthDate = $profile?->birth_date;
+        $age = $birthDate ? CarbonImmutable::createFromFormat('Y-m-d', $birthDate)?->age : null;
 
         return [
             'student' => [
@@ -51,6 +54,29 @@ final class StudentProfilePresenter
                 'strengths' => array_values($strengths),
                 'growthAreas' => array_values($growthAreas),
                 'learningPreferences' => array_values($learningPreferences),
+                'updatedAt' => $profile?->updated_at?->toAtomString(),
+            ],
+            'personalAcademic' => [
+                'complete' => $profile !== null
+                    && $birthDate !== null
+                    && $profile->phone !== null
+                    && $profile->municipality !== null
+                    && ($profile->barangay_id !== null || $profile->province !== null)
+                    && $profile->shs_school_name !== null
+                    && $profile->shs_strand !== null
+                    && $profile->shs_graduation_year !== null,
+                'lrn' => $profile?->lrn,
+                'birthDate' => $birthDate,
+                'age' => $age,
+                'phone' => $profile?->phone,
+                'location' => $profile?->locationSelection(),
+                'addressLine' => $profile?->address_line,
+                'barangay' => $profile?->barangay,
+                'municipality' => $profile?->municipality,
+                'province' => $profile?->province,
+                'shsSchoolName' => $profile?->shs_school_name,
+                'shsStrand' => $profile?->shs_strand,
+                'shsGraduationYear' => $profile?->shs_graduation_year,
                 'updatedAt' => $profile?->updated_at?->toAtomString(),
             ],
             'options' => [
