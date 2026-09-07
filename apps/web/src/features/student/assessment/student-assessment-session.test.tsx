@@ -30,15 +30,19 @@ async function answerQuestion(
   user: ReturnType<typeof userEvent.setup>,
   questionNumber: number,
 ) {
-  expect(
-    screen.getByRole('group', { name: `Response for question ${questionNumber}` }),
-  ).toBeVisible()
+  await waitFor(() => {
+    expect(
+      screen.getByRole('group', { name: `Response for question ${questionNumber}` }),
+    ).toBeVisible()
+  })
   await user.click(screen.getByRole('radio', { name: /^Agree/i }))
-  await user.click(
-    screen.getByRole('button', {
-      name: questionNumber === 6 ? 'Finish assessment' : 'Next',
-    }),
-  )
+  if (questionNumber === 6) {
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Finish assessment',
+      }),
+    )
+  }
 }
 
 describe('Student assessment session', () => {
@@ -62,7 +66,8 @@ describe('Student assessment session', () => {
     expect(screen.getByText('This sounds like me')).toBeVisible()
     expect(screen.getByText('This does not sound like me')).toBeVisible()
     expect(screen.getAllByRole('radio')).toHaveLength(2)
-    expect(screen.getByRole('button', { name: 'Next' })).toBeDisabled()
+    expect(screen.queryByRole('button', { name: 'Next' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Previous' })).toBeDisabled()
     expect(screen.queryByText('Career compass module')).not.toBeInTheDocument()
     expect(screen.queryByRole('img')).not.toBeInTheDocument()
   })
@@ -85,18 +90,18 @@ describe('Student assessment session', () => {
       .toContain('"item-01":1')
   })
 
-  it('requires an answer before moving forward and preserves it when navigating back', async () => {
+  it('automatically advances upon selecting an answer and preserves it when navigating back', async () => {
     const user = userEvent.setup()
     renderSession()
 
-    const nextButton = screen.getByRole('button', { name: 'Next' })
-    expect(nextButton).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Previous' })).toBeDisabled()
     await user.click(screen.getByRole('radio', { name: /^Agree/i }))
-    expect(nextButton).toBeEnabled()
-    await user.click(nextButton)
-    expect(screen.getByRole('group', { name: 'Response for question 2' })).toBeVisible()
+    await waitFor(() => {
+      expect(screen.getByRole('group', { name: 'Response for question 2' })).toBeVisible()
+    })
 
     await user.click(screen.getByRole('button', { name: 'Previous' }))
+    expect(screen.getByRole('group', { name: 'Response for question 1' })).toBeVisible()
     expect(screen.getByRole('radio', { name: /^Agree/i })).toBeChecked()
   })
 
@@ -309,7 +314,7 @@ describe('Student assessment session', () => {
     }
 
     expect(screen.getByRole('heading', { name: 'Calculating your programme matches' })).toBeVisible()
-    expect(screen.getByRole('status')).toHaveTextContent('My Matches will open when your result is ready.')
+    expect(screen.getByRole('status')).toHaveTextContent('Calculating your programme matches')
     expect(screen.queryByText('Final review')).not.toBeInTheDocument()
     expect(onViewMatches).not.toHaveBeenCalled()
 

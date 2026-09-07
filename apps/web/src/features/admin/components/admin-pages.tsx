@@ -29,7 +29,6 @@ import {
   type AdminActivityResponse,
   type AdminAssessment,
   type AdminStudentDirectory,
-  type AdminStudentRecord,
 } from "@/features/admin/data/admin-api";
 
 export { AdminDashboardPage } from "@/features/admin/components/admin-dashboard-page";
@@ -120,7 +119,7 @@ function AdminStudentsPage({ onNavigate }: NavigateProps) {
         </form>
         <div className="mt-5 flex items-end justify-between gap-3">
           <div>
-            <p className="font-label text-xs font-bold uppercase tracking-[0.14em] text-primary-ink">
+            <p className="font-label text-xs font-bold uppercase tracking-[0.14em] text-primary">
               Authoritative ledger
             </p>
             <h2 className="mt-1 font-display text-2xl font-extrabold">
@@ -136,11 +135,24 @@ function AdminStudentsPage({ onNavigate }: NavigateProps) {
             {data.items.map((student) => (
               <li key={student.id} className="py-5">
                 <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <strong className="block text-base">{student.name}</strong>
-                    <span className="font-label text-xs text-muted-foreground">
-                      {student.email}
-                    </span>
+                  <div className="flex items-center gap-3">
+                    {student.photoUrl ? (
+                      <img
+                        src={student.photoUrl}
+                        alt={student.name}
+                        className="size-10 rounded-full object-cover border border-border shrink-0"
+                      />
+                    ) : (
+                      <span className="flex size-10 items-center justify-center rounded-full bg-primary/10 font-bold text-xs text-primary shrink-0">
+                        {student.name.split(" ").map((n) => n[0]).slice(0, 2).join("").toUpperCase()}
+                      </span>
+                    )}
+                    <div>
+                      <strong className="block text-base">{student.name}</strong>
+                      <span className="font-label text-xs text-muted-foreground">
+                        {student.email}
+                      </span>
+                    </div>
                   </div>
                   <StudentStatus student={student} />
                 </div>
@@ -199,12 +211,27 @@ function AdminStudentsPage({ onNavigate }: NavigateProps) {
                     className="group hover:bg-primary-fixed/30"
                   >
                     <td className="px-4 py-5">
-                      <strong className="block text-base">
-                        {student.name}
-                      </strong>
-                      <span className="font-label text-xs text-muted-foreground">
-                        {student.email}
-                      </span>
+                      <div className="flex items-center gap-3">
+                        {student.photoUrl ? (
+                          <img
+                            src={student.photoUrl}
+                            alt={student.name}
+                            className="size-9 rounded-full object-cover border border-border shrink-0"
+                          />
+                        ) : (
+                          <span className="flex size-9 items-center justify-center rounded-full bg-primary/10 font-bold text-xs text-primary shrink-0">
+                            {student.name.split(" ").map((n) => n[0]).slice(0, 2).join("").toUpperCase()}
+                          </span>
+                        )}
+                        <div>
+                          <strong className="block text-base">
+                            {student.name}
+                          </strong>
+                          <span className="font-label text-xs text-muted-foreground">
+                            {student.email}
+                          </span>
+                        </div>
+                      </div>
                     </td>
                     <td className="px-4 py-5">
                       <StudentStatus student={student} />
@@ -319,219 +346,8 @@ function StudentStatus({
   );
 }
 
-function AdminStudentDetailPage({
-  studentId,
-  onNavigate,
-}: {
-  studentId: string;
-  onNavigate: (path: string) => void;
-}) {
-  const resource = useAdminResource<AdminStudentRecord>(
-    `/students/${studentId}`,
-  );
-  if (resource.loading) return <AdminPageSkeleton />;
-  if (resource.error || !resource.data)
-    return (
-      <AdminPageError
-        message={resource.error ?? "No student record was returned."}
-        onRetry={resource.retry}
-      />
-    );
-  const student = resource.data;
-  const initials = student.name
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((part) => part[0])
-    .join("")
-    .toUpperCase();
-  return (
-    <div className="space-y-8" data-report-print>
-      <AdminPageHeader
-        title={student.name}
-        action={
-          <Button
-            variant="outline"
-            onClick={() => onNavigate("/admin/students")}
-          >
-            Back to students
-          </Button>
-        }
-      />
-      <section className="grid border-y border-border lg:grid-cols-[minmax(0,1.2fr)_minmax(28rem,.8fr)]">
-        <div className="flex items-center gap-5 py-6 sm:py-8">
-          <span className="flex size-16 shrink-0 items-center justify-center rounded-full border border-border font-display text-xl font-black text-accent">
-            {initials}
-          </span>
-          <div className="min-w-0">
-            <p className="truncate text-base font-bold">{student.email}</p>
-            <p className="mt-1 font-label text-sm text-muted-foreground">
-              Account status · {humanize(student.accountStatus)}
-            </p>
-          </div>
-        </div>
-        <dl className="grid grid-cols-2 border-t border-border lg:border-l lg:border-t-0">
-          <MetricDefinition
-            label="Recorded attempts"
-            value={student.attempts.length}
-          />
-          <MetricDefinition
-            label="Saved programmes"
-            value={student.savedProgrammeCount}
-          />
-        </dl>
-      </section>
-      <section aria-labelledby="evidence-timeline-heading">
-        <SectionHeading
-          id="evidence-timeline-heading"
-          eyebrow="Versioned record"
-          title="Assessment evidence timeline"
-          description="Completed records remain read-only; each attempt preserves its own rule and recommendation references."
-        />
-        {student.attempts.length ? (
-          <ol className="mt-6 border-t border-border">
-            {student.attempts.map((attempt) => (
-              <li
-                key={attempt.id}
-                className="grid border-b border-border py-7 lg:grid-cols-[10rem_minmax(0,1fr)] lg:gap-8"
-              >
-                <div className="mb-5 lg:mb-0">
-                  <span className="font-display text-5xl font-black text-primary-ink/20">
-                    {String(attempt.attemptNumber).padStart(2, "0")}
-                  </span>
-                  <p className="mt-1 font-label text-xs font-bold uppercase tracking-[0.14em] text-primary-ink">
-                    Attempt {attempt.attemptNumber}
-                  </p>
-                  <div className="mt-3">
-                    <StatusBadge status={attempt.status} />
-                  </div>
-                </div>
-                <article className="min-w-0">
-                  <div className="flex flex-wrap items-start justify-between gap-4">
-                    <div>
-                      <h2 className="font-display text-2xl font-extrabold">
-                        {attempt.topCode
-                          ? `${attempt.topCode} interest profile`
-                          : "Assessment evidence"}
-                      </h2>
-                      <p className="mt-1 font-label text-sm text-muted-foreground">
-                        {attempt.reference} · {attempt.instrumentCode}
-                      </p>
-                    </div>
-                    {attempt.recommendationSnapshot ? (
-                      <span className="flex items-center gap-2 text-sm font-bold text-success-ink">
-                        <CheckCircle2 className="size-4" /> Snapshot preserved
-                      </span>
-                    ) : null}
-                  </div>
-                  <dl className="mt-6 grid border-y border-border sm:grid-cols-2 xl:grid-cols-4">
-                    <EvidenceLine
-                      label="Entrance result"
-                      value={
-                        attempt.entranceExamination
-                          ? `${attempt.entranceExamination.score} · ${humanize(attempt.entranceExamination.eligibilityGroup)}`
-                          : "Not captured"
-                      }
-                    />
-                    <EvidenceLine
-                      label="Admission rule"
-                      value={
-                        attempt.entranceExamination?.ruleReference ??
-                        "Not captured"
-                      }
-                    />
-                    <EvidenceLine
-                      label="Instrument progress"
-                      value={`${attempt.answerCount} of ${attempt.questionCount} answers`}
-                    />
-                    <EvidenceLine
-                      label="Lifecycle"
-                      value={`${formatDate(attempt.startedAt)} → ${formatDate(attempt.resultAvailableAt ?? attempt.processingFailedAt ?? attempt.submittedAt)}`}
-                    />
-                  </dl>
-                  {attempt.dimensions?.length ? (
-                    <section className="mt-7">
-                      <h3 className="font-display text-xl font-bold">
-                        Exact RIASEC raw scores
-                      </h3>
-                      <dl className="mt-4 grid grid-cols-2 border-y border-border sm:grid-cols-3 xl:grid-cols-6">
-                        {attempt.dimensions.map((dimension) => (
-                          <div
-                            key={dimension.code}
-                            className="border-b border-r border-border p-4 sm:border-b-0"
-                          >
-                            <dt className="font-label text-xs font-bold uppercase tracking-wide text-muted-foreground">
-                              {dimension.code} · {dimension.label}
-                            </dt>
-                            <dd className="mt-2 font-display text-3xl font-black text-primary-ink">
-                              {dimension.value}
-                            </dd>
-                          </div>
-                        ))}
-                      </dl>
-                    </section>
-                  ) : null}
-                  <dl className="mt-7 grid gap-5 lg:grid-cols-2">
-                    <InlineEvidence
-                      label="Recommendation snapshot"
-                      value={
-                        attempt.recommendationSnapshot
-                          ? `${attempt.recommendationSnapshot.catalogueReference} · ${attempt.recommendationSnapshot.ruleReference} · ${attempt.recommendationSnapshot.methodologyStatus}`
-                          : "Not generated"
-                      }
-                    />
-                    <InlineEvidence
-                      label="Failure or retake context"
-                      value={
-                        attempt.processingErrorCode ??
-                        attempt.retakeReason ??
-                        "None recorded"
-                      }
-                    />
-                  </dl>
-                  {attempt.recommendations?.length ? (
-                    <section className="mt-7">
-                      <h3 className="font-display text-xl font-bold">
-                        Ranked programme snapshot
-                      </h3>
-                      <ol className="mt-3 divide-y divide-border border-y border-border">
-                        {attempt.recommendations.map((programme) => (
-                          <li
-                            key={programme.id}
-                            className="grid gap-2 py-4 sm:grid-cols-[3rem_minmax(0,1fr)_auto] sm:items-center"
-                          >
-                            <span className="font-display text-2xl font-black text-primary-ink/35">
-                              #{programme.rank}
-                            </span>
-                            <span>
-                              <strong className="block text-base">
-                                {programme.name}
-                              </strong>
-                              <span className="font-label text-xs text-muted-foreground">
-                                {programme.code}
-                              </span>
-                            </span>
-                            <strong className="font-display text-xl font-black text-primary-ink">
-                              {programme.match}% match
-                            </strong>
-                          </li>
-                        ))}
-                      </ol>
-                    </section>
-                  ) : null}
-                </article>
-              </li>
-            ))}
-          </ol>
-        ) : (
-          <EmptyPanel
-            title="No assessment attempts"
-            description="This student has not started an assessment."
-          />
-        )}
-      </section>
-    </div>
-  );
-}
+import { AdminStudentDetailPage } from "@/features/admin/components/admin-student-detail-page";
+
 
 // AdminReportsPage is implemented in the dedicated reports module.
 // Re-exported at the bottom of this file from '@/features/admin/reports/components/admin-reports-page'.
@@ -690,7 +506,7 @@ function SectionHeading({
 }) {
   return (
     <div>
-      <p className="font-label text-xs font-bold uppercase tracking-[0.15em] text-primary-ink">
+      <p className="font-label text-xs font-bold uppercase tracking-[0.15em] text-primary">
         {eyebrow}
       </p>
       <h2
@@ -707,6 +523,20 @@ function SectionHeading({
     </div>
   );
 }
+
+function InlineEvidence({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="min-w-0">
+      <dt className="font-label text-xs font-bold uppercase tracking-wide text-muted-foreground">
+        {label}
+      </dt>
+      <dd className="mt-1 break-words text-sm font-semibold leading-6">
+        {value}
+      </dd>
+    </div>
+  );
+}
+
 function FilterSelect({
   label,
   value,
@@ -738,40 +568,6 @@ function FilterSelect({
         ))}
       </SelectContent>
     </Select>
-  );
-}
-function InlineEvidence({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="min-w-0">
-      <dt className="font-label text-xs font-bold uppercase tracking-wide text-muted-foreground">
-        {label}
-      </dt>
-      <dd className="mt-1 break-words text-sm font-semibold leading-6">
-        {value}
-      </dd>
-    </div>
-  );
-}
-function EvidenceLine({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="min-w-0 border-b border-border p-4 last:border-b-0 sm:border-b-0 sm:border-r sm:last:border-r-0">
-      <dt className="font-label text-xs font-bold uppercase tracking-wide text-muted-foreground">
-        {label}
-      </dt>
-      <dd className="mt-2 break-words text-sm font-semibold leading-5">
-        {value}
-      </dd>
-    </div>
-  );
-}
-function MetricDefinition({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="border-r border-border p-6 last:border-r-0">
-      <dt className="font-label text-xs font-bold uppercase tracking-wide text-muted-foreground">
-        {label}
-      </dt>
-      <dd className="mt-2 font-display text-4xl font-black">{value}</dd>
-    </div>
   );
 }
 

@@ -27,6 +27,7 @@ interface AdminStudent {
   id: number
   name: string
   email: string
+  photoUrl?: string | null
   accountStatus: string
   attemptCount: number
   latestResultAt: string | null
@@ -112,8 +113,24 @@ interface AdminStudentRecord {
   id: number
   name: string
   email: string
+  photoUrl?: string | null
   accountStatus: string
   savedProgrammeCount: number
+  profile: {
+    photoUrl?: string | null
+    lrn: string | null
+    birthDate: string | null
+    age: number | null
+    phone: string | null
+    location?: { regionId: number; provinceId: number | null; cityMunicipalityId: number; barangayId: number; code: string } | null
+    addressLine: string | null
+    barangay: string | null
+    municipality: string | null
+    province: string | null
+    shsSchoolName: string | null
+    shsStrand: string | null
+    shsGraduationYear: number | null
+  } | null
   attempts: AdminAssessment[]
 }
 
@@ -293,6 +310,7 @@ async function mutateAdmin<T>(path: string, method: 'POST' | 'PUT', body?: unkno
   if (!response.ok || payload.data === undefined) {
     throw new AdminApiError(payload.message ?? 'The change could not be saved.')
   }
+  invalidateAdminResource()
   return payload.data
 }
 
@@ -343,22 +361,49 @@ async function uploadProgrammeMedia(programmeId: string, kind: 'cover' | 'logo',
   })
 }
 
+const adminResourceCache = new Map<string, unknown>()
+
+function invalidateAdminResource(pathPrefix?: string) {
+  if (!pathPrefix) {
+    adminResourceCache.clear()
+    return
+  }
+  for (const key of adminResourceCache.keys()) {
+    if (key.startsWith(pathPrefix)) {
+      adminResourceCache.delete(key)
+    }
+  }
+}
+
 function useAdminResource<T>(path: string) {
-  const [data, setData] = useState<T | null>(null)
+  const [prevPath, setPrevPath] = useState(path)
+  const [data, setData] = useState<T | null>(() => (adminResourceCache.get(path) as T | undefined) ?? null)
   const [error, setError] = useState<string | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(() => !adminResourceCache.has(path))
   const [requestVersion, setRequestVersion] = useState(0)
 
+  if (prevPath !== path) {
+    setPrevPath(path)
+    const cached = adminResourceCache.get(path) as T | undefined
+    setData(cached ?? null)
+    setLoading(!cached)
+    setError(null)
+  }
+
   const retry = useCallback(() => {
-    setLoading(true)
+    setLoading(!adminResourceCache.has(path))
     setError(null)
     setRequestVersion((version) => version + 1)
-  }, [])
+  }, [path])
 
   useEffect(() => {
     const controller = new AbortController()
     requestAdmin<T>(path, controller.signal)
-      .then(setData)
+      .then((payload) => {
+        adminResourceCache.set(path, payload)
+        setData(payload)
+        setError(null)
+      })
       .catch((reason: unknown) => {
         if (!controller.signal.aborted) {
           setError(reason instanceof Error ? reason.message : 'The administration workspace could not be loaded.')
@@ -374,7 +419,7 @@ function useAdminResource<T>(path: string) {
   return { data, error, loading, retry }
 }
 
-export { getEscoOccupation, mutateAdmin, requestAdmin, searchEscoOccupations, uploadProgrammeMedia, useAdminResource }
+export { getEscoOccupation, invalidateAdminResource, mutateAdmin, requestAdmin, searchEscoOccupations, uploadProgrammeMedia, useAdminResource }
 export type {
   AdminActivity,
   AdminAssessment,

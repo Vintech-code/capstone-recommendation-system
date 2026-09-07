@@ -1,8 +1,7 @@
-import { AlertCircle, RotateCcw } from "lucide-react";
+import { AlertCircle, Loader2, RotateCcw } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 
 function AdminPageHeader({
   eyebrow,
@@ -50,15 +49,15 @@ function AdminPageSkeleton() {
     <div
       role="status"
       aria-label="Loading guidance workspace"
-      className="space-y-5"
+      className="flex min-h-[360px] flex-col items-center justify-center py-16 text-center"
     >
-      <Skeleton className="h-24 w-full rounded-3xl" />
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {Array.from({ length: 4 }, (_, index) => (
-          <Skeleton key={index} className="h-28 rounded-3xl" />
-        ))}
-      </div>
-      <Skeleton className="h-80 rounded-3xl" />
+      <Loader2
+        className="size-8 animate-spin text-primary"
+        aria-hidden="true"
+      />
+      <p className="mt-3 font-display text-sm font-semibold text-foreground">
+        Loading workspace...
+      </p>
       <span className="sr-only">Loading guidance workspace</span>
     </div>
   );

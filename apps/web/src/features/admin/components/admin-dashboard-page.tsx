@@ -423,7 +423,7 @@ export function AdminDashboardPage({ onNavigate }: NavigateProps) {
           <div className="mt-5 space-y-4">
             <div className="space-y-1.5">
               <div className="flex items-center justify-between text-xs font-semibold">
-                <span>Board Programmes (GWA 1.0–2.5)</span>
+                <span>Board programmes (entrance result 1.0–2.5)</span>
                 <span className="font-display font-bold">
                   {boardEligible} ({boardPct}%)
                 </span>
@@ -433,7 +433,7 @@ export function AdminDashboardPage({ onNavigate }: NavigateProps) {
 
             <div className="space-y-1.5">
               <div className="flex items-center justify-between text-xs font-semibold">
-                <span>Non-Board Programmes (GWA 2.6–5.0)</span>
+                <span>Non-board programmes (entrance result 2.6–5.0)</span>
                 <span className="font-display font-bold">
                   {nonBoardEligible} ({nonBoardPct}%)
                 </span>

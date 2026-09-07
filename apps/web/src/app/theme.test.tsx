@@ -30,7 +30,7 @@ function contrastRatio(first: string, second: string) {
 }
 
 describe('application visual system', () => {
-  it('uses the approved light-green-primary pastel palette with Nunito Sans headings and Montserrat body type', () => {
+  it('uses the approved light-green-primary pastel palette', () => {
     const rootTheme = stylesheet.match(/:root\s*\{([\s\S]*?)\n\}/)?.[1]
     const normalizedRootTheme = rootTheme?.toLowerCase()
 
@@ -48,9 +48,15 @@ describe('application visual system', () => {
     expect(normalizedRootTheme).not.toContain('#2563eb')
     expect(normalizedRootTheme).not.toContain('#2e7d4f')
     expect(normalizedRootTheme).not.toContain('#9a6700')
-    expect(stylesheet).toContain('--font-sans: "Montserrat Variable", Montserrat')
+  })
+
+  it('uses Nunito Sans headings and locally bundled Montserrat Alternates body type', () => {
+    expect(stylesheet).toContain('@import "@fontsource/montserrat-alternates/latin-400.css"')
+    expect(stylesheet).toContain('@import "@fontsource/montserrat-alternates/latin-700.css"')
+    expect(stylesheet).toContain('--font-sans: "Montserrat Alternates"')
     expect(stylesheet).toContain('--font-display: "Nunito Sans Variable", "Nunito Sans"')
-    expect(stylesheet).toContain('--font-label: "Montserrat Variable", Montserrat')
+    expect(stylesheet).toContain('--font-label: "Montserrat Alternates"')
+    expect(stylesheet).not.toContain('"Montserrat Variable"')
   })
 
   it('keeps core text and solid semantic controls at WCAG AA contrast', () => {

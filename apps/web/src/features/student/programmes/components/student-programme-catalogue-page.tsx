@@ -26,6 +26,7 @@ import { Button } from '@/components/ui/button'
 import tccBanner from '@/assets/tccbanner.jpg'
 import { ProgrammeComparisonSheet } from '@/features/student/programmes/components/programme-comparison-sheet'
 import { getProgrammeCatalogue, getSavedProgrammeIds, updateSavedProgramme } from '@/features/student/programmes/programme-api'
+import { getSyncStudentResource } from '@/features/student/student-resource-cache'
 import { getProgrammeImages } from '@/features/student/programmes/programme-images'
 import { programmeMediaStyle } from '@/features/student/programmes/programme-media-position'
 import { CareerDirectionsSection } from '@/features/student/programmes/components/career-directions-section'
@@ -84,8 +85,9 @@ const strandLabels: Record<string, string> = {
 }
 
 function StudentProgrammeCataloguePage({ initialCatalogue, matchContext = [] }: StudentProgrammeCataloguePageProps) {
-  const [catalogue, setCatalogue] = useState<StudentProgrammeCatalogue | null>(initialCatalogue ?? null)
-  const [state, setState] = useState(initialCatalogue ? 'ready' : 'loading')
+  const cachedCatalogue = initialCatalogue ?? getSyncStudentResource<StudentProgrammeCatalogue>('programmes:catalogue')
+  const [catalogue, setCatalogue] = useState<StudentProgrammeCatalogue | null>(cachedCatalogue ?? null)
+  const [state, setState] = useState(cachedCatalogue ? 'ready' : 'loading')
   const [selected, setSelected] = useState<StudentProgramme | null>(null)
   const [attempt, setAttempt] = useState(0)
   const [query, setQuery] = useState('')

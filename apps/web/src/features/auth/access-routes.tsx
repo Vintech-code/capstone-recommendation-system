@@ -22,6 +22,7 @@ import { StudentAssessmentHistoryPage } from '@/features/student/assessment/comp
 import { StudentRecommendationResultsPage } from '@/features/student/recommendations/components/student-recommendation-results-page'
 import { StudentProgrammeCataloguePage } from '@/features/student/programmes/components/student-programme-catalogue-page'
 import type { StudentProgrammeMatchContext } from '@/features/student/programmes/programme-types'
+import { StudentProfilePage } from '@/features/student/profile/components/student-profile-page'
 
 const AdminWorkspaceRoute = lazy(() =>
   import('@/features/admin/routes/admin-workspace-route').then((module) => ({
@@ -98,6 +99,9 @@ function WorkspaceRoute({ role }: { role: AccessRole }) {
                 }
                 if (module.id === 'programmes') {
                   return <StudentProgrammeCataloguePage matchContext={programmeMatchContext} />
+                }
+                if (module.id === 'profile') {
+                  return <StudentProfilePage onBack={onBack} />
                 }
                 return undefined
               }

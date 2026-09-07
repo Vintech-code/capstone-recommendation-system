@@ -17,16 +17,10 @@ function AssessmentResultLoading() {
         </p>
         <h1
           id="assessment-calculation-title"
-          className="mt-3 font-display text-3xl font-bold tracking-[-0.035em] sm:text-4xl"
+          className="mt-3 font-display text-3xl font-bold tracking-[-0.035em] sm:text-4xl text-foreground"
         >
           Calculating your programme matches
         </h1>
-        <p className="mx-auto mt-4 max-w-lg text-base leading-7 text-muted-foreground">
-          We are scoring your recorded RIASEC responses and comparing them with the currently eligible TCC programmes.
-        </p>
-        <p className="mt-3 text-sm font-medium text-foreground">
-          My Matches will open when your result is ready.
-        </p>
       </div>
     </main>
   )

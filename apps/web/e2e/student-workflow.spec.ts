@@ -100,8 +100,23 @@ async function installStudentApi(page: Page, initiallyComplete = false) {
     if (path === '/api/v1/auth/authorize/student') return json(route, { authorized: true, portal: 'student' })
     if (path === '/api/v1/auth/logout') return json(route, { message: 'Signed out.' })
     if (path === '/api/v1/notifications') return json(route, { data: [] })
+    if (path.startsWith('/api/v1/locations/')) {
+      const data = path.endsWith('/regions') ? [{ id: 1, code: '0100000000', name: 'Test region' }, { id: 9, code: '0900000000', name: 'Another region' }]
+        : path.endsWith('/provinces') ? { items: [{ id: 2, code: '0100100000', name: 'Test province' }], hasIndependentCities: true }
+        : path.endsWith('/barangays') ? [{ id: 4, code: '0100101001', name: 'Test barangay' }]
+        : [{ id: 3, code: '0100101000', name: 'Test city' }]
+      return json(route, { data })
+    }
     if (path === '/api/v1/student/profile') {
-      return json(route, { data: { student: { ...user, photoUrl: null }, questionnaire: { complete: false, strengths: [], growthAreas: [], learningPreferences: [], updatedAt: null }, options: { strengths: [], growthAreas: [], learningPreferences: [] }, riasec: null, careerInterests: [], about: 'No Student profile selections have been recorded.' } })
+      return json(route, { data: {
+        student: { ...user, photoUrl: null },
+        personalAcademic: { location: { regionId: 1, provinceId: 2, cityMunicipalityId: 3, barangayId: 4 }, complete: true, lrn: '128490000001', birthDate: '2007-04-18', age: 19, phone: '+63 917 842 1928', addressLine: 'Zone 2', barangay: 'Poblacion', municipality: 'Tagoloan', province: 'Misamis Oriental', shsSchoolName: 'Tagoloan National High School', shsStrand: 'STEM', shsGraduationYear: 2026, updatedAt: '2026-09-07T10:00:00+08:00' },
+        questionnaire: { complete: true, strengths: ['Problem-solving'], growthAreas: ['Time management'], learningPreferences: ['Reading'], updatedAt: '2026-09-07T10:00:00+08:00' },
+        options: { strengths: ['Problem-solving', 'Creativity'], growthAreas: ['Time management', 'Public speaking'], learningPreferences: ['Reading', 'Hands-on activities'] },
+        riasec: null,
+        careerInterests: [],
+        about: 'The Student profile contains self-reported information.',
+      } })
     }
     if (path === '/api/v1/student/entrance-examination') {
       return json(route, { data: { status: 'declared', result: { id: 1, score: 2.5, eligibilityGroup: 'board', ruleReference: 'SELF-DECLARED-TCC-ENTRANCE-2026-01', source: 'student_self_declared', declaredAt: '2026-08-08T07:00:00+08:00' } } })
@@ -237,7 +252,23 @@ async function expectNoHorizontalOverflow(page: Page) {
   expect(overflow).toBeLessThanOrEqual(1)
 }
 
-test('completes the student assessment and opens a recommendation detail', async ({ page }) => {
+test('lets the Student manage personal and academic profile information without GWA', async ({ page }) => {
+  await installStudentApi(page)
+  await signIn(page)
+  await page.getByRole('button', { name: 'Go to dashboard' }).click()
+  await page.getByRole('button', { name: 'My Profile' }).first().click()
+
+  await expect(page.getByRole('heading', { level: 1, name: 'My Profile' })).toBeVisible()
+  await expect(page.getByLabel('Learner reference numberOptional')).toHaveValue('128490000001')
+  await expect(page.getByLabel('Mobile number*')).toHaveValue('+63 917 842 1928')
+  await expect(page.getByLabel(/GWA/i)).toHaveCount(0)
+  await page.getByRole('button', { name: /Next/ }).click()
+  await expect(page.getByLabel(/Senior high school/)).toHaveValue('Tagoloan National High School')
+  await expect(page.getByLabel(/GWA/i)).toHaveCount(0)
+  await expectNoHorizontalOverflow(page)
+})
+
+test('completes the student assessment and opens a recommendation detail', async ({ page }, testInfo) => {
   const consoleErrors: string[] = []
   await installStudentApi(page)
   await signIn(page)
@@ -255,6 +286,13 @@ test('completes the student assessment and opens a recommendation detail', async
 
   await expect(page.getByRole('heading', { name: 'All ranked matches' })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'RIASEC scores' })).toBeVisible()
+  const topMatch = page.getByRole('heading', { level: 3, name: 'BS Information Technology' }).locator('xpath=ancestor::article')
+  await expect(topMatch).toHaveClass(/rounded-3xl/)
+  await expect(topMatch.getByText('Recorded match')).toBeVisible()
+  await expect(topMatch.getByRole('progressbar', { name: 'BS Information Technology recorded match' })).toHaveAttribute('aria-valuenow', '90')
+  const programmeSummary = topMatch.getByText(/Focuses on applying computing/)
+  expect(await programmeSummary.evaluate((element) => window.getComputedStyle(element).fontFamily)).toContain('Montserrat Alternates')
+  await topMatch.screenshot({ path: testInfo.outputPath('ranked-match.png') })
   await page.getByRole('button', { name: 'View programme' }).click()
   await expect(page.getByRole('navigation', { name: 'Breadcrumb' })).toHaveCount(0)
   await expect(page.getByRole('heading', { level: 1, name: 'BS Information Technology' })).toBeVisible()
@@ -344,4 +382,34 @@ test('passes responsive, keyboard, contrast, and print smoke checks', async ({ p
   expect(printColumns.split(' ')).toHaveLength(3)
   const printPdf = await page.pdf({ format: 'A4', printBackground: true })
   expect(printPdf.byteLength).toBeGreaterThan(10_000)
+})
+
+
+test('cascades Philippine locations with keyboard, responsive layout, and accessible controls', async ({ page }) => {
+  await installStudentApi(page)
+  await signIn(page)
+  await page.getByRole('button', { name: 'Go to dashboard' }).click()
+  await page.getByRole('button', { name: 'My Profile' }).first().click()
+  await expect(page.getByRole('combobox', { name: /Barangay/ })).toContainText('Test barangay')
+  const errors: string[] = []
+  page.on('pageerror', (error) => errors.push(error.message))
+  const region = page.getByRole('combobox', { name: /Region/ })
+  await region.focus()
+  await expect(region).toBeFocused()
+  await page.keyboard.press('Space')
+  await page.getByRole('option', { name: 'Another region' }).click()
+  await expect(page.getByRole('combobox', { name: /City or municipality/ })).toBeDisabled()
+  await expect(page.getByRole('combobox', { name: /Barangay/ })).toBeDisabled()
+  await page.getByRole('combobox', { name: /Province/ }).click()
+  await page.getByRole('option', { name: 'No province (independent city)' }).click()
+  await page.getByRole('combobox', { name: /City or municipality/ }).click()
+  await page.getByRole('option', { name: 'Test city' }).click()
+  await page.getByRole('combobox', { name: /Barangay/ }).click()
+  await page.getByRole('option', { name: 'Test barangay' }).click()
+  await expectNoHorizontalOverflow(page)
+  await page.addScriptTag({ content: axe.source })
+  const accessibility = await page.evaluate(async () => window.axe.run('fieldset', { runOnly: ['color-contrast', 'label', 'aria-valid-attr', 'aria-required-attr'] }))
+  expect(accessibility.violations).toEqual([])
+  expect(errors).toEqual([])
+  await page.screenshot({ path: `test-results/locations-${test.info().project.name}.png`, fullPage: true })
 })

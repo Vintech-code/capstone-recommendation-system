@@ -41,7 +41,7 @@ describe('shared frontend foundation components', () => {
     expect(container.querySelector('svg')).toHaveAttribute('aria-hidden', 'true')
   })
 
-  it('announces loading information and renders skeleton placeholders without a spinner', () => {
+  it('announces loading information and renders an animated loading spinner', () => {
     const { container } = render(
       <LoadingState
         title="Loading applicants"
@@ -51,20 +51,23 @@ describe('shared frontend foundation components', () => {
 
     expect(screen.getByRole('status')).toHaveAttribute('aria-busy', 'true')
     expect(screen.getByRole('status')).toHaveTextContent('Loading applicants')
-    expect(container.querySelectorAll('[data-slot="skeleton"]')).toHaveLength(4)
-    expect(container.querySelector('svg')).not.toBeInTheDocument()
+    expect(container.querySelector('svg')).toHaveClass('animate-spin')
+    expect(container.querySelectorAll('[data-slot="skeleton"]')).toHaveLength(0)
   })
 
-  it('renders page-shaped recommendation skeletons', () => {
+  it('renders compact and responsive loading spinner', () => {
     const { container } = render(
       <LoadingState
+        compact
         variant="recommendations"
         title="Loading recommendations"
       />,
     )
 
     expect(screen.getByRole('status')).toHaveAttribute('aria-busy', 'true')
-    expect(container.querySelectorAll('[data-slot="skeleton"]').length).toBeGreaterThan(10)
+    expect(screen.getByRole('status')).toHaveTextContent('Loading recommendations')
+    expect(container.querySelector('svg')).toHaveClass('animate-spin')
+    expect(container.querySelectorAll('[data-slot="skeleton"]')).toHaveLength(0)
   })
 
   it('provides an actionable semantic empty state', async () => {

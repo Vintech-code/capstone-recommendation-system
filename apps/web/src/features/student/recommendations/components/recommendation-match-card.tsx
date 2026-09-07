@@ -1,17 +1,25 @@
-import { ArrowRight, BookOpen, ListChecks } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
-import { getProgrammeImages } from '@/features/student/programmes/programme-images'
-import { programmeMediaStyle } from '@/features/student/programmes/programme-media-position'
 import type { StudentRecommendedCourse } from '@/features/student/recommendations/recommendation-types'
+import { cn } from '@/lib/utils'
 
-const interestAreaNames: Record<string, string> = {
-  R: 'Realistic',
-  I: 'Investigative',
-  A: 'Artistic',
-  S: 'Social',
-  E: 'Enterprising',
-  C: 'Conventional',
+const rankedHighlightStyles = [
+  { color: 'bg-info/28', width: 'lg:w-[68%]' },
+  { color: 'bg-primary/28', width: 'lg:w-[58%]' },
+  { color: 'bg-warning/38', width: 'lg:w-[48%]' },
+] as const
+
+function matchLabel(pct: number): string {
+  if (pct >= 60) return 'Strong match'
+  if (pct >= 30) return 'Good match'
+  return 'Explore match'
+}
+
+function matchLabelStyle(pct: number): string {
+  if (pct >= 60) return 'text-primary-ink'
+  if (pct >= 30) return 'text-primary-ink/80'
+  return 'text-muted-foreground'
 }
 
 interface RecommendationMatchCardProps {
@@ -19,83 +27,100 @@ interface RecommendationMatchCardProps {
   onViewDetails: () => void
 }
 
-function RecommendationMatchCard({
-  course,
-  onViewDetails,
-}: RecommendationMatchCardProps) {
-  const fallback = getProgrammeImages(course.id)
-  const cover = course.coverImageUrl || fallback.cover
-  const coverStyle = course.coverImageUrl ? programmeMediaStyle(course.coverImagePosition) : undefined
+function RecommendationMatchCard({ course, onViewDetails }: RecommendationMatchCardProps) {
+  const match = Math.min(100, Math.max(0, course.match))
+  const displayPct = Math.round(match)
+  const highlightStyle = rankedHighlightStyles[course.rank - 1]
+  const label = matchLabel(match)
+  const labelStyle = matchLabelStyle(match)
 
   return (
     <article
-      className="group py-6 sm:py-8"
+      className={cn(
+        'group relative overflow-hidden bg-card transition-shadow',
+        highlightStyle
+          ? 'rounded-3xl border border-border shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-card-hover)]'
+          : 'border-b border-border',
+      )}
     >
-      <div className="grid gap-5 sm:grid-cols-[10rem_minmax(0,1fr)] sm:items-stretch lg:grid-cols-[11rem_minmax(0,1fr)]">
-        <div
-          className="relative flex aspect-[4/3] flex-col items-center justify-center overflow-hidden rounded-2xl bg-secondary text-primary-ink sm:aspect-auto sm:min-h-44"
-        >
-          {cover ? (
-            <img src={cover} alt={`${course.name} programme`} loading="lazy" decoding="async" style={coverStyle} className="absolute inset-0 size-full object-cover" />
-          ) : (
-            <>
-              <BookOpen aria-hidden="true" className="mb-2 size-8 text-muted-foreground" />
-              <span className="font-display text-2xl font-bold tracking-[-0.04em]">{course.code}</span>
-            </>
+      {highlightStyle ? (
+        <span
+          data-rank-highlight={course.rank}
+          aria-hidden="true"
+          className={cn(
+            'absolute inset-y-0 left-0 hidden rounded-r-[6rem] lg:block',
+            highlightStyle.color,
+            highlightStyle.width,
           )}
-        </div>
+        />
+      ) : null}
 
-        <div className="flex min-w-0 flex-col">
-          <div>
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-              <span className={course.rank === 1 ? 'inline-flex min-h-9 items-center rounded-full bg-primary px-3.5 font-label text-sm font-bold text-primary-foreground' : 'outcome-chip'}>
-                Rank {course.rank}
+      <div className="relative grid lg:grid-cols-[minmax(0,1fr)_17rem]">
+        <div
+          className={cn(
+            'relative px-5 py-4 sm:px-7 sm:py-5 lg:bg-transparent lg:pr-20',
+            highlightStyle?.color,
+          )}
+        >
+          <div className="relative z-10">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="font-label text-xs font-bold uppercase tracking-[0.12em] text-muted-foreground">
+                Programme #{course.rank}
               </span>
-              <span className="font-label text-sm font-bold text-foreground sm:text-base">
-                {course.match}% provisional match
+              <span
+                className={cn(
+                  'inline-flex min-h-7 items-center rounded-full px-3 font-label text-xs font-bold uppercase tracking-[0.04em]',
+                  course.rank === 1
+                    ? 'bg-primary-ink text-white'
+                    : 'border border-foreground/10 bg-white/75 text-foreground',
+                )}
+              >
+                {course.rank === 1 ? 'Top fit' : `Top ${course.rank}`}
               </span>
             </div>
-            <h3 className="mt-3 font-display text-2xl font-bold leading-8 transition-colors group-hover:text-primary-ink">
-              {course.name} <span className="whitespace-nowrap">({course.code})</span>
+
+            <h3 className="mt-2.5 max-w-3xl font-display text-xl font-extrabold leading-tight tracking-[-0.02em] text-foreground sm:text-2xl">
+              {course.name}
             </h3>
+
             {course.summary ? (
-              <p className="mt-2 text-base font-medium leading-7 text-muted-foreground">
+              <p className="mt-1.5 max-w-4xl text-sm font-medium leading-6 text-muted-foreground sm:text-base">
                 {course.summary}
               </p>
             ) : null}
-            {course.explanation ? (
-              <div className="mt-4 flex items-start gap-2 border-l-2 border-primary/25 pl-3 text-sm font-medium leading-6 text-muted-foreground sm:text-base sm:leading-7">
-                <ListChecks aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
-                <p>
-                  {course.explanation.sharedTopAreas.length > 0
-                    ? `Your recorded ${course.explanation.sharedTopAreas.map((area) => `${area.label} (${area.score})`).join(' and ')} scores are also listed in this programme's configured interest profile.`
-                    : `This programme uses the configured ${course.explanation.programmeInterestAreas.join(' and ')} interest areas in the current catalogue.`}
-                </p>
-              </div>
-            ) : null}
+          </div>
+        </div>
+
+        <div className="relative z-10 flex min-w-0 flex-col justify-between gap-3 border-t border-border bg-card px-5 py-4 sm:px-7 sm:py-5 lg:border-l lg:border-t-0">
+          <div>
+            <p className={cn('font-label text-sm font-bold', labelStyle)}>{label}</p>
+            <p className={cn('mt-1 font-display text-3xl font-black leading-none', labelStyle)}>
+              {displayPct}%
+            </p>
+            <div
+              role="progressbar"
+              aria-label={`${course.name} ${label.toLowerCase()}`}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={displayPct}
+              className="mt-3 h-2 overflow-hidden rounded-full bg-muted"
+            >
+              <span
+                className="block h-full rounded-full bg-primary transition-[width] duration-500 motion-reduce:transition-none"
+                style={{ width: `${displayPct}%` }}
+              />
+            </div>
           </div>
 
-          <div className="mt-5 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-            <div>
-              <p className="font-label text-sm font-bold text-muted-foreground">
-                Matched interest areas
-              </p>
-              <div className="mt-2 flex flex-wrap gap-2" aria-label="Matched RIASEC areas">
-                {course.interestAreas.slice(0, 3).map((area) => (
-                  <span
-                    key={area}
-                    className="outcome-chip"
-                  >
-                    {area} · {interestAreaNames[area] ?? 'Recorded area'}
-                  </span>
-                ))}
-              </div>
-            </div>
-            <Button type="button" variant="ghost" onClick={onViewDetails} className="self-start text-primary-ink md:self-auto">
-              View programme
-              <ArrowRight aria-hidden="true" />
-            </Button>
-          </div>
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={onViewDetails}
+            className="w-full justify-between text-primary-ink"
+          >
+            View programme
+            <ArrowRight aria-hidden="true" />
+          </Button>
         </div>
       </div>
     </article>

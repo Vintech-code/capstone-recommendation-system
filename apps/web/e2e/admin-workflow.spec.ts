@@ -22,7 +22,7 @@ async function installAdminApi(page: Page) {
     if (path === '/api/v1/auth/authorize/admin') return json(route, { authorized: true, portal: 'admin' })
     if (path === '/api/v1/admin/overview') return json(route, { data: { students: 1, assessments: 1, completed: 1, inProgress: 0, needsAttention: 0, recommendations: 1, funnel: { registered: 1, entranceDeclared: 1, assessmentStarted: 1, inProgress: 0, processing: 0, resultAvailable: 1 }, operationalAttention: { processingFailures: 0 }, recentActivity: [assessment] } })
     if (path === '/api/v1/admin/students') return json(route, { data: { items: [student], pagination: { currentPage: 1, lastPage: 1, perPage: 20, total: 1, from: 1, to: 1 } } })
-    if (path === '/api/v1/admin/students/10') return json(route, { data: { id: 10, name: 'Ana Santos', email: 'ana@example.test', accountStatus: 'active', savedProgrammeCount: 1, attempts: [{ ...assessment, dimensions: [{ code: 'I', label: 'Investigative', value: 23 }, { code: 'C', label: 'Conventional', value: 21 }], recommendations: [{ id: 'bs-information-technology', rank: 1, code: 'BSIT', name: 'BS Information Technology', match: 90 }] }] } })
+    if (path === '/api/v1/admin/students/10') return json(route, { data: { id: 10, name: 'Ana Santos', email: 'ana@example.test', accountStatus: 'active', savedProgrammeCount: 1, profile: { lrn: '128490000011', birthDate: '2007-04-18', age: 19, phone: '+63 917 842 1928', addressLine: 'Zone 2', barangay: 'Poblacion', municipality: 'Tagoloan', province: 'Misamis Oriental', shsSchoolName: 'Tagoloan National High School', shsStrand: 'STEM', shsGraduationYear: 2026 }, attempts: [{ ...assessment, dimensions: [{ code: 'R', label: 'Realistic', value: 16 }, { code: 'I', label: 'Investigative', value: 23 }, { code: 'A', label: 'Artistic', value: 14 }, { code: 'S', label: 'Social', value: 12 }, { code: 'E', label: 'Enterprising', value: 10 }, { code: 'C', label: 'Conventional', value: 21 }], recommendations: [{ id: 'bs-information-technology', rank: 1, code: 'BSIT', name: 'BS Information Technology', match: 90 }, { id: 'bs-business-administration', rank: 2, code: 'BSBA', name: 'BS Business Administration', match: 82 }, { id: 'bachelor-library-information-science', rank: 3, code: 'BLIS', name: 'Bachelor of Library and Information Science', match: 76 }] }] } })
     if (path === '/api/v1/admin/assessments') return json(route, { data: [assessment] })
     if (path === '/api/v1/admin/appointments') return json(route, { data: [] })
     if (path === '/api/v1/admin/programmes') return json(route, { data: { academicYear: '2026-2027', catalogueVersion: 1, catalogueStatus: 'approved_current_scope', programmes: [{ id: 'bs-information-technology', code: 'BSIT', name: 'BS Information Technology', profile: ['I', 'C', 'R'], profileStatus: 'researcher_proposed_temporary', profileVersion: 'TEMP-2026-01', eligibilityGroup: 'board', majors: [], recommendedStrands: ['STEM', 'TVL-ICT'], description: 'Applies computing technologies to organisational needs.', learningAreas: ['Software development'], learningAreaDescriptions: { 'Software development': 'Design and maintain applications.' }, learningAreaTopics: { 'Software development': ['Programming'] }, careerDirections: ['Software development'], strandGuidance: 'STEM and TVL-ICT may be helpful preparation.', requirements: ['Meet published admission requirements.'], readinessPrompt: 'Discuss your interest in technology.', contentVersion: 'GUIDANCE-1', degreeType: "Bachelor's degree", duration: { status: 'ched_psg', display: '4 years', source_name: 'CHED source', source_url: 'https://ched.gov.ph/' }, salary: { status: 'not_published', display: 'Not published' }, jobGrowth: { status: 'not_published', display: 'Not published' }, outlookVersion: 'PH-1', coverImageUrl: null, logoImageUrl: null, monitoring: { savedByStudents: 1 } }] } })
@@ -99,9 +99,20 @@ test('Admin workspace is responsive, accessible, and navigable', async ({ page }
     await page.getByRole('button', { name: 'Open', exact: true }).click()
   }
   await expect(page.getByRole('heading', { name: 'Ana Santos', exact: true })).toBeVisible()
-  await expect(page.getByText('I-C interest profile')).toBeVisible()
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true)
-
+  await expect(page.getByRole('heading', { name: 'Psychometric dimension matrix' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Academic programme pathways' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Assessment history and evidence' })).toHaveCount(0)
+  await expect(page.getByRole('heading', { name: 'Assessment context' })).toHaveCount(0)
+  await expect(page.getByTestId('student-resume-card')).toHaveCount(1)
+  const detailOverflow = await page.evaluate(() => ({
+    clientWidth: document.documentElement.clientWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+    offenders: Array.from(document.querySelectorAll<HTMLElement>('body *'))
+      .filter((element) => element.getBoundingClientRect().right > document.documentElement.clientWidth + 1)
+      .slice(0, 8)
+      .map((element) => ({ tag: element.tagName, className: element.className, right: Math.round(element.getBoundingClientRect().right) })),
+  }))
+  expect(detailOverflow.scrollWidth, JSON.stringify(detailOverflow.offenders)).toBeLessThanOrEqual(detailOverflow.clientWidth)
   for (const [path, heading] of [
     ['/admin/students', 'Student records'],
     ['/admin/programmes', 'Programme monitoring'],
@@ -126,5 +137,44 @@ test('Admin workspace is responsive, accessible, and navigable', async ({ page }
     return window.axe.run(document, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa'] } })
   }, axe.source)
   expect(accessibility.violations.filter((violation) => ['serious', 'critical'].includes(violation.impact ?? ''))).toEqual([])
+  expect(consoleErrors).toEqual([])
+})
+
+test('Admin Student detail follows the evidence dossier layout', async ({ page }) => {
+  const consoleErrors: string[] = []
+  page.on('console', (message) => { if (message.type() === 'error') consoleErrors.push(message.text()) })
+  await installAdminApi(page)
+  await page.goto('/admin/login')
+  await page.getByLabel('Email address').fill('admin@example.test')
+  await page.getByRole('textbox', { name: 'Password' }).fill('password')
+  await page.getByRole('button', { name: 'Sign in' }).click()
+  consoleErrors.length = 0
+  await page.goto('/admin/students/10')
+
+  await expect(page.getByRole('heading', { name: 'Ana Santos', exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Psychometric dimension matrix' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Academic programme pathways' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Assessment history and evidence' })).toHaveCount(0)
+  await expect(page.getByRole('heading', { name: 'Assessment context' })).toHaveCount(0)
+  await expect(page.getByTestId('student-resume-card')).toHaveCount(1)
+  await expect(page.getByText('R - Realistic')).toBeVisible()
+  await expect(page.getByText('C - Conventional')).toBeVisible()
+
+  const overflow = await page.evaluate(() => ({
+    clientWidth: document.documentElement.clientWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+    offenders: Array.from(document.querySelectorAll<HTMLElement>('body *'))
+      .filter((element) => element.getBoundingClientRect().right > document.documentElement.clientWidth + 1)
+      .slice(0, 8)
+      .map((element) => ({ tag: element.tagName, className: element.className, right: Math.round(element.getBoundingClientRect().right) })),
+  }))
+  expect(overflow.scrollWidth, JSON.stringify(overflow.offenders)).toBeLessThanOrEqual(overflow.clientWidth)
+
+  const accessibility = await page.evaluate(async (source) => {
+    eval(source)
+    return window.axe.run(document, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa'] } })
+  }, axe.source)
+  const seriousViolations = accessibility.violations.filter((violation) => ['serious', 'critical'].includes(violation.impact ?? ''))
+  expect(seriousViolations, JSON.stringify(seriousViolations, null, 2)).toEqual([])
   expect(consoleErrors).toEqual([])
 })

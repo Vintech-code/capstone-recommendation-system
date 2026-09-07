@@ -4,10 +4,10 @@ import {
   AdminActivityPage,
   AdminDashboardPage,
   AdminReportsPage,
-  AdminStudentDetailPage,
   AdminStudentsPage,
 } from '@/features/admin/components/admin-pages'
 import { AdminProgrammesPage } from '@/features/admin/components/admin-programmes-page'
+import { AdminStudentDetailPage } from '@/features/admin/components/admin-student-detail-page'
 import { useAuth } from '@/features/auth/auth-context'
 import { ProtectedRoute } from '@/features/auth/components/protected-route'
 import { WorkspacePreview } from '@/features/auth/components/workspace-preview'

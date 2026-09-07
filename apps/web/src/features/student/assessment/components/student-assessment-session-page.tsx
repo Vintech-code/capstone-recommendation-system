@@ -43,6 +43,8 @@ import {
   type AssessmentLifecycle,
   type EntranceExaminationState,
 } from "@/features/student/assessment/assessment-api";
+import { getLatestRecommendation } from "@/features/student/recommendations/recommendation-api";
+import { clearStudentResourceCache } from "@/features/student/student-resource-cache";
 import { StudentPageHeader } from "@/features/student/components/student-page-header";
 
 type AssessmentSessionLoadState = "ready" | "loading" | "error" | "empty";
@@ -261,6 +263,13 @@ function StudentAssessmentSessionPage({
       () => void persistAnswers(nextAnswers, undefined, currentIndex + 1),
       250,
     );
+
+    // Automatically advance to the next question upon answer selection
+    if (currentIndex < content.questions.length - 1) {
+      window.setTimeout(() => {
+        setCurrentIndex((index) => index + 1);
+      }, 150);
+    }
   }
 
   async function submitAssessment() {
@@ -287,6 +296,12 @@ function StudentAssessmentSessionPage({
         }
         window.localStorage.removeItem(storageKey);
         setCompletedAssessment(submitted);
+        clearStudentResourceCache();
+        try {
+          await getLatestRecommendation();
+        } catch {
+          // ignore prefetch failure and proceed to matches
+        }
         if (onViewMatches) {
           onViewMatches();
         } else {
@@ -297,6 +312,7 @@ function StudentAssessmentSessionPage({
 
       await new Promise((resolve) => window.setTimeout(resolve, 300));
       window.localStorage.removeItem(storageKey);
+      clearStudentResourceCache();
       if (onViewMatches) {
         onViewMatches();
       } else {
@@ -521,22 +537,16 @@ function StudentAssessmentSessionPage({
               {saveStatus.label}
             </span>
 
-            <Button
-              type="button"
-              disabled={!answers[question.id]}
-              onClick={() => {
-                if (currentIndex === content.questions.length - 1) {
-                  void submitAssessment();
-                  return;
-                }
-                setCurrentIndex((index) => index + 1);
-              }}
-            >
-              {currentIndex === content.questions.length - 1
-                ? "Finish assessment"
-                : "Next"}
-              <ArrowRight aria-hidden="true" />
-            </Button>
+            {currentIndex === content.questions.length - 1 ? (
+              <Button
+                type="button"
+                disabled={!answers[question.id]}
+                onClick={() => void submitAssessment()}
+              >
+                Finish assessment
+                <ArrowRight aria-hidden="true" />
+              </Button>
+            ) : null}
           </div>
         </nav>
       ) : null}

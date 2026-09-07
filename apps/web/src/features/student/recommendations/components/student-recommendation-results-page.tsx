@@ -187,7 +187,7 @@ function StudentRecommendationResultsPage({
     : [];
 
   return (
-    <div className="student-grid-page student-dashboard-canvas">
+    <div className="student-grid-page student-dashboard-canvas animate-matches-enter">
       <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 md:px-8 lg:px-10 pb-12 pt-6 sm:pt-10">
         <div
           style={{ alignItems: "start" }}
@@ -394,7 +394,7 @@ function StudentRecommendationResultsPage({
             </span>
           </div>
 
-          <ol className="divide-y divide-border border-y border-border">
+          <ol className="space-y-4 sm:space-y-5">
             {snapshot.courses.map((course) => (
               <li key={course.id}>
                 <RecommendationMatchCard

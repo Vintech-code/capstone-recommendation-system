@@ -1,5 +1,10 @@
 @import "@fontsource-variable/nunito-sans";
-@import "@fontsource-variable/montserrat";
+@import "@fontsource/montserrat-alternates/latin-400.css";
+@import "@fontsource/montserrat-alternates/latin-500.css";
+@import "@fontsource/montserrat-alternates/latin-600.css";
+@import "@fontsource/montserrat-alternates/latin-700.css";
+@import "@fontsource/montserrat-alternates/latin-800.css";
+@import "@fontsource/montserrat-alternates/latin-900.css";
 @import "tailwindcss";
 
 :root {
@@ -8,92 +13,92 @@
   --radius: 0.75rem;
 
   /* Base */
-  --background: rgb(255, 254, 249);
-  --foreground: #40534A;
+  --background: rgb(255, 255, 255);
+  --foreground: #40534a;
 
   /* Surfaces */
-  --card: #FFFFFF;
-  --card-foreground: #40534A;
+  --card: #ffffff;
+  --card-foreground: #40534a;
 
-  --popover: #FFFFFF;
-  --popover-foreground: #40534A;
+  --popover: #ffffff;
+  --popover-foreground: #40534a;
 
   /* Primary */
   --primary: #51b885;
-  --primary-foreground: #1F392B;
-  --primary-ink: #3F7D57;
+  --primary-foreground: #1f392b;
+  --primary-ink: #3f7d57;
 
   /* Secondary */
-  --secondary: #EEF6F0;
-  --secondary-foreground: #40534A;
+  --secondary: #fdfdfd;
+  --secondary-foreground: #40534a;
 
   /* Muted */
-  --muted: #F0F4F1;
-  --muted-foreground: #5F7369;
+  --muted: #f0f4f1;
+  --muted-foreground: #5f7369;
 
   /* Accent */
-  --accent: #DFF3E6;
-  --accent-foreground: #3F7654;
+  --accent: #dff3e6;
+  --accent-foreground: #3f7654;
 
   /* Status */
-  --destructive: #E58B91;
-  --destructive-foreground: #51272B;
-  --destructive-ink: #A33C45;
+  --destructive: #e58b91;
+  --destructive-foreground: #51272b;
+  --destructive-ink: #a33c45;
 
-  --border: #DCE7DF;
-  --input: #C2D4C8;
-  --ring: #6BBB84;
+  --border: #dce7df;
+  --input: #c2d4c8;
+  --ring: #6bbb84;
 
-  --success: #69B98A;
-  --success-foreground: #1F3D2C;
-  --success-ink: #3F7654;
+  --success: #69b98a;
+  --success-foreground: #1f3d2c;
+  --success-ink: #3f7654;
 
-  --warning: #E2B34F;
-  --warning-foreground: #4B3A12;
-  --warning-ink: #8A6100;
+  --warning: #e2b34f;
+  --warning-foreground: #4b3a12;
+  --warning-ink: #8a6100;
 
-  --info: #79B4DC;
-  --info-foreground: #203B4D;
-  --info-ink: #326F99;
+  --info: #79b4dc;
+  --info-foreground: #203b4d;
+  --info-ink: #326f99;
 
   /* Brand (legacy token names retained for component compatibility) */
-  --brand-dark: #86D19E;
-  --brand-teal: #79CDA0;
-  --brand-green: #8AD3A2;
-  --brand-soft: #E5F5EA;
+  --brand-dark: #86d19e;
+  --brand-teal: #79cda0;
+  --brand-green: #8ad3a2;
+  --brand-soft: #e5f5ea;
 
   /* Special backgrounds */
-  --canvas-sun: #FFF4CC;
+  --canvas-sun: #fff4cc;
 
-  --primary-fixed: #E5F5EA;
-  --on-primary-fixed: #3F7D57;
-  --on-primary-fixed-variant: #52685D;
+  --primary-fixed: #e5f5ea;
+  --on-primary-fixed: #3f7d57;
+  --on-primary-fixed-variant: #52685d;
 
-  --secondary-container: #F4B740;
-  --on-secondary-container: #4B3A12;
+  --secondary-container: #f4b740;
+  --on-secondary-container: #4b3a12;
 
-  --secondary-fixed-dim: #D99A16;
+  --secondary-fixed-dim: #d99a16;
 
   /* Surfaces */
-  --outline-variant: #DCE7DF;
-  --surface-container: #FAFCF9;
-  --surface-container-high: #F1F7F2;
+  --outline-variant: #dce7df;
+  --surface-container: #fafcf9;
+  --surface-container-high: #f1f7f2;
 
   /* Charts */
-  --chart-blue: #79B4DC;
-  --chart-teal: #70C8B0;
-  --chart-slate: #9AABB2;
-  --chart-coral: #E58B91;
-  --chart-green: #69B98A;
-  --chart-yellow: #E2B34F;
+  --chart-blue: #79b4dc;
+  --chart-teal: #70c8b0;
+  --chart-slate: #9aabb2;
+  --chart-coral: #e58b91;
+  --chart-green: #69b98a;
+  --chart-yellow: #e2b34f;
 
   /* RIASEC */
-  --riasec-r: #E9966A;
-  --riasec-i: #82A7E8;
-  --riasec-a: #D889AE;
-  --riasec-s: #69B98A;
-  --riasec-e: #E2B34F;
-  --riasec-c: #79B4DC;
+  --riasec-r: #e9966a;
+  --riasec-i: #82a7e8;
+  --riasec-a: #d889ae;
+  --riasec-s: #69b98a;
+  --riasec-e: #e2b34f;
+  --riasec-c: #79b4dc;
 
   /* Shadows */
   --shadow-primary: rgba(134, 209, 158, 0.18);
@@ -104,10 +109,10 @@
 
   --shadow-cream: rgba(154, 103, 0, 0.08);
 
-  --shadow-highlight: rgba(255, 255, 255, 0.70);
+  --shadow-highlight: rgba(255, 255, 255, 0.7);
 
   --shadow-card: 0 8px 30px rgba(64, 83, 74, 0.06);
-  --shadow-card-hover: 0 14px 38px rgba(64, 83, 74, 0.10);
+  --shadow-card-hover: 0 14px 38px rgba(64, 83, 74, 0.1);
 }
 
 .portal-sign-in-theme {
@@ -203,8 +208,29 @@
   }
 }
 
+@keyframes matchesEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(18px) scale(0.995);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-matches-enter {
+  animation: matchesEnter 0.65s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-matches-enter {
+    animation: none !important;
+  }
+}
+
 @theme inline {
-  --font-sans: "Montserrat Variable", Montserrat, ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Montserrat Alternates", ui-sans-serif, system-ui, sans-serif;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -261,8 +287,9 @@
   --color-outline-variant: var(--outline-variant);
   --color-surface-container: var(--surface-container);
   --color-surface-container-high: var(--surface-container-high);
-  --font-display: "Nunito Sans Variable", "Nunito Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-label: "Montserrat Variable", Montserrat, ui-sans-serif, system-ui, sans-serif;
+  --font-display:
+    "Nunito Sans Variable", "Nunito Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-label: "Montserrat Alternates", ui-sans-serif, system-ui, sans-serif;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -311,8 +338,16 @@
     @apply pointer-events-none absolute inset-x-0 top-0 h-[28rem];
     background-color: var(--surface-container-high);
     background-image:
-      linear-gradient(to right, color-mix(in srgb, var(--outline-variant) 52%, transparent) 1px, transparent 1px),
-      linear-gradient(to bottom, color-mix(in srgb, var(--outline-variant) 44%, transparent) 1px, transparent 1px);
+      linear-gradient(
+        to right,
+        color-mix(in srgb, var(--outline-variant) 52%, transparent) 1px,
+        transparent 1px
+      ),
+      linear-gradient(
+        to bottom,
+        color-mix(in srgb, var(--outline-variant) 44%, transparent) 1px,
+        transparent 1px
+      );
     background-size: 8rem 3rem;
   }
 
@@ -466,7 +501,6 @@
   .strand-row {
     @apply grid min-h-14 grid-cols-[auto_minmax(0,1fr)] items-center gap-3 rounded-2xl bg-secondary p-3 text-sm font-medium;
   }
-
 }
 
 @keyframes orbit-spin {

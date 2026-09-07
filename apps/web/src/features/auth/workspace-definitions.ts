@@ -6,6 +6,7 @@ import {
   History,
   LibraryBig,
   Target,
+  UserRound,
   UsersRound,
   type LucideIcon,
 } from 'lucide-react'
@@ -62,6 +63,12 @@ const dashboards: Record<AccessRole, DashboardDefinition> = {
         title: 'My Matches',
         description: 'View programme matches from your completed assessment.',
         icon: Target,
+      },
+      {
+        id: 'profile',
+        title: 'My Profile',
+        description: 'Manage your personal, academic, and learning information.',
+        icon: UserRound,
       },
       {
         id: 'history',

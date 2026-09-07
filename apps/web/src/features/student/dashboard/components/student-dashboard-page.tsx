@@ -49,11 +49,25 @@ const dimensionPresentation: Record<string, { icon: LucideIcon; tile: string; ba
   C: { icon: ClipboardCheck, tile: 'bg-secondary/75', badge: 'bg-muted-foreground text-background', accent: 'bg-muted-foreground' },
 }
 
+let cachedDashboardState: {
+  lifecycle: AssessmentLifecycle | null
+  latestResultLifecycle: AssessmentLifecycle | null
+  recommendations: StudentRecommendationState | null
+} | null = null
+
 function StudentDashboardPage({ onSelectModule, initialLifecycle, initialRecommendations }: StudentDashboardPageProps) {
-  const [lifecycle, setLifecycle] = useState<AssessmentLifecycle | null>(initialLifecycle ?? null)
-  const [latestResultLifecycle, setLatestResultLifecycle] = useState<AssessmentLifecycle | null>(initialLifecycle?.status === 'result_available' ? initialLifecycle : null)
-  const [recommendations, setRecommendations] = useState<StudentRecommendationState | null>(initialRecommendations ?? null)
-  const [loadState, setLoadState] = useState<'loading' | 'ready' | 'error'>(initialLifecycle ? 'ready' : 'loading')
+  const initialCached = initialLifecycle
+    ? {
+        lifecycle: initialLifecycle,
+        latestResultLifecycle: initialLifecycle.status === 'result_available' ? initialLifecycle : null,
+        recommendations: initialRecommendations ?? null,
+      }
+    : cachedDashboardState
+
+  const [lifecycle, setLifecycle] = useState<AssessmentLifecycle | null>(initialCached?.lifecycle ?? null)
+  const [latestResultLifecycle, setLatestResultLifecycle] = useState<AssessmentLifecycle | null>(initialCached?.latestResultLifecycle ?? null)
+  const [recommendations, setRecommendations] = useState<StudentRecommendationState | null>(initialCached?.recommendations ?? null)
+  const [loadState, setLoadState] = useState<'loading' | 'ready' | 'error'>(initialCached ? 'ready' : 'loading')
   const [attempt, setAttempt] = useState(0)
 
   useEffect(() => {
@@ -74,6 +88,11 @@ function StudentDashboardPage({ onSelectModule, initialLifecycle, initialRecomme
           recommendation = await getRecommendationForAttempt(latestCompleted.id).catch(() => currentRecommendation)
         }
         if (!active) return
+        cachedDashboardState = {
+          lifecycle: assessment,
+          latestResultLifecycle: latestCompleted,
+          recommendations: recommendation,
+        }
         setLifecycle(assessment)
         setLatestResultLifecycle(latestCompleted)
         setRecommendations(recommendation)
