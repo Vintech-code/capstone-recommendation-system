@@ -3,6 +3,7 @@
 namespace Tests\Feature\Recommendation;
 
 use App\Models\AssessmentSession;
+use App\Models\EntranceExaminationResult;
 use App\Models\RecommendationRun;
 use App\Models\Role;
 use App\Models\RoleSlug;
@@ -120,15 +121,23 @@ class StudentRecommendationTest extends TestCase
         );
         $student = User::factory()->create();
         $student->roles()->attach($role);
+        $entranceResult = EntranceExaminationResult::query()->create([
+            'user_id' => $student->getKey(),
+            'score' => 2.5,
+            'eligibility_group' => 'board',
+            'rule_reference' => 'SELF-DECLARED-TCC-ENTRANCE-2026-01',
+            'declared_at' => now()->subHours(2),
+        ]);
         AssessmentSession::query()->create([
             'user_id' => $student->getKey(),
-            'instrument_code' => 'tcc-riasec-42-v1',
+            'entrance_examination_result_id' => $entranceResult->getKey(),
+            'instrument_code' => 'tcc-uhcc-riasec-42-v1',
             'status' => 'result_available',
             'answers' => array_combine(range(1, 42), array_fill(0, 42, 1)),
             'current_question' => 42,
             'result_payload' => ['result' => [
                 ['area' => 'Realistic', 'score' => 4],
-                ['area' => 'Investigative', 'score' => 8],
+                ['area' => 'Investigative', 'score' => 7],
                 ['area' => 'Artistic', 'score' => 5],
                 ['area' => 'Social', 'score' => 7],
                 ['area' => 'Enterprising', 'score' => 6],
@@ -144,8 +153,10 @@ class StudentRecommendationTest extends TestCase
             ->assertOk()
             ->assertJsonPath('data.status', 'available')
             ->assertJsonPath('data.recommendation.status', 'Proposed methodology')
-            ->assertJsonPath('data.recommendation.totalEligible', 11)
-            ->assertJsonPath('data.recommendation.canViewAll', true)
+            ->assertJsonPath('data.recommendation.totalEligible', 6)
+            ->assertJsonPath('data.recommendation.totalRanked', 11)
+            ->assertJsonPath('data.recommendation.canViewAll', false)
+            ->assertJsonPath('data.recommendation.showingAll', true)
             ->assertJsonPath('data.recommendation.guidanceContentStatus', 'proposed')
             ->assertJsonPath('data.recommendation.courses.0.contentStatus', 'proposed')
             ->assertJsonPath('data.recommendation.courses.0.degreeType', "Bachelor's degree")
@@ -153,13 +164,14 @@ class StudentRecommendationTest extends TestCase
             ->assertJsonPath('data.recommendation.courses.0.jobGrowth.status', 'not_published')
             ->assertJsonMissingPath('data.recommendation.courses.0.careerTrajectory')
             ->assertJsonCount(3, 'data.recommendation.courses.0.careerDirections')
-            ->assertJsonCount(3, 'data.recommendation.courses');
+            ->assertJsonCount(11, 'data.recommendation.courses')
+            ->assertJsonFragment(['eligibleForDeclaredGroup' => false]);
 
         $this->assertDatabaseCount('recommendation_runs', 1);
         $this->assertSame($student->getKey(), RecommendationRun::query()->firstOrFail()->user_id);
     }
 
-    public function test_temporary_engine_returns_top_three_and_can_return_all_ranked_programmes(): void
+    public function test_temporary_engine_returns_all_programmes_and_uses_competition_ranks_for_ties(): void
     {
         $role = Role::query()->firstOrCreate(
             ['slug' => RoleSlug::Student->value],
@@ -169,17 +181,17 @@ class StudentRecommendationTest extends TestCase
         $student->roles()->attach($role);
         $session = AssessmentSession::query()->create([
             'user_id' => $student->getKey(),
-            'instrument_code' => 'tcc-riasec-42-v1',
+            'instrument_code' => 'tcc-uhcc-riasec-42-v1',
             'status' => 'result_available',
-            'answers' => array_combine(range(1, 30), array_fill(0, 30, 3)),
-            'current_question' => 30,
+            'answers' => array_combine(range(1, 42), array_fill(0, 42, 1)),
+            'current_question' => 42,
             'result_payload' => ['result' => [
-                ['area' => 'Realistic', 'score' => 5],
-                ['area' => 'Investigative', 'score' => 25],
-                ['area' => 'Artistic', 'score' => 15],
-                ['area' => 'Social', 'score' => 10],
-                ['area' => 'Enterprising', 'score' => 20],
-                ['area' => 'Conventional', 'score' => 15],
+                ['area' => 'Realistic', 'score' => 0],
+                ['area' => 'Investigative', 'score' => 7],
+                ['area' => 'Artistic', 'score' => 3],
+                ['area' => 'Social', 'score' => 2],
+                ['area' => 'Enterprising', 'score' => 6],
+                ['area' => 'Conventional', 'score' => 5],
             ]],
             'started_at' => now()->subHour(),
             'submitted_at' => now()->subMinute(),
@@ -196,18 +208,24 @@ class StudentRecommendationTest extends TestCase
             ->assertJsonPath('data.recommendation.assessmentResultReference', 'ASMT-'.str_pad((string) $session->getKey(), 6, '0', STR_PAD_LEFT))
             ->assertJsonPath('data.recommendation.profile.topCode', 'I-E')
             ->assertJsonPath('data.recommendation.profile.dimensions.1.label', 'Investigative')
-            ->assertJsonPath('data.recommendation.profile.dimensions.1.value', 25)
+            ->assertJsonPath('data.recommendation.profile.dimensions.1.value', 7)
             ->assertJsonPath('data.recommendation.totalEligible', 4)
-            ->assertJsonPath('data.recommendation.canViewAll', true)
-            ->assertJsonCount(3, 'data.recommendation.courses')
+            ->assertJsonPath('data.recommendation.totalRanked', 4)
+            ->assertJsonPath('data.recommendation.canViewAll', false)
+            ->assertJsonCount(4, 'data.recommendation.courses')
             ->assertJsonPath('data.recommendation.courses.0.name', 'Alpha Programme')
-            ->assertJsonPath('data.recommendation.courses.0.match', 75)
+            ->assertJsonPath('data.recommendation.courses.0.match', 85.71)
+            ->assertJsonPath('data.recommendation.courses.0.rank', 1)
+            ->assertJsonPath('data.recommendation.courses.0.isTie', true)
+            ->assertJsonPath('data.recommendation.courses.1.rank', 1)
+            ->assertJsonPath('data.recommendation.courses.1.isTie', true)
+            ->assertJsonPath('data.recommendation.courses.2.rank', 3)
             ->assertJsonPath('data.recommendation.courses.0.explanation.assessmentReference', 'ASMT-'.str_pad((string) $session->getKey(), 6, '0', STR_PAD_LEFT))
             ->assertJsonPath('data.recommendation.courses.0.explanation.recordedProfileCode', 'I-E')
             ->assertJsonPath('data.recommendation.courses.0.explanation.recordedProgrammeAreas.0.label', 'Investigative')
-            ->assertJsonPath('data.recommendation.courses.0.explanation.recordedProgrammeAreas.0.score', 25)
+            ->assertJsonPath('data.recommendation.courses.0.explanation.recordedProgrammeAreas.0.score', 7)
             ->assertJsonPath('data.recommendation.courses.0.explanation.recordedProgrammeAreas.1.label', 'Conventional')
-            ->assertJsonPath('data.recommendation.courses.0.explanation.recordedProgrammeAreas.1.score', 15)
+            ->assertJsonPath('data.recommendation.courses.0.explanation.recordedProgrammeAreas.1.score', 5)
             ->assertJsonCount(1, 'data.recommendation.courses.0.explanation.sharedTopAreas');
 
         $this->getJson('/api/v1/student/recommendations/latest?view=all')
@@ -225,7 +243,7 @@ class StudentRecommendationTest extends TestCase
         AssessmentSession::query()->create([
             'user_id' => $student->getKey(),
             'previous_session_id' => $completed->getKey(),
-            'instrument_code' => 'tcc-riasec-42-v1',
+            'instrument_code' => 'tcc-uhcc-riasec-42-v1',
             'attempt_number' => 2,
             'is_current' => true,
             'status' => 'in_progress',
@@ -288,7 +306,7 @@ class StudentRecommendationTest extends TestCase
             ->getJson("/api/v1/student/recommendations/attempts/{$completed->getKey()}")
             ->assertOk()
             ->assertJsonPath('data.status', 'available')
-            ->assertJsonCount(3, 'data.recommendation.courses');
+            ->assertJsonCount(11, 'data.recommendation.courses');
 
         $this->actingAs($otherStudent)
             ->getJson("/api/v1/student/recommendations/attempts/{$completed->getKey()}")
@@ -311,7 +329,7 @@ class StudentRecommendationTest extends TestCase
     {
         return AssessmentSession::query()->create([
             'user_id' => $student->getKey(),
-            'instrument_code' => 'tcc-riasec-42-v1',
+            'instrument_code' => 'tcc-uhcc-riasec-42-v1',
             'attempt_number' => $attemptNumber,
             'is_current' => $isCurrent,
             'status' => 'result_available',
@@ -319,7 +337,7 @@ class StudentRecommendationTest extends TestCase
             'current_question' => 42,
             'result_payload' => ['result' => [
                 ['area' => 'Realistic', 'score' => 4],
-                ['area' => 'Investigative', 'score' => 8],
+                ['area' => 'Investigative', 'score' => 7],
                 ['area' => 'Artistic', 'score' => 5],
                 ['area' => 'Social', 'score' => 7],
                 ['area' => 'Enterprising', 'score' => 6],
@@ -341,7 +359,7 @@ class StudentRecommendationTest extends TestCase
             'matching_policy' => [
                 'method' => 'unweighted_riasec_profile_matching',
                 'formula' => ['name' => 'equal_membership_profile_mean'],
-                'normalization' => ['instrument_min' => 5, 'instrument_max' => 25],
+                'normalization' => ['instrument_min' => 0, 'instrument_max' => 7],
                 'display' => ['default_count' => 3, 'allow_view_all' => true],
             ],
             'programmes' => [

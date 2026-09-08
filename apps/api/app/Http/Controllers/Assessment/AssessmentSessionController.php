@@ -56,9 +56,26 @@ class AssessmentSessionController extends Controller
                 ->first();
 
             if ($current === null) {
+                $previous = AssessmentSession::query()
+                    ->whereBelongsTo($request->user())
+                    ->whereIn('instrument_code', RiasecQuestionnaire::supportedInstrumentCodes())
+                    ->latest('attempt_number')
+                    ->lockForUpdate()
+                    ->first();
+
+                if ($previous !== null) {
+                    $previous->update(['is_current' => false]);
+                }
+
                 $created = true;
 
-                return $this->createAttempt($request->user()->getKey(), $examResult->getKey(), 1);
+                return $this->createAttempt(
+                    $request->user()->getKey(),
+                    $examResult->getKey(),
+                    ($previous?->attempt_number ?? 0) + 1,
+                    $previous?->getKey(),
+                    $retakeReason !== '' ? $retakeReason : null,
+                );
             }
 
             if (in_array($current->status, ['in_progress', 'preparing_result', 'result_failed'], true)) {
@@ -161,7 +178,7 @@ class AssessmentSessionController extends Controller
     {
         $sessions = AssessmentSession::query()
             ->whereBelongsTo($request->user())
-            ->whereIn('instrument_code', [RiasecQuestionnaire::INSTRUMENT_CODE, RiasecQuestionnaire::LEGACY_INSTRUMENT_CODE])
+            ->whereIn('instrument_code', RiasecQuestionnaire::supportedInstrumentCodes())
             ->latest('started_at')
             ->get()
             ->map(fn (AssessmentSession $session): array => $this->resource($session));
@@ -263,9 +280,7 @@ class AssessmentSessionController extends Controller
             'status' => $session->status,
             'answers' => $session->answers ?? [],
             'answer_count' => count($session->answers ?? []),
-            'question_count' => $session->instrument_code === RiasecQuestionnaire::LEGACY_INSTRUMENT_CODE
-                ? 30
-                : RiasecQuestionnaire::QUESTION_COUNT,
+            'question_count' => RiasecQuestionnaire::questionCountFor($session->instrument_code),
             'current_question' => $session->current_question,
             'started_at' => $session->started_at?->toAtomString(),
             'saved_at' => $session->saved_at?->toAtomString(),

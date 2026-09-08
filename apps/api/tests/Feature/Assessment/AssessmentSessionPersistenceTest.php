@@ -55,7 +55,7 @@ class AssessmentSessionPersistenceTest extends TestCase
         $other = $this->student();
         $session = AssessmentSession::query()->create([
             'user_id' => $owner->getKey(),
-            'instrument_code' => 'tcc-riasec-42-v1',
+            'instrument_code' => 'tcc-uhcc-riasec-42-v1',
             'status' => 'in_progress',
             'answers' => [],
             'current_question' => 1,
@@ -70,12 +70,12 @@ class AssessmentSessionPersistenceTest extends TestCase
             ->assertNotFound();
     }
 
-    public function test_historical_instrument_sessions_cannot_be_changed_through_the_active_questionnaire_route(): void
+    public function test_deleted_instrument_sessions_cannot_be_changed_through_the_active_questionnaire_route(): void
     {
         $student = $this->student();
         $session = AssessmentSession::query()->create([
             'user_id' => $student->getKey(),
-            'instrument_code' => RiasecQuestionnaire::LEGACY_INSTRUMENT_CODE,
+            'instrument_code' => 'deleted-old-riasec-instrument',
             'status' => 'in_progress',
             'answers' => [],
             'current_question' => 1,
@@ -96,7 +96,7 @@ class AssessmentSessionPersistenceTest extends TestCase
         $answers = array_combine(range(1, 42), array_fill(0, 42, 1));
         $session = AssessmentSession::query()->create([
             'user_id' => $student->getKey(),
-            'instrument_code' => 'tcc-riasec-42-v1',
+            'instrument_code' => 'tcc-uhcc-riasec-42-v1',
             'status' => 'in_progress',
             'answers' => $answers,
             'current_question' => 42,
@@ -137,7 +137,7 @@ class AssessmentSessionPersistenceTest extends TestCase
         $student = $this->student();
         $session = AssessmentSession::query()->create([
             'user_id' => $student->getKey(),
-            'instrument_code' => 'tcc-riasec-42-v1',
+            'instrument_code' => 'tcc-uhcc-riasec-42-v1',
             'status' => 'in_progress',
             'answers' => ['1' => 1],
             'current_question' => 2,
@@ -156,7 +156,7 @@ class AssessmentSessionPersistenceTest extends TestCase
         $student = $this->student();
         $session = AssessmentSession::query()->create([
             'user_id' => $student->getKey(),
-            'instrument_code' => 'tcc-riasec-42-v1',
+            'instrument_code' => 'tcc-uhcc-riasec-42-v1',
             'status' => 'preparing_result',
             'answers' => array_combine(range(1, 42), array_fill(0, 42, 1)),
             'current_question' => 42,
@@ -181,7 +181,7 @@ class AssessmentSessionPersistenceTest extends TestCase
         $student = $this->student();
         AssessmentSession::query()->create([
             'user_id' => $student->getKey(),
-            'instrument_code' => 'tcc-riasec-42-v1',
+            'instrument_code' => 'tcc-uhcc-riasec-42-v1',
             'status' => 'preparing_result',
             'answers' => array_combine(range(1, 42), array_fill(0, 42, 1)),
             'current_question' => 42,
@@ -202,7 +202,7 @@ class AssessmentSessionPersistenceTest extends TestCase
         $student = $this->student();
         $session = AssessmentSession::query()->create([
             'user_id' => $student->getKey(),
-            'instrument_code' => 'tcc-riasec-42-v1',
+            'instrument_code' => 'tcc-uhcc-riasec-42-v1',
             'status' => 'preparing_result',
             'answers' => array_combine(range(1, 42), array_fill(0, 42, 1)),
             'current_question' => 42,
@@ -235,12 +235,12 @@ class AssessmentSessionPersistenceTest extends TestCase
         $student = $this->student();
         AssessmentSession::query()->create([
             'user_id' => $student->getKey(),
-            'instrument_code' => 'tcc-riasec-42-v1',
+            'instrument_code' => 'tcc-uhcc-riasec-42-v1',
             'status' => 'result_available',
             'answers' => array_combine(range(1, 42), array_fill(0, 42, 1)),
             'current_question' => 42,
             'result_payload' => [
-                'instrument_code' => 'tcc-riasec-42-v1',
+                'instrument_code' => 'tcc-uhcc-riasec-42-v1',
                 'answer_count' => 30,
                 'result' => collect(['Realistic', 'Investigative', 'Artistic', 'Social', 'Enterprising', 'Conventional'])
                     ->map(fn (string $title, int $index): array => [
@@ -268,7 +268,7 @@ class AssessmentSessionPersistenceTest extends TestCase
         $student = $this->student();
         $first = AssessmentSession::query()->create([
             'user_id' => $student->getKey(),
-            'instrument_code' => 'tcc-riasec-42-v1',
+            'instrument_code' => 'tcc-uhcc-riasec-42-v1',
             'attempt_number' => 1,
             'is_current' => true,
             'status' => 'result_available',
@@ -311,7 +311,7 @@ class AssessmentSessionPersistenceTest extends TestCase
         $student = $this->student();
         $first = AssessmentSession::query()->create([
             'user_id' => $student->getKey(),
-            'instrument_code' => 'tcc-riasec-42-v1',
+            'instrument_code' => 'tcc-uhcc-riasec-42-v1',
             'attempt_number' => 1,
             'is_current' => true,
             'status' => 'result_available',
@@ -348,7 +348,7 @@ class AssessmentSessionPersistenceTest extends TestCase
         $student = $this->student();
         AssessmentSession::query()->create([
             'user_id' => $student->getKey(),
-            'instrument_code' => 'tcc-riasec-42-v1',
+            'instrument_code' => 'tcc-uhcc-riasec-42-v1',
             'status' => 'result_available',
             'answers' => [],
             'current_question' => 42,

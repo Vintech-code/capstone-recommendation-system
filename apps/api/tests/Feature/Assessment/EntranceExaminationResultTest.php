@@ -76,7 +76,7 @@ class EntranceExaminationResultTest extends TestCase
         $student = $this->student();
         $session = AssessmentSession::query()->create([
             'user_id' => $student->getKey(),
-            'instrument_code' => 'tcc-riasec-42-v1',
+            'instrument_code' => 'tcc-uhcc-riasec-42-v1',
             'status' => 'in_progress',
             'answers' => [],
             'current_question' => 1,

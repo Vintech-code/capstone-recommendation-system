@@ -26,7 +26,7 @@ class SystemNotificationTest extends TestCase
         [$student] = $this->studentAndAdmin();
         $session = AssessmentSession::query()->create([
             'user_id' => $student->getKey(),
-            'instrument_code' => 'tcc-riasec-42-v1',
+            'instrument_code' => 'tcc-uhcc-riasec-42-v1',
             'status' => 'preparing_result',
             'answers' => array_combine(range(1, 42), array_fill(0, 42, 1)),
             'current_question' => 42,

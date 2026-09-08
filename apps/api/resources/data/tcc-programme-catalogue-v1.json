@@ -7,6 +7,7 @@
     "academic_year": "2026-2027",
     "riasec_dimensions": ["R", "I", "A", "S", "E", "C"],
     "matching_policy": {
+        "version": "PROPOSED-RIASEC-2-ALL-PROGRAMMES",
         "method": "unweighted_riasec_profile_matching",
         "percentage_weights_used": false,
         "approval_status": "researcher_proposed_temporary_runtime",
@@ -26,17 +27,20 @@
             "output_min": 0,
             "output_max": 100,
             "instrument_min": 0,
-            "instrument_max": 8,
+            "instrument_max": 7,
             "formula": "100 * (score - instrument_min) / (instrument_max - instrument_min)",
             "status": "proposed_local_binary_count_range"
         },
         "eligibility": {
             "catalogue_programmes_only": true,
-            "required_criteria_must_be_met": true,
+            "required_criteria_must_be_met": false,
             "programme_criteria_status": "approved_self_declared_entrance_group_v1",
-            "entrance_examination_rule_reference": "SELF-DECLARED-TCC-ENTRANCE-2026-01"
+            "entrance_examination_rule_reference": "SELF-DECLARED-TCC-ENTRANCE-2026-01",
+            "ranking_scope": "all_catalogue_programmes",
+            "eligibility_applied_as": "separate_guidance"
         },
         "tie_break": {
+            "rank_policy": "competition_rank",
             "field": "display_name",
             "direction": "ascending"
         },

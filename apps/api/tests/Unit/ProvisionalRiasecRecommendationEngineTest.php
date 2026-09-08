@@ -22,7 +22,8 @@ class ProvisionalRiasecRecommendationEngineTest extends TestCase
         $this->assertSame(50.0, $result['normalized_scores']['A']);
         $this->assertSame(['alpha', 'zulu', 'social'], array_column($result['ranked'], 'id'));
         $this->assertSame([75.0, 75.0, 25.0], array_column($result['ranked'], 'match'));
-        $this->assertSame([1, 2, 3], array_column($result['ranked'], 'rank'));
+        $this->assertSame([1, 1, 3], array_column($result['ranked'], 'rank'));
+        $this->assertSame([true, true, false], array_column($result['ranked'], 'is_tied'));
         $this->assertSame('missing', $result['exclusions'][0]['programme_id']);
         $this->assertSame('PROFILE_UNAVAILABLE', $result['exclusions'][0]['reason']);
     }
@@ -38,7 +39,7 @@ class ProvisionalRiasecRecommendationEngineTest extends TestCase
     }
 
     #[Test]
-    public function it_filters_programmes_by_the_approved_entrance_examination_group(): void
+    public function it_ranks_all_programmes_and_keeps_entrance_group_as_separate_guidance(): void
     {
         $catalogue = $this->catalogue();
         $catalogue['programmes'][0]['eligibility_group'] = 'board';
@@ -52,14 +53,9 @@ class ProvisionalRiasecRecommendationEngineTest extends TestCase
             'board',
         );
 
-        $this->assertSame(['zulu'], array_column($result['ranked'], 'id'));
-        $this->assertSame(
-            ['ENTRANCE_EXAMINATION_GROUP_INELIGIBLE', 'ENTRANCE_EXAMINATION_GROUP_INELIGIBLE'],
-            array_values(array_map(
-                static fn (array $item): string => $item['reason'],
-                array_filter($result['exclusions'], static fn (array $item): bool => $item['reason'] === 'ENTRANCE_EXAMINATION_GROUP_INELIGIBLE'),
-            )),
-        );
+        $this->assertSame(['alpha', 'zulu', 'social'], array_column($result['ranked'], 'id'));
+        $this->assertSame([false, true, false], array_column($result['ranked'], 'eligible_for_declared_group'));
+        $this->assertSame(['PROFILE_UNAVAILABLE'], array_column($result['exclusions'], 'reason'));
     }
 
     /** @return array<int, array{area: string, score: int}> */

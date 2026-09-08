@@ -144,12 +144,15 @@ class TccProgrammeCatalogueTest extends TestCase
         $this->assertSame(0, $policy['normalization']['output_min']);
         $this->assertSame(100, $policy['normalization']['output_max']);
         $this->assertSame(0, $policy['normalization']['instrument_min']);
-        $this->assertSame(8, $policy['normalization']['instrument_max']);
+        $this->assertSame(7, $policy['normalization']['instrument_max']);
         $this->assertSame('proposed_local_binary_count_range', $policy['normalization']['status']);
         $this->assertTrue($policy['eligibility']['catalogue_programmes_only']);
-        $this->assertTrue($policy['eligibility']['required_criteria_must_be_met']);
+        $this->assertFalse($policy['eligibility']['required_criteria_must_be_met']);
         $this->assertSame('approved_self_declared_entrance_group_v1', $policy['eligibility']['programme_criteria_status']);
         $this->assertSame('SELF-DECLARED-TCC-ENTRANCE-2026-01', $policy['eligibility']['entrance_examination_rule_reference']);
+        $this->assertSame('all_catalogue_programmes', $policy['eligibility']['ranking_scope']);
+        $this->assertSame('separate_guidance', $policy['eligibility']['eligibility_applied_as']);
+        $this->assertSame('competition_rank', $policy['tie_break']['rank_policy']);
         $this->assertSame('display_name', $policy['tie_break']['field']);
         $this->assertSame('ascending', $policy['tie_break']['direction']);
         $this->assertSame(3, $policy['display']['default_count']);

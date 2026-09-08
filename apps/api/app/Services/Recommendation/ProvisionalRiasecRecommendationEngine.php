@@ -53,15 +53,6 @@ final class ProvisionalRiasecRecommendationEngine
             }
 
             $programmeGroup = (string) ($programme['eligibility_group'] ?? '');
-            if ($eligibilityGroup !== null && $programmeGroup !== $eligibilityGroup) {
-                $exclusions[] = [
-                    'programme_id' => (string) ($programme['id'] ?? ''),
-                    'reason' => 'ENTRANCE_EXAMINATION_GROUP_INELIGIBLE',
-                ];
-
-                continue;
-            }
-
             $profile = array_values(array_unique(array_map(
                 static fn (mixed $code): string => strtoupper(trim((string) $code)),
                 is_array($programme['riasec_profile'] ?? null) ? $programme['riasec_profile'] : [],
@@ -89,6 +80,7 @@ final class ProvisionalRiasecRecommendationEngine
                 'code' => (string) ($programme['short_label'] ?? ''),
                 'name' => (string) ($programme['display_name'] ?? ''),
                 'eligibility_group' => $programmeGroup,
+                'eligible_for_declared_group' => $eligibilityGroup === null || $programmeGroup === $eligibilityGroup,
                 'profile' => $profile,
                 'description' => (string) ($programme['description'] ?? ''),
                 'learning_areas' => array_values($programme['learning_areas'] ?? []),
@@ -124,8 +116,21 @@ final class ProvisionalRiasecRecommendationEngine
             return $nameComparison !== 0 ? $nameComparison : strcmp($left['id'], $right['id']);
         });
 
+        $previousMatch = null;
+        $previousRank = 0;
         foreach ($ranked as $index => &$programme) {
-            $programme['rank'] = $index + 1;
+            if ($previousMatch === null || abs($programme['raw_match'] - $previousMatch) > 0.000001) {
+                $previousRank = $index + 1;
+            }
+
+            $programme['rank'] = $previousRank;
+            $previousMatch = $programme['raw_match'];
+        }
+        unset($programme);
+
+        $rankCounts = array_count_values(array_column($ranked, 'rank'));
+        foreach ($ranked as &$programme) {
+            $programme['is_tied'] = ($rankCounts[$programme['rank']] ?? 0) > 1;
         }
         unset($programme);
 

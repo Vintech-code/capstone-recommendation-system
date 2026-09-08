@@ -6,7 +6,10 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['code', 'version', 'name', 'instructions', 'scoring_method', 'status', 'is_active'])]
+#[Fillable([
+    'code', 'version', 'name', 'instructions', 'scoring_method', 'status',
+    'source_name', 'source_asset', 'source_url', 'source_accessed_on', 'scoring_config', 'is_active',
+])]
 class AssessmentInstrument extends Model
 {
     /** @return HasMany<AssessmentQuestion, $this> */
@@ -18,6 +21,10 @@ class AssessmentInstrument extends Model
     /** @return array<string, string> */
     protected function casts(): array
     {
-        return ['is_active' => 'boolean'];
+        return [
+            'source_accessed_on' => 'date',
+            'scoring_config' => 'array',
+            'is_active' => 'boolean',
+        ];
     }
 }

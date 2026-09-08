@@ -7,11 +7,11 @@ use RuntimeException;
 
 final class RiasecQuestionnaire
 {
-    public const INSTRUMENT_CODE = 'tcc-riasec-42-v1';
-
-    public const LEGACY_INSTRUMENT_CODE = 'onet-mini-ip-30';
+    public const INSTRUMENT_CODE = 'tcc-uhcc-riasec-42-v1';
 
     public const QUESTION_COUNT = 42;
+
+    public const MAXIMUM_AREA_SCORE = 7;
 
     public const RESULT_AREAS = [
         'Realistic',
@@ -44,6 +44,13 @@ final class RiasecQuestionnaire
                 'content_version' => $instrument->version,
                 'status' => $instrument->status,
                 'instructions' => $instrument->instructions,
+                'source' => [
+                    'name' => $instrument->source_name,
+                    'asset_reference' => $instrument->source_asset,
+                    'url' => $instrument->source_url,
+                    'accessed_on' => $instrument->source_accessed_on?->toDateString(),
+                ],
+                'scoring' => $instrument->scoring_config,
             ],
             'answer_options' => [
                 ['value' => 1, 'name' => 'Agree'],
@@ -58,7 +65,7 @@ final class RiasecQuestionnaire
     }
 
     /**
-     * Score the researcher-provided checkbox instrument by counting agreed
+     * Score the source-adapted checkbox instrument by counting agreed
      * statements in each category. The source category mapping is stored with
      * the versioned questions and is never accepted from the client.
      *
@@ -82,11 +89,42 @@ final class RiasecQuestionnaire
         return [
             'instrument_code' => self::INSTRUMENT_CODE,
             'answer_count' => count($answers),
-            'scoring_source' => 'researcher-questionnaire-v1',
+            'scoring_source' => 'riasec-assessment-asset-v1',
+            'scoring' => [
+                'method' => 'binary-category-count',
+                'minimum_per_area' => 0,
+                'maximum_per_area' => self::MAXIMUM_AREA_SCORE,
+                'formula' => 'area_score = count(mapped answers equal to Agree)',
+            ],
             'result' => collect(self::RESULT_AREAS)
                 ->map(fn (string $area): array => ['area' => $area, 'score' => $scores[$area]])
                 ->all(),
         ];
+    }
+
+    /** @return array<int, string> */
+    public static function supportedInstrumentCodes(): array
+    {
+        return [self::INSTRUMENT_CODE];
+    }
+
+    /** @return array{instrument_min: int, instrument_max: int} */
+    public static function normalizationFor(string $instrumentCode): array
+    {
+        if ($instrumentCode !== self::INSTRUMENT_CODE) {
+            throw new RuntimeException('The assessment instrument scoring range is unavailable.');
+        }
+
+        return ['instrument_min' => 0, 'instrument_max' => self::MAXIMUM_AREA_SCORE];
+    }
+
+    public static function questionCountFor(string $instrumentCode): int
+    {
+        if ($instrumentCode !== self::INSTRUMENT_CODE) {
+            throw new RuntimeException('The assessment instrument question count is unavailable.');
+        }
+
+        return self::QUESTION_COUNT;
     }
 
     /** @param array<int, mixed> $results

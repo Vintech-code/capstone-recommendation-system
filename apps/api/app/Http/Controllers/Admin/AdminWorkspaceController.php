@@ -18,7 +18,6 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Symfony\Component\HttpFoundation\StreamedResponse;
 
 final class AdminWorkspaceController extends Controller
 {
@@ -42,7 +41,7 @@ final class AdminWorkspaceController extends Controller
             ->latest('updated_at')
             ->limit(6)
             ->get()
-            ->map(fn (AssessmentSession $session): array => $this->sessionSummary($session));
+            ->map(fn(AssessmentSession $session): array => $this->sessionSummary($session));
         $operationalAttention = [
             'processingFailures' => (int) ($statusCounts['result_failed'] ?? 0),
             'unverifiedSources' => collect($sourceRegistry->entries($catalogues->current()))
@@ -51,24 +50,26 @@ final class AdminWorkspaceController extends Controller
             'unpublishedDrafts' => ConfigurationVersion::query()->where('status', 'draft')->count(),
         ];
 
-        return response()->json(['data' => [
-            'students' => $students,
-            'assessments' => $started,
-            'completed' => (int) ($statusCounts['result_available'] ?? 0),
-            'inProgress' => (int) ($statusCounts['in_progress'] ?? 0),
-            'needsAttention' => (int) ($statusCounts['result_failed'] ?? 0),
-            'recommendations' => RecommendationRun::query()->distinct()->count('user_id'),
-            'funnel' => [
-                'registered' => $students,
-                'entranceDeclared' => $declared,
-                'assessmentStarted' => $started,
+        return response()->json([
+            'data' => [
+                'students' => $students,
+                'assessments' => $started,
+                'completed' => (int) ($statusCounts['result_available'] ?? 0),
                 'inProgress' => (int) ($statusCounts['in_progress'] ?? 0),
-                'processing' => (int) ($statusCounts['preparing_result'] ?? 0),
-                'resultAvailable' => (int) ($statusCounts['result_available'] ?? 0),
-            ],
-            'operationalAttention' => $operationalAttention,
-            'recentActivity' => $recent,
-        ]]);
+                'needsAttention' => (int) ($statusCounts['result_failed'] ?? 0),
+                'recommendations' => RecommendationRun::query()->distinct()->count('user_id'),
+                'funnel' => [
+                    'registered' => $students,
+                    'entranceDeclared' => $declared,
+                    'assessmentStarted' => $started,
+                    'inProgress' => (int) ($statusCounts['in_progress'] ?? 0),
+                    'processing' => (int) ($statusCounts['preparing_result'] ?? 0),
+                    'resultAvailable' => (int) ($statusCounts['result_available'] ?? 0),
+                ],
+                'operationalAttention' => $operationalAttention,
+                'recentActivity' => $recent,
+            ]
+        ]);
     }
 
     public function students(Request $request): JsonResponse
@@ -97,10 +98,10 @@ final class AdminWorkspaceController extends Controller
                 $query->where(static function (Builder $query) use ($search, $assessmentId): void {
                     $query->where('name', 'like', "%{$search}%")
                         ->orWhere('email', 'like', "%{$search}%")
-                        ->orWhereHas('latestAssessmentSession', fn (Builder $session) => $session
+                        ->orWhereHas('latestAssessmentSession', fn(Builder $session) => $session
                             ->where('result_payload', 'like', "%{$search}%"));
                     if ($assessmentId !== null) {
-                        $query->orWhereHas('latestAssessmentSession', fn (Builder $session) => $session->whereKey($assessmentId));
+                        $query->orWhereHas('latestAssessmentSession', fn(Builder $session) => $session->whereKey($assessmentId));
                     }
                 });
             })
@@ -111,15 +112,15 @@ final class AdminWorkspaceController extends Controller
                 'currentEntranceExaminationResult',
                 'studentProfile',
             ])
-            ->when($status === 'not_started', fn (Builder $query) => $query->whereDoesntHave('assessmentSessions'))
-            ->when($status !== null && $status !== 'not_started', fn (Builder $query) => $query->whereHas(
+            ->when($status === 'not_started', fn(Builder $query) => $query->whereDoesntHave('assessmentSessions'))
+            ->when($status !== null && $status !== 'not_started', fn(Builder $query) => $query->whereHas(
                 'latestAssessmentSession',
-                fn (Builder $session) => $session->where('status', $status),
+                fn(Builder $session) => $session->where('status', $status),
             ))
-            ->when($eligibility === 'not_declared', fn (Builder $query) => $query->whereDoesntHave('currentEntranceExaminationResult'))
-            ->when(in_array($eligibility, ['board', 'non_board'], true), fn (Builder $query) => $query->whereHas(
+            ->when($eligibility === 'not_declared', fn(Builder $query) => $query->whereDoesntHave('currentEntranceExaminationResult'))
+            ->when(in_array($eligibility, ['board', 'non_board'], true), fn(Builder $query) => $query->whereHas(
                 'currentEntranceExaminationResult',
-                fn (Builder $result) => $result->where('eligibility_group', $eligibility),
+                fn(Builder $result) => $result->where('eligibility_group', $eligibility),
             ));
 
         match ($sort) {
@@ -147,7 +148,7 @@ final class AdminWorkspaceController extends Controller
                     'email' => $student->email,
                     'accountStatus' => $student->account_status,
                     'photoUrl' => $student->studentProfile?->photo_path
-                        ? '/api/v1/profile-photos/'.$student->getKey().'?v='.$student->studentProfile->updated_at?->getTimestamp()
+                        ? '/api/v1/profile-photos/' . $student->getKey() . '?v=' . $student->studentProfile->updated_at?->getTimestamp()
                         : $student->google_avatar_url,
                     'attemptCount' => $student->assessment_sessions_count,
                     'latestResultAt' => $latest?->result_available_at?->toAtomString(),
@@ -163,10 +164,12 @@ final class AdminWorkspaceController extends Controller
                 ];
             });
 
-        return response()->json(['data' => [
-            'items' => $items,
-            'pagination' => $this->pagination($students),
-        ]]);
+        return response()->json([
+            'data' => [
+                'items' => $items,
+                'pagination' => $this->pagination($students),
+            ]
+        ]);
     }
 
     public function student(User $student): JsonResponse
@@ -178,7 +181,7 @@ final class AdminWorkspaceController extends Controller
             ->with(['recommendationRun', 'entranceExaminationResult'])
             ->latest('attempt_number')
             ->get()
-            ->map(fn (AssessmentSession $session): array => array_merge(
+            ->map(fn(AssessmentSession $session): array => array_merge(
                 $this->sessionSummary($session),
                 [
                     'dimensions' => $this->dimensions($session),
@@ -186,58 +189,38 @@ final class AdminWorkspaceController extends Controller
                 ],
             ));
 
-        return response()->json(['data' => [
-            'id' => $student->getKey(),
-            'name' => $student->name,
-            'email' => $student->email,
-            'photoUrl' => $student->studentProfile?->photo_path
-                ? '/api/v1/profile-photos/'.$student->getKey().'?v='.$student->studentProfile->updated_at?->getTimestamp()
-                : $student->google_avatar_url,
-            'accountStatus' => $student->account_status,
-            'savedProgrammeCount' => $student->savedProgrammes()->count(),
-            'profile' => $student->studentProfile ? [
-                'photoUrl' => $student->studentProfile->photo_path
-                    ? '/api/v1/profile-photos/'.$student->getKey().'?v='.$student->studentProfile->updated_at?->getTimestamp()
+        return response()->json([
+            'data' => [
+                'id' => $student->getKey(),
+                'name' => $student->name,
+                'email' => $student->email,
+                'photoUrl' => $student->studentProfile?->photo_path
+                    ? '/api/v1/profile-photos/' . $student->getKey() . '?v=' . $student->studentProfile->updated_at?->getTimestamp()
                     : $student->google_avatar_url,
-                'lrn' => $student->studentProfile->lrn,
-                'birthDate' => $student->studentProfile->birth_date,
-                'age' => $student->studentProfile->birth_date
-                    ? CarbonImmutable::parse($student->studentProfile->birth_date)->age
-                    : null,
-                'phone' => $student->studentProfile->phone,
-                'location' => $student->studentProfile->locationSelection(),
-                'addressLine' => $student->studentProfile->address_line,
-                'barangay' => $student->studentProfile->barangay,
-                'municipality' => $student->studentProfile->municipality,
-                'province' => $student->studentProfile->province,
-                'shsSchoolName' => $student->studentProfile->shs_school_name,
-                'shsStrand' => $student->studentProfile->shs_strand,
-                'shsGraduationYear' => $student->studentProfile->shs_graduation_year,
-            ] : null,
-            'attempts' => $attempts,
-        ]]);
-    }
-
-    public function assessments(Request $request): JsonResponse
-    {
-        $validated = $request->validate([
-            'status' => ['nullable', 'in:in_progress,preparing_result,result_available,result_failed'],
+                'accountStatus' => $student->account_status,
+                'savedProgrammeCount' => $student->savedProgrammes()->count(),
+                'profile' => $student->studentProfile ? [
+                    'photoUrl' => $student->studentProfile->photo_path
+                        ? '/api/v1/profile-photos/' . $student->getKey() . '?v=' . $student->studentProfile->updated_at?->getTimestamp()
+                        : $student->google_avatar_url,
+                    'lrn' => $student->studentProfile->lrn,
+                    'birthDate' => $student->studentProfile->birth_date,
+                    'age' => $student->studentProfile->birth_date
+                        ? CarbonImmutable::parse($student->studentProfile->birth_date)->age
+                        : null,
+                    'phone' => $student->studentProfile->phone,
+                    'location' => $student->studentProfile->locationSelection(),
+                    'addressLine' => $student->studentProfile->address_line,
+                    'barangay' => $student->studentProfile->barangay,
+                    'municipality' => $student->studentProfile->municipality,
+                    'province' => $student->studentProfile->province,
+                    'shsSchoolName' => $student->studentProfile->shs_school_name,
+                    'shsStrand' => $student->studentProfile->shs_strand,
+                    'shsGraduationYear' => $student->studentProfile->shs_graduation_year,
+                ] : null,
+                'attempts' => $attempts,
+            ]
         ]);
-
-        $sessions = AssessmentSession::query()
-            ->whereIn('id', AssessmentSession::query()->selectRaw('MAX(id)')->groupBy('user_id'))
-            ->with([
-                'user' => static fn ($query) => $query->select('id', 'name', 'email')->withCount('assessmentSessions'),
-                'entranceExaminationResult',
-                'recommendationRun',
-            ])
-            ->when(isset($validated['status']), fn (Builder $query) => $query->where('status', $validated['status']))
-            ->latest('updated_at')
-            ->limit(100)
-            ->get()
-            ->map(fn (AssessmentSession $session): array => $this->sessionSummary($session));
-
-        return response()->json(['data' => $sessions]);
     }
 
     public function programmes(TccProgrammeCatalogueRepository $catalogues): JsonResponse
@@ -248,42 +231,44 @@ final class AdminWorkspaceController extends Controller
             ->groupBy('programme_id')
             ->pluck('aggregate', 'programme_id');
 
-        return response()->json(['data' => [
-            'academicYear' => $catalogue['academic_year'],
-            'catalogueVersion' => $catalogue['catalogue_version'],
-            'catalogueStatus' => $catalogue['catalogue_status'],
-            'programmes' => array_map(static fn (array $programme): array => [
-                'id' => $programme['id'],
-                'code' => $programme['short_label'],
-                'name' => $programme['display_name'],
-                'profile' => $programme['riasec_profile'] ?? [],
-                'profileStatus' => $programme['riasec_profile_status'] ?? 'unknown',
-                'profileVersion' => $programme['profile_version'] ?? null,
-                'eligibilityGroup' => $programme['eligibility_group'] ?? null,
-                'majors' => $programme['majors'] ?? [],
-                'recommendedStrands' => $programme['recommended_strands'] ?? [],
-                'description' => $programme['description'] ?? '',
-                'learningAreas' => $programme['learning_areas'] ?? [],
-                'learningAreaDescriptions' => $programme['learning_area_descriptions'] ?? [],
-                'learningAreaTopics' => $programme['learning_area_topics'] ?? [],
-                'careerDirections' => $programme['career_directions'] ?? [],
-                'careerOpportunities' => $programme['career_opportunities'] ?? [],
-                'strandGuidance' => $programme['strand_guidance'] ?? '',
-                'requirements' => $programme['requirements'] ?? [],
-                'readinessPrompt' => $programme['readiness_prompt'] ?? '',
-                'contentVersion' => $programme['content_version'] ?? null,
-                'degreeType' => $programme['degree_type'] ?? '',
-                'duration' => $programme['duration'] ?? null,
-                'salary' => $programme['salary'] ?? null,
-                'jobGrowth' => $programme['job_growth'] ?? null,
-                'outlookVersion' => $programme['outlook_version'] ?? null,
-                'coverImageUrl' => $programme['cover_image_url'] ?? null,
-                'logoImageUrl' => $programme['logo_image_url'] ?? null,
-                'monitoring' => [
-                    'savedByStudents' => (int) ($savedCounts[$programme['id']] ?? 0),
-                ],
-            ], $catalogue['programmes'] ?? []),
-        ]]);
+        return response()->json([
+            'data' => [
+                'academicYear' => $catalogue['academic_year'],
+                'catalogueVersion' => $catalogue['catalogue_version'],
+                'catalogueStatus' => $catalogue['catalogue_status'],
+                'programmes' => array_map(static fn(array $programme): array => [
+                    'id' => $programme['id'],
+                    'code' => $programme['short_label'],
+                    'name' => $programme['display_name'],
+                    'profile' => $programme['riasec_profile'] ?? [],
+                    'profileStatus' => $programme['riasec_profile_status'] ?? 'unknown',
+                    'profileVersion' => $programme['profile_version'] ?? null,
+                    'eligibilityGroup' => $programme['eligibility_group'] ?? null,
+                    'majors' => $programme['majors'] ?? [],
+                    'recommendedStrands' => $programme['recommended_strands'] ?? [],
+                    'description' => $programme['description'] ?? '',
+                    'learningAreas' => $programme['learning_areas'] ?? [],
+                    'learningAreaDescriptions' => $programme['learning_area_descriptions'] ?? [],
+                    'learningAreaTopics' => $programme['learning_area_topics'] ?? [],
+                    'careerDirections' => $programme['career_directions'] ?? [],
+                    'careerOpportunities' => $programme['career_opportunities'] ?? [],
+                    'strandGuidance' => $programme['strand_guidance'] ?? '',
+                    'requirements' => $programme['requirements'] ?? [],
+                    'readinessPrompt' => $programme['readiness_prompt'] ?? '',
+                    'contentVersion' => $programme['content_version'] ?? null,
+                    'degreeType' => $programme['degree_type'] ?? '',
+                    'duration' => $programme['duration'] ?? null,
+                    'salary' => $programme['salary'] ?? null,
+                    'jobGrowth' => $programme['job_growth'] ?? null,
+                    'outlookVersion' => $programme['outlook_version'] ?? null,
+                    'coverImageUrl' => $programme['cover_image_url'] ?? null,
+                    'logoImageUrl' => $programme['logo_image_url'] ?? null,
+                    'monitoring' => [
+                        'savedByStudents' => (int) ($savedCounts[$programme['id']] ?? 0),
+                    ],
+                ], $catalogue['programmes'] ?? []),
+            ]
+        ]);
     }
 
     public function methodology(TccProgrammeCatalogueRepository $catalogues): JsonResponse
@@ -291,18 +276,20 @@ final class AdminWorkspaceController extends Controller
         $catalogue = $catalogues->current();
         $policy = $catalogue['matching_policy'];
 
-        return response()->json(['data' => [
-            'status' => $policy['approval_status'],
-            'reviewStatus' => $policy['review_status'],
-            'designatedReviewer' => $policy['designated_reviewer'],
-            'method' => $policy['method'],
-            'formula' => $policy['formula'],
-            'normalization' => $policy['normalization'],
-            'eligibility' => $policy['eligibility'],
-            'tieBreak' => $policy['tie_break'],
-            'display' => $policy['display'],
-            'catalogueReference' => 'TCC-AY-'.$catalogue['academic_year'].'-V'.$catalogue['catalogue_version'],
-        ]]);
+        return response()->json([
+            'data' => [
+                'status' => $policy['approval_status'],
+                'reviewStatus' => $policy['review_status'],
+                'designatedReviewer' => $policy['designated_reviewer'],
+                'method' => $policy['method'],
+                'formula' => $policy['formula'],
+                'normalization' => $policy['normalization'],
+                'eligibility' => $policy['eligibility'],
+                'tieBreak' => $policy['tie_break'],
+                'display' => $policy['display'],
+                'catalogueReference' => 'TCC-AY-' . $catalogue['academic_year'] . '-V' . $catalogue['catalogue_version'],
+            ]
+        ]);
     }
 
     public function reports(
@@ -311,45 +298,6 @@ final class AdminWorkspaceController extends Controller
         ProgrammeSourceRegistry $sourceRegistry,
     ): JsonResponse {
         return response()->json(['data' => $this->reportPayload($request, $catalogues, $sourceRegistry)]);
-    }
-
-    public function exportReports(
-        Request $request,
-        TccProgrammeCatalogueRepository $catalogues,
-        ProgrammeSourceRegistry $sourceRegistry,
-    ): StreamedResponse {
-        abort_if((bool) config('pathways.identifiable_exports_enabled'), 500, 'Identifiable exports must remain disabled for the current MVP.');
-        $report = $this->reportPayload($request, $catalogues, $sourceRegistry);
-        AdminAuditEvent::query()->create([
-            'actor_id' => $request->user()->getKey(),
-            'action' => 'report.exported',
-            'subject_type' => 'aggregate_report',
-            'subject_reference' => now()->format('Ymd-His'),
-            'metadata' => ['from' => $report['from'], 'to' => $report['to'], 'format' => 'csv', 'dataClassification' => 'aggregate_only'],
-        ]);
-
-        return response()->streamDownload(static function () use ($report): void {
-            $stream = fopen('php://output', 'w');
-            $write = static fn (array $row) => fputcsv($stream, array_map(self::csvCell(...), $row));
-            $write(['Pathways aggregate system report']);
-            $write(['Scope', 'Institution records']);
-            $write(['From', $report['from'] ?: 'All records']);
-            $write(['To', $report['to'] ?: 'All records']);
-            $write(['Students in report scope', $report['studentCount']]);
-            $write(['Students with current entrance declarations', $report['entranceDeclarations']]);
-            $write(['Board-programme eligible declarations', $report['eligibilityDistribution']['board']]);
-            $write(['Non-board-programme eligible declarations', $report['eligibilityDistribution']['nonBoard']]);
-            $write(['Students with assessment activity', $report['assessmentActivity']]);
-            $write(['Students who started in period and now have results', $report['completedAssessments']]);
-            $write(['Completion rate for students who started in period', $report['assessmentCompletionRate'].'%']);
-            $write(['Students with generated recommendations', $report['recommendationRuns']]);
-            $write(['Programme saves recorded', $report['programmeSaves']]);
-            $write(['Assessment completion month', 'Completed students']);
-            foreach ($report['assessmentCompletionsByMonth'] as $month) {
-                $write([$month['month'], $month['count']]);
-            }
-            fclose($stream);
-        }, 'pathways-system-report-'.now()->format('Y-m-d').'.csv', ['Content-Type' => 'text/csv']);
     }
 
     public function activity(Request $request): JsonResponse
@@ -365,15 +313,15 @@ final class AdminWorkspaceController extends Controller
         ]);
         $events = AdminAuditEvent::query()
             ->with('actor:id,name')
-            ->when(isset($validated['actor']), fn (Builder $query) => $query->where('actor_id', $validated['actor']))
-            ->when(isset($validated['action']), fn (Builder $query) => $query->where('action', $validated['action']))
-            ->when(isset($validated['subjectType']), fn (Builder $query) => $query->where('subject_type', $validated['subjectType']))
-            ->when(isset($validated['from']), fn (Builder $query) => $query->whereDate('created_at', '>=', $validated['from']))
-            ->when(isset($validated['to']), fn (Builder $query) => $query->whereDate('created_at', '<=', $validated['to']))
+            ->when(isset($validated['actor']), fn(Builder $query) => $query->where('actor_id', $validated['actor']))
+            ->when(isset($validated['action']), fn(Builder $query) => $query->where('action', $validated['action']))
+            ->when(isset($validated['subjectType']), fn(Builder $query) => $query->where('subject_type', $validated['subjectType']))
+            ->when(isset($validated['from']), fn(Builder $query) => $query->whereDate('created_at', '>=', $validated['from']))
+            ->when(isset($validated['to']), fn(Builder $query) => $query->whereDate('created_at', '<=', $validated['to']))
             ->latest()
             ->paginate((int) ($validated['perPage'] ?? 25));
         $items = $events->getCollection()
-            ->map(static fn (AdminAuditEvent $event): array => [
+            ->map(static fn(AdminAuditEvent $event): array => [
                 'id' => $event->getKey(),
                 'actorId' => $event->actor_id,
                 'actor' => $event->actor?->name,
@@ -385,15 +333,17 @@ final class AdminWorkspaceController extends Controller
                 'createdAt' => $event->created_at?->toAtomString(),
             ]);
 
-        return response()->json(['data' => [
-            'items' => $items,
-            'pagination' => $this->pagination($events),
-            'filters' => [
-                'actors' => AdminAuditEvent::query()->with('actor:id,name')->get()->pluck('actor')->filter()->unique('id')->values()->map(fn (User $actor) => ['id' => $actor->getKey(), 'name' => $actor->name]),
-                'actions' => AdminAuditEvent::query()->distinct()->orderBy('action')->pluck('action'),
-                'subjectTypes' => AdminAuditEvent::query()->distinct()->orderBy('subject_type')->pluck('subject_type'),
-            ],
-        ]]);
+        return response()->json([
+            'data' => [
+                'items' => $items,
+                'pagination' => $this->pagination($events),
+                'filters' => [
+                    'actors' => AdminAuditEvent::query()->with('actor:id,name')->get()->pluck('actor')->filter()->unique('id')->values()->map(fn(User $actor) => ['id' => $actor->getKey(), 'name' => $actor->name]),
+                    'actions' => AdminAuditEvent::query()->distinct()->orderBy('action')->pluck('action'),
+                    'subjectTypes' => AdminAuditEvent::query()->distinct()->orderBy('subject_type')->pluck('subject_type'),
+                ],
+            ]
+        ]);
     }
 
     /** @return array<string, mixed> */
@@ -410,8 +360,8 @@ final class AdminWorkspaceController extends Controller
         $to = $validated['to'] ?? null;
         $period = static function (Builder $query, string $column) use ($from, $to): Builder {
             return $query
-                ->when($from, fn (Builder $builder) => $builder->whereDate($column, '>=', $from))
-                ->when($to, fn (Builder $builder) => $builder->whereDate($column, '<=', $to));
+                ->when($from, fn(Builder $builder) => $builder->whereDate($column, '>=', $from))
+                ->when($to, fn(Builder $builder) => $builder->whereDate($column, '<=', $to));
         };
 
         $assessmentActivityQuery = AssessmentSession::query();
@@ -438,33 +388,33 @@ final class AdminWorkspaceController extends Controller
         $period($completionEventQuery, 'result_available_at');
 
         $runs = RecommendationRun::query()
-            ->when($from, fn (Builder $query) => $query->whereDate('generated_at', '>=', $from))
-            ->when($to, fn (Builder $query) => $query->whereDate('generated_at', '<=', $to))
+            ->when($from, fn(Builder $query) => $query->whereDate('generated_at', '>=', $from))
+            ->when($to, fn(Builder $query) => $query->whereDate('generated_at', '<=', $to))
             ->get(['user_id']);
 
         $savedProgrammeQuery = StudentSavedProgramme::query();
         $period($savedProgrammeQuery, 'created_at');
 
         $recommendationGroups = RecommendationRun::query()
-            ->when($from, fn (Builder $query) => $query->whereDate('generated_at', '>=', $from))
-            ->when($to, fn (Builder $query) => $query->whereDate('generated_at', '<=', $to))
+            ->when($from, fn(Builder $query) => $query->whereDate('generated_at', '>=', $from))
+            ->when($to, fn(Builder $query) => $query->whereDate('generated_at', '<=', $to))
             ->get(['user_id', 'entrance_examination_snapshot'])
-            ->groupBy(fn (RecommendationRun $run): string => (string) ($run->entrance_examination_snapshot['eligibilityGroup'] ?? 'unavailable'))
-            ->map(fn ($group): int => $group->pluck('user_id')->unique()->count());
+            ->groupBy(fn(RecommendationRun $run): string => (string) ($run->entrance_examination_snapshot['eligibilityGroup'] ?? 'unavailable'))
+            ->map(fn($group): int => $group->pluck('user_id')->unique()->count());
 
         $savedByEligibility = (clone $savedProgrammeQuery)
             ->with('user.currentEntranceExaminationResult')
             ->get()
-            ->groupBy(fn (StudentSavedProgramme $save): string => (string) ($save->user?->currentEntranceExaminationResult?->eligibility_group ?? 'unavailable'))
+            ->groupBy(fn(StudentSavedProgramme $save): string => (string) ($save->user?->currentEntranceExaminationResult?->eligibility_group ?? 'unavailable'))
             ->map->count();
 
         $sources = collect($sourceRegistry->entries($catalogues->current()));
 
         $completionMonths = (clone $completionEventQuery)
             ->get(['user_id', 'result_available_at'])
-            ->groupBy(static fn (AssessmentSession $session): string => $session->result_available_at->format('Y-m'))
+            ->groupBy(static fn(AssessmentSession $session): string => $session->result_available_at->format('Y-m'))
             ->sortKeys()
-            ->map(static fn ($sessions, string $month): array => [
+            ->map(static fn($sessions, string $month): array => [
                 'month' => $month,
                 'count' => $sessions->pluck('user_id')->unique()->count(),
             ])
@@ -512,19 +462,10 @@ final class AdminWorkspaceController extends Controller
         ];
     }
 
-    private static function csvCell(mixed $value): string|int|float
-    {
-        if (! is_string($value)) {
-            return $value;
-        }
-
-        return preg_match('/^[=+\-@\t\r]/', $value) === 1 ? "'".$value : $value;
-    }
-
     /** @return Builder<User> */
     private function studentQuery(): Builder
     {
-        return User::query()->whereHas('roles', static fn (Builder $query) => $query->where('slug', RoleSlug::Student->value));
+        return User::query()->whereHas('roles', static fn(Builder $query) => $query->where('slug', RoleSlug::Student->value));
     }
 
     /** @return array<string, mixed> */
@@ -579,7 +520,7 @@ final class AdminWorkspaceController extends Controller
 
     private function reference(AssessmentSession $session): string
     {
-        return 'ASMT-'.str_pad((string) $session->getKey(), 6, '0', STR_PAD_LEFT);
+        return 'ASMT-' . str_pad((string) $session->getKey(), 6, '0', STR_PAD_LEFT);
     }
 
     /** @return array<string, int> */
@@ -606,7 +547,7 @@ final class AdminWorkspaceController extends Controller
 
         return collect($metadata)
             ->only($allowed)
-            ->filter(static fn (mixed $value): bool => is_null($value) || is_scalar($value) || (is_array($value) && collect($value)->every(fn (mixed $item): bool => is_scalar($item))))
+            ->filter(static fn(mixed $value): bool => is_null($value) || is_scalar($value) || (is_array($value) && collect($value)->every(fn(mixed $item): bool => is_scalar($item))))
             ->all();
     }
 
@@ -615,22 +556,22 @@ final class AdminWorkspaceController extends Controller
         $metadata = self::safeAuditMetadata($event->metadata);
         $parts = [];
         if (isset($metadata['kind'], $metadata['version'])) {
-            $parts[] = ucfirst((string) $metadata['kind']).' version '.$metadata['version'];
+            $parts[] = ucfirst((string) $metadata['kind']) . ' version ' . $metadata['version'];
         }
         if (isset($metadata['status'])) {
-            $parts[] = 'status '.str_replace('_', ' ', (string) $metadata['status']);
+            $parts[] = 'status ' . str_replace('_', ' ', (string) $metadata['status']);
         }
         if (isset($metadata['sourceVersion'])) {
-            $parts[] = 'restored from version '.$metadata['sourceVersion'];
+            $parts[] = 'restored from version ' . $metadata['sourceVersion'];
         }
         if (isset($metadata['sourceName'])) {
             $parts[] = (string) $metadata['sourceName'];
         }
         if (isset($metadata['beforeStatus'], $metadata['afterStatus'])) {
-            $parts[] = $metadata['beforeStatus'].' to '.$metadata['afterStatus'];
+            $parts[] = $metadata['beforeStatus'] . ' to ' . $metadata['afterStatus'];
         }
         if (isset($metadata['changedProgrammeCount'])) {
-            $parts[] = $metadata['changedProgrammeCount'].' programme records changed';
+            $parts[] = $metadata['changedProgrammeCount'] . ' programme records changed';
         }
 
         return $parts !== [] ? implode(' · ', $parts) : str_replace(['.', '_'], ' ', $event->action);
@@ -640,22 +581,28 @@ final class AdminWorkspaceController extends Controller
     private function dimensions(AssessmentSession $session): array
     {
         $labels = [
-            'r' => 'Realistic', 'realistic' => 'Realistic',
-            'i' => 'Investigative', 'investigative' => 'Investigative',
-            'a' => 'Artistic', 'artistic' => 'Artistic',
-            's' => 'Social', 'social' => 'Social',
-            'e' => 'Enterprising', 'enterprising' => 'Enterprising',
-            'c' => 'Conventional', 'conventional' => 'Conventional',
+            'r' => 'Realistic',
+            'realistic' => 'Realistic',
+            'i' => 'Investigative',
+            'investigative' => 'Investigative',
+            'a' => 'Artistic',
+            'artistic' => 'Artistic',
+            's' => 'Social',
+            'social' => 'Social',
+            'e' => 'Enterprising',
+            'enterprising' => 'Enterprising',
+            'c' => 'Conventional',
+            'conventional' => 'Conventional',
         ];
         $codes = ['Realistic' => 'R', 'Investigative' => 'I', 'Artistic' => 'A', 'Social' => 'S', 'Enterprising' => 'E', 'Conventional' => 'C'];
         $entries = $session->result_payload['result'] ?? [];
-        if (! is_array($entries)) {
+        if (!is_array($entries)) {
             return [];
         }
 
         $dimensions = [];
         foreach ($entries as $key => $entry) {
-            if (! is_array($entry)) {
+            if (!is_array($entry)) {
                 $entry = ['area' => is_string($key) ? $key : '', 'score' => $entry];
             }
             $areaKey = strtolower(trim((string) ($entry['area'] ?? $entry['title'] ?? $entry['code'] ?? '')));
@@ -684,7 +631,9 @@ final class AdminWorkspaceController extends Controller
             $entry['_order'] = $index;
         }
         unset($entry);
-        usort($dimensions, static fn (array $left, array $right): int => ($right['value'] <=> $left['value'])
+        usort(
+            $dimensions,
+            static fn(array $left, array $right): int => ($right['value'] <=> $left['value'])
             ?: ($left['_order'] <=> $right['_order'])
         );
 

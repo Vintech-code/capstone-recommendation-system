@@ -101,7 +101,7 @@ final class StudentProfilePresenter
     private function latestAssessment(User $student): ?AssessmentSession
     {
         return $student->assessmentSessions()
-            ->whereIn('instrument_code', [RiasecQuestionnaire::INSTRUMENT_CODE, RiasecQuestionnaire::LEGACY_INSTRUMENT_CODE])
+            ->whereIn('instrument_code', RiasecQuestionnaire::supportedInstrumentCodes())
             ->where('status', 'result_available')
             ->with('recommendationRun')
             ->latest('result_available_at')

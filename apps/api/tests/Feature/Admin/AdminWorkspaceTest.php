@@ -83,17 +83,6 @@ class AdminWorkspaceTest extends TestCase
             ->assertJsonStructure(['data' => ['assessmentFunnel', 'catalogueGovernance']]);
     }
 
-    public function test_admin_can_export_aggregate_reports_without_student_details(): void
-    {
-        $admin = $this->userWithRole(RoleSlug::Admin);
-        $student = $this->userWithRole(RoleSlug::Student);
-        $this->createRecommendation($student, $this->completedSession($student));
-
-        $export = $this->actingAs($admin)->get('/api/v1/admin/reports/export')->assertOk()->streamedContent();
-        $this->assertStringContainsString('aggregate system report', $export);
-        $this->assertStringNotContainsString($student->email, $export);
-    }
-
     public function test_student_and_guest_cannot_access_admin_data(): void
     {
         $admin = $this->userWithRole(RoleSlug::Admin);
@@ -143,29 +132,50 @@ class AdminWorkspaceTest extends TestCase
         ]);
 
         return AssessmentSession::query()->create([
-            'user_id' => $student->getKey(), 'entrance_examination_result_id' => $entrance->getKey(), 'instrument_code' => 'tcc-riasec-42-v1',
-            'attempt_number' => 1, 'status' => 'result_available', 'is_current' => true,
-            'answers' => array_combine(range(1, 30), array_fill(0, 30, 3)), 'current_question' => 30,
-            'result_payload' => ['result' => [
-                ['area' => 'Realistic', 'score' => 12], ['area' => 'Investigative', 'score' => 22],
-                ['area' => 'Artistic', 'score' => 16], ['area' => 'Social', 'score' => 20],
-                ['area' => 'Enterprising', 'score' => 14], ['area' => 'Conventional', 'score' => 18],
-            ]],
-            'started_at' => now()->subHour(), 'submitted_at' => now()->subMinute(), 'result_available_at' => now(),
+            'user_id' => $student->getKey(),
+            'entrance_examination_result_id' => $entrance->getKey(),
+            'instrument_code' => 'tcc-uhcc-riasec-42-v1',
+            'attempt_number' => 1,
+            'status' => 'result_available',
+            'is_current' => true,
+            'answers' => array_combine(range(1, 42), array_fill(0, 42, 1)),
+            'current_question' => 42,
+            'result_payload' => [
+                'result' => [
+                    ['area' => 'Realistic', 'score' => 4],
+                    ['area' => 'Investigative', 'score' => 7],
+                    ['area' => 'Artistic', 'score' => 5],
+                    ['area' => 'Social', 'score' => 6],
+                    ['area' => 'Enterprising', 'score' => 3],
+                    ['area' => 'Conventional', 'score' => 5],
+                ]
+            ],
+            'started_at' => now()->subHour(),
+            'submitted_at' => now()->subMinute(),
+            'result_available_at' => now(),
         ]);
     }
 
     private function createRecommendation(User $student, AssessmentSession $session): void
     {
         RecommendationRun::query()->create([
-            'user_id' => $student->getKey(), 'assessment_session_id' => $session->getKey(),
-            'catalogue_reference' => 'TCC-AY-2026-2027-V1', 'rule_reference' => 'PROPOSED-RIASEC-1',
+            'user_id' => $student->getKey(),
+            'assessment_session_id' => $session->getKey(),
+            'catalogue_reference' => 'TCC-AY-2026-2027-V1',
+            'rule_reference' => 'PROPOSED-RIASEC-1',
             'entrance_examination_snapshot' => ['score' => 2.5, 'eligibilityGroup' => 'board', 'ruleReference' => 'SELF-DECLARED-TCC-ENTRANCE-2026-01'],
-            'methodology_status' => 'Proposed methodology', 'default_count' => 3, 'total_eligible' => 1,
-            'ranked_courses' => [[
-                'id' => 'bs-information-technology', 'rank' => 1, 'code' => 'BSIT',
-                'name' => 'BS Information Technology', 'match' => 90,
-            ]],
+            'methodology_status' => 'Proposed methodology',
+            'default_count' => 3,
+            'total_eligible' => 1,
+            'ranked_courses' => [
+                [
+                    'id' => 'bs-information-technology',
+                    'rank' => 1,
+                    'code' => 'BSIT',
+                    'name' => 'BS Information Technology',
+                    'match' => 90,
+                ]
+            ],
             'generated_at' => now(),
         ]);
     }

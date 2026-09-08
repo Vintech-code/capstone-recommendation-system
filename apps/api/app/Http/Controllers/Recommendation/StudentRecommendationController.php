@@ -29,7 +29,7 @@ final class StudentRecommendationController extends Controller
 
         $session = AssessmentSession::query()
             ->whereBelongsTo($request->user())
-            ->whereIn('instrument_code', [RiasecQuestionnaire::INSTRUMENT_CODE, RiasecQuestionnaire::LEGACY_INSTRUMENT_CODE])
+            ->whereIn('instrument_code', RiasecQuestionnaire::supportedInstrumentCodes())
             ->where('status', 'result_available')
             ->with(['recommendationRun', 'entranceExaminationResult'])
             ->latest('result_available_at')
@@ -75,9 +75,18 @@ final class StudentRecommendationController extends Controller
         $run = $session->recommendationRun;
         if ($run === null) {
             try {
+                $catalogueForAssessment = $catalogue;
+                $configuredRange = $catalogueForAssessment['matching_policy']['normalization'] ?? [];
+                $usesCurrentDefaultRange = ($configuredRange['instrument_min'] ?? null) === 0
+                    && ($configuredRange['instrument_max'] ?? null) === RiasecQuestionnaire::MAXIMUM_AREA_SCORE;
+                if ($session->instrument_code === RiasecQuestionnaire::INSTRUMENT_CODE || $usesCurrentDefaultRange) {
+                    $catalogueForAssessment['matching_policy']['normalization'] = RiasecQuestionnaire::normalizationFor(
+                        $session->instrument_code,
+                    );
+                }
                 $result = $engine->recommend(
                     RiasecQuestionnaire::normalizeResultEntries($entries),
-                    $catalogue,
+                    $catalogueForAssessment,
                     $session->entranceExaminationResult?->eligibility_group,
                 );
             } catch (DomainException) {
@@ -92,11 +101,14 @@ final class StudentRecommendationController extends Controller
             $run = $session->recommendationRun()->firstOrCreate([], [
                 'user_id' => $request->user()->getKey(),
                 'catalogue_reference' => 'TCC-AY-'.$catalogue['academic_year'].'-V'.$catalogue['catalogue_version'],
-                'rule_reference' => 'PROPOSED-RIASEC-1',
+                'rule_reference' => 'PROPOSED-RIASEC-2-ALL-PROGRAMMES',
                 'entrance_examination_snapshot' => $this->entranceExaminationSnapshot($session),
                 'methodology_status' => 'Proposed methodology',
                 'default_count' => $defaultCount,
-                'total_eligible' => count($result['ranked']),
+                'total_eligible' => count(array_filter(
+                    $result['ranked'],
+                    static fn (array $course): bool => (bool) ($course['eligible_for_declared_group'] ?? true),
+                )),
                 'ranked_courses' => array_map([$this, 'coursePayload'], $result['ranked']),
                 'generated_at' => now(),
             ]);
@@ -108,7 +120,6 @@ final class StudentRecommendationController extends Controller
                 $run,
                 $session,
                 RiasecQuestionnaire::normalizeResultEntries($entries),
-                $request->query('view') === 'all',
                 $catalogue,
             ),
         ]]);
@@ -122,9 +133,11 @@ final class StudentRecommendationController extends Controller
         return [
             'id' => $course['id'],
             'rank' => $course['rank'],
+            'isTie' => (bool) ($course['is_tied'] ?? false),
             'code' => $course['code'],
             'name' => $course['name'],
             'eligibilityGroup' => $course['eligibility_group'] ?? null,
+            'eligibleForDeclaredGroup' => (bool) ($course['eligible_for_declared_group'] ?? true),
             'department' => '',
             'duration' => '',
             'level' => '',
@@ -162,7 +175,6 @@ final class StudentRecommendationController extends Controller
         RecommendationRun $run,
         AssessmentSession $session,
         array $entries,
-        bool $viewAll,
         array $catalogue,
     ): array {
         $courses = $run->ranked_courses ?? [];
@@ -194,7 +206,7 @@ final class StudentRecommendationController extends Controller
                 'logoImagePosition' => $programme['logo_image_position'] ?? null,
             ]);
         }, $courses);
-        $visibleCourses = $viewAll ? $courses : array_slice($courses, 0, $run->default_count);
+        $visibleCourses = $courses;
         $profile = $this->profilePayload($session, $entries);
         $visibleCourses = array_map(
             fn (array $course): array => array_merge($course, [
@@ -212,8 +224,9 @@ final class StudentRecommendationController extends Controller
             'status' => $run->methodology_status,
             'defaultCount' => $run->default_count,
             'totalEligible' => $run->total_eligible,
-            'canViewAll' => $run->total_eligible > $run->default_count,
-            'showingAll' => $viewAll,
+            'totalRanked' => count($courses),
+            'canViewAll' => false,
+            'showingAll' => true,
             'guidanceContentStatus' => 'proposed',
             'entranceExamination' => $run->entrance_examination_snapshot,
             'profile' => $profile,
@@ -329,17 +342,24 @@ final class StudentRecommendationController extends Controller
     /** @return array<string, array{minimum: int, maximum: int}> */
     private function scoreRanges(AssessmentSession $session): array
     {
-        if ($session->instrument_code === RiasecQuestionnaire::LEGACY_INSTRUMENT_CODE) {
-            return collect(['R', 'I', 'A', 'S', 'E', 'C'])
-                ->mapWithKeys(static fn (string $code): array => [$code => ['minimum' => 5, 'maximum' => 25]])
-                ->all();
-        }
-
-        return AssessmentQuestion::query()
+        $storedRanges = AssessmentQuestion::query()
             ->whereHas('instrument', static fn ($query) => $query->where('code', $session->instrument_code))
             ->get(['riasec_code'])
             ->countBy('riasec_code')
             ->map(static fn (int $maximum): array => ['minimum' => 0, 'maximum' => $maximum])
+            ->all();
+
+        if ($storedRanges !== []) {
+            return $storedRanges;
+        }
+
+        $range = RiasecQuestionnaire::normalizationFor($session->instrument_code);
+
+        return collect(['R', 'I', 'A', 'S', 'E', 'C'])
+            ->mapWithKeys(static fn (string $code): array => [$code => [
+                'minimum' => $range['instrument_min'],
+                'maximum' => $range['instrument_max'],
+            ]])
             ->all();
     }
 
