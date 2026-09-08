@@ -70,6 +70,19 @@ interface AssessmentQuestionPayload {
     content_version: string
     status: 'proposed'
     instructions: string
+    source?: {
+      name: string
+      asset_reference?: string
+      url: string
+      accessed_on: string
+    }
+    scoring?: {
+      agree_value: number
+      do_not_agree_value: number
+      minimum_per_area: number
+      maximum_per_area: number
+      formula: string
+    }
   }
   answer_options: Array<{ value: number; name: string }>
   questions: Array<{ index: number; text: string }>

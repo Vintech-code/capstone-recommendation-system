@@ -13,7 +13,7 @@
   --radius: 0.75rem;
 
   /* Base */
-  --background: rgb(255, 255, 255);
+  --background: #fdfcf8;
   --foreground: #40534a;
 
   /* Surfaces */
@@ -24,7 +24,7 @@
   --popover-foreground: #40534a;
 
   /* Primary */
-  --primary: #51b885;
+  --primary: #22c74b;
   --primary-foreground: #1f392b;
   --primary-ink: #3f7d57;
 
@@ -57,7 +57,7 @@
   --warning-foreground: #4b3a12;
   --warning-ink: #8a6100;
 
-  --info: #79b4dc;
+  --info: #309ae1;
   --info-foreground: #203b4d;
   --info-ink: #326f99;
 
@@ -196,6 +196,11 @@
 .staff-dashboard-canvas [class*="rounded-[1.75rem]"] {
   border-radius: 0;
   box-shadow: none;
+}
+
+/* Keep native controls aligned with the shared full-pill button language. */
+button {
+  border-radius: 9999px !important;
 }
 
 [data-student-records] th:last-child {

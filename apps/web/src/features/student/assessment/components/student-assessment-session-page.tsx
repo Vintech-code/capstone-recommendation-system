@@ -194,6 +194,12 @@ function StudentAssessmentSessionPage({
             label: option.name,
             description: getResponseOptionDescription(option.name),
           })),
+          source: questions.instrument.source
+            ? {
+                name: questions.instrument.source.name,
+                url: questions.instrument.source.url,
+              }
+            : undefined,
         });
         setAnswers(
           Object.fromEntries(

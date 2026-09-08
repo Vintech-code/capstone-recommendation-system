@@ -17,6 +17,12 @@ describe("Student recommendation results", () => {
         initialAssessment={testAssessmentLifecycle}
         initialSnapshot={{
           ...testRecommendationSnapshot,
+          courses: [
+            {
+              ...testRecommendationSnapshot.courses[0],
+              careerDirections: ["Systems and business analysis"],
+            },
+          ],
           status: "Temporary methodology",
         }}
       />,
@@ -53,12 +59,18 @@ describe("Student recommendation results", () => {
     });
     const careerSection = careerHeading.closest("section");
     expect(careerHeading).toHaveClass("text-2xl", "font-extrabold");
-    expect(careerSection).toHaveClass("lg:col-span-2", "border-y");
-    expect(careerSection).not.toHaveClass(
-      "rounded-2xl",
+    expect(careerSection).toHaveClass(
+      "lg:col-span-2",
+      "rounded-3xl",
+      "border",
       "bg-card",
-      "shadow-sm",
     );
+    expect(
+      screen.getByText("Built from your recorded pattern: I-C"),
+    ).toBeVisible();
+    expect(screen.getByText("Career directions")).toBeVisible();
+    expect(screen.getByText("Systems and business analysis")).toBeVisible();
+    expect(screen.getByText("Why it fits you")).toBeVisible();
     expect(screen.getByRole("heading", { name: "RIASEC scores" })).toHaveClass(
       "text-2xl",
       "font-extrabold",
@@ -69,7 +81,7 @@ describe("Student recommendation results", () => {
     expect(page).not.toBeNull();
     expect(page).toHaveClass("student-dashboard-canvas");
     expect(screen.getAllByText("I · Investigative").length).toBeGreaterThan(0);
-    expect(screen.getByText("Top 1")).toBeVisible();
+    expect(screen.getByText("Top fit")).toBeVisible();
     expect(screen.getByText("90%")).toBeVisible();
     expect(
       screen.getByText(/current provisional programme-matching rule/),
@@ -193,6 +205,52 @@ describe("Student recommendation results", () => {
     ).not.toHaveClass("rounded-3xl");
   });
 
+  it("shows equal scores as shared ranks without inventing a score difference", () => {
+    const courses = [
+      {
+        ...testRecommendationSnapshot.courses[0],
+        id: "course-a",
+        name: "Course A",
+        rank: 1,
+        isTie: true,
+        match: 85.71,
+      },
+      {
+        ...testRecommendationSnapshot.courses[0],
+        id: "course-b",
+        name: "Course B",
+        rank: 1,
+        isTie: true,
+        match: 85.71,
+      },
+      {
+        ...testRecommendationSnapshot.courses[0],
+        id: "course-c",
+        name: "Course C",
+        rank: 3,
+        match: 80,
+      },
+    ];
+
+    render(
+      <StudentRecommendationResultsPage
+        onBack={vi.fn()}
+        initialAssessment={testAssessmentLifecycle}
+        initialSnapshot={{
+          ...testRecommendationSnapshot,
+          courses,
+          totalRanked: 3,
+          showingAll: true,
+        }}
+      />,
+    );
+
+    expect(screen.getAllByText("Rank #1")).toHaveLength(2);
+    expect(screen.getAllByText("Tied at #1")).toHaveLength(2);
+    expect(screen.getAllByText("85.71%")).toHaveLength(2);
+    expect(screen.getByText("Rank #3")).toBeVisible();
+  });
+
   it("shows an honest empty state when no recommendation exists", () => {
     render(
       <StudentRecommendationResultsPage
@@ -252,8 +310,7 @@ describe("Student recommendation results", () => {
     );
   });
 
-  it("loads the complete ranked result when view all is available", async () => {
-    const user = userEvent.setup();
+  it("renders the complete ranked result without a separate view-all request", () => {
     const expanded = {
       ...testRecommendationSnapshot,
       canViewAll: false,
@@ -269,33 +326,19 @@ describe("Student recommendation results", () => {
         },
       ],
     };
-    const fetchMock = vi.mocked(fetch);
-    fetchMock.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
-        data: { status: "available", recommendation: expanded },
-      }),
-    } as Response);
-
     render(
       <StudentRecommendationResultsPage
         onBack={vi.fn()}
-        initialSnapshot={{
-          ...testRecommendationSnapshot,
-          canViewAll: true,
-          totalEligible: 2,
-        }}
+        initialSnapshot={expanded}
       />,
     );
-    await user.click(
-      screen.getByRole("button", { name: "View all 2 ranked programmes" }),
-    );
 
-    expect(fetchMock).toHaveBeenCalledWith(
-      "/api/v1/student/recommendations/latest?view=all",
-      expect.any(Object),
-    );
-    expect(await screen.findAllByText(/Second Course/)).not.toHaveLength(0);
+    expect(
+      screen.getByRole("heading", { name: "Second Course" }),
+    ).toBeVisible();
+    expect(
+      screen.queryByRole("button", { name: /View all .* ranked programmes/ }),
+    ).not.toBeInTheDocument();
   });
 
   it("opens a selected match in the reference-informed course detail view", async () => {
@@ -351,7 +394,7 @@ describe("Student recommendation results", () => {
     expect(
       screen.getByRole("heading", { level: 1, name: "Test Course" }),
     ).toBeVisible();
-    expect(screen.getByText("High Fit")).toBeVisible();
+    expect(screen.getByText("Strong match")).toBeVisible();
     expect(
       screen.getByRole("heading", { name: "Your match score" }),
     ).toBeVisible();

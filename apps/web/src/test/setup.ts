@@ -130,10 +130,6 @@ async function defaultFetch(
     } })
   }
 
-  if (url === '/api/v1/admin/assessments') {
-    return Response.json({ data: [{ id: 1, reference: 'ASMT-000001', studentId: 10, studentName: 'Ana Santos', studentEmail: 'ana@example.test', attemptNumber: 1, status: 'result_available', topCode: 'I-C', startedAt: '2026-08-01T08:00:00+08:00', submittedAt: '2026-08-01T08:20:00+08:00', resultAvailableAt: '2026-08-01T08:20:01+08:00', processingErrorCode: null }] })
-  }
-
   if (url === '/api/v1/admin/programmes') {
     return Response.json({ data: { academicYear: '2026-2027', catalogueVersion: 1, catalogueStatus: 'approved_current_scope', programmes: [{ id: 'bs-information-technology', code: 'BSIT', name: 'BS Information Technology', profile: ['I', 'C', 'R'], profileStatus: 'researcher_proposed_temporary', profileVersion: 'TEMP-2026-01', eligibilityGroup: 'board', majors: [], recommendedStrands: ['STEM', 'TVL-ICT'], description: 'Applies computing technologies to organisational needs.', learningAreas: ['Software development'], learningAreaDescriptions: { 'Software development': 'Design, build, test, and maintain applications.' }, learningAreaTopics: { 'Software development': ['Programming fundamentals'] }, careerDirections: ['Software and application development'], strandGuidance: 'STEM and TVL-ICT may be helpful preparation.', requirements: ['Meet published admission requirements.'], readinessPrompt: 'Discuss your interest in technology.', contentVersion: 'GUIDANCE-2026-01', degreeType: "Bachelor's degree", duration: { status: 'ched_psg', display: '4 years', source_name: 'CHED CMO No. 25, series of 2015', source_url: 'https://legacy.ched.gov.ph/2015-ched-memorandum-orders/' }, salary: { status: 'not_published', display: 'Not published', source_name: 'Philippine Statistics Authority', source_url: 'https://psa.gov.ph/', note: 'No official Philippine course-specific figure is available.' }, jobGrowth: { status: 'not_published', display: 'Not published', source_name: 'Philippine Statistics Authority OpenSTAT', source_url: 'https://openstat.psa.gov.ph/', note: 'No official Philippine course-specific percentage is available.' }, outlookVersion: 'PH-OUTLOOK-2026-08-09', monitoring: { savedByStudents: 3 } }] } })
   }
@@ -250,10 +246,10 @@ async function defaultFetch(
     return Response.json({
       data: {
         instrument: {
-          code: 'tcc-riasec-42-v1',
+          code: 'tcc-uhcc-riasec-42-v1',
           name: 'TCC RIASEC Interest Questionnaire',
           question_count: 6,
-          content_version: 'researcher-questionnaire-v1', status: 'proposed', instructions: 'Answer honestly.',
+          content_version: 'riasec-assessment-asset-v1', status: 'proposed', instructions: 'Answer honestly.',
         },
         answer_options: [
           { value: 1, name: 'Agree' },
@@ -284,7 +280,7 @@ async function defaultFetch(
       data: {
         id: 1,
         reference: 'ASMT-000001',
-        instrument_code: 'tcc-riasec-42-v1',
+        instrument_code: 'tcc-uhcc-riasec-42-v1',
         status: 'in_progress',
         answers: {},
         answer_count: 0,
@@ -317,7 +313,7 @@ async function defaultFetch(
         question_count: 6,
         result_available_at: '2026-08-08T02:30:00+08:00',
         result: {
-          instrument_code: 'tcc-riasec-42-v1',
+          instrument_code: 'tcc-uhcc-riasec-42-v1',
           answer_count: 6,
           result: [
             { area: 'Realistic', score: 5 },

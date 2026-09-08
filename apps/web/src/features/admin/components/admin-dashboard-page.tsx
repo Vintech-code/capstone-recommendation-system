@@ -86,58 +86,22 @@ export function AdminDashboardPage({ onNavigate }: NavigateProps) {
     .map(([label, value]) => `${label}: ${value}`)
     .join(", ");
 
-  // Real catalogue programmes or fallback to standard institutional catalogue
-  const topProgrammes = (
-    programmes.length
-      ? programmes
-      : [
-          {
-            id: "bs-it",
-            name: "BS Information Technology",
-            monitoring: { savedByStudents: 24 },
-          },
-          {
-            id: "bs-cs",
-            name: "BS Computer Science",
-            monitoring: { savedByStudents: 19 },
-          },
-          {
-            id: "bs-hm",
-            name: "BS Hospitality Management",
-            monitoring: { savedByStudents: 15 },
-          },
-          {
-            id: "bs-crim",
-            name: "BS Criminology",
-            monitoring: { savedByStudents: 12 },
-          },
-          {
-            id: "bs-ba",
-            name: "BS Business Administration",
-            monitoring: { savedByStudents: 9 },
-          },
-        ]
-  ).slice(0, 5);
+  const topProgrammes = programmes.slice(0, 5);
 
   const maxProgrammeSaves = Math.max(
     1,
     ...topProgrammes.map((p) => p.monitoring?.savedByStudents || 0),
   );
 
-  // Real track/eligibility data
-  const boardEligible =
-    report?.eligibilityDistribution?.board ??
-    (data.funnel.entranceDeclared
-      ? Math.ceil(data.funnel.entranceDeclared * 0.6)
-      : 1);
-  const nonBoardEligible =
-    report?.eligibilityDistribution?.nonBoard ??
-    (data.funnel.entranceDeclared
-      ? Math.floor(data.funnel.entranceDeclared * 0.4)
-      : 1);
-  const totalEligible = Math.max(1, boardEligible + nonBoardEligible);
-  const boardPct = Math.round((boardEligible / totalEligible) * 100);
-  const nonBoardPct = Math.round((nonBoardEligible / totalEligible) * 100);
+  const boardEligible = report?.eligibilityDistribution?.board ?? 0;
+  const nonBoardEligible = report?.eligibilityDistribution?.nonBoard ?? 0;
+  const totalEligible = boardEligible + nonBoardEligible;
+  const boardPct = totalEligible
+    ? Math.round((boardEligible / totalEligible) * 100)
+    : 0;
+  const nonBoardPct = totalEligible
+    ? Math.round((nonBoardEligible / totalEligible) * 100)
+    : 0;
 
   return (
     <div className="mx-auto w-full max-w-[1500px] space-y-8">
@@ -282,28 +246,36 @@ export function AdminDashboardPage({ onNavigate }: NavigateProps) {
           />
 
           <div className="mt-5 divide-y divide-border border-y border-border">
-            {topProgrammes.map((prog, index) => {
-              const saves = prog.monitoring?.savedByStudents || 0;
-              const percentage = Math.round((saves / maxProgrammeSaves) * 100);
-              return (
-                <div key={prog.id} className="py-3">
-                  <div className="flex items-center justify-between gap-3">
-                    <span className="flex items-center gap-2.5 font-semibold text-sm">
-                      <span className="font-display text-xs font-black text-muted-foreground">
-                        {String(index + 1).padStart(2, "0")}
+            {topProgrammes.length ? (
+              topProgrammes.map((prog, index) => {
+                const saves = prog.monitoring?.savedByStudents || 0;
+                const percentage = Math.round(
+                  (saves / maxProgrammeSaves) * 100,
+                );
+                return (
+                  <div key={prog.id} className="py-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="flex items-center gap-2.5 font-semibold text-sm">
+                        <span className="font-display text-xs font-black text-muted-foreground">
+                          {String(index + 1).padStart(2, "0")}
+                        </span>
+                        <span className="truncate">{prog.name}</span>
                       </span>
-                      <span className="truncate">{prog.name}</span>
-                    </span>
-                    <span className="font-display text-xs font-bold text-muted-foreground shrink-0">
-                      {saves} saves
-                    </span>
+                      <span className="font-display text-xs font-bold text-muted-foreground shrink-0">
+                        {saves} saves
+                      </span>
+                    </div>
+                    <div className="mt-2">
+                      <Progress value={percentage} className="h-1.5" />
+                    </div>
                   </div>
-                  <div className="mt-2">
-                    <Progress value={percentage} className="h-1.5" />
-                  </div>
-                </div>
-              );
-            })}
+                );
+              })
+            ) : (
+              <p className="py-5 text-sm text-muted-foreground">
+                No programme save data is available yet.
+              </p>
+            )}
           </div>
 
           <div className="mt-5">

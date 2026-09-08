@@ -9,6 +9,10 @@ const testAssessmentContent: AssessmentSessionContent = {
     { value: 1, label: 'Agree', description: '' },
     { value: 2, label: 'Do not agree', description: '' },
   ],
+  source: {
+    name: 'University of Hawai‘i Community Colleges Career Explorer',
+    url: 'https://careerexplorer.hawaii.edu/assessments/riasec_multiLang.php',
+  },
 }
 
 const testAssessmentLifecycle: AssessmentLifecycle = {

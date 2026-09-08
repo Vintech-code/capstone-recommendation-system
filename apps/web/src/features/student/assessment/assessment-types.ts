@@ -16,6 +16,10 @@ interface AssessmentSessionContent {
   versionReference: string
   questions: AssessmentQuestion[]
   responseOptions: AssessmentResponseOption[]
+  source?: {
+    name: string
+    url: string
+  }
 }
 
 interface AssessmentDimensionResult {

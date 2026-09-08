@@ -174,7 +174,7 @@ function currentAssessment(answers: Record<string, number>) {
   return {
     id: 1,
     reference: 'ASMT-000001',
-    instrument_code: 'tcc-riasec-42-v1',
+    instrument_code: 'tcc-uhcc-riasec-42-v1',
     status: Object.keys(answers).length ? 'in_progress' : 'not_started',
     answers,
     answer_count: Object.keys(answers).length,
@@ -189,7 +189,7 @@ function completedAssessment() {
   return {
     id: 1,
     reference: 'ASMT-000001',
-    instrument_code: 'tcc-riasec-42-v1',
+    instrument_code: 'tcc-uhcc-riasec-42-v1',
     status: 'result_available',
     answers: Object.fromEntries(Array.from({ length: 6 }, (_, index) => [String(index + 1), 1])),
     answer_count: 6,
@@ -199,13 +199,13 @@ function completedAssessment() {
     is_current: true,
     result_available_at: '2026-08-08T00:00:00Z',
     can_retake: false,
-    result: { instrument_code: 'tcc-riasec-42-v1', answer_count: 6, result: resultEntries },
+    result: { instrument_code: 'tcc-uhcc-riasec-42-v1', answer_count: 6, result: resultEntries },
   }
 }
 
 function questionPayload() {
   return {
-    instrument: { code: 'tcc-riasec-42-v1', name: 'TCC RIASEC Interest Questionnaire', question_count: 6, content_version: 'researcher-questionnaire-v1', status: 'proposed', instructions: 'Answer honestly.' },
+    instrument: { code: 'tcc-uhcc-riasec-42-v1', name: 'RIASEC Interest Checklist', question_count: 6, content_version: 'riasec-assessment-asset-v1', status: 'proposed', instructions: 'Answer honestly.' },
     answer_options: [
       { value: 1, name: 'Agree' },
       { value: 2, name: 'Do not agree' },

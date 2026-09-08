@@ -63,7 +63,6 @@ function StudentRecommendationResultsPage({
   const [assessment, setAssessment] = useState<AssessmentLifecycle | null>(
     initialAssessment ?? null,
   );
-  const [loadingAll, setLoadingAll] = useState(false);
   const [attempt, setAttempt] = useState(0);
   const [retakeOpen, setRetakeOpen] = useState(false);
   const [retakeError, setRetakeError] = useState("");
@@ -311,28 +310,33 @@ function StudentRecommendationResultsPage({
           {profile ? (
             <section
               aria-labelledby="recommended-career-paths-title"
-              className="border-y border-border py-8 sm:py-10 lg:col-span-2"
+              className="rounded-3xl border border-border bg-card px-5 py-6 shadow-[var(--shadow-card)] sm:px-7 sm:py-7 lg:col-span-2"
             >
-              <div className="grid gap-8 lg:grid-cols-[minmax(20rem,1fr)_minmax(0,1.35fr)] lg:gap-16 xl:gap-20">
-                <div className="flex flex-col">
-                  <div className="flex items-start gap-3 text-primary-ink">
-                    <Compass
-                      aria-hidden="true"
-                      className="mt-1 size-6 shrink-0"
-                    />
-                    <h2
-                      id="recommended-career-paths-title"
-                      className="max-w-sm font-display text-2xl font-extrabold leading-tight sm:text-3xl sm:leading-tight"
-                    >
-                      Recommended career paths
-                    </h2>
-                  </div>
-                  <p className="mt-4 max-w-[26rem] text-sm font-medium leading-6 text-muted-foreground sm:text-base sm:leading-7">
-                    Possible directions collected from your currently displayed
-                    recommended programmes.
+              <div className="flex items-start gap-3 text-primary-ink">
+                <Compass aria-hidden="true" className="mt-1 size-6 shrink-0" />
+                <div>
+                  <h2
+                    id="recommended-career-paths-title"
+                    className="font-display text-2xl font-extrabold leading-tight sm:text-3xl sm:leading-tight"
+                  >
+                    Recommended career paths
+                  </h2>
+                  <p className="mt-2 text-sm font-medium leading-6 text-muted-foreground sm:text-base">
+                    Built from your recorded pattern: {profile.topCode}
+                  </p>
+                </div>
+              </div>
+
+              {topCareerPaths.length > 0 ? (
+                <div className="mt-7">
+                  <p className="font-label text-xs font-bold uppercase tracking-[0.12em] text-primary-ink sm:text-sm">
+                    Career directions
+                  </p>
+                  <p className="mt-2 max-w-6xl font-display text-lg font-extrabold leading-7 text-primary-ink sm:text-xl sm:leading-8">
+                    {topCareerPaths.join(", ")}
                   </p>
 
-                  <div className="mt-8 max-w-[27rem] border-l-2 border-primary pl-5">
+                  <div className="mt-6 border-t border-border pt-5">
                     <p className="font-label text-xs font-bold uppercase tracking-[0.12em] text-primary-ink sm:text-sm">
                       Why it fits you
                     </p>
@@ -343,36 +347,12 @@ function StudentRecommendationResultsPage({
                     </p>
                   </div>
                 </div>
-
-                <div className="min-w-0">
-                  {topCareerPaths.length > 0 ? (
-                    <div>
-                      <div className="flex items-center justify-between gap-4 border-b border-border pb-3">
-                        <p className="font-label text-xs font-bold uppercase tracking-[0.12em] text-muted-foreground sm:text-sm">
-                          Career opportunities
-                        </p>
-                        <span className="text-xs font-semibold text-muted-foreground sm:text-sm">
-                          {topCareerPaths.length} directions
-                        </span>
-                      </div>
-                      <ul className="grid sm:grid-cols-2">
-                        {topCareerPaths.map((path) => (
-                          <li
-                            key={path}
-                            className="flex min-h-16 items-center gap-3 border-b border-border py-4 text-sm font-semibold leading-6 text-foreground sm:min-h-20 sm:text-base sm:odd:pr-8 sm:even:border-l sm:even:pl-8"
-                          >
-                            <span
-                              aria-hidden="true"
-                              className="size-2.5 shrink-0 rounded-full bg-primary"
-                            />
-                            {path}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ) : null}
-                </div>
-              </div>
+              ) : (
+                <p className="mt-7 text-sm font-medium leading-6 text-muted-foreground sm:text-base">
+                  No catalogue career directions are available for the displayed
+                  programmes.
+                </p>
+              )}
             </section>
           ) : null}
         </div>
@@ -395,39 +375,16 @@ function StudentRecommendationResultsPage({
           </div>
 
           <ol className="space-y-4 sm:space-y-5">
-            {snapshot.courses.map((course) => (
+            {snapshot.courses.map((course, index) => (
               <li key={course.id}>
                 <RecommendationMatchCard
                   course={course}
+                  position={index + 1}
                   onViewDetails={() => setSelectedCourse(course)}
                 />
               </li>
             ))}
           </ol>
-
-          {snapshot.canViewAll && !snapshot.showingAll ? (
-            <Button
-              type="button"
-              variant="outline"
-              disabled={loadingAll}
-              className="mt-5 min-h-11 w-full bg-card"
-              onClick={() => {
-                setLoadingAll(true);
-                getLatestRecommendation(true)
-                  .then(
-                    (state) =>
-                      state.recommendation && setSnapshot(state.recommendation),
-                  )
-                  .catch(() => setLoadState("error"))
-                  .finally(() => setLoadingAll(false));
-              }}
-            >
-              {loadingAll
-                ? "Loading…"
-                : `View all ${snapshot.totalEligible} ranked programmes`}
-              {!loadingAll ? <ArrowRight aria-hidden="true" /> : null}
-            </Button>
-          ) : null}
         </div>
 
         {retakeError ? (

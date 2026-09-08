@@ -23,7 +23,7 @@ function AssessmentResultLoading() {
         </h1>
       </div>
     </main>
-  )
+  );
 }
 
-export { AssessmentResultLoading }
+export { AssessmentResultLoading };

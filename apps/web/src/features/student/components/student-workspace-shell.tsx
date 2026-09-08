@@ -1,8 +1,8 @@
-import { ChevronDown, LogOut } from 'lucide-react'
-import type { ReactNode } from 'react'
+import { ChevronDown, LogOut } from "lucide-react";
+import type { ReactNode } from "react";
 
-import logo from '@/assets/logo.png'
-import mobileLogo from '@/assets/logo-optimized.png'
+import logo from "@/assets/logo.png";
+import mobileLogo from "@/assets/logo-optimized.png";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,19 +10,19 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import type { DashboardModule } from '@/features/auth/workspace-definitions'
-import { NotificationCenter } from '@/features/notifications/components/notification-center'
-import { cn } from '@/lib/utils'
+} from "@/components/ui/dropdown-menu";
+import type { DashboardModule } from "@/features/auth/workspace-definitions";
+import { NotificationCenter } from "@/features/notifications/components/notification-center";
+import { cn } from "@/lib/utils";
 
 interface StudentWorkspaceShellProps {
-  modules: DashboardModule[]
-  activeId: string
-  onSelect: (id: string) => void
-  onExit: () => void
-  studentName?: string
-  studentPhotoUrl?: string | null
-  children: ReactNode
+  modules: DashboardModule[];
+  activeId: string;
+  onSelect: (id: string) => void;
+  onExit: () => void;
+  studentName?: string;
+  studentPhotoUrl?: string | null;
+  children: ReactNode;
 }
 
 function StudentWorkspaceShell({
@@ -30,17 +30,29 @@ function StudentWorkspaceShell({
   activeId,
   onSelect,
   onExit,
-  studentName = 'Student',
+  studentName = "Student",
   studentPhotoUrl = null,
   children,
 }: StudentWorkspaceShellProps) {
   const navigationItems = modules
-    .filter((item) => item.id !== 'history' && item.id !== 'assessment' && item.id !== 'overview')
-    .map(({ id, title, icon }) => ({ id, title, icon }))
+    .filter(
+      (item) =>
+        item.id !== "history" &&
+        item.id !== "assessment" &&
+        item.id !== "overview",
+    )
+    .map(({ id, title, icon }) => ({ id, title, icon }));
 
-  const visibleActiveId = activeId === 'overview' ? 'recommendations' : activeId
-  const showNavigation = activeId !== 'assessment'
-  const initials = studentName.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase()).join('') || 'ST'
+  const visibleActiveId =
+    activeId === "overview" ? "recommendations" : activeId;
+  const showNavigation = activeId !== "assessment";
+  const initials =
+    studentName
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase())
+      .join("") || "ST";
 
   return (
     <div className="min-h-svh bg-background">
@@ -49,41 +61,63 @@ function StudentWorkspaceShell({
           <button
             type="button"
             aria-label="Go to dashboard"
-            onClick={() => onSelect('recommendations')}
+            onClick={() => onSelect("recommendations")}
             className="flex min-h-11 shrink-0 items-center rounded px-0.5 text-left focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30 md:px-1"
           >
-            <img src={mobileLogo} alt="" className="h-8 w-auto object-contain sm:h-9 md:hidden" />
-            <img src={logo} alt="" className="hidden h-10 w-auto object-contain md:block" />
+            <img
+              src={mobileLogo}
+              alt=""
+              className="h-8 w-auto object-contain sm:h-9 md:hidden"
+            />
+            <img
+              src={logo}
+              alt=""
+              className="hidden h-10 w-auto object-contain md:block"
+            />
           </button>
 
           {showNavigation ? (
             <nav
               aria-label="Mobile workspace navigation"
-              className="min-w-0 flex-1 md:hidden"
+              className="min-w-0 flex-1 px-1 sm:px-2 md:hidden"
             >
-              <ul className="grid w-full grid-cols-2 items-stretch">
+              <ul
+                className={cn(
+                  "grid w-full items-center gap-1",
+                  navigationItems.length === 2
+                    ? "grid-cols-2"
+                    : navigationItems.length === 3
+                      ? "grid-cols-3"
+                      : navigationItems.length === 4
+                        ? "grid-cols-4"
+                        : "grid-flow-col auto-cols-fr",
+                )}
+              >
                 {navigationItems.map((item) => {
-                  const Icon = item.icon
+                  const Icon = item.icon;
                   return (
                     <li key={item.id}>
-                    <button
-                      type="button"
-                      onClick={() => onSelect(item.id)}
-                      aria-label={item.title}
-                      title={item.title}
-                      aria-current={visibleActiveId === item.id ? 'page' : undefined}
-                      className={cn(
-                        'relative flex min-h-12 w-full items-center justify-center rounded-xl px-0.5 text-muted-foreground focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-inset focus-visible:ring-ring/30 sm:px-1',
-                        visibleActiveId === item.id && 'bg-primary-fixed font-semibold text-primary-ink',
-                      )}
-                    >
-                      <Icon aria-hidden="true" className="size-5" />
-                      {visibleActiveId === item.id ? (
-                        <span className="absolute inset-x-3 bottom-0 h-0.5 rounded-full bg-primary" />
-                      ) : null}
-                    </button>
+                      <button
+                        type="button"
+                        onClick={() => onSelect(item.id)}
+                        aria-label={item.title}
+                        title={item.title}
+                        aria-current={
+                          visibleActiveId === item.id ? "page" : undefined
+                        }
+                        className={cn(
+                          "relative flex h-10 w-full items-center justify-center rounded-xl text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/30 sm:h-11",
+                          visibleActiveId === item.id &&
+                            "bg-primary-fixed font-semibold text-primary-ink",
+                        )}
+                      >
+                        <Icon aria-hidden="true" className="size-5 shrink-0" />
+                        {visibleActiveId === item.id ? (
+                          <span className="absolute inset-x-2 bottom-0 h-0.5 rounded-full bg-primary" />
+                        ) : null}
+                      </button>
                     </li>
-                  )
+                  );
                 })}
               </ul>
             </nav>
@@ -98,21 +132,26 @@ function StudentWorkspaceShell({
               <ul className="flex h-full items-center justify-center gap-8 lg:gap-12">
                 {navigationItems.map((item) => (
                   <li key={item.id} className="h-full">
-                        <button
-                          type="button"
-                          onClick={() => onSelect(item.id)}
-                          aria-label={item.title}
-                          aria-current={visibleActiveId === item.id ? 'page' : undefined}
-                          className={cn(
-                            'relative flex h-full min-h-11 items-center justify-center px-1 font-label text-sm font-medium text-muted-foreground transition-colors hover:text-primary-ink focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-inset focus-visible:ring-ring/30',
-                            visibleActiveId === item.id && 'font-semibold text-primary-ink',
-                          )}
-                        >
-                          {item.title === 'Interest assessment' ? 'Assessment' : item.title}
-                          {visibleActiveId === item.id ? (
-                            <span className="absolute inset-x-0 bottom-0 h-[3px] rounded-full bg-primary" />
-                          ) : null}
-                        </button>
+                    <button
+                      type="button"
+                      onClick={() => onSelect(item.id)}
+                      aria-label={item.title}
+                      aria-current={
+                        visibleActiveId === item.id ? "page" : undefined
+                      }
+                      className={cn(
+                        "relative flex h-full min-h-11 items-center justify-center px-1 font-label text-sm font-medium text-muted-foreground transition-colors hover:text-primary-ink focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-inset focus-visible:ring-ring/30",
+                        visibleActiveId === item.id &&
+                          "font-semibold text-primary-ink",
+                      )}
+                    >
+                      {item.title === "Interest assessment"
+                        ? "Assessment"
+                        : item.title}
+                      {visibleActiveId === item.id ? (
+                        <span className="absolute inset-x-0 bottom-0 h-[3px] rounded-full bg-primary" />
+                      ) : null}
+                    </button>
                   </li>
                 ))}
               </ul>
@@ -123,7 +162,10 @@ function StudentWorkspaceShell({
 
           {showNavigation ? (
             <>
-              <NotificationCenter workspaceLabel="Student" onNavigate={onSelect} />
+              <NotificationCenter
+                workspaceLabel="Student"
+                onNavigate={onSelect}
+              />
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -133,9 +175,19 @@ function StudentWorkspaceShell({
                     className="flex min-h-11 shrink-0 items-center gap-2 rounded px-0.5 text-left transition-colors hover:bg-secondary focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30 md:px-1"
                   >
                     <span className="flex size-9 items-center justify-center overflow-hidden rounded-full bg-primary-fixed text-xs font-bold text-on-primary-fixed">
-                      {studentPhotoUrl ? <img src={studentPhotoUrl} alt={`${studentName} profile`} className="size-full object-cover" /> : initials}
+                      {studentPhotoUrl ? (
+                        <img
+                          src={studentPhotoUrl}
+                          alt={`${studentName} profile`}
+                          className="size-full object-cover"
+                        />
+                      ) : (
+                        initials
+                      )}
                     </span>
-                    <span className="hidden text-xs font-bold xl:block">{studentName}</span>
+                    <span className="hidden text-xs font-bold xl:block">
+                      {studentName}
+                    </span>
                     <ChevronDown
                       aria-hidden="true"
                       className="hidden size-3.5 text-muted-foreground sm:block"
@@ -159,13 +211,11 @@ function StudentWorkspaceShell({
             </>
           ) : null}
         </div>
-
       </header>
 
       <main>{children}</main>
-
     </div>
-  )
+  );
 }
 
-export { StudentWorkspaceShell }
+export { StudentWorkspaceShell };

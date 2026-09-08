@@ -13,9 +13,11 @@ interface PhilippineSourceFact {
 interface StudentRecommendedCourse {
   id: string
   rank: number
+  isTie?: boolean
   code: string
   name: string
   eligibilityGroup?: 'board' | 'non_board' | null
+  eligibleForDeclaredGroup?: boolean
   department: string
   duration: string
   durationSource?: PhilippineSourceFact | null
@@ -87,6 +89,7 @@ interface StudentRecommendationSnapshot {
   status: string
   defaultCount: number
   totalEligible: number
+  totalRanked?: number
   canViewAll: boolean
   showingAll: boolean
   guidanceContentStatus?: 'proposed'

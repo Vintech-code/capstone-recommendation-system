@@ -1,15 +1,16 @@
 import {
+  ArrowRight,
   BadgeCheck,
   Camera,
   Check,
   ChevronLeft,
   ChevronRight,
-  GraduationCap,
   Loader2,
   Sparkles,
   UserRound,
+  X,
 } from 'lucide-react'
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { ErrorState, LoadingState } from '@/components/shared'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
@@ -17,7 +18,6 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { LocationFields } from '@/features/locations/components/location-fields'
-import { StudentPageHeader } from '@/features/student/components/student-page-header'
 import {
   getStudentProfile,
   saveStudentProfile,
@@ -220,351 +220,434 @@ function StudentProfilePage({ onBack }: { onBack: () => void }) {
     )
   }
 
-  const initials = profile.student.name
+  const initials = (profile.student.name || '')
     .split(/\s+/)
     .slice(0, 2)
     .map((part) => part[0])
     .join('')
     .toUpperCase()
 
+  const nameParts = (profile.student.name || '').trim().split(/\s+/)
+  const firstName = nameParts[0] ?? ''
+  const lastName = nameParts.slice(1).join(' ') || ''
+
   return (
     <div className="student-grid-page min-h-[calc(100vh-5rem)] py-4 sm:py-6">
-      <div className="student-page max-w-5xl space-y-6">
-        <StudentPageHeader
-          title="My Profile"
-          description="Manage your personal identification, senior high academic history, and learning preferences."
-          onBack={onBack}
-        />
-
-        {/* 1. Profile Hero & Identity Card */}
-        <section
-          aria-labelledby="profile-editor-title"
-          className="rounded-3xl border border-border bg-card p-6 sm:p-8 shadow-[var(--shadow-card)]"
-        >
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
-            <div className="flex items-center gap-5">
-              <div className="relative group shrink-0">
-                <span className="flex size-20 sm:size-24 shrink-0 items-center justify-center overflow-hidden rounded-2xl border-2 border-primary/25 bg-primary/5 font-display text-2xl sm:text-3xl font-black text-primary shadow-2xs">
-                  {profile.student.photoUrl ? (
-                    <img
-                      src={profile.student.photoUrl}
-                      alt={`${profile.student.name} profile`}
-                      className="size-full object-cover"
-                    />
-                  ) : (
-                    initials
-                  )}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => photoInput.current?.click()}
-                  disabled={uploading}
-                  className="absolute -bottom-1.5 -right-1.5 flex size-8 sm:size-9 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-md hover:bg-primary/90 transition-transform active:scale-95 cursor-pointer disabled:opacity-50"
-                  title="Change profile photo"
-                  aria-label="Choose profile photo"
-                >
-                  {uploading ? (
-                    <Loader2 className="size-4 animate-spin" />
-                  ) : (
-                    <Camera className="size-4" />
-                  )}
-                </button>
-                <input
-                  ref={photoInput}
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  className="sr-only"
-                  aria-label="Choose profile photo"
-                  onChange={(event) => void uploadPhoto(event.target.files?.[0])}
-                />
-              </div>
-
-              <div className="min-w-0">
-                <div className="flex flex-wrap items-center gap-2.5">
-                  <h1
-                    id="profile-editor-title"
-                    className="font-display text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight"
-                  >
-                    {profile.student.name}
-                  </h1>
-                  <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 px-2.5 py-0.5 text-xs font-bold text-primary">
-                    <BadgeCheck className="size-3.5" /> Student Applicant
-                  </span>
-                </div>
-                <p className="mt-1 text-sm text-muted-foreground break-all">
-                  {profile.student.email}
-                </p>
-                <div className="mt-2.5 flex flex-wrap items-center gap-2 text-xs">
-                  {form.lrn ? (
-                    <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 font-mono text-[11px] font-semibold text-foreground border border-border/60">
-                      LRN: {form.lrn}
-                    </span>
-                  ) : null}
-                  {profile.riasec?.code ? (
-                    <span className="inline-flex items-center rounded-md bg-accent px-2 py-0.5 text-xs font-bold text-accent-foreground">
-                      Holland Profile: {profile.riasec.code}
-                    </span>
-                  ) : null}
-                  <span className="inline-flex items-center rounded-md bg-secondary px-2 py-0.5 text-xs text-muted-foreground">
-                    Tagoloan Community College
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3 w-full sm:w-auto">
-              <Button
-                type="button"
-                className="w-full sm:w-auto font-bold gap-2 shadow-xs cursor-pointer"
-                disabled={saving || !personalAcademicComplete || !learningComplete}
-                onClick={save}
-              >
-                {saving ? (
-                  <>
-                    <Loader2 className="size-4 animate-spin" /> Saving...
-                  </>
-                ) : (
-                  <>
-                    <Check className="size-4" /> Save changes
-                  </>
-                )}
-              </Button>
-            </div>
+      <div className="student-page max-w-5xl space-y-5">
+        {/* Top Header Row with Breadcrumb & Save Button matching reference */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-2 text-sm sm:text-base">
+            <button
+              type="button"
+              onClick={onBack}
+              className="font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+            >
+              My profile
+            </button>
+            <ChevronRight className="size-4 text-muted-foreground/60" />
+            <span className="font-semibold text-foreground">Edit Profile</span>
           </div>
-        </section>
 
-        {/* Global Feedback Banners */}
+          <Button
+            type="button"
+            onClick={save}
+            disabled={saving || !personalAcademicComplete || !learningComplete}
+            className="h-10 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-5 gap-2 shadow-xs cursor-pointer disabled:opacity-50 transition-colors text-sm"
+          >
+            {saving ? (
+              <>
+                <Loader2 className="size-4 animate-spin" /> Saving...
+              </>
+            ) : (
+              <>
+                Save <ArrowRight className="size-4" />
+              </>
+            )}
+          </Button>
+        </div>
+
+        {/* Feedback Banners */}
         {error ? (
-          <Alert variant="destructive" className="rounded-2xl">
+          <Alert variant="destructive" className="rounded-xl">
             <AlertTitle>Profile could not be saved</AlertTitle>
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         ) : null}
         {success ? (
-          <Alert className="rounded-2xl border-success/30 bg-success/10 text-success-ink">
-            <Check aria-hidden="true" className="size-4 text-success" />
+          <Alert className="rounded-xl border-emerald-500/30 bg-emerald-500/10 text-emerald-800 dark:text-emerald-300">
+            <Check aria-hidden="true" className="size-4 text-emerald-600 dark:text-emerald-400" />
             <AlertTitle className="text-foreground font-bold">Profile updated</AlertTitle>
             <AlertDescription className="text-muted-foreground">{success}</AlertDescription>
           </Alert>
         ) : null}
 
-        {/* Navigation Tabs */}
-        <div className="flex items-center gap-2 border-b border-border">
-          <button
-            type="button"
-            onClick={() => setActiveTab('personal-academic')}
-            className={cn(
-              'flex items-center gap-2 py-3 px-4 font-display text-sm font-bold border-b-2 transition-colors cursor-pointer',
-              activeTab === 'personal-academic'
-                ? 'border-primary text-primary'
-                : 'border-transparent text-muted-foreground hover:text-foreground',
-            )}
-          >
-            <UserRound className="size-4" />
-            Personal & Academic Information
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab('learning')}
-            className={cn(
-              'flex items-center gap-2 py-3 px-4 font-display text-sm font-bold border-b-2 transition-colors cursor-pointer',
-              activeTab === 'learning'
-                ? 'border-primary text-primary'
-                : 'border-transparent text-muted-foreground hover:text-foreground',
-            )}
-          >
-            <Sparkles className="size-4" />
-            Learning Profile & Strengths
-          </button>
-        </div>
-
-        {/* Form Container */}
-        <form
-          onSubmit={(event) => {
-            event.preventDefault()
-            if (activeTab === 'personal-academic') {
-              setActiveTab('learning')
-            } else {
-              void save()
-            }
-          }}
-          className="space-y-6"
+        {/* Main Form Container Card */}
+        <section
+          aria-labelledby="profile-editor-title"
+          className="rounded-2xl border border-border/80 bg-card p-6 sm:p-10 shadow-[var(--shadow-card)]"
         >
-          {activeTab === 'personal-academic' ? (
-            <div className="space-y-6">
-              {/* Card 1: Personal & Contact Information */}
-              <section className="rounded-3xl border border-border bg-card p-6 sm:p-8 shadow-[var(--shadow-card)]">
-                <div className="flex items-start gap-3.5 border-b border-border pb-5">
-                  <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                    <UserRound className="size-5" />
-                  </span>
-                  <div>
-                    <h2 className="font-display text-xl sm:text-2xl font-bold text-foreground">
-                      Personal information
-                    </h2>
-                    <p className="mt-0.5 text-xs sm:text-sm text-muted-foreground">
-                      Official identification numbers, date of birth, and home address.
-                    </p>
-                  </div>
-                </div>
+          {/* Card Top Navigation: Tabs & Cancel */}
+          <div className="flex items-center justify-between border-b border-border/80 pb-3 mb-8">
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setActiveTab('personal-academic')}
+                className={cn(
+                  'flex items-center gap-2 py-2 px-3 text-xs sm:text-sm font-semibold border-b-2 transition-colors cursor-pointer',
+                  activeTab === 'personal-academic'
+                    ? 'border-emerald-600 text-emerald-700 dark:text-emerald-400'
+                    : 'border-transparent text-muted-foreground hover:text-foreground',
+                )}
+              >
+                <UserRound className="size-4" />
+                Personal & Academic
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('learning')}
+                className={cn(
+                  'flex items-center gap-2 py-2 px-3 text-xs sm:text-sm font-semibold border-b-2 transition-colors cursor-pointer',
+                  activeTab === 'learning'
+                    ? 'border-emerald-600 text-emerald-700 dark:text-emerald-400'
+                    : 'border-transparent text-muted-foreground hover:text-foreground',
+                )}
+              >
+                <Sparkles className="size-4" />
+                Learning Profile & Strengths
+              </button>
+            </div>
 
-                <div className="mt-6 grid gap-5 sm:grid-cols-2">
-                  <Field label="Learner reference number" id="lrn">
+            <button
+              type="button"
+              onClick={onBack}
+              className="inline-flex items-center gap-1 text-xs sm:text-sm font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+            >
+              Cancel <X className="size-3.5" />
+            </button>
+          </div>
+
+          <form
+            onSubmit={(event) => {
+              event.preventDefault()
+              if (activeTab === 'personal-academic') {
+                setActiveTab('learning')
+              } else {
+                void save()
+              }
+            }}
+            className="space-y-6"
+          >
+            {activeTab === 'personal-academic' ? (
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+                {/* Left Column: Avatar & Personal Information */}
+                <div className="lg:col-span-6 space-y-5">
+                  {/* Avatar & Name */}
+                  <div className="flex flex-col items-center sm:items-start lg:items-center pb-2">
+                    <div className="relative group shrink-0">
+                      <div className="size-24 sm:size-28 rounded-full overflow-hidden border-2 border-border/80 bg-muted/40 flex items-center justify-center font-display text-2xl sm:text-3xl font-bold text-foreground shadow-2xs">
+                        {profile.student.photoUrl ? (
+                          <img
+                            src={profile.student.photoUrl}
+                            alt={`${profile.student.name} profile`}
+                            className="size-full object-cover"
+                          />
+                        ) : (
+                          initials
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => photoInput.current?.click()}
+                        disabled={uploading}
+                        className="absolute bottom-0 right-0 flex size-8 items-center justify-center rounded-full bg-card border border-border/80 text-foreground shadow-xs hover:bg-muted transition-transform active:scale-95 cursor-pointer disabled:opacity-50"
+                        title="Change profile photo"
+                        aria-label="Choose profile photo"
+                      >
+                        {uploading ? (
+                          <Loader2 className="size-3.5 animate-spin" />
+                        ) : (
+                          <Camera className="size-3.5" />
+                        )}
+                      </button>
+                      <input
+                        ref={photoInput}
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        className="sr-only"
+                        aria-label="Choose profile photo"
+                        onChange={(event) => void uploadPhoto(event.target.files?.[0])}
+                      />
+                    </div>
+
+                    <div className="mt-3 text-center sm:text-left lg:text-center">
+                      <h1
+                        id="profile-editor-title"
+                        className="font-display text-lg sm:text-xl font-bold text-foreground tracking-tight"
+                      >
+                        {profile.student.name}
+                      </h1>
+                      <div className="mt-1 flex flex-wrap items-center justify-center sm:justify-start lg:justify-center gap-2 text-xs">
+                        <span className="inline-flex items-center gap-1 rounded-md bg-emerald-500/10 px-2 py-0.5 font-semibold text-emerald-700 dark:text-emerald-400">
+                          <BadgeCheck className="size-3.5" /> Student Applicant
+                        </span>
+                        <span className="text-muted-foreground">Tagoloan Community College</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* First Name & Last Name */}
+                  <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                    <div>
+                      <Label className="text-xs font-semibold text-foreground/80 mb-1.5 block">
+                        First Name
+                      </Label>
+                      <Input
+                        value={firstName}
+                        readOnly
+                        disabled
+                        tabIndex={-1}
+                        className="h-10 sm:h-11 rounded-xs bg-muted/30 border-border/80 text-foreground font-medium cursor-not-allowed text-xs sm:text-sm"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-xs font-semibold text-foreground/80 mb-1.5 block">
+                        Last Name
+                      </Label>
+                      <Input
+                        value={lastName}
+                        readOnly
+                        disabled
+                        tabIndex={-1}
+                        className="h-10 sm:h-11 rounded-xs bg-muted/30 border-border/80 text-foreground font-medium cursor-not-allowed text-xs sm:text-sm"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Email */}
+                  <div>
+                    <Label className="text-xs font-semibold text-foreground/80 mb-1.5 block">
+                      Email
+                    </Label>
                     <Input
-                      id="lrn"
-                      autoComplete="off"
-                      maxLength={30}
-                      value={form.lrn ?? ''}
-                      onChange={(event) => setField('lrn', event.target.value)}
+                      value={profile.student.email}
+                      readOnly
+                      disabled
+                      tabIndex={-1}
+                      className="h-10 sm:h-11 rounded-xs bg-muted/30 border-border/80 text-foreground font-medium cursor-not-allowed text-xs sm:text-sm"
                     />
-                  </Field>
-                  <Field label="Date of birth" id="birth-date" required>
-                    <Input
-                      id="birth-date"
-                      type="date"
-                      required
-                      value={form.birthDate ?? ''}
-                      onChange={(event) => setField('birthDate', event.target.value)}
-                    />
-                  </Field>
-                  <Field label="Mobile number" id="phone" required>
+                  </div>
+
+                  {/* Mobile number */}
+                  <div>
+                    <Label htmlFor="phone" className="text-xs font-semibold text-foreground/80 mb-1.5 block">
+                      Mobile number <span className="text-destructive">*</span>
+                    </Label>
                     <Input
                       id="phone"
                       type="tel"
                       autoComplete="tel"
                       required
                       maxLength={32}
+                      placeholder="e.g. 0912 345 6789"
                       value={form.phone ?? ''}
                       onChange={(event) => setField('phone', event.target.value)}
+                      className="h-10 sm:h-11 rounded-xs border-border/80 text-xs sm:text-sm"
                     />
-                  </Field>
-                  <Field label="House, street, or zone" id="address-line">
+                  </div>
+
+                  {/* Learner reference number (LRN) */}
+                  <div>
+                    <Label htmlFor="lrn" className="text-xs font-semibold text-foreground/80 mb-1.5 block">
+                      Learner reference number<span className="font-normal text-muted-foreground ml-1">Optional</span>
+                    </Label>
+                    <Input
+                      id="lrn"
+                      autoComplete="off"
+                      maxLength={30}
+                      placeholder="12-digit LRN"
+                      value={form.lrn ?? ''}
+                      onChange={(event) => setField('lrn', event.target.value)}
+                      className="h-10 sm:h-11 rounded-xs border-border/80 text-xs sm:text-sm font-mono"
+                    />
+                  </div>
+
+                  {/* Address */}
+                  <div>
+                    <Label htmlFor="address-line" className="text-xs font-semibold text-foreground/80 mb-1.5 block">
+                      House, street, or zone <span className="font-normal text-muted-foreground ml-1">Optional</span>
+                    </Label>
                     <Input
                       id="address-line"
                       autoComplete="street-address"
                       maxLength={255}
+                      placeholder="House / Street / Zone / Purok"
                       value={form.addressLine ?? ''}
                       onChange={(event) => setField('addressLine', event.target.value)}
+                      className="h-10 sm:h-11 rounded-xs border-border/80 text-xs sm:text-sm"
                     />
-                  </Field>
-                  {!form.location &&
-                  (form.barangay || form.municipality || form.province) ? (
-                    <p className="text-sm text-muted-foreground sm:col-span-2">
-                      Previously recorded:{' '}
-                      {[form.barangay, form.municipality, form.province]
-                        .filter(Boolean)
-                        .join(', ')}
-                      . Select your location below to update it.
-                    </p>
-                  ) : null}
-                  <LocationFields
-                    value={form.location}
-                    onChange={(location) => setField('location', location)}
-                  />
-                </div>
-              </section>
+                  </div>
 
-              {/* Card 2: Academic Background (COMBINED into same view!) */}
-              <section className="rounded-3xl border border-border bg-card p-6 sm:p-8 shadow-[var(--shadow-card)]">
-                <div className="flex items-start gap-3.5 border-b border-border pb-5">
-                  <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                    <GraduationCap className="size-5" />
-                  </span>
-                  <div>
-                    <h2 className="font-display text-xl sm:text-2xl font-bold text-foreground">
-                      Academic background
-                    </h2>
-                    <p className="mt-0.5 text-xs sm:text-sm text-muted-foreground">
-                      Senior high school completed, track or academic strand, and graduation year.
-                    </p>
+                  {/* Location */}
+                  <div className="pt-1">
+                    {!form.location &&
+                    (form.barangay || form.municipality || form.province) ? (
+                      <p className="text-xs text-muted-foreground mb-2">
+                        Previously recorded:{' '}
+                        {[form.barangay, form.municipality, form.province]
+                          .filter(Boolean)
+                          .join(', ')}
+                        . Select your location below to update.
+                      </p>
+                    ) : null}
+                    <LocationFields
+                      value={form.location}
+                      onChange={(location) => setField('location', location)}
+                    />
                   </div>
                 </div>
 
-                <div className="mt-6 grid gap-5 sm:grid-cols-2">
-                  <div className="sm:col-span-2">
-                    <Field label="Senior high school" id="shs-school" required>
+                {/* Right Column: Date of Birth & Academic Background */}
+                <div className="lg:col-span-6 space-y-5">
+                  {/* Date of Birth */}
+                  <div>
+                    <Label htmlFor="birth-date" className="text-xs font-semibold text-foreground/80 mb-1.5 block">
+                      Date of birth <span className="text-destructive">*</span>
+                    </Label>
+                    <Input
+                      id="birth-date"
+                      type="date"
+                      required
+                      value={form.birthDate ?? ''}
+                      onChange={(event) => setField('birthDate', event.target.value)}
+                      className="h-10 sm:h-11 rounded-xs border-border/80 text-xs sm:text-sm"
+                    />
+                  </div>
+
+                  {/* Academic Background */}
+                  <div className="pt-2 border-t border-border/70 space-y-4">
+                    <div>
+                      <h2 className="font-display text-base font-bold text-foreground">
+                        Academic background
+                      </h2>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        Senior high school completed, track or academic strand, and graduation year.
+                      </p>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="shs-school" className="text-xs font-semibold text-foreground/80 mb-1.5 block">
+                        Senior high school <span className="text-destructive">*</span>
+                      </Label>
                       <Input
                         id="shs-school"
                         required
                         maxLength={255}
+                        placeholder="Name of Senior High School"
                         value={form.shsSchoolName ?? ''}
                         onChange={(event) => setField('shsSchoolName', event.target.value)}
+                        className="h-10 sm:h-11 rounded-xs border-border/80 text-xs sm:text-sm"
                       />
-                    </Field>
-                  </div>
-                  <Field label="SHS strand or track" id="shs-strand" required>
-                    <Input
-                      id="shs-strand"
-                      required
-                      maxLength={120}
-                      placeholder="Example: STEM, TVL-ICT, or HUMSS"
-                      value={form.shsStrand ?? ''}
-                      onChange={(event) => setField('shsStrand', event.target.value)}
-                    />
-                  </Field>
-                  <Field label="Graduation year" id="graduation-year" required>
-                    <Input
-                      id="graduation-year"
-                      type="number"
-                      min={2000}
-                      max={new Date().getFullYear() + 1}
-                      required
-                      value={form.shsGraduationYear ?? ''}
-                      onChange={(event) =>
-                        setField(
-                          'shsGraduationYear',
-                          event.target.value ? Number(event.target.value) : null,
-                        )
-                      }
-                    />
-                  </Field>
-                  <p className="sm:col-span-2 text-xs leading-5 text-muted-foreground rounded-xl bg-muted/40 p-3 border border-border/60">
-                    Your academic background is recorded as Student-provided context and is not used to
-                    alter your RIASEC questionnaire results or curriculum rankings.
-                  </p>
-                </div>
-              </section>
+                    </div>
 
-              {/* Bottom Action for Combined Tab */}
-              <div className="flex items-center justify-between pt-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="gap-2 cursor-pointer"
-                  onClick={onBack}
-                >
-                  <ChevronLeft className="size-4" /> Back to dashboard
-                </Button>
-                <div className="flex items-center gap-3">
-                  <Button
-                    type="submit"
-                    className="gap-2 cursor-pointer"
-                  >
-                    Next <ChevronRight className="size-4" />
-                  </Button>
-                </div>
-              </div>
-            </div>
-          ) : (
-            /* Tab 2: Learning Profile & Strengths */
-            <div className="space-y-6">
-              <section className="rounded-3xl border border-border bg-card p-6 sm:p-8 shadow-[var(--shadow-card)]">
-                <div className="flex items-start gap-3.5 border-b border-border pb-5">
-                  <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                    <Sparkles className="size-5" />
-                  </span>
-                  <div>
-                    <h2 className="font-display text-xl sm:text-2xl font-bold text-foreground">
-                      Learning profile & preferences
-                    </h2>
-                    <p className="mt-0.5 text-xs sm:text-sm text-muted-foreground">
-                      Select your self-reported strengths, focus areas, and preferred study modalities.
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                      <div>
+                        <Label htmlFor="shs-strand" className="text-xs font-semibold text-foreground/80 mb-1.5 block">
+                          SHS strand or track <span className="text-destructive">*</span>
+                        </Label>
+                        <Input
+                          id="shs-strand"
+                          required
+                          maxLength={120}
+                          placeholder="e.g. STEM, TVL, HUMSS"
+                          value={form.shsStrand ?? ''}
+                          onChange={(event) => setField('shsStrand', event.target.value)}
+                          className="h-10 sm:h-11 rounded-xs border-border/80 text-xs sm:text-sm"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="graduation-year" className="text-xs font-semibold text-foreground/80 mb-1.5 block">
+                          Graduation year <span className="text-destructive">*</span>
+                        </Label>
+                        <Input
+                          id="graduation-year"
+                          type="number"
+                          min={2000}
+                          max={new Date().getFullYear() + 1}
+                          required
+                          placeholder="e.g. 2024"
+                          value={form.shsGraduationYear ?? ''}
+                          onChange={(event) =>
+                            setField(
+                              'shsGraduationYear',
+                              event.target.value ? Number(event.target.value) : null,
+                            )
+                          }
+                          className="h-10 sm:h-11 rounded-xs border-border/80 text-xs sm:text-sm"
+                        />
+                      </div>
+                    </div>
+
+                    <p className="rounded-xs bg-muted/40 p-3 border border-border/60 text-xs leading-relaxed text-muted-foreground">
+                      Your academic background is recorded as Student-provided context and is not used to
+                      alter your RIASEC questionnaire results or curriculum rankings.
                     </p>
                   </div>
+
+                  {/* Holland RIASEC Fit summary */}
+                  <div className="rounded-xs border border-border/70 bg-muted/20 p-4 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                        Holland RIASEC Profile
+                      </span>
+                      {profile.riasec?.code ? (
+                        <span className="rounded-md bg-emerald-500/10 px-2.5 py-0.5 font-mono text-xs font-bold text-emerald-700 dark:text-emerald-400">
+                          Code: {profile.riasec.code}
+                        </span>
+                      ) : (
+                        <span className="text-xs text-muted-foreground font-medium">Not taken yet</span>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      {profile.riasec?.code
+                        ? 'Your personality dimension fit is active and computed based on your verified assessment responses.'
+                        : 'Complete the RIASEC assessment to unlock personalized college degree path recommendations.'}
+                    </p>
+                  </div>
+
+                  {/* Bottom Action for Tab 1 */}
+                  <div className="flex items-center justify-between pt-4 border-t border-border/70">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="h-10 rounded-xs gap-2 cursor-pointer text-xs sm:text-sm"
+                      onClick={onBack}
+                    >
+                      <ChevronLeft className="size-4" /> Back to dashboard
+                    </Button>
+
+                    <Button
+                      type="button"
+                      onClick={() => setActiveTab('learning')}
+                      className="h-10 rounded-xs bg-primary text-primary-foreground font-semibold px-5 gap-2 cursor-pointer text-xs sm:text-sm"
+                    >
+                      Next <ChevronRight className="size-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              /* Tab 2: Learning Profile & Strengths */
+              <div className="space-y-6">
+                <div className="border-b border-border/70 pb-4">
+                  <h2 className="font-display text-xl font-bold text-foreground">
+                    Learning profile & preferences
+                  </h2>
+                  <p className="mt-0.5 text-xs sm:text-sm text-muted-foreground">
+                    Select your self-reported strengths, focus areas, and preferred study modalities.
+                  </p>
                 </div>
 
-                <div className="mt-6 space-y-8">
+                <div className="space-y-6 pt-2">
                   <ChoiceGroup
                     title="Self-reported strengths"
                     values={profile.options.strengths}
@@ -584,64 +667,39 @@ function StudentProfilePage({ onBack }: { onBack: () => void }) {
                     onToggle={(value) => toggle('learningPreferences', value)}
                   />
                 </div>
-              </section>
 
-              {/* Bottom Action for Learning Tab */}
-              <div className="flex items-center justify-between pt-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="gap-2 cursor-pointer"
-                  onClick={() => setActiveTab('personal-academic')}
-                >
-                  <ChevronLeft className="size-4" /> Back to personal & academic
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={saving || !learningComplete}
-                  className="gap-2 font-bold cursor-pointer"
-                >
-                  {saving ? (
-                    <>
-                      <Loader2 className="size-4 animate-spin" /> Saving...
-                    </>
-                  ) : (
-                    <>
-                      <Check className="size-4" /> Save profile
-                    </>
-                  )}
-                </Button>
+                <div className="flex items-center justify-between pt-6 border-t border-border/70">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="h-10 rounded-xs gap-2 cursor-pointer text-xs sm:text-sm"
+                    onClick={() => setActiveTab('personal-academic')}
+                  >
+                    <ChevronLeft className="size-4" /> Back to personal & academic
+                  </Button>
+
+                  <Button
+                    type="button"
+                    onClick={save}
+                    disabled={saving || !learningComplete}
+                    className="h-10 rounded-xs bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-5 gap-2 cursor-pointer disabled:opacity-50 text-xs sm:text-sm"
+                  >
+                    {saving ? (
+                      <>
+                        <Loader2 className="size-4 animate-spin" /> Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Check className="size-4" /> Save profile
+                      </>
+                    )}
+                  </Button>
+                </div>
               </div>
-            </div>
-          )}
-        </form>
+            )}
+          </form>
+        </section>
       </div>
-    </div>
-  )
-}
-
-function Field({
-  label,
-  id,
-  required,
-  children,
-}: {
-  label: string
-  id: string
-  required?: boolean
-  children: ReactNode
-}) {
-  return (
-    <div>
-      <Label htmlFor={id} className="font-semibold text-xs sm:text-sm">
-        {label}
-        {required ? (
-          <span className="text-destructive ml-0.5">*</span>
-        ) : (
-          <span className="font-normal text-muted-foreground ml-1">Optional</span>
-        )}
-      </Label>
-      <div className="mt-2">{children}</div>
     </div>
   )
 }
@@ -658,14 +716,14 @@ function ChoiceGroup({
   onToggle: (value: string) => void
 }) {
   return (
-    <fieldset className="space-y-2">
+    <fieldset className="space-y-2.5">
       <div className="flex items-center justify-between">
-        <legend className="font-display text-base font-bold text-foreground">
+        <legend className="font-display text-sm font-bold text-foreground">
           {title}
         </legend>
         <span className="text-xs text-muted-foreground">Select at least one</span>
       </div>
-      <div className="flex flex-wrap gap-2 pt-1">
+      <div className="flex flex-wrap gap-2 pt-0.5">
         {values.map((value) => {
           const active = selected.includes(value)
           return (
@@ -675,13 +733,15 @@ function ChoiceGroup({
               aria-pressed={active}
               onClick={() => onToggle(value)}
               className={cn(
-                'inline-flex min-h-10 items-center rounded-full border px-4 text-xs sm:text-sm font-semibold transition-all active:scale-95 cursor-pointer',
+                'inline-flex min-h-9 items-center rounded-xs border px-3 py-1.5 text-xs sm:text-sm font-medium transition-all active:scale-95 cursor-pointer',
                 active
-                  ? 'border-primary bg-primary text-primary-foreground shadow-xs'
-                  : 'border-border bg-card text-foreground hover:border-primary/50 hover:bg-muted/30',
+                  ? 'border-emerald-600 bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 font-semibold shadow-2xs'
+                  : 'border-border/80 bg-card text-foreground/80 hover:border-border hover:bg-muted/40',
               )}
             >
-              {active ? <Check aria-hidden="true" className="mr-1.5 size-3.5" /> : null}
+              {active ? (
+                <Check aria-hidden="true" className="mr-1.5 size-3.5 text-emerald-600 dark:text-emerald-400" />
+              ) : null}
               {value}
             </button>
           )

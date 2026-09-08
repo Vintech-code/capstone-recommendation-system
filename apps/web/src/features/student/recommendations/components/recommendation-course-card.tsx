@@ -4,17 +4,17 @@ import {
   CircleAlert,
   GitCompareArrows,
   Target,
-} from 'lucide-react'
+} from "lucide-react";
 
-import { Button } from '@/components/ui/button'
-import type { StudentRecommendedCourse } from '@/features/student/recommendations/recommendation-types'
+import { Button } from "@/components/ui/button";
+import type { StudentRecommendedCourse } from "@/features/student/recommendations/recommendation-types";
 
 interface RecommendationCourseCardProps {
-  course: StudentRecommendedCourse
-  selected: boolean
-  comparisonDisabled: boolean
-  onToggleComparison: () => void
-  onViewDetails: () => void
+  course: StudentRecommendedCourse;
+  selected: boolean;
+  comparisonDisabled: boolean;
+  onToggleComparison: () => void;
+  onViewDetails: () => void;
 }
 
 function RecommendationCourseCard({
@@ -24,6 +24,13 @@ function RecommendationCourseCard({
   onToggleComparison,
   onViewDetails,
 }: RecommendationCourseCardProps) {
+  const matchLabel =
+    course.match >= 80
+      ? "Strong match"
+      : course.match >= 60
+        ? "Good match"
+        : "Explore match";
+
   return (
     <article className="rounded-2xl bg-background p-5 shadow-sm sm:p-6">
       <div className="flex items-start justify-between gap-4">
@@ -40,7 +47,9 @@ function RecommendationCourseCard({
             </h2>
             {course.department || course.duration ? (
               <p className="mt-1 text-xs text-muted-foreground">
-                {[course.department, course.duration].filter(Boolean).join(' · ')}
+                {[course.department, course.duration]
+                  .filter(Boolean)
+                  .join(" · ")}
               </p>
             ) : null}
           </div>
@@ -51,13 +60,13 @@ function RecommendationCourseCard({
         <div className="flex items-center justify-between gap-3">
           <span className="inline-flex items-center gap-2 text-xs font-bold text-muted-foreground">
             <Target aria-hidden="true" className="size-4 text-primary-ink" />
-            Recorded match
+            {matchLabel}
           </span>
           <span className="text-lg font-extrabold">{course.match}%</span>
         </div>
         <div
           role="progressbar"
-          aria-label={`${course.name} recorded match`}
+          aria-label={`${course.name} ${matchLabel.toLowerCase()}`}
           aria-valuemin={0}
           aria-valuemax={100}
           aria-valuenow={course.match}
@@ -77,12 +86,16 @@ function RecommendationCourseCard({
       <div className="mt-5">
         <p className="text-xs font-extrabold">Why this option appears</p>
         <ul className="mt-3 space-y-2">
-          {(course.explanation?.recordedProgrammeAreas.map((area) => `${area.label} recorded score: ${area.score}`) ?? course.factors).map((factor) => (
+          {(
+            course.explanation?.recordedProgrammeAreas.map(
+              (area) => `${area.label} recorded score: ${area.score}`,
+            ) ?? course.factors
+          ).map((factor) => (
             <li
               key={factor}
               className="flex items-start gap-2 text-xs leading-5 text-muted-foreground"
             >
-              {factor.includes('review') ? (
+              {factor.includes("review") ? (
                 <CircleAlert
                   aria-hidden="true"
                   className="mt-0.5 size-4 shrink-0 text-warning-ink"
@@ -102,14 +115,14 @@ function RecommendationCourseCard({
       <div className="mt-6 flex flex-col gap-3 sm:flex-row">
         <Button
           type="button"
-          variant={selected ? 'secondary' : 'outline'}
+          variant={selected ? "secondary" : "outline"}
           disabled={comparisonDisabled && !selected}
           aria-pressed={selected}
           onClick={onToggleComparison}
           className="min-h-12 flex-1 sm:min-h-10"
         >
           <GitCompareArrows aria-hidden="true" />
-          {selected ? 'Selected to compare' : 'Add to comparison'}
+          {selected ? "Selected to compare" : "Add to comparison"}
         </Button>
         <Button
           type="button"
@@ -121,7 +134,7 @@ function RecommendationCourseCard({
         </Button>
       </div>
     </article>
-  )
+  );
 }
 
-export { RecommendationCourseCard }
+export { RecommendationCourseCard };
