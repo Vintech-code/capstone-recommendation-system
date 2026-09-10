@@ -20,10 +20,10 @@ class ProvisionalRiasecRecommendationEngineTest extends TestCase
         $this->assertSame(0.0, $result['normalized_scores']['R']);
         $this->assertSame(100.0, $result['normalized_scores']['I']);
         $this->assertSame(50.0, $result['normalized_scores']['A']);
-        $this->assertSame(['alpha', 'zulu', 'social'], array_column($result['ranked'], 'id'));
-        $this->assertSame([75.0, 75.0, 25.0], array_column($result['ranked'], 'match'));
-        $this->assertSame([1, 1, 3], array_column($result['ranked'], 'rank'));
-        $this->assertSame([true, true, false], array_column($result['ranked'], 'is_tied'));
+        $this->assertSame(['alpha', 'social', 'zulu'], array_column($result['ranked'], 'id'));
+        $this->assertSame([75.0, 50.0, 50.0], array_column($result['ranked'], 'match'));
+        $this->assertSame([1, 2, 2], array_column($result['ranked'], 'rank'));
+        $this->assertSame([false, true, true], array_column($result['ranked'], 'is_tied'));
         $this->assertSame('missing', $result['exclusions'][0]['programme_id']);
         $this->assertSame('PROFILE_UNAVAILABLE', $result['exclusions'][0]['reason']);
     }
@@ -53,8 +53,8 @@ class ProvisionalRiasecRecommendationEngineTest extends TestCase
             'board',
         );
 
-        $this->assertSame(['alpha', 'zulu', 'social'], array_column($result['ranked'], 'id'));
-        $this->assertSame([false, true, false], array_column($result['ranked'], 'eligible_for_declared_group'));
+        $this->assertSame(['alpha', 'social', 'zulu'], array_column($result['ranked'], 'id'));
+        $this->assertSame([false, false, true], array_column($result['ranked'], 'eligible_for_declared_group'));
         $this->assertSame(['PROFILE_UNAVAILABLE'], array_column($result['exclusions'], 'reason'));
     }
 
@@ -81,9 +81,9 @@ class ProvisionalRiasecRecommendationEngineTest extends TestCase
                 'normalization' => ['instrument_min' => 5, 'instrument_max' => 25],
             ],
             'programmes' => [
-                ['id' => 'zulu', 'short_label' => 'Z', 'display_name' => 'Zulu Programme', 'riasec_profile' => ['I', 'A']],
-                ['id' => 'alpha', 'short_label' => 'A', 'display_name' => 'Alpha Programme', 'riasec_profile' => ['I', 'C']],
-                ['id' => 'social', 'short_label' => 'S', 'display_name' => 'Social Programme', 'riasec_profile' => ['S']],
+                ['id' => 'zulu', 'short_label' => 'Z', 'display_name' => 'Zulu Programme', 'riasec_profile' => ['I', 'A', 'R']],
+                ['id' => 'alpha', 'short_label' => 'A', 'display_name' => 'Alpha Programme', 'riasec_profile' => ['I', 'C', 'E']],
+                ['id' => 'social', 'short_label' => 'S', 'display_name' => 'Social Programme', 'riasec_profile' => ['S', 'E', 'C']],
                 ['id' => 'missing', 'short_label' => 'M', 'display_name' => 'Missing Profile', 'riasec_profile' => []],
             ],
         ];

@@ -57,13 +57,17 @@ final class ProvisionalRiasecRecommendationEngine
                 static fn (mixed $code): string => strtoupper(trim((string) $code)),
                 is_array($programme['riasec_profile'] ?? null) ? $programme['riasec_profile'] : [],
             )));
-            $validProfile = count($profile) >= 1
-                && count($profile) <= 3
+            $validProfile = count($profile) === 3
                 && count(array_diff($profile, array_values(self::AREA_CODES))) === 0;
 
             if (! $validProfile) {
                 $exclusions[] = [
                     'programme_id' => (string) ($programme['id'] ?? ''),
+                    'code' => (string) ($programme['short_label'] ?? ''),
+                    'name' => (string) ($programme['display_name'] ?? ''),
+                    'profile_status' => (string) ($programme['riasec_profile_status'] ?? 'unavailable'),
+                    'profile_version' => (string) ($programme['profile_version'] ?? ''),
+                    'profile_rationale' => (string) ($programme['profile_rationale'] ?? ''),
                     'reason' => 'PROFILE_UNAVAILABLE',
                 ];
 

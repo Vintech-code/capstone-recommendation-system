@@ -160,7 +160,8 @@ class StudentProfileTest extends TestCase
             ->assertJsonPath('data.result.sessionReference', 'ASMT-'.str_pad((string) $session->getKey(), 6, '0', STR_PAD_LEFT))
             ->assertJsonPath('data.result.primary.label', 'Investigative')
             ->assertJsonPath('data.result.secondary.label', 'Social')
-            ->assertJsonPath('data.result.code', 'I-S');
+            ->assertJsonPath('data.result.tertiary.label', 'Artistic')
+            ->assertJsonPath('data.result.code', 'I-S-A');
     }
 
     public function test_career_interests_come_from_recorded_matches_and_configured_programmes(): void
@@ -189,7 +190,7 @@ class StudentProfileTest extends TestCase
             ->getJson('/api/v1/student/profile')
             ->assertOk()
             ->assertJsonPath('data.careerInterests.0', 'Software and application development')
-            ->assertJsonPath('data.riasec.code', 'I-S');
+            ->assertJsonPath('data.riasec.code', 'I-S-A');
     }
 
     public function test_guest_cannot_read_or_write_student_profiles(): void

@@ -208,8 +208,14 @@ final class AdminConfigurationController extends Controller
             }
             foreach ($programmes as $programme) {
                 $profile = $programme['riasec_profile'] ?? [];
-                if (! is_array($profile) || $profile === [] || array_diff($profile, ['R', 'I', 'A', 'S', 'E', 'C']) !== []) {
-                    throw ValidationException::withMessages(['payload.programmes' => 'Every programme requires a valid RIASEC profile.']);
+                $profileStatus = $programme['riasec_profile_status'] ?? null;
+                $isPending = $profileStatus === 'pending_authoritative_psg_basis';
+                $hasValidThreeCodeProfile = is_array($profile)
+                    && count($profile) === 3
+                    && count(array_unique($profile)) === 3
+                    && array_diff($profile, ['R', 'I', 'A', 'S', 'E', 'C']) === [];
+                if (($isPending && $profile !== []) || (! $isPending && ! $hasValidThreeCodeProfile)) {
+                    throw ValidationException::withMessages(['payload.programmes' => 'Each classified programme requires three unique RIASEC codes; a programme pending authoritative PSG basis must remain unclassified.']);
                 }
                 $opportunities = $programme['career_opportunities'] ?? [];
                 if (! is_array($opportunities)) {

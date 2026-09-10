@@ -121,13 +121,14 @@ final class StudentProfilePresenter
         ], $entries, array_keys($entries));
         $leading = $dimensions;
         usort($leading, static fn (array $left, array $right): int => ($right['value'] <=> $left['value']) ?: ($left['order'] <=> $right['order']));
-        $leading = array_slice($leading, 0, 2);
+        $leading = array_slice($leading, 0, 3);
 
         return [
             'sessionReference' => 'ASMT-'.str_pad((string) $assessment->getKey(), 6, '0', STR_PAD_LEFT),
             'availableAt' => $assessment->result_available_at?->toAtomString(),
             'primary' => isset($leading[0]) ? ['code' => $leading[0]['code'], 'label' => $leading[0]['label']] : null,
             'secondary' => isset($leading[1]) ? ['code' => $leading[1]['code'], 'label' => $leading[1]['label']] : null,
+            'tertiary' => isset($leading[2]) ? ['code' => $leading[2]['code'], 'label' => $leading[2]['label']] : null,
             'code' => implode('-', array_column($leading, 'code')),
             'dimensions' => array_map(static fn (array $dimension): array => [
                 'code' => $dimension['code'], 'label' => $dimension['label'], 'value' => $dimension['value'],
@@ -170,8 +171,8 @@ final class StudentProfilePresenter
     private function summary(?array $riasec, array $strengths, array $learningPreferences): string
     {
         $sentences = [];
-        if ($riasec && $riasec['primary'] && $riasec['secondary']) {
-            $sentences[] = "The latest recorded RIASEC result is {$riasec['code']} ({$riasec['primary']['label']} and {$riasec['secondary']['label']}).";
+        if ($riasec && $riasec['primary'] && $riasec['secondary'] && $riasec['tertiary']) {
+            $sentences[] = "The latest recorded RIASEC result is {$riasec['code']} ({$riasec['primary']['label']}, {$riasec['secondary']['label']}, and {$riasec['tertiary']['label']}).";
         }
         if ($strengths !== []) {
             $sentences[] = 'The student selected '.implode(', ', $strengths).' as self-reported strengths.';

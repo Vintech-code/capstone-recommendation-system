@@ -113,7 +113,7 @@ class StudentRecommendationTest extends TestCase
             ->assertExactJson(['data' => ['programmeIds' => []]]);
     }
 
-    public function test_configured_temporary_catalogue_produces_visible_recommendations(): void
+    public function test_configured_psg_informed_catalogue_ranks_classified_programmes_and_preserves_the_pending_programme(): void
     {
         $role = Role::query()->firstOrCreate(
             ['slug' => RoleSlug::Student->value],
@@ -154,7 +154,7 @@ class StudentRecommendationTest extends TestCase
             ->assertJsonPath('data.status', 'available')
             ->assertJsonPath('data.recommendation.status', 'Proposed methodology')
             ->assertJsonPath('data.recommendation.totalEligible', 6)
-            ->assertJsonPath('data.recommendation.totalRanked', 11)
+            ->assertJsonPath('data.recommendation.totalRanked', 10)
             ->assertJsonPath('data.recommendation.canViewAll', false)
             ->assertJsonPath('data.recommendation.showingAll', true)
             ->assertJsonPath('data.recommendation.guidanceContentStatus', 'proposed')
@@ -164,14 +164,17 @@ class StudentRecommendationTest extends TestCase
             ->assertJsonPath('data.recommendation.courses.0.jobGrowth.status', 'not_published')
             ->assertJsonMissingPath('data.recommendation.courses.0.careerTrajectory')
             ->assertJsonCount(3, 'data.recommendation.courses.0.careerDirections')
-            ->assertJsonCount(11, 'data.recommendation.courses')
+            ->assertJsonCount(10, 'data.recommendation.courses')
+            ->assertJsonCount(1, 'data.recommendation.pendingProgrammes')
+            ->assertJsonPath('data.recommendation.pendingProgrammes.0.name', 'BS Community Development')
+            ->assertJsonPath('data.recommendation.pendingProgrammes.0.status', 'classification_pending')
             ->assertJsonFragment(['eligibleForDeclaredGroup' => false]);
 
         $this->assertDatabaseCount('recommendation_runs', 1);
         $this->assertSame($student->getKey(), RecommendationRun::query()->firstOrFail()->user_id);
     }
 
-    public function test_temporary_engine_returns_all_programmes_and_uses_competition_ranks_for_ties(): void
+    public function test_three_code_engine_uses_competition_ranks_for_ties(): void
     {
         $role = Role::query()->firstOrCreate(
             ['slug' => RoleSlug::Student->value],
@@ -206,7 +209,7 @@ class StudentRecommendationTest extends TestCase
             ->assertOk()
             ->assertJsonPath('data.status', 'available')
             ->assertJsonPath('data.recommendation.assessmentResultReference', 'ASMT-'.str_pad((string) $session->getKey(), 6, '0', STR_PAD_LEFT))
-            ->assertJsonPath('data.recommendation.profile.topCode', 'I-E')
+            ->assertJsonPath('data.recommendation.profile.topCode', 'I-E-C')
             ->assertJsonPath('data.recommendation.profile.dimensions.1.label', 'Investigative')
             ->assertJsonPath('data.recommendation.profile.dimensions.1.value', 7)
             ->assertJsonPath('data.recommendation.totalEligible', 4)
@@ -221,12 +224,14 @@ class StudentRecommendationTest extends TestCase
             ->assertJsonPath('data.recommendation.courses.1.isTie', true)
             ->assertJsonPath('data.recommendation.courses.2.rank', 3)
             ->assertJsonPath('data.recommendation.courses.0.explanation.assessmentReference', 'ASMT-'.str_pad((string) $session->getKey(), 6, '0', STR_PAD_LEFT))
-            ->assertJsonPath('data.recommendation.courses.0.explanation.recordedProfileCode', 'I-E')
+            ->assertJsonPath('data.recommendation.courses.0.explanation.recordedProfileCode', 'I-E-C')
             ->assertJsonPath('data.recommendation.courses.0.explanation.recordedProgrammeAreas.0.label', 'Investigative')
             ->assertJsonPath('data.recommendation.courses.0.explanation.recordedProgrammeAreas.0.score', 7)
-            ->assertJsonPath('data.recommendation.courses.0.explanation.recordedProgrammeAreas.1.label', 'Conventional')
-            ->assertJsonPath('data.recommendation.courses.0.explanation.recordedProgrammeAreas.1.score', 5)
-            ->assertJsonCount(1, 'data.recommendation.courses.0.explanation.sharedTopAreas');
+            ->assertJsonPath('data.recommendation.courses.0.explanation.recordedProgrammeAreas.1.label', 'Enterprising')
+            ->assertJsonPath('data.recommendation.courses.0.explanation.recordedProgrammeAreas.1.score', 6)
+            ->assertJsonPath('data.recommendation.courses.0.explanation.recordedProgrammeAreas.2.label', 'Conventional')
+            ->assertJsonPath('data.recommendation.courses.0.explanation.recordedProgrammeAreas.2.score', 5)
+            ->assertJsonCount(3, 'data.recommendation.courses.0.explanation.sharedTopAreas');
 
         $this->getJson('/api/v1/student/recommendations/latest?view=all')
             ->assertOk()
@@ -306,7 +311,8 @@ class StudentRecommendationTest extends TestCase
             ->getJson("/api/v1/student/recommendations/attempts/{$completed->getKey()}")
             ->assertOk()
             ->assertJsonPath('data.status', 'available')
-            ->assertJsonCount(11, 'data.recommendation.courses');
+            ->assertJsonCount(10, 'data.recommendation.courses')
+            ->assertJsonCount(1, 'data.recommendation.pendingProgrammes');
 
         $this->actingAs($otherStudent)
             ->getJson("/api/v1/student/recommendations/attempts/{$completed->getKey()}")
@@ -363,10 +369,10 @@ class StudentRecommendationTest extends TestCase
                 'display' => ['default_count' => 3, 'allow_view_all' => true],
             ],
             'programmes' => [
-                ['id' => 'zulu', 'short_label' => 'Z', 'display_name' => 'Zulu Programme', 'riasec_profile' => ['I', 'A']],
-                ['id' => 'alpha', 'short_label' => 'A', 'display_name' => 'Alpha Programme', 'riasec_profile' => ['I', 'C']],
-                ['id' => 'social', 'short_label' => 'S', 'display_name' => 'Social Programme', 'riasec_profile' => ['S']],
-                ['id' => 'enterprise', 'short_label' => 'E', 'display_name' => 'Enterprise Programme', 'riasec_profile' => ['E']],
+                ['id' => 'zulu', 'short_label' => 'Z', 'display_name' => 'Zulu Programme', 'riasec_profile' => ['I', 'E', 'C']],
+                ['id' => 'alpha', 'short_label' => 'A', 'display_name' => 'Alpha Programme', 'riasec_profile' => ['I', 'E', 'C']],
+                ['id' => 'social', 'short_label' => 'S', 'display_name' => 'Social Programme', 'riasec_profile' => ['S', 'A', 'R']],
+                ['id' => 'enterprise', 'short_label' => 'E', 'display_name' => 'Enterprise Programme', 'riasec_profile' => ['S', 'A', 'R']],
             ],
         ];
     }

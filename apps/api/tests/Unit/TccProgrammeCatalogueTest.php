@@ -39,7 +39,7 @@ class TccProgrammeCatalogueTest extends TestCase
     }
 
     #[Test]
-    public function it_preserves_the_approved_catalogue_with_temporary_research_profiles(): void
+    public function it_preserves_the_approved_catalogue_with_psg_informed_profiles_and_one_pending_programme(): void
     {
         $catalogue = json_decode(
             file_get_contents(resource_path('data/tcc-programme-catalogue-v1.json')),
@@ -59,7 +59,7 @@ class TccProgrammeCatalogueTest extends TestCase
 
         $this->assertSame([
             'BS Information Technology',
-            'BS Business Administration',
+            'BS Business Administration - Financial Management',
             'BS Criminology',
             'BS Hospitality Management',
             'Bachelor of Elementary Education',
@@ -72,23 +72,26 @@ class TccProgrammeCatalogueTest extends TestCase
         ], array_column($programmes, 'display_name'));
 
         $this->assertSame([
-            ['I', 'C', 'R'],
-            ['E', 'C', 'S'],
-            ['I', 'S', 'R'],
+            ['I', 'R', 'C'],
+            ['E', 'C', 'I'],
+            ['I', 'R', 'S'],
             ['E', 'S', 'C'],
             ['S', 'A', 'C'],
             ['S', 'A', 'I'],
             ['S', 'I', 'R'],
             ['C', 'I', 'S'],
             ['I', 'S', 'A'],
-            ['S', 'E', 'A'],
+            [],
             ['S', 'R', 'E'],
         ], array_column($programmes, 'riasec_profile'));
 
         foreach ($programmes as $programme) {
-            $this->assertSame('researcher_proposed_temporary', $programme['riasec_profile_status']);
-            $this->assertSame('TEMP-2026-01', $programme['profile_version']);
-            $this->assertStringContainsString('Temporary researcher-proposed', $programme['profile_rationale']);
+            $expectedStatus = $programme['id'] === 'bs-community-development'
+                ? 'pending_authoritative_psg_basis'
+                : 'psg_informed_analytical_classification';
+            $this->assertSame($expectedStatus, $programme['riasec_profile_status']);
+            $this->assertSame('PSG-MATRIX-2026-09-10', $programme['profile_version']);
+            $this->assertNotEmpty($programme['profile_rationale']);
             $this->assertNull($programme['profile_approved_by']);
             $this->assertNull($programme['profile_approved_on']);
         }
@@ -133,7 +136,7 @@ class TccProgrammeCatalogueTest extends TestCase
 
         $this->assertSame('unweighted_riasec_profile_matching', $policy['method']);
         $this->assertFalse($policy['percentage_weights_used']);
-        $this->assertSame('researcher_proposed_temporary_runtime', $policy['approval_status']);
+        $this->assertSame('researcher_proposed_psg_informed_runtime', $policy['approval_status']);
         $this->assertTrue($policy['runtime_enabled']);
         $this->assertSame('capstone_researchers', $policy['proposed_by']);
         $this->assertSame('Jason D. Ang', $policy['designated_reviewer']);
@@ -141,6 +144,8 @@ class TccProgrammeCatalogueTest extends TestCase
         $this->assertNull($policy['approval_date']);
         $this->assertSame('equal_membership_profile_mean', $policy['formula']['name']);
         $this->assertSame('proposed', $policy['formula']['status']);
+        $this->assertSame(3, $policy['formula']['profile_size_min']);
+        $this->assertSame(3, $policy['formula']['profile_size_max']);
         $this->assertSame(0, $policy['normalization']['output_min']);
         $this->assertSame(100, $policy['normalization']['output_max']);
         $this->assertSame(0, $policy['normalization']['instrument_min']);
@@ -150,7 +155,7 @@ class TccProgrammeCatalogueTest extends TestCase
         $this->assertFalse($policy['eligibility']['required_criteria_must_be_met']);
         $this->assertSame('approved_self_declared_entrance_group_v1', $policy['eligibility']['programme_criteria_status']);
         $this->assertSame('SELF-DECLARED-TCC-ENTRANCE-2026-01', $policy['eligibility']['entrance_examination_rule_reference']);
-        $this->assertSame('all_catalogue_programmes', $policy['eligibility']['ranking_scope']);
+        $this->assertSame('catalogue_programmes_with_psg_classification', $policy['eligibility']['ranking_scope']);
         $this->assertSame('separate_guidance', $policy['eligibility']['eligibility_applied_as']);
         $this->assertSame('competition_rank', $policy['tie_break']['rank_policy']);
         $this->assertSame('display_name', $policy['tie_break']['field']);

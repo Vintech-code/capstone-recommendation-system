@@ -637,6 +637,6 @@ final class AdminWorkspaceController extends Controller
             ?: ($left['_order'] <=> $right['_order'])
         );
 
-        return implode('-', array_column(array_slice($dimensions, 0, 2), 'code'));
+        return implode('-', array_column(array_slice($dimensions, 0, 3), 'code'));
     }
 }

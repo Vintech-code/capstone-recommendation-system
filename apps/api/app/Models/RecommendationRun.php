@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'default_count',
     'total_eligible',
     'ranked_courses',
+    'unranked_programmes',
     'generated_at',
 ])]
 class RecommendationRun extends Model
@@ -37,6 +38,7 @@ class RecommendationRun extends Model
     {
         return [
             'ranked_courses' => 'array',
+            'unranked_programmes' => 'array',
             'entrance_examination_snapshot' => 'array',
             'generated_at' => 'immutable_datetime',
         ];

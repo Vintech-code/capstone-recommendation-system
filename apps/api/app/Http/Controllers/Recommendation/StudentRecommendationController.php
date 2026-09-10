@@ -101,7 +101,7 @@ final class StudentRecommendationController extends Controller
             $run = $session->recommendationRun()->firstOrCreate([], [
                 'user_id' => $request->user()->getKey(),
                 'catalogue_reference' => 'TCC-AY-'.$catalogue['academic_year'].'-V'.$catalogue['catalogue_version'],
-                'rule_reference' => 'PROPOSED-RIASEC-2-ALL-PROGRAMMES',
+                'rule_reference' => (string) ($catalogue['matching_policy']['version'] ?? 'PROPOSED-RIASEC-3-PSG-MATRIX'),
                 'entrance_examination_snapshot' => $this->entranceExaminationSnapshot($session),
                 'methodology_status' => 'Proposed methodology',
                 'default_count' => $defaultCount,
@@ -110,6 +110,7 @@ final class StudentRecommendationController extends Controller
                     static fn (array $course): bool => (bool) ($course['eligible_for_declared_group'] ?? true),
                 )),
                 'ranked_courses' => array_map([$this, 'coursePayload'], $result['ranked']),
+                'unranked_programmes' => array_map([$this, 'unrankedProgrammePayload'], $result['exclusions']),
                 'generated_at' => now(),
             ]);
         }
@@ -170,6 +171,21 @@ final class StudentRecommendationController extends Controller
         ];
     }
 
+    /** @param array<string, string> $programme */
+    private function unrankedProgrammePayload(array $programme): array
+    {
+        return [
+            'id' => $programme['programme_id'],
+            'code' => $programme['code'],
+            'name' => $programme['name'],
+            'status' => 'classification_pending',
+            'reason' => $programme['reason'],
+            'profileStatus' => $programme['profile_status'],
+            'profileVersion' => $programme['profile_version'],
+            'notice' => $programme['profile_rationale'],
+        ];
+    }
+
     /** @return array<string, mixed> */
     private function recommendationPayload(
         RecommendationRun $run,
@@ -225,6 +241,7 @@ final class StudentRecommendationController extends Controller
             'defaultCount' => $run->default_count,
             'totalEligible' => $run->total_eligible,
             'totalRanked' => count($courses),
+            'pendingProgrammes' => $run->unranked_programmes ?? [],
             'canViewAll' => false,
             'showingAll' => true,
             'guidanceContentStatus' => 'proposed',
@@ -314,7 +331,7 @@ final class StudentRecommendationController extends Controller
         $leading = $dimensions;
         usort($leading, static fn (array $left, array $right): int => ($right['value'] <=> $left['value']) ?: ($left['order'] <=> $right['order'])
         );
-        $leading = array_slice($leading, 0, 2);
+        $leading = array_slice($leading, 0, 3);
 
         $guidance = $session->result_payload['guidance'] ?? null;
 
