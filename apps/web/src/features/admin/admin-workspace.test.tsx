@@ -1,4 +1,4 @@
-import { screen, within } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
@@ -25,9 +25,10 @@ describe("Administration workspace", () => {
     const user = userEvent.setup();
     await renderAppAt("/admin/students");
 
-    const row = (await screen.findAllByText("ana@example.test"))
-      .map((match) => match.closest("tr"))
-      .find(Boolean);
+    const studentGrid = await screen.findByTestId("admin-student-grid");
+    const row = (await within(studentGrid).findByText("ana@example.test")).closest(
+      "tr",
+    );
     expect(row).toBeDefined();
     await user.click(
       within(row as HTMLTableRowElement).getByRole("button", { name: "Open" }),
@@ -123,14 +124,21 @@ describe("Administration workspace", () => {
     expect(
       await screen.findByRole("heading", { name: "Student records" }),
     ).toBeVisible();
+    const studentGrid = screen.getByTestId("admin-student-grid");
+    expect(studentGrid).toHaveClass("admin-grid");
+    expect(await within(studentGrid).findByRole("grid")).toBeInTheDocument();
     await user.type(
       screen.getByRole("searchbox", { name: "Search student records" }),
       "Ana",
     );
     await user.click(screen.getByRole("button", { name: "Search" }));
-    expect(
-      screen.getAllByRole("button", { name: "Open" }).length,
-    ).toBeGreaterThan(0);
+    await waitFor(() => {
+      expect(
+        within(screen.getByTestId("admin-student-grid")).getAllByRole("button", {
+          name: "Open",
+        }).length,
+      ).toBeGreaterThan(0);
+    });
   });
 
   it("shows a retryable error when an Admin endpoint fails", async () => {

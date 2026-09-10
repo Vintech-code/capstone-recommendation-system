@@ -424,7 +424,7 @@ function StudentProgrammeCataloguePage({ initialCatalogue, matchContext = [] }: 
       </div>
 
       {comparisonIds.size > 0 ? (
-        <div className="fixed inset-x-4 bottom-4 z-40 mx-auto flex max-w-xl items-center justify-between gap-4 rounded-xl bg-primary px-5 py-4 text-primary-foreground shadow-xl" data-print-hidden>
+        <div className="fixed inset-x-4 bottom-4 z-40 mx-auto flex max-w-xl items-center justify-between gap-4 rounded-xl bg-primary px-5 py-4 text-primary-foreground shadow-sm" data-print-hidden>
           <div>
             <p className="font-semibold">{comparisonIds.size} of 3 selected</p>
             <p className="text-xs text-primary-foreground/75">{comparisonIds.size < 2 ? 'Select one more programme to compare.' : 'Ready for side-by-side comparison.'}</p>
@@ -472,7 +472,7 @@ function ProgrammeCard({
   const category = categoryDefinitions.find((definition) => definition.ids.includes(programme.id))
 
   return (
-    <article className="group relative flex min-h-[27rem] w-full flex-col overflow-hidden rounded-3xl border border-border bg-card text-left shadow-[var(--shadow-card)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[var(--shadow-card-hover)]">
+    <article className="group relative flex min-h-[27rem] w-full flex-col overflow-hidden rounded-3xl border border-border bg-card text-left shadow-sm transition-colors duration-200 hover:border-primary/35">
       <button type="button" onClick={onSelect} aria-label={`View programme details: ${programme.name}`} className="absolute inset-0 z-10 rounded-xl focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-inset focus-visible:ring-ring/40" />
       <div className="relative flex h-40 items-center justify-center overflow-hidden bg-secondary">
         {cover ? (
@@ -619,7 +619,7 @@ function StudentProgrammeDetail({ programme, academicYear, onBack }: { programme
               </div>
             </div>
             {programme.learningAreas.length > 0 ? (
-              <ol className="divide-y divide-border/60 rounded-2xl border border-border/70 bg-card/60 overflow-hidden shadow-xs">
+              <ol className="overflow-hidden rounded-2xl border border-border/70 bg-card/60 shadow-sm divide-y divide-border/60">
                 {programme.learningAreas.map((area, index) => (
                   <li key={area} className="flex items-start gap-4 p-4.5 sm:p-5 transition-colors hover:bg-card">
                     <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-primary-fixed font-label text-xs font-bold text-on-primary-fixed">
@@ -661,7 +661,7 @@ function StudentProgrammeDetail({ programme, academicYear, onBack }: { programme
                   <h2 id="strand-title" className="font-display text-lg font-bold text-foreground sm:text-xl">Helpful tracks and strands</h2>
                 </div>
               </div>
-              <ul className="divide-y divide-border/60 rounded-2xl border border-border/70 bg-card/60 overflow-hidden shadow-xs">
+              <ul className="overflow-hidden rounded-2xl border border-border/70 bg-card/60 shadow-sm divide-y divide-border/60">
                 {recommendedStrands.map((strand) => (
                   <li key={strand} className="flex items-center gap-3.5 p-4 transition-colors hover:bg-card sm:px-5">
                     <span className="inline-flex min-h-7 items-center rounded-lg bg-primary-fixed px-2.5 font-label text-xs font-bold text-on-primary-fixed">

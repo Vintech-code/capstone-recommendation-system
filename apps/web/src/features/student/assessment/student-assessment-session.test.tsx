@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import axe from "axe-core";
 import type { ComponentProps } from "react";
@@ -58,8 +58,7 @@ describe("Student assessment session", () => {
     expect(
       screen.getByRole("heading", { name: "Interest assessment" }),
     ).toBeInTheDocument();
-    expect(screen.getByText("01")).toBeVisible();
-    expect(screen.getByText("of 6")).toBeVisible();
+    expect(screen.getByText("Question 01 of 6")).toBeVisible();
     expect(screen.getByText("0 answered · 6 remaining")).toBeVisible();
     expect(screen.getByText("0%")).toBeVisible();
     expect(
@@ -78,13 +77,15 @@ describe("Student assessment session", () => {
     expect(screen.getByText("👎")).toBeVisible();
     expect(screen.getByText("This sounds like me")).toBeVisible();
     expect(screen.getByText("This does not sound like me")).toBeVisible();
+    expect(
+      screen.getByRole("img", { name: "Student working on a car" }),
+    ).toBeVisible();
     expect(screen.getAllByRole("radio")).toHaveLength(2);
     expect(
       screen.queryByRole("button", { name: "Next" }),
     ).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Previous" })).toBeDisabled();
     expect(screen.queryByText("Career compass module")).not.toBeInTheDocument();
-    expect(screen.queryByRole("img")).not.toBeInTheDocument();
   });
 
   it("answers questions and autosaves progress locally", async () => {
@@ -117,12 +118,38 @@ describe("Student assessment session", () => {
         screen.getByRole("group", { name: "Response for question 2" }),
       ).toBeVisible();
     });
+    expect(
+      screen.queryByRole("img", { name: "Student working on a car" }),
+    ).not.toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Previous" }));
     expect(
       screen.getByRole("group", { name: "Response for question 1" }),
     ).toBeVisible();
     expect(screen.getByRole("radio", { name: /^Agree/i })).toBeChecked();
+
+    await user.click(screen.getByRole("button", { name: "Next" }));
+    expect(
+      screen.getByRole("group", { name: "Response for question 2" }),
+    ).toBeVisible();
+  });
+
+  it("shows pointer click feedback without changing the native radio control", () => {
+    renderSession();
+
+    const agreeChoice = screen.getByRole("radio", { name: /^Agree/i });
+    const choiceLabel = agreeChoice.closest("label");
+    expect(choiceLabel).not.toBeNull();
+
+    fireEvent.pointerDown(choiceLabel as HTMLLabelElement, {
+      clientX: 24,
+      clientY: 18,
+    });
+
+    expect(
+      choiceLabel?.querySelector(".assessment-choice-click-pulse"),
+    ).toBeInTheDocument();
+    expect(agreeChoice).toHaveAttribute("type", "radio");
   });
 
   it("finishes without a review list and locks the responses", async () => {
@@ -262,6 +289,46 @@ describe("Student assessment session", () => {
     vi.mocked(fetch).mockImplementation(fallbackFetch!);
   });
 
+  it("inserts the decimal separator while entering the exam score", async () => {
+    const fallbackFetch = vi.mocked(fetch).getMockImplementation();
+    expect(fallbackFetch).toBeDefined();
+    const policy = {
+      ruleReference: "SELF-DECLARED-TCC-ENTRANCE-2026-01",
+      minimum: 1,
+      maximum: 5,
+      decimalPlaces: 1,
+      boardRange: { minimum: 1, maximum: 2.5 },
+      nonBoardRange: { minimum: 2.6, maximum: 5 },
+      source: "student_self_declared",
+    };
+    vi.mocked(fetch).mockImplementation(async (input, init) => {
+      if (
+        input.toString() === "/api/v1/student/entrance-examination" &&
+        init?.method !== "POST"
+      ) {
+        return Response.json({
+          data: { status: "required", result: null, policy },
+        });
+      }
+      return fallbackFetch!(input, init);
+    });
+
+    const user = userEvent.setup();
+    try {
+      renderSession({ remotePersistence: true });
+
+      const scoreInput = await screen.findByLabelText("Entrance Exam Score");
+      await user.type(scoreInput, "11");
+      expect(scoreInput).toHaveValue("1.1");
+
+      await user.clear(scoreInput);
+      await user.type(scoreInput, "10");
+      expect(scoreInput).toHaveValue("1.0");
+    } finally {
+      vi.mocked(fetch).mockImplementation(fallbackFetch!);
+    }
+  });
+
   it("keeps an existing completed assessment visible without silently creating a retake", async () => {
     const fallbackFetch = vi.mocked(fetch).getMockImplementation();
     expect(fallbackFetch).toBeDefined();
@@ -334,6 +401,48 @@ describe("Student assessment session", () => {
             init?.method === "PATCH",
         ),
     ).toBe(false);
+  });
+
+  it("does not submit when the final answer save fails", async () => {
+    const fallbackFetch = vi.mocked(fetch).getMockImplementation();
+    expect(fallbackFetch).toBeDefined();
+    vi.mocked(fetch).mockImplementation(async (input, init) => {
+      if (
+        input.toString().includes("/sessions/1") &&
+        init?.method === "PATCH"
+      ) {
+        return Response.json(
+          { message: "The answers could not be saved." },
+          { status: 422 },
+        );
+      }
+      return fallbackFetch!(input, init);
+    });
+
+    try {
+      const user = userEvent.setup();
+      renderSession({ remotePersistence: true });
+      expect(
+        await screen.findByRole("group", { name: "Response for question 1" }),
+      ).toBeVisible();
+
+      for (let questionNumber = 1; questionNumber <= 6; questionNumber += 1) {
+        await answerQuestion(user, questionNumber);
+      }
+
+      expect(
+        await screen.findByText(
+          "Your assessment could not be submitted. Check your connection and try again.",
+        ),
+      ).toBeVisible();
+      expect(
+        vi
+          .mocked(fetch)
+          .mock.calls.some(([input]) => input.toString().endsWith("/submit")),
+      ).toBe(false);
+    } finally {
+      vi.mocked(fetch).mockImplementation(fallbackFetch!);
+    }
   });
 
   it("retries a previously failed result instead of resubmitting locked answers", async () => {

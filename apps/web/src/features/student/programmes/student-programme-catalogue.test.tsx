@@ -7,13 +7,13 @@ import { StudentProgrammeCataloguePage } from '@/features/student/programmes/com
 
 const catalogue = {
   academicYear: '2026-2027',
-  catalogueVersion: 1,
+  catalogueVersion: 2,
   programmes: [{
     id: 'bs-information-technology',
     name: 'BS Information Technology',
     code: 'BSIT',
     majors: [],
-    riasecProfile: ['I', 'C', 'R'],
+    riasecProfile: ['I', 'R', 'C'],
     description: 'Focuses on applying computing to organisational needs.',
     learningAreas: ['Software development', 'Information management'],
     learningAreaDescriptions: {

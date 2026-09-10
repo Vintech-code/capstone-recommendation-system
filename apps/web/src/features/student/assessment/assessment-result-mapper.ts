@@ -23,7 +23,7 @@ function mapAssessmentResult(lifecycle: AssessmentLifecycle): AssessmentDisplayR
   if (dimensions.some((dimension) => !dimension)) return null
 
   const completeDimensions = dimensions as AssessmentDimensionResult[]
-  const leading = [...completeDimensions].sort((a, b) => b.value - a.value).slice(0, 2)
+  const leading = [...completeDimensions].sort((a, b) => b.value - a.value).slice(0, 3)
 
   return {
     id: `result-${lifecycle.reference ?? lifecycle.id ?? 'current'}`,

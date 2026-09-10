@@ -217,7 +217,7 @@ function ModuleView({
           {module.description}
         </p>
 
-        <div className="mt-10 rounded-2xl bg-secondary/40 p-8 text-center shadow-inner sm:p-12">
+        <div className="mt-10 rounded-2xl border border-border bg-secondary/40 p-8 text-center sm:p-12">
           <FileText
             aria-hidden="true"
             className="mx-auto size-6 text-muted-foreground"

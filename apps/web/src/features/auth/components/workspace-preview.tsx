@@ -216,7 +216,7 @@ function WorkspacePreview({
         'min-h-svh lg:grid lg:transition-[grid-template-columns] lg:duration-300',
         isStaff ? 'staff-workspace-theme bg-background text-foreground' : 'bg-secondary/70',
         desktopNavigationExpanded
-          ? 'lg:grid-cols-[16rem_minmax(0,1fr)]'
+          ? 'lg:grid-cols-[15rem_minmax(0,1fr)]'
           : 'lg:grid-cols-[5rem_minmax(0,1fr)]',
       )}
     >
@@ -225,20 +225,20 @@ function WorkspacePreview({
         data-collapsed={!desktopNavigationExpanded}
         className={cn(
           'relative hidden h-svh bg-background lg:sticky lg:top-0 lg:flex lg:flex-col lg:border-r lg:border-border lg:transition-[padding] lg:duration-300',
-          desktopNavigationExpanded ? 'p-4' : 'p-3',
+          desktopNavigationExpanded ? 'p-3' : 'p-2.5',
         )}
       >
         <div
           className={cn(
-            'flex h-14 items-center gap-3',
+            'flex h-12 items-center gap-2.5',
             desktopNavigationExpanded ? 'px-2' : 'justify-center',
           )}
         >
-          <img src={logo} alt="Academic guidance system" className={cn('h-9 object-contain', desktopNavigationExpanded ? 'w-auto max-w-36' : 'w-12')} />
+          <img src={logo} alt="Academic guidance system" className={cn('h-8 object-contain', desktopNavigationExpanded ? 'w-auto max-w-32' : 'w-11')} />
           {desktopNavigationExpanded ? <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-muted-foreground">{currentRole.shortLabel} portal</p> : null}
         </div>
 
-        <div className="mt-6">
+        <div className="mt-4">
           <WorkspaceNavigation
             modules={definition.modules}
             activeId={activeId}
@@ -256,8 +256,8 @@ function WorkspacePreview({
 
       <div className="min-w-0">
         <header className={cn('sticky top-0 z-30 border-b bg-background/95 backdrop-blur-xl', isStaff ? 'border-border' : 'border-transparent shadow-sm')}>
-          <div className="flex h-16 items-center gap-3 px-4 sm:px-6 lg:px-8">
-            <Button type="button" variant="ghost" size="icon" aria-label={desktopNavigationExpanded ? 'Collapse workspace navigation' : 'Expand workspace navigation'} aria-expanded={desktopNavigationExpanded} onClick={() => setDesktopNavigationExpanded((isExpanded) => !isExpanded)} className="hidden rounded lg:inline-flex"><Menu aria-hidden="true" /></Button>
+          <div className="flex h-14 items-center gap-2.5 px-4 sm:px-5 lg:px-6">
+            <Button type="button" variant="ghost" size="icon" aria-label={desktopNavigationExpanded ? 'Collapse workspace navigation' : 'Expand workspace navigation'} aria-expanded={desktopNavigationExpanded} onClick={() => setDesktopNavigationExpanded((isExpanded) => !isExpanded)} className="hidden rounded-xs lg:inline-flex"><Menu aria-hidden="true" /></Button>
             <Sheet
               open={mobileNavigationOpen}
               onOpenChange={setMobileNavigationOpen}
@@ -321,18 +321,18 @@ function WorkspacePreview({
                   onChange={(event) => changeQuery(event.target.value)}
                   onKeyDown={(event) => { if (event.key === 'Enter' && filteredModules[0]) selectModule(filteredModules[0].id) }}
                   placeholder={isStaff ? 'Search students, assessments, programmes…' : 'Search modules'}
-                  className={cn('h-11 rounded-xl pl-9 shadow-none', isStaff ? 'border-border bg-secondary text-foreground placeholder:text-muted-foreground focus-visible:bg-background' : 'border-transparent bg-secondary focus-visible:bg-background')}
+                  className={cn('h-11 pl-9 text-xs shadow-none', isStaff ? 'rounded-xs border-border bg-secondary text-foreground placeholder:text-muted-foreground focus-visible:bg-background' : 'rounded-xl border-transparent bg-secondary focus-visible:bg-background')}
                 />
               </div>
             ) : null}
 
-            {isStaff ? <NotificationCenter workspaceLabel="Administrator" className="rounded-xl" onNavigate={selectModule} /> : null}
+            {isStaff ? <NotificationCenter workspaceLabel="Administrator" className="rounded-xs" onNavigate={selectModule} /> : null}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
                   type="button"
                   aria-label="Open user menu"
-                  className="ml-auto flex min-h-11 items-center gap-3 rounded-xl px-2 text-left transition-colors hover:bg-secondary focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/40"
+                  className="ml-auto flex min-h-11 items-center gap-2.5 rounded-xs px-2 text-left transition-colors hover:bg-secondary focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/40"
                 >
                   <span className="hidden text-right sm:block">
                     <span className="block text-xs font-bold">
@@ -368,7 +368,7 @@ function WorkspacePreview({
           </div>
         </header>
 
-        <main className={cn('px-4 py-4 sm:px-6 lg:px-8 lg:py-7', isStaff && 'staff-dashboard-canvas')}>
+        <main className={cn('px-4 py-4 sm:px-5 lg:px-6 lg:py-5', isStaff && 'staff-dashboard-canvas')}>
           {workspaceContent}
         </main>
       </div>

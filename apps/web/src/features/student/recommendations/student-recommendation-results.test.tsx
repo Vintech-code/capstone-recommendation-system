@@ -34,20 +34,20 @@ describe("Student recommendation results", () => {
     ).toBeVisible();
     const resultHeading = screen.getByRole("heading", {
       level: 1,
-      name: "Investigative and Conventional",
+      name: "Investigative, Conventional, and Social",
     });
     expect(resultHeading).toBeVisible();
     expect(resultHeading).toHaveClass("font-display", "font-black");
     expect(resultHeading.closest("section")).not.toHaveClass(
       "border",
       "bg-card",
-      "shadow-[var(--shadow-card)]",
+      "shadow-sm",
     );
     expect(
       screen.queryByRole("img", { name: /RIASEC profile/i }),
     ).not.toBeInTheDocument();
     const resultSummary = screen.getByText(
-      /investigative and conventional pursuits/i,
+      /three leading recorded areas are investigative, conventional, and social/i,
     );
     expect(resultSummary).toBeVisible();
     expect(resultSummary).toHaveClass("text-base", "font-medium");
@@ -66,7 +66,7 @@ describe("Student recommendation results", () => {
       "bg-card",
     );
     expect(
-      screen.getByText("Built from your recorded pattern: I-C"),
+      screen.getByText("Built from your recorded pattern: I-C-S"),
     ).toBeVisible();
     expect(screen.getByText("Career directions")).toBeVisible();
     expect(screen.getByText("Systems and business analysis")).toBeVisible();
@@ -249,6 +249,36 @@ describe("Student recommendation results", () => {
     expect(screen.getAllByText("Tied at #1")).toHaveLength(2);
     expect(screen.getAllByText("85.71%")).toHaveLength(2);
     expect(screen.getByText("Rank #3")).toBeVisible();
+  });
+
+  it("keeps a programme visible as classification pending without inventing a match", () => {
+    render(
+      <StudentRecommendationResultsPage
+        onBack={vi.fn()}
+        initialAssessment={testAssessmentLifecycle}
+        initialSnapshot={{
+          ...testRecommendationSnapshot,
+          pendingProgrammes: [
+            {
+              id: "bs-community-development",
+              code: "BS Community Development",
+              name: "BS Community Development",
+              status: "classification_pending",
+              reason: "PROFILE_UNAVAILABLE",
+              profileStatus: "pending_authoritative_psg_basis",
+              profileVersion: "PSG-MATRIX-2026-09-10",
+              notice: "No RIASEC code is assigned while the source is being processed.",
+            },
+          ],
+        }}
+      />,
+    );
+
+    expect(
+      screen.getByRole("heading", { name: "Classification in progress" }),
+    ).toBeVisible();
+    expect(screen.getByText("BS Community Development")).toBeVisible();
+    expect(screen.getByText("RIASEC classification pending")).toBeVisible();
   });
 
   it("shows an honest empty state when no recommendation exists", () => {

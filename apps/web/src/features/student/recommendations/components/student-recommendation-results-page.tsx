@@ -36,6 +36,12 @@ type RecommendationLoadState =
   | "empty"
   | "pending";
 
+function formatAreaList(labels: string[]) {
+  if (labels.length < 2) return labels[0] ?? "";
+  if (labels.length === 2) return labels.join(" and ");
+  return `${labels.slice(0, -1).join(", ")}, and ${labels.at(-1)}`;
+}
+
 interface StudentRecommendationResultsPageProps {
   onBack: () => void;
   onOpenAssessment?: () => void;
@@ -196,7 +202,7 @@ function StudentRecommendationResultsPage({
             className="min-w-0"
             aria-labelledby="recommendation-result-title"
           >
-            <div className="relative mx-auto aspect-square w-52 overflow-hidden rounded-[2rem] border-2 border-primary/20 bg-primary-fixed/30 p-3 shadow-xs sm:w-60">
+            <div className="relative mx-auto aspect-square w-52 overflow-hidden rounded-[2rem] border-2 border-primary/20 bg-primary-fixed/30 p-3 shadow-sm sm:w-60">
               <div
                 aria-hidden="true"
                 className="absolute inset-x-4 bottom-2 h-10 rounded-full bg-primary-fixed/60 blur-lg"
@@ -214,7 +220,7 @@ function StudentRecommendationResultsPage({
                   id="recommendation-result-title"
                   className="mt-5 max-w-2xl font-display text-3xl font-black leading-[0.98] tracking-[-0.045em] text-primary-ink sm:text-4xl lg:text-5xl"
                 >
-                  {profile.topLabels.join(" and ")}
+                  {formatAreaList(profile.topLabels)}
                 </h1>
                 <p className="mt-3 font-label text-xs font-bold uppercase tracking-[0.14em] text-muted-foreground sm:text-sm">
                   {leadingDimensions
@@ -224,8 +230,8 @@ function StudentRecommendationResultsPage({
                 </p>
 
                 <p className="mt-5 max-w-xl text-base font-medium leading-7 text-foreground/90 sm:text-lg sm:leading-8">
-                  {leadingDimensions.length === 2
-                    ? `You care about ${leadingDimensions[0].label.toLowerCase()} and ${leadingDimensions[1].label.toLowerCase()} pursuits. Programmes that match these interest areas often align with how you learn best.`
+                  {leadingDimensions.length === 3
+                    ? `Your three leading recorded areas are ${leadingDimensions[0].label.toLowerCase()}, ${leadingDimensions[1].label.toLowerCase()}, and ${leadingDimensions[2].label.toLowerCase()}. Programme matches compare all six recorded scores with each programme's three-area profile.`
                     : "These are the interest areas with the highest recorded counts in your completed assessment."}
                 </p>
 
@@ -310,7 +316,7 @@ function StudentRecommendationResultsPage({
           {profile ? (
             <section
               aria-labelledby="recommended-career-paths-title"
-              className="rounded-3xl border border-border bg-card px-5 py-6 shadow-[var(--shadow-card)] sm:px-7 sm:py-7 lg:col-span-2"
+              className="rounded-3xl border border-border bg-card px-5 py-6 shadow-sm sm:px-7 sm:py-7 lg:col-span-2"
             >
               <div className="flex items-start gap-3 text-primary-ink">
                 <Compass aria-hidden="true" className="mt-1 size-6 shrink-0" />
@@ -385,6 +391,48 @@ function StudentRecommendationResultsPage({
               </li>
             ))}
           </ol>
+
+          {snapshot.pendingProgrammes?.length ? (
+            <section
+              aria-labelledby="pending-programme-classification-title"
+              className="mt-8 border-t border-border pt-6"
+            >
+              <div className="flex items-start gap-3">
+                <BookOpenCheck
+                  aria-hidden="true"
+                  className="mt-0.5 size-5 shrink-0 text-primary-ink"
+                />
+                <div>
+                  <h2
+                    id="pending-programme-classification-title"
+                    className="font-display text-xl font-bold text-foreground sm:text-2xl"
+                  >
+                    Classification in progress
+                  </h2>
+                  <p className="mt-1 max-w-3xl text-sm font-medium leading-6 text-muted-foreground sm:text-base">
+                    These catalogue programmes remain available to explore, but
+                    no RIASEC match is shown until their source-based
+                    classification is complete.
+                  </p>
+                </div>
+              </div>
+              <ul className="mt-4 divide-y divide-border border-y border-border">
+                {snapshot.pendingProgrammes.map((programme) => (
+                  <li
+                    key={programme.id}
+                    className="flex flex-col gap-1 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
+                  >
+                    <span className="font-display text-base font-bold text-foreground sm:text-lg">
+                      {programme.name}
+                    </span>
+                    <span className="font-label text-sm font-semibold text-muted-foreground">
+                      RIASEC classification pending
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
         </div>
 
         {retakeError ? (

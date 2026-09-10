@@ -98,7 +98,7 @@ function PortalSignInPage({ role }: PortalSignInPageProps) {
           <button
             type="button"
             onClick={continueWithGoogle}
-            className="flex min-h-12 w-full items-center justify-center gap-3 rounded-xl border border-input bg-background px-4 text-sm font-semibold text-foreground shadow-xs transition-colors hover:border-primary/30 hover:bg-accent focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/25"
+            className="flex min-h-12 w-full items-center justify-center gap-3 rounded-xl border border-input bg-background px-4 text-sm font-semibold text-foreground shadow-sm transition-colors hover:border-primary/30 hover:bg-accent focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/25"
           >
             <GmailIcon />
             Continue with Google

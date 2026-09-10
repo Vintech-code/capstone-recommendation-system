@@ -118,15 +118,15 @@ function AdminProgrammesPage() {
   const catalogue = resource.data;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <AdminPageHeader title="Programme monitoring" />
 
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:gap-6">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:gap-4">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
             Active catalogue
           </p>
-          <p className="mt-2 font-display text-2xl font-bold">
+          <p className="mt-1 font-display text-lg font-bold">
             {catalogue.programmes.length} programmes
           </p>
           <p className="mt-0.5 text-xs text-muted-foreground">
@@ -146,7 +146,7 @@ function AdminProgrammesPage() {
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Search by name, code, areas, or careers"
-              className="min-h-11 rounded-lg pl-10 text-sm"
+              className="min-h-11 rounded-xs pl-10 text-xs"
             />
           </div>
         </label>
@@ -155,7 +155,7 @@ function AdminProgrammesPage() {
           <select
             value={filter}
             onChange={(event) => setFilter(event.target.value as typeof filter)}
-            className="min-h-11 w-full rounded-lg border border-input bg-background px-3 text-sm font-semibold text-foreground"
+            className="min-h-11 w-full rounded-xs border border-input bg-background px-3 text-xs font-semibold text-foreground"
           >
             <option value="all">All programmes</option>
             <option value="confirmed">CHED confirmed</option>
@@ -173,7 +173,7 @@ function AdminProgrammesPage() {
 
       {visibleProgrammes.length ? (
         <section
-          className="grid gap-6 xl:grid-cols-2"
+          className="grid gap-4 xl:grid-cols-2"
           aria-label="Programme catalogue monitoring cards"
         >
           {visibleProgrammes.map((programme) => (
@@ -225,7 +225,7 @@ function AdminProgrammeCard({
   const primaryCareer = programme.careerDirections[0] || "Various pathways";
 
   return (
-    <article className="group overflow-hidden rounded-3xl border border-border bg-card shadow-[var(--shadow-card)] transition-[transform,box-shadow] hover:-translate-y-0.5 hover:shadow-[var(--shadow-card-hover)]">
+    <article className="group overflow-hidden rounded-xs border border-border bg-card shadow-sm transition-colors hover:border-primary/35">
       <div className="relative h-44 overflow-hidden bg-primary/10">
         {cover ? (
           <img
@@ -258,7 +258,7 @@ function AdminProgrammeCard({
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary-ink">
               {programme.code}
             </p>
-            <h3 className="mt-2 font-display text-xl font-semibold leading-7">
+            <h3 className="mt-1.5 font-display text-lg font-semibold leading-6">
               {programme.name}
             </h3>
           </div>
@@ -269,7 +269,7 @@ function AdminProgrammeCard({
             {programme.profile.map((code) => (
               <span
                 key={code}
-                className="flex size-8 items-center justify-center rounded-lg bg-primary-fixed text-xs font-bold text-on-primary-fixed"
+                className="flex size-8 items-center justify-center rounded-xs bg-primary-fixed text-xs font-bold text-on-primary-fixed"
               >
                 {code}
               </span>
@@ -321,13 +321,13 @@ function AdminProgrammeCard({
             <Button
               type="button"
               variant="ghost"
-              className="rounded-lg"
+              className="rounded-xs"
               onClick={onInspect}
             >
               <Eye aria-hidden="true" />
               View details
             </Button>
-            <Button type="button" className="rounded-lg" onClick={onEdit}>
+            <Button type="button" className="rounded-xs" onClick={onEdit}>
               <Pencil aria-hidden="true" />
               Edit programme
             </Button>
@@ -403,7 +403,7 @@ function AdminProgrammeSheet({
             <img
               src={logo}
               alt=""
-              className="absolute bottom-5 right-6 size-16 rounded-lg bg-white object-contain p-1 shadow-sm"
+              className="absolute bottom-5 right-6 size-16 rounded-xs bg-white object-contain p-1 shadow-sm"
             />
           ) : null}
         </div>
@@ -412,7 +412,7 @@ function AdminProgrammeSheet({
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary-ink">
               {programme.code} · {programmeGroup(programme.id)}
             </p>
-            <SheetTitle className="font-display text-3xl font-semibold">
+            <SheetTitle className="font-display text-xl font-semibold">
               {programme.name}
             </SheetTitle>
             <SheetDescription>{programme.description}</SheetDescription>
@@ -474,7 +474,7 @@ function CardDatum({
 }
 function DetailDatum({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl bg-secondary/80 p-4">
+    <div className="rounded-xs bg-secondary/80 p-3">
       <dt className="text-xs font-medium text-muted-foreground">{label}</dt>
       <dd className="mt-1 font-semibold">{value}</dd>
     </div>
@@ -489,7 +489,7 @@ function SourcePanel({
 }) {
   if (!value) return null;
   return (
-    <section className="mt-4 rounded-xl bg-secondary/80 p-4">
+    <section className="mt-3 rounded-xs bg-secondary/80 p-3">
       <div className="flex items-start gap-3">
         {value.status === "ched_psg" ? (
           <BookOpen aria-hidden="true" className="mt-0.5 size-5 text-primary-ink" />
@@ -535,13 +535,13 @@ function DetailSection({
     <section className="mt-6">
       <h3 className="font-display text-lg font-semibold">{title}</h3>
       {items.length ? (
-        <ul className="mt-3 divide-y divide-border/60 rounded-2xl border border-border/70 bg-card overflow-hidden">
+        <ul className="mt-3 divide-y divide-border/60 overflow-hidden rounded-xs border border-border/70 bg-card">
           {items.map((item, index) => (
             <li
               key={item}
               className="flex items-start gap-4 p-4 transition-colors hover:bg-secondary/40"
             >
-              <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-primary-fixed font-label text-xs font-bold text-on-primary-fixed">
+              <span className="flex size-7 shrink-0 items-center justify-center rounded-xs bg-primary-fixed font-label text-xs font-bold text-on-primary-fixed">
                 {String(index + 1).padStart(2, "0")}
               </span>
               <div className="min-w-0 flex-1">
@@ -556,7 +556,7 @@ function DetailSection({
                     {topics[item].map((topic) => (
                       <li
                         key={topic}
-                        className="rounded-md bg-secondary px-2.5 py-0.5 font-label text-[11px] font-medium text-foreground/80"
+                        className="rounded-xs bg-secondary px-2.5 py-0.5 font-label text-[11px] font-medium text-foreground/80"
                       >
                         {topic}
                       </li>

@@ -31,8 +31,8 @@ const recommendation = {
   profile: {
     sessionReference: 'ASMT-000001',
     availableAt: '2026-08-08T00:00:00Z',
-    topCode: 'I-C',
-    topLabels: ['Investigative', 'Conventional'],
+    topCode: 'I-C-S',
+    topLabels: ['Investigative', 'Conventional', 'Social'],
     dimensions: resultEntries.map((entry) => ({
       code: entry.area[0],
       label: entry.area,
@@ -218,13 +218,13 @@ function questionPayload() {
 function programmeCatalogue() {
   return {
     academicYear: '2026-2027',
-    catalogueVersion: 1,
+    catalogueVersion: 2,
     programmes: [{
       id: 'bs-information-technology',
       name: 'BS Information Technology',
       code: 'BSIT',
       majors: [],
-      riasecProfile: ['I', 'C', 'R'],
+      riasecProfile: ['I', 'R', 'C'],
       description: 'Focuses on applying computing to organisational needs.',
       learningAreas: ['Software development'],
       learningAreaDescriptions: { 'Software development': 'Design, test, and maintain software applications.' },
@@ -277,19 +277,36 @@ test('completes the student assessment and opens a recommendation detail', async
   })
 
   await expect(page.getByRole('heading', { name: 'Interest assessment' })).toBeVisible()
+  await expect(page.getByRole('img', { name: 'Student working on a car' })).toBeVisible()
+  await page.getByRole('img', { name: 'Student working on a car' }).evaluate((image: HTMLImageElement) => {
+    if (image.complete) return
+    return new Promise<void>((resolve) => image.addEventListener('load', () => resolve(), { once: true }))
+  })
+  await expect(page.getByRole('navigation', { name: 'Question navigation' })).toBeInViewport()
+  await page.screenshot({ path: testInfo.outputPath('assessment-progress-desktop-or-mobile.png') })
 
   for (let index = 1; index <= 6; index += 1) {
     await expect(page.getByRole('group', { name: `Response for question ${index}` })).toBeVisible()
     await page.getByText('Agree', { exact: true }).click()
-    await page.getByRole('button', { name: index === 6 ? 'Finish assessment' : 'Next' }).click()
+    if (index === 6) {
+      await page.getByRole('button', { name: 'Finish assessment' }).click()
+    } else {
+      await expect(page.getByRole('group', { name: `Response for question ${index + 1}` })).toBeVisible()
+    }
+
+    if (index === 2) {
+      await page.getByRole('button', { name: 'Previous' }).click()
+      await expect(page.getByRole('button', { name: 'Next' })).toBeVisible()
+      await page.getByRole('button', { name: 'Next' }).click()
+    }
   }
 
   await expect(page.getByRole('heading', { name: 'All ranked matches' })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'RIASEC scores' })).toBeVisible()
   const topMatch = page.getByRole('heading', { level: 3, name: 'BS Information Technology' }).locator('xpath=ancestor::article')
   await expect(topMatch).toHaveClass(/rounded-3xl/)
-  await expect(topMatch.getByText('Recorded match')).toBeVisible()
-  await expect(topMatch.getByRole('progressbar', { name: 'BS Information Technology recorded match' })).toHaveAttribute('aria-valuenow', '90')
+  await expect(topMatch.getByText('Strong match')).toBeVisible()
+  await expect(topMatch.getByRole('progressbar', { name: 'BS Information Technology strong match' })).toHaveAttribute('aria-valuenow', '90')
   const programmeSummary = topMatch.getByText(/Focuses on applying computing/)
   expect(await programmeSummary.evaluate((element) => window.getComputedStyle(element).fontFamily)).toContain('Montserrat Alternates')
   await topMatch.screenshot({ path: testInfo.outputPath('ranked-match.png') })

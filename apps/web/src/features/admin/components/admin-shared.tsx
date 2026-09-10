@@ -15,7 +15,7 @@ function AdminPageHeader({
   action?: ReactNode;
 }) {
   return (
-    <header className="grid gap-4 py-2 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+    <header className="grid gap-3 py-1 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
       <div>
         {eyebrow && (
           <div className="flex items-center gap-3">
@@ -29,12 +29,12 @@ function AdminPageHeader({
           </div>
         )}
         <h1
-          className={`font-display font-bold tracking-tight ${eyebrow ? "mt-3 text-3xl sm:text-4xl" : "text-2xl sm:text-3xl"}`}
+          className={`font-display font-bold tracking-tight ${eyebrow ? "mt-2 text-2xl sm:text-3xl" : "text-xl sm:text-2xl"}`}
         >
           {title}
         </h1>
         {description && (
-          <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
+          <p className="mt-1.5 max-w-3xl text-xs leading-5 text-muted-foreground">
             {description}
           </p>
         )}
@@ -73,12 +73,12 @@ function AdminPageError({
   return (
     <section
       role="alert"
-      className="flex min-h-72 flex-col items-center justify-center rounded-3xl border border-border bg-card px-6 text-center shadow-[var(--shadow-card)]"
+      className="flex min-h-64 flex-col items-center justify-center rounded-xs border border-border bg-card px-5 text-center shadow-sm"
     >
-      <span className="flex size-12 items-center justify-center rounded-lg bg-destructive/10 text-destructive-ink">
+      <span className="flex size-11 items-center justify-center rounded-xs bg-destructive/10 text-destructive-ink">
         <AlertCircle aria-hidden="true" />
       </span>
-      <h1 className="mt-4 font-display text-2xl font-semibold">
+      <h1 className="mt-3 font-display text-xl font-semibold">
         Unable to load this workspace
       </h1>
       <p className="mt-2 max-w-lg text-sm text-muted-foreground">{message}</p>
@@ -97,8 +97,8 @@ function EmptyPanel({
   description: string;
 }) {
   return (
-    <div className="flex min-h-48 flex-col items-center justify-center rounded-3xl border border-border bg-card px-6 text-center shadow-[var(--shadow-card)]">
-      <h2 className="font-display text-xl font-semibold">{title}</h2>
+    <div className="flex min-h-40 flex-col items-center justify-center rounded-xs border border-border bg-card px-5 text-center shadow-sm">
+      <h2 className="font-display text-lg font-semibold">{title}</h2>
       <p className="mt-2 max-w-xl text-sm text-muted-foreground">
         {description}
       </p>

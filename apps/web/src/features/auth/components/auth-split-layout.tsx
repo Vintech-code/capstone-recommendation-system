@@ -21,7 +21,7 @@ function AuthSplitLayout({ children }: AuthSplitLayoutProps) {
       />
 
       <section className="relative z-10 flex min-h-svh w-full items-center justify-center px-4 py-8 sm:px-8 lg:ml-auto lg:w-[46%] lg:min-w-[34rem] lg:px-12">
-        <div className="w-full max-w-[34rem] rounded-t-none rounded-b-[1.75rem] border border-border bg-card px-6 py-7 shadow-[var(--shadow-overlay)] sm:px-9 sm:py-9 lg:px-10">
+        <div className="w-full max-w-[34rem] rounded-t-none rounded-b-[1.75rem] border border-border bg-card px-6 py-7 shadow-sm sm:px-9 sm:py-9 lg:px-10">
           <div className="-mb-2 flex justify-center">
             <img
               src={logo}

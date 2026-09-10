@@ -233,7 +233,7 @@ function StudentRecommendationDetailPage({
               </div>
             </div>
             {course.learningAreas.length > 0 ? (
-              <ol className="divide-y divide-border/60 rounded-2xl border border-border/70 bg-card/60 overflow-hidden shadow-xs">
+              <ol className="overflow-hidden rounded-2xl border border-border/70 bg-card/60 shadow-sm divide-y divide-border/60">
                 {course.learningAreas.map((area, index) => (
                   <li
                     key={area}
@@ -277,7 +277,7 @@ function StudentRecommendationDetailPage({
               </div>
             </div>
             {fitReasons.length > 0 ? (
-              <ol className="divide-y divide-border/60 rounded-2xl border border-border/70 bg-card/60 overflow-hidden shadow-xs">
+              <ol className="overflow-hidden rounded-2xl border border-border/70 bg-card/60 shadow-sm divide-y divide-border/60">
                 {fitReasons.map((reason, index) => (
                   <li
                     key={`${reason}-${index}`}

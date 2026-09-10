@@ -47,7 +47,7 @@ function CareerDirectionsSection({
           </div>
           <ul className="space-y-3">
             {opportunities.map((opportunity) => (
-              <li key={opportunity.escoUri} className="rounded-2xl border border-border bg-card p-4 shadow-xs">
+              <li key={opportunity.escoUri} className="rounded-2xl border border-border bg-card p-4 shadow-sm">
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <h3 className="font-display text-base font-bold text-foreground">{opportunity.label}</h3>
                   <span className="rounded-full bg-info-soft px-2.5 py-1 font-label text-[11px] font-bold text-info-ink">External reference</span>

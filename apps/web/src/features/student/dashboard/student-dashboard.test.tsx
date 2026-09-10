@@ -24,7 +24,7 @@ describe('Student dashboard', () => {
         return Response.json({ data: { status: 'not_available', recommendation: null } })
       }
       if (url === '/api/v1/student/programmes') {
-        return Response.json({ data: { academicYear: '2026-2027', catalogueVersion: 1, programmes: [{ id: 'bs-information-technology', name: 'BS Information Technology', code: 'BSIT', majors: [], riasecProfile: ['I', 'C', 'R'], description: 'Technology programme', learningAreas: ['Software development'], requirements: ['Meet published admission requirements.'], readinessPrompt: 'Discuss your interest in technology.' }] } })
+        return Response.json({ data: { academicYear: '2026-2027', catalogueVersion: 2, programmes: [{ id: 'bs-information-technology', name: 'BS Information Technology', code: 'BSIT', majors: [], riasecProfile: ['I', 'R', 'C'], description: 'Technology programme', learningAreas: ['Software development'], requirements: ['Meet published admission requirements.'], readinessPrompt: 'Discuss your interest in technology.' }] } })
       }
       if (url === '/api/v1/student/assessments/riasec/history') {
         return Response.json({
@@ -45,7 +45,7 @@ describe('Student dashboard', () => {
       screen.getByRole('heading', { level: 1, name: 'Dashboard' }),
     ).toBeVisible()
     expect(await screen.findByRole('heading', { name: /Your strongest interests are/ })).toBeVisible()
-    expect(screen.getAllByText('I-C')[0]).toBeVisible()
+    expect(screen.getAllByText('I-C-S')[0]).toBeVisible()
     expect(screen.getByText('Realistic')).toBeVisible()
     expect(screen.queryAllByRole('progressbar')).toHaveLength(0)
     expect(screen.getByText('No recommendations yet')).toBeVisible()
@@ -141,8 +141,8 @@ describe('Student dashboard', () => {
     render(<StudentDashboardPage onSelectModule={onSelectModule} initialLifecycle={testAssessmentLifecycle} initialRecommendations={{ status: 'available', recommendation: testRecommendationSnapshot }} />)
 
     expect(screen.getByRole('heading', { level: 1, name: 'Your journey. Your future.' })).toBeVisible()
-    expect(screen.getByText('Explore programmes connected to Investigative and Conventional interests, then compare your strongest matches.')).toBeVisible()
-    expect(screen.getByRole('button', { name: 'Explore your matches' })).not.toHaveClass('rounded-full')
+    expect(screen.getByText('Explore programmes connected to Investigative, Conventional, and Social interests, then compare your strongest matches.')).toBeVisible()
+    expect(screen.getByRole('button', { name: 'Explore your matches' })).toHaveClass('rounded-xl')
     expect(screen.getByRole('heading', { name: 'Keep moving forward' })).toBeVisible()
     expect(screen.getByRole('progressbar', { name: 'Academic journey progress' })).toHaveAttribute('aria-valuenow', '100')
     expect(screen.queryByRole('heading', { name: 'Your result is available' })).not.toBeInTheDocument()
@@ -152,7 +152,7 @@ describe('Student dashboard', () => {
     expect(onSelectModule).toHaveBeenCalledWith('assessment')
     await user.click(screen.getByRole('button', { name: 'Assessment history' }))
     expect(onSelectModule).toHaveBeenCalledWith('history')
-    expect(screen.getByText('Your highest recorded areas are Investigative and Conventional.')).toBeVisible()
+    expect(screen.getByText('Your highest recorded areas are Investigative, Conventional, and Social.')).toBeVisible()
     expect(screen.getByLabelText('Primary recorded interest')).toBeInTheDocument()
     expect(document.querySelector('.lucide-eye')).toBeInTheDocument()
     expect(document.querySelector('.lucide-paintbrush')).toBeInTheDocument()
@@ -287,7 +287,7 @@ describe('Student dashboard', () => {
     render(<StudentDashboardPage onSelectModule={vi.fn()} />)
 
     expect(await screen.findByRole('heading', { name: 'Finalizing your submission' })).toBeVisible()
-    expect(screen.getByRole('heading', { name: 'Investigative and Conventional' })).toBeVisible()
+    expect(screen.getByRole('heading', { name: 'Investigative, Conventional, and Social' })).toBeVisible()
     expect(screen.getByText('Test Course')).toBeVisible()
   })
 

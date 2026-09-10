@@ -22,7 +22,7 @@ function PopoverContent({
         sideOffset={sideOffset}
         collisionPadding={collisionPadding}
         className={cn(
-          'z-50 rounded-2xl bg-background text-foreground shadow-xl outline-none',
+          'z-50 rounded-2xl border border-border bg-background text-foreground shadow-sm outline-none',
           'data-[state=open]:animate-in data-[state=closed]:animate-out motion-reduce:transition-none',
           className,
         )}

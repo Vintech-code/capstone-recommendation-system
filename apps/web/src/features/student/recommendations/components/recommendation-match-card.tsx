@@ -34,7 +34,7 @@ function RecommendationMatchCard({
       className={cn(
         "group relative overflow-hidden bg-card transition-shadow",
         highlightStyle
-          ? "rounded-3xl border border-border shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-card-hover)]"
+          ? "rounded-3xl border border-border shadow-sm"
           : "border-b border-border",
       )}
     >

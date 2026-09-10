@@ -30,21 +30,25 @@ function contrastRatio(first: string, second: string) {
 }
 
 describe('application visual system', () => {
-  it('uses the approved light-green-primary pastel palette', () => {
+  it('uses the approved no-blue minimalist clay palette', () => {
     const rootTheme = stylesheet.match(/:root\s*\{([\s\S]*?)\n\}/)?.[1]
     const normalizedRootTheme = rootTheme?.toLowerCase()
 
     expect(rootTheme).toBeDefined()
-    expect(normalizedRootTheme).toContain('--background: rgb(255, 254, 249);')
-    expect(normalizedRootTheme).toContain('--foreground: #40534a;')
-    expect(normalizedRootTheme).toContain('--primary: #51b885;')
-    expect(normalizedRootTheme).toContain('--primary-ink: #3f7d57;')
-    expect(normalizedRootTheme).toContain('--brand-green: #8ad3a2;')
+    expect(normalizedRootTheme).toContain('--background: #f7faf2;')
+    expect(normalizedRootTheme).toContain('--foreground: #34402d;')
+    expect(normalizedRootTheme).toContain('--primary: #7ed321;')
+    expect(normalizedRootTheme).toContain('--primary-ink: #3b700b;')
+    expect(normalizedRootTheme).toContain('--brand-green: #7ed321;')
     expect(normalizedRootTheme).toContain('--chart-coral: #e58b91;')
-    expect(normalizedRootTheme).toContain('--riasec-s: #69b98a;')
-    expect(normalizedRootTheme).toContain('--riasec-c: #79b4dc;')
+    expect(normalizedRootTheme).toContain('--riasec-s: #7ed321;')
+    expect(normalizedRootTheme).toContain('--riasec-i: #9b86d4;')
+    expect(normalizedRootTheme).toContain('--riasec-c: #8e9a73;')
     expect(normalizedRootTheme).toContain('--secondary-container: #f4b740;')
-    expect(normalizedRootTheme).toContain('--border: #dce7df;')
+    expect(normalizedRootTheme).toContain('--border: #dce7d4;')
+    expect(normalizedRootTheme).not.toContain('--chart-blue:')
+    expect(normalizedRootTheme).not.toContain('#79b4dc')
+    expect(normalizedRootTheme).not.toContain('#82a7e8')
     expect(normalizedRootTheme).not.toContain('#2563eb')
     expect(normalizedRootTheme).not.toContain('#2e7d4f')
     expect(normalizedRootTheme).not.toContain('#9a6700')
@@ -54,19 +58,21 @@ describe('application visual system', () => {
     expect(stylesheet).toContain('@import "@fontsource/montserrat-alternates/latin-400.css"')
     expect(stylesheet).toContain('@import "@fontsource/montserrat-alternates/latin-700.css"')
     expect(stylesheet).toContain('--font-sans: "Montserrat Alternates"')
-    expect(stylesheet).toContain('--font-display: "Nunito Sans Variable", "Nunito Sans"')
+    expect(stylesheet).toMatch(
+      /--font-display:\s*"Nunito Sans Variable", "Nunito Sans"/,
+    )
     expect(stylesheet).toContain('--font-label: "Montserrat Alternates"')
     expect(stylesheet).not.toContain('"Montserrat Variable"')
   })
 
   it('keeps core text and solid semantic controls at WCAG AA contrast', () => {
     const colorPairs = [
-      ['#40534a', '#fffef9'],
-      ['#5f7369', '#fffef9'],
-      ['#1f392b', '#51b885'],
-      ['#3f7d57', '#fffef9'],
-      ['#1f3d2c', '#69b98a'],
-      ['#203b4d', '#79b4dc'],
+      ['#34402d', '#f7faf2'],
+      ['#65705f', '#f7faf2'],
+      ['#20340f', '#7ed321'],
+      ['#3b700b', '#f7faf2'],
+      ['#20340f', '#7ed321'],
+      ['#4b2539', '#d889ae'],
       ['#51272b', '#e58b91'],
       ['#4b3a12', '#e2b34f'],
     ]

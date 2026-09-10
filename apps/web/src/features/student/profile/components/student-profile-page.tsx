@@ -252,7 +252,7 @@ function StudentProfilePage({ onBack }: { onBack: () => void }) {
             type="button"
             onClick={save}
             disabled={saving || !personalAcademicComplete || !learningComplete}
-            className="h-10 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-5 gap-2 shadow-xs cursor-pointer disabled:opacity-50 transition-colors text-sm"
+            className="h-10 rounded-full bg-primary px-5 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 disabled:opacity-50"
           >
             {saving ? (
               <>
@@ -274,8 +274,8 @@ function StudentProfilePage({ onBack }: { onBack: () => void }) {
           </Alert>
         ) : null}
         {success ? (
-          <Alert className="rounded-xl border-emerald-500/30 bg-emerald-500/10 text-emerald-800 dark:text-emerald-300">
-            <Check aria-hidden="true" className="size-4 text-emerald-600 dark:text-emerald-400" />
+          <Alert className="rounded-xl border-primary/30 bg-primary/10 text-primary-ink">
+            <Check aria-hidden="true" className="size-4 text-primary-ink" />
             <AlertTitle className="text-foreground font-bold">Profile updated</AlertTitle>
             <AlertDescription className="text-muted-foreground">{success}</AlertDescription>
           </Alert>
@@ -284,7 +284,7 @@ function StudentProfilePage({ onBack }: { onBack: () => void }) {
         {/* Main Form Container Card */}
         <section
           aria-labelledby="profile-editor-title"
-          className="rounded-2xl border border-border/80 bg-card p-6 sm:p-10 shadow-[var(--shadow-card)]"
+          className="rounded-2xl border border-border/80 bg-card p-6 shadow-sm sm:p-10"
         >
           {/* Card Top Navigation: Tabs & Cancel */}
           <div className="flex items-center justify-between border-b border-border/80 pb-3 mb-8">
@@ -295,7 +295,7 @@ function StudentProfilePage({ onBack }: { onBack: () => void }) {
                 className={cn(
                   'flex items-center gap-2 py-2 px-3 text-xs sm:text-sm font-semibold border-b-2 transition-colors cursor-pointer',
                   activeTab === 'personal-academic'
-                    ? 'border-emerald-600 text-emerald-700 dark:text-emerald-400'
+                    ? 'border-primary text-primary-ink'
                     : 'border-transparent text-muted-foreground hover:text-foreground',
                 )}
               >
@@ -308,7 +308,7 @@ function StudentProfilePage({ onBack }: { onBack: () => void }) {
                 className={cn(
                   'flex items-center gap-2 py-2 px-3 text-xs sm:text-sm font-semibold border-b-2 transition-colors cursor-pointer',
                   activeTab === 'learning'
-                    ? 'border-emerald-600 text-emerald-700 dark:text-emerald-400'
+                    ? 'border-primary text-primary-ink'
                     : 'border-transparent text-muted-foreground hover:text-foreground',
                 )}
               >
@@ -344,7 +344,7 @@ function StudentProfilePage({ onBack }: { onBack: () => void }) {
                   {/* Avatar & Name */}
                   <div className="flex flex-col items-center sm:items-start lg:items-center pb-2">
                     <div className="relative group shrink-0">
-                      <div className="size-24 sm:size-28 rounded-full overflow-hidden border-2 border-border/80 bg-muted/40 flex items-center justify-center font-display text-2xl sm:text-3xl font-bold text-foreground shadow-2xs">
+                      <div className="flex size-24 items-center justify-center overflow-hidden rounded-full border-2 border-border/80 bg-muted/40 font-display text-2xl font-bold text-foreground shadow-sm sm:size-28 sm:text-3xl">
                         {profile.student.photoUrl ? (
                           <img
                             src={profile.student.photoUrl}
@@ -359,7 +359,7 @@ function StudentProfilePage({ onBack }: { onBack: () => void }) {
                         type="button"
                         onClick={() => photoInput.current?.click()}
                         disabled={uploading}
-                        className="absolute bottom-0 right-0 flex size-8 items-center justify-center rounded-full bg-card border border-border/80 text-foreground shadow-xs hover:bg-muted transition-transform active:scale-95 cursor-pointer disabled:opacity-50"
+                        className="absolute bottom-0 right-0 flex size-8 items-center justify-center rounded-full border border-border/80 bg-card text-foreground shadow-sm transition-colors hover:bg-muted disabled:opacity-50"
                         title="Change profile photo"
                         aria-label="Choose profile photo"
                       >
@@ -387,7 +387,7 @@ function StudentProfilePage({ onBack }: { onBack: () => void }) {
                         {profile.student.name}
                       </h1>
                       <div className="mt-1 flex flex-wrap items-center justify-center sm:justify-start lg:justify-center gap-2 text-xs">
-                        <span className="inline-flex items-center gap-1 rounded-md bg-emerald-500/10 px-2 py-0.5 font-semibold text-emerald-700 dark:text-emerald-400">
+                        <span className="inline-flex items-center gap-1 rounded-md bg-primary/10 px-2 py-0.5 font-semibold text-primary-ink">
                           <BadgeCheck className="size-3.5" /> Student Applicant
                         </span>
                         <span className="text-muted-foreground">Tagoloan Community College</span>
@@ -600,7 +600,7 @@ function StudentProfilePage({ onBack }: { onBack: () => void }) {
                         Holland RIASEC Profile
                       </span>
                       {profile.riasec?.code ? (
-                        <span className="rounded-md bg-emerald-500/10 px-2.5 py-0.5 font-mono text-xs font-bold text-emerald-700 dark:text-emerald-400">
+                        <span className="rounded-md bg-primary/10 px-2.5 py-0.5 font-mono text-xs font-bold text-primary-ink">
                           Code: {profile.riasec.code}
                         </span>
                       ) : (
@@ -682,7 +682,7 @@ function StudentProfilePage({ onBack }: { onBack: () => void }) {
                     type="button"
                     onClick={save}
                     disabled={saving || !learningComplete}
-                    className="h-10 rounded-xs bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-5 gap-2 cursor-pointer disabled:opacity-50 text-xs sm:text-sm"
+                    className="h-10 rounded-xl bg-primary px-5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50 sm:text-sm"
                   >
                     {saving ? (
                       <>
@@ -735,12 +735,12 @@ function ChoiceGroup({
               className={cn(
                 'inline-flex min-h-9 items-center rounded-xs border px-3 py-1.5 text-xs sm:text-sm font-medium transition-all active:scale-95 cursor-pointer',
                 active
-                  ? 'border-emerald-600 bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 font-semibold shadow-2xs'
+                  ? 'border-primary bg-primary/10 font-semibold text-primary-ink shadow-sm'
                   : 'border-border/80 bg-card text-foreground/80 hover:border-border hover:bg-muted/40',
               )}
             >
               {active ? (
-                <Check aria-hidden="true" className="mr-1.5 size-3.5 text-emerald-600 dark:text-emerald-400" />
+                <Check aria-hidden="true" className="mr-1.5 size-3.5 text-primary-ink" />
               ) : null}
               {value}
             </button>

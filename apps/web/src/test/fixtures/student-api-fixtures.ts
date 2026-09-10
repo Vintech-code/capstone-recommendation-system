@@ -28,7 +28,7 @@ const testRecommendationSnapshot: StudentRecommendationSnapshot = {
   id: 'TEST-REC-001', generatedAt: 'Aug 7, 2026', assessmentResultReference: 'TEST-SESSION-001', catalogueReference: 'TEST-CATALOGUE', ruleReference: 'TEST-RULE', status: 'Available',
   defaultCount: 3, totalEligible: 1, canViewAll: false, showingAll: false,
   profile: {
-    sessionReference: 'TEST-SESSION-001', availableAt: '2026-08-07T00:00:00Z', topCode: 'I-C', topLabels: ['Investigative', 'Conventional'],
+    sessionReference: 'TEST-SESSION-001', availableAt: '2026-08-07T00:00:00Z', topCode: 'I-C-S', topLabels: ['Investigative', 'Conventional', 'Social'],
     dimensions: [
       { code: 'R', label: 'Realistic', value: 15, minimum: 5, maximum: 25 }, { code: 'I', label: 'Investigative', value: 19, minimum: 5, maximum: 25 },
       { code: 'A', label: 'Artistic', value: 15, minimum: 5, maximum: 25 }, { code: 'S', label: 'Social', value: 18, minimum: 5, maximum: 25 },
@@ -50,7 +50,7 @@ const testRecommendationSnapshot: StudentRecommendationSnapshot = {
   },
   courses: [{
     id: 'test-course', rank: 1, code: 'TEST', name: 'Test Course', department: 'Test Department', duration: '4 years', level: 'Undergraduate', degreeType: "Bachelor's degree", match: 90, eligibility: 'Eligible', summary: '', factors: [], interestAreas: ['I', 'C'], learningAreas: ['Software development'], careerDirections: [], reviewNotes: [],
-    explanation: { assessmentReference: 'TEST-SESSION-001', recordedProfileCode: 'I-C', programmeInterestAreas: ['I', 'C'], sharedTopAreas: [{ code: 'I', label: 'Investigative', score: 19 }, { code: 'C', label: 'Conventional', score: 19 }], recordedProgrammeAreas: [{ code: 'I', label: 'Investigative', score: 19 }, { code: 'C', label: 'Conventional', score: 19 }], learningAreas: ['Software development'] },
+    explanation: { assessmentReference: 'TEST-SESSION-001', recordedProfileCode: 'I-C-S', programmeInterestAreas: ['I', 'C'], sharedTopAreas: [{ code: 'I', label: 'Investigative', score: 19 }, { code: 'C', label: 'Conventional', score: 19 }], recordedProgrammeAreas: [{ code: 'I', label: 'Investigative', score: 19 }, { code: 'C', label: 'Conventional', score: 19 }], learningAreas: ['Software development'] },
     durationSource: { status: 'ched_psg', display: '4 years', source_name: 'CHED programme standard', source_url: 'https://ched.gov.ph/issuances/' },
     salary: { status: 'not_published', display: 'Not published', source_name: 'Philippine Statistics Authority', source_url: 'https://psa.gov.ph/statistics/occupational-wages-survey' },
     jobGrowth: { status: 'not_published', display: 'Not published', source_name: 'Philippine Statistics Authority OpenSTAT', source_url: 'https://openstat.psa.gov.ph/' },

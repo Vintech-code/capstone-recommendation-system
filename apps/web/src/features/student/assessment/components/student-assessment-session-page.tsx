@@ -66,6 +66,7 @@ interface StudentAssessmentSessionPageProps {
 }
 
 const storageKey = "tcc-guidance:student-assessment-session";
+const autoAdvanceDelayMs = 260;
 
 function readStoredAnswers(): Record<string, AssessmentResponseValue> {
   try {
@@ -233,12 +234,12 @@ function StudentAssessmentSessionPage({
     nextAnswers: Record<string, AssessmentResponseValue>,
     locally = connectionState === "offline",
     currentQuestion = currentIndex + 1,
-  ) {
+  ): Promise<boolean> {
     try {
       window.localStorage.setItem(storageKey, JSON.stringify(nextAnswers));
       if (locally || !remotePersistence || !sessionId) {
         setSaveState(locally ? "saved-locally" : "saved");
-        return;
+        return true;
       }
 
       const serverAnswers = Object.fromEntries(
@@ -255,8 +256,10 @@ function StudentAssessmentSessionPage({
       saveQueue.current = saveRequest.catch(() => undefined);
       await saveRequest;
       setSaveState("saved");
+      return true;
     } catch {
       setSaveState(remotePersistence ? "saved-locally" : "unsaved");
+      return false;
     }
   }
 
@@ -274,7 +277,7 @@ function StudentAssessmentSessionPage({
     if (currentIndex < content.questions.length - 1) {
       window.setTimeout(() => {
         setCurrentIndex((index) => index + 1);
-      }, 150);
+      }, autoAdvanceDelayMs);
     }
   }
 
@@ -285,7 +288,10 @@ function StudentAssessmentSessionPage({
     setView("submitting");
     try {
       if (remotePersistence && sessionId) {
-        await persistAnswers(answers);
+        const saved = await persistAnswers(answers);
+        if (!saved) {
+          throw new Error("Assessment answers could not be saved.");
+        }
         let submitted = await submitAssessmentSession(sessionId);
         if (submitted.status === "result_failed") {
           submitted = await retryAssessmentResult(sessionId);
@@ -473,12 +479,14 @@ function StudentAssessmentSessionPage({
       <h1 className="sr-only">Interest assessment</h1>
 
       {view === "questions" ? (
-        <div className="student-page w-full max-w-4xl pt-6 sm:pt-8">
-          <AssessmentProgressPanel
-            answeredCount={answeredCount}
-            currentQuestion={currentIndex + 1}
-            totalQuestions={content.questions.length}
-          />
+        <div className="sticky top-0 z-20 border-b border-border/70 bg-background sm:top-[4.5rem]">
+          <div className="student-page w-full max-w-4xl px-4 sm:px-6">
+            <AssessmentProgressPanel
+              answeredCount={answeredCount}
+              currentQuestion={currentIndex + 1}
+              totalQuestions={content.questions.length}
+            />
+          </div>
         </div>
       ) : null}
 
@@ -525,15 +533,15 @@ function StudentAssessmentSessionPage({
       {view === "questions" ? (
         <nav
           aria-label="Question navigation"
-          className="mt-auto bg-secondary/80"
+          className="sticky bottom-0 z-20 mt-auto border-t border-border/70 bg-background"
         >
-          <div className="student-page flex w-full max-w-4xl items-center justify-between py-4">
+          <div className="student-page flex w-full max-w-4xl items-center justify-between py-3">
             <Button
               type="button"
-              variant="outline"
+              variant="clay"
               disabled={currentIndex === 0}
               onClick={() => setCurrentIndex((index) => index - 1)}
-              className="bg-card"
+              className="px-5 font-semibold text-foreground"
             >
               <ArrowLeft aria-hidden="true" />
               Previous
@@ -543,11 +551,24 @@ function StudentAssessmentSessionPage({
               {saveStatus.label}
             </span>
 
-            {currentIndex === content.questions.length - 1 ? (
+            {currentIndex < content.questions.length - 1 &&
+            answers[question.id] ? (
               <Button
                 type="button"
+                variant="clay"
+                onClick={() => setCurrentIndex((index) => index + 1)}
+                className="px-6 font-bold text-primary-ink"
+              >
+                Next
+                <ArrowRight aria-hidden="true" />
+              </Button>
+            ) : currentIndex === content.questions.length - 1 ? (
+              <Button
+                type="button"
+                variant="clay"
                 disabled={!answers[question.id]}
                 onClick={() => void submitAssessment()}
+                className="px-6 font-bold text-primary-ink"
               >
                 Finish assessment
                 <ArrowRight aria-hidden="true" />
@@ -573,6 +594,13 @@ async function waitForAssessmentResult(): Promise<AssessmentLifecycle> {
   }
 
   return lifecycle;
+}
+
+function formatEntranceScoreInput(value: string, decimalPlaces: number) {
+  const digits = value.replace(/\D/g, "").slice(0, 1 + decimalPlaces);
+  if (digits.length <= 1) return digits;
+
+  return `${digits.slice(0, 1)}.${digits.slice(1)}`;
 }
 
 function EntranceExaminationGate({
@@ -625,7 +653,7 @@ function EntranceExaminationGate({
       {/* CENTER CARD CONTAINER */}
       <div className="mx-auto my-auto flex w-full max-w-md flex-col items-center">
         {/* CENTER MAIN CARD */}
-        <div className="w-full rounded-3xl border border-border bg-card p-6 text-center shadow-[var(--shadow-card)] sm:p-8">
+        <div className="w-full rounded-3xl border border-border bg-card p-6 text-center shadow-sm sm:p-8">
           {/* Top Circle Icon */}
           <div className="mx-auto mb-3 flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary-ink">
             <GraduationCap aria-hidden="true" className="size-6" />
@@ -667,14 +695,19 @@ function EntranceExaminationGate({
               />
               <Input
                 id="entrance-examination-score"
-                type="number"
+                type="text"
                 inputMode="decimal"
                 min={examination.policy.minimum}
                 max={examination.policy.maximum}
                 step="0.1"
                 value={score}
                 onChange={(event) => {
-                  setScore(event.target.value);
+                  setScore(
+                    formatEntranceScoreInput(
+                      event.target.value,
+                      examination.policy.decimalPlaces,
+                    ),
+                  );
                   setError(null);
                 }}
                 aria-describedby="entrance-result-help entrance-result-preview"
@@ -699,7 +732,8 @@ function EntranceExaminationGate({
 
             <Button
               type="submit"
-              className="mt-6 flex h-14 w-full items-center justify-center gap-2.5 rounded-2xl bg-primary text-base font-semibold text-primary-foreground shadow-md transition-colors hover:bg-brand-dark"
+              variant="clay"
+              className="mt-6 flex h-14 w-full items-center justify-center gap-2.5 text-base font-bold text-primary-ink"
               disabled={submitting}
               aria-busy={submitting}
             >
@@ -754,7 +788,7 @@ function CompletedAssessmentState({
 
         <section
           aria-labelledby="assessment-complete-title"
-          className="mt-6 overflow-hidden rounded-3xl border border-border bg-card shadow-[var(--shadow-card)]"
+          className="mt-6 overflow-hidden rounded-3xl border border-border bg-card shadow-sm"
         >
           <div className="flex flex-col justify-center p-7 sm:p-10 lg:p-12">
             <span className="flex size-11 items-center justify-center rounded bg-success/15 text-success-ink">
@@ -782,15 +816,21 @@ function CompletedAssessmentState({
               </Alert>
             ) : null}
 
-            <div className="mt-7 flex flex-wrap gap-2">
-              <Button type="button" onClick={onViewResult}>
+            <div className="mt-7 flex flex-wrap gap-3">
+              <Button
+                type="button"
+                variant="clay"
+                onClick={onViewResult}
+                className="font-semibold text-primary-ink"
+              >
                 View assessment result <ArrowRight aria-hidden="true" />
               </Button>
               {onViewMatches ? (
                 <Button
                   type="button"
-                  variant="secondary"
+                  variant="clay"
                   onClick={onViewMatches}
+                  className="font-semibold text-primary-ink"
                 >
                   View course matches <Compass aria-hidden="true" />
                 </Button>

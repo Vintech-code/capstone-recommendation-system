@@ -62,7 +62,7 @@ export function AdminReportsPage() {
       : 0;
 
   return (
-    <div className="mx-auto w-full max-w-[1500px] space-y-8" data-report-print>
+    <div className="mx-auto w-full max-w-[1500px] space-y-5" data-report-print>
       <AdminPageHeader
         title="System reports"
         action={
@@ -156,7 +156,7 @@ export function AdminReportsPage() {
 
       {/* Primary Analytics Row: Completion Trend & Assessment Pipeline */}
       <div className="grid overflow-hidden border-y border-border lg:grid-cols-[minmax(0,1.55fr)_minmax(20rem,.65fr)]">
-        <div className="py-7 lg:border-r lg:border-border lg:pr-8">
+        <div className="py-5 lg:border-r lg:border-border lg:pr-6">
           <SectionHeading
             eyebrow="Completion history"
             title="Results over time"
@@ -165,14 +165,14 @@ export function AdminReportsPage() {
           <CompletionTrend items={data.assessmentCompletionsByMonth} />
         </div>
 
-        <div className="py-7 lg:pl-8">
+        <div className="py-5 lg:pl-6">
           <SectionHeading
             eyebrow="Current progress"
             title="Assessment status"
             description="Progression of started assessments through recorded lifecycle stages."
             compact
           />
-          <div className="mt-6 flex items-center gap-6 border-b border-border pb-6">
+          <div className="mt-4 flex items-center gap-4 border-b border-border pb-4">
             <ProgressRing
               value={completionRate}
               label="Assessment completion"
@@ -181,7 +181,7 @@ export function AdminReportsPage() {
               <p className="font-label text-xs font-bold uppercase tracking-[0.14em] text-muted-foreground">
                 Results available
               </p>
-              <strong className="mt-1 block font-display text-4xl font-black">
+              <strong className="mt-1 block font-display text-3xl font-black">
                 {data.assessmentFunnel.resultAvailable}
               </strong>
               <p className="mt-1 text-sm text-muted-foreground">
@@ -261,7 +261,7 @@ function SectionHeading({
       </p>
       <h2
         id={id}
-        className={`mt-1 font-display font-extrabold tracking-tight ${compact ? "text-2xl" : "text-3xl"}`}
+        className={`mt-1 font-display font-extrabold tracking-tight ${compact ? "text-lg" : "text-xl"}`}
       >
         {title}
       </h2>
@@ -286,7 +286,7 @@ function ReportMetricCell({
   tone?: "warning" | "success";
 }) {
   return (
-    <div className="relative px-5 py-6 sm:border-r sm:border-border sm:last:border-r-0">
+    <div className="relative px-4 py-4 sm:border-r sm:border-border sm:last:border-r-0">
       <span
         className={`absolute inset-y-5 left-0 w-1 rounded-full ${
           tone === "warning"
@@ -300,7 +300,7 @@ function ReportMetricCell({
         {label}
       </p>
       <div className="mt-2 flex items-end gap-3">
-        <strong className="font-display text-4xl font-black">{value}</strong>
+        <strong className="font-display text-3xl font-black">{value}</strong>
         <span className="pb-1 text-xs text-muted-foreground">{detail}</span>
       </div>
     </div>
@@ -470,7 +470,7 @@ function EligibilityChart({
   return (
     <div className="mt-7">
       <div
-        className="flex h-10 overflow-hidden rounded-md bg-secondary"
+        className="flex h-10 overflow-hidden rounded-xs bg-secondary"
         role="img"
         aria-label={`Board eligible: ${board}, non-board eligible: ${nonBoard}`}
       >

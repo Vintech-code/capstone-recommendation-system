@@ -30,7 +30,7 @@ function RecommendationProfilePanel({
       <aside
         style={{ alignSelf: "start" }}
         className={cn(
-          "self-start rounded-3xl border border-border bg-card p-6 shadow-[var(--shadow-card)]",
+          "self-start rounded-3xl border border-border bg-card p-6 shadow-sm",
           className,
         )}
         aria-label="Interest profile unavailable"
@@ -50,7 +50,7 @@ function RecommendationProfilePanel({
     <aside
       style={{ alignSelf: "start" }}
       className={cn(
-        "self-start rounded-3xl border border-border bg-card p-6 shadow-[var(--shadow-card)] sm:p-8 w-full",
+        "self-start w-full rounded-3xl border border-border bg-card p-6 shadow-sm sm:p-8",
         className,
       )}
       aria-labelledby="profile-breakdown-title"
@@ -122,7 +122,7 @@ function RecommendationProfilePanel({
           Recorded pattern
         </p>
         <p className="mt-2 text-sm font-medium leading-6 text-foreground sm:text-base sm:leading-7">
-          <strong>{result.topCode}</strong> represents the two categories stored
+          <strong>{result.topCode}</strong> represents the three categories stored
           as your leading areas. Programme matching compares the recorded RIASEC
           scores with each programme's configured profile.
         </p>

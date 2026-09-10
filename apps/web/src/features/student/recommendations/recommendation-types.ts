@@ -90,6 +90,16 @@ interface StudentRecommendationSnapshot {
   defaultCount: number
   totalEligible: number
   totalRanked?: number
+  pendingProgrammes?: Array<{
+    id: string
+    code: string
+    name: string
+    status: 'classification_pending'
+    reason: 'PROFILE_UNAVAILABLE'
+    profileStatus: string
+    profileVersion: string
+    notice: string
+  }>
   canViewAll: boolean
   showingAll: boolean
   guidanceContentStatus?: 'proposed'

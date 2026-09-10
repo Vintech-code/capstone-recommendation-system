@@ -104,7 +104,7 @@ export function AdminDashboardPage({ onNavigate }: NavigateProps) {
     : 0;
 
   return (
-    <div className="mx-auto w-full max-w-[1500px] space-y-8">
+    <div className="mx-auto w-full min-w-0 max-w-[1500px] space-y-5">
       <AdminPageHeader
         title="System overview"
         action={
@@ -148,7 +148,7 @@ export function AdminDashboardPage({ onNavigate }: NavigateProps) {
         className="grid overflow-hidden border-y border-border lg:grid-cols-[minmax(0,1.65fr)_minmax(18rem,.65fr)]"
       >
         {/* Left: Recommendation Overview / Student Journey AreaChart */}
-        <div className="py-7 lg:border-r lg:border-border lg:pr-8">
+        <div className="py-5 lg:border-r lg:border-border lg:pr-6">
           <SectionHeading
             id="funnel-heading"
             eyebrow="Assessment movement"
@@ -156,10 +156,10 @@ export function AdminDashboardPage({ onNavigate }: NavigateProps) {
             description="Recommendation overview and verified Student counts at each recorded stage."
           />
 
-          <div className="mt-6" role="img" aria-label={accessibleFunnelLabel}>
+          <div className="mt-4" role="img" aria-label={accessibleFunnelLabel}>
             <ChartContainer
               config={journeyChartConfig}
-              className="aspect-auto h-[240px] w-full"
+              className="aspect-auto h-[220px] w-full"
             >
               <AreaChart
                 data={chartData}
@@ -236,7 +236,7 @@ export function AdminDashboardPage({ onNavigate }: NavigateProps) {
         </div>
 
         {/* Right: Top Recommended Programmes */}
-        <div className="py-7 lg:pl-8">
+        <div className="py-5 lg:pl-6">
           <SectionHeading
             id="programmes-heading"
             eyebrow="Academic catalogue"
@@ -292,9 +292,9 @@ export function AdminDashboardPage({ onNavigate }: NavigateProps) {
       </section>
 
       {/* Row 3: Recent Students Table + Matches by Track + System Activities (Workload) */}
-      <div className="grid gap-8 border-t border-border pt-8 xl:grid-cols-[minmax(0,1.4fr)_minmax(15rem,.65fr)_minmax(16rem,.75fr)]">
+      <div className="grid min-w-0 gap-5 border-t border-border pt-5 xl:grid-cols-[minmax(0,1.4fr)_minmax(15rem,.65fr)_minmax(16rem,.75fr)]">
         {/* 1. Recent Students Table */}
-        <section aria-labelledby="recent-heading">
+        <section aria-labelledby="recent-heading" className="min-w-0">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <SectionHeading
               id="recent-heading"
@@ -436,7 +436,7 @@ export function AdminDashboardPage({ onNavigate }: NavigateProps) {
           </p>
           <h2
             id="workload-heading"
-            className="mt-1 font-display text-xl font-extrabold"
+            className="mt-1 font-display text-lg font-extrabold"
           >
             Current workload
           </h2>
@@ -496,7 +496,7 @@ function MetricCell({
   tone?: "warning" | "success";
 }) {
   return (
-    <div className="relative px-5 py-6 sm:border-r sm:border-border sm:last:border-r-0">
+    <div className="relative px-4 py-4 sm:border-r sm:border-border sm:last:border-r-0">
       <span
         className={`absolute inset-y-5 left-0 w-1 rounded-full ${
           tone === "warning"
@@ -509,8 +509,8 @@ function MetricCell({
       <p className="font-label text-xs font-bold uppercase tracking-[0.12em] text-muted-foreground">
         {label}
       </p>
-      <div className="mt-2 flex items-end gap-3">
-        <strong className="font-display text-4xl font-black">{value}</strong>
+      <div className="mt-1.5 flex items-end gap-2.5">
+        <strong className="font-display text-3xl font-black">{value}</strong>
         <span className="pb-1 text-xs text-muted-foreground">{detail}</span>
       </div>
     </div>
@@ -537,12 +537,12 @@ function SectionHeading({
       </p>
       <h2
         id={id}
-        className={`font-display font-extrabold tracking-tight ${compact ? "text-xl" : "text-2xl"}`}
+        className={`font-display font-extrabold tracking-tight ${compact ? "text-lg" : "text-xl"}`}
       >
         {title}
       </h2>
       {description ? (
-        <p className="text-sm leading-6 text-muted-foreground">{description}</p>
+        <p className="text-xs leading-5 text-muted-foreground">{description}</p>
       ) : null}
     </div>
   );
@@ -565,7 +565,7 @@ function QueueRow({
     >
       <span className="text-xs font-semibold">{label}</span>
       <span className="flex items-center gap-2">
-        <strong className="font-display text-lg font-black">{value}</strong>
+        <strong className="font-display text-base font-black">{value}</strong>
         <ArrowRight className="size-3.5 text-muted-foreground group-hover:text-primary-ink transition-transform group-hover:translate-x-0.5" />
       </span>
     </button>

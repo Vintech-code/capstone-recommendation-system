@@ -9,7 +9,7 @@ function AssessmentResultLoading() {
           <span className="absolute inset-0 rounded-full border-[10px] border-primary-fixed" />
           <span className="absolute inset-0 animate-spin rounded-full border-[10px] border-transparent border-r-primary border-t-primary motion-reduce:animate-none" />
           <span className="absolute inset-5 animate-[spin_1.4s_linear_infinite_reverse] rounded-full border-[6px] border-transparent border-b-secondary-container border-l-secondary-container motion-reduce:animate-none" />
-          <span className="absolute inset-[2.65rem] rounded-full bg-card shadow-[var(--shadow-card)] sm:inset-12" />
+          <span className="absolute inset-[2.65rem] rounded-full bg-card shadow-sm sm:inset-12" />
         </div>
 
         <p className="mt-8 text-xs font-bold uppercase tracking-[0.16em] text-primary-ink">

@@ -40,7 +40,8 @@ function WorkspaceNavigation({
                   onClick={() => onSelect(item.id)}
                   aria-current={activeId === item.id ? 'page' : undefined}
                   className={cn(
-                    'flex min-h-11 w-full items-center gap-3 rounded-xl px-3 text-left text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30',
+                    'flex min-h-11 w-full items-center gap-2.5 px-3 text-left text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30',
+                    tone === 'staff' ? 'rounded-xs' : 'rounded-xl',
                     collapsed && 'justify-center px-0',
                     activeId === item.id
                       ? tone === 'staff'

@@ -24,6 +24,7 @@ interface StudentProfileRiasecResult {
   availableAt: string | null
   primary: { code: string; label: string } | null
   secondary: { code: string; label: string } | null
+  tertiary?: { code: string; label: string } | null
   code: string
   dimensions: Array<{ code: string; label: string; value: number }>
 }

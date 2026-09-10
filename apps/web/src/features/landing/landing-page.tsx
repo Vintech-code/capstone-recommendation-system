@@ -161,7 +161,7 @@ function LandingPage() {
 
       <main id="top">
         <section className="px-4 pt-5 sm:px-6 sm:pt-7 lg:px-8" aria-labelledby="landing-title">
-          <div className="relative mx-auto grid min-h-[38rem] max-w-[1200px] overflow-hidden rounded-[2rem] border border-primary/10 bg-gradient-to-br from-primary-fixed via-white to-info/10 px-6 py-12 shadow-[var(--shadow-card)] sm:px-10 lg:grid-cols-[0.88fr_1.12fr] lg:items-center lg:px-14 lg:py-16">
+          <div className="relative mx-auto grid min-h-[38rem] max-w-[1200px] overflow-hidden rounded-[2rem] border border-primary/10 bg-gradient-to-br from-primary-fixed via-card to-info/10 px-6 py-12 shadow-sm sm:px-10 lg:grid-cols-[0.88fr_1.12fr] lg:items-center lg:px-14 lg:py-16">
             <div aria-hidden="true" className="absolute -left-24 top-16 size-64 rounded-full bg-brand-green/12 blur-3xl" />
             <div aria-hidden="true" className="absolute bottom-0 right-0 h-48 w-2/3 rounded-tl-full bg-info/8" />
 
@@ -204,7 +204,7 @@ function LandingPage() {
         </section>
 
         <section aria-label="Assessment highlights" className="px-4 py-8 sm:px-6 lg:px-8">
-          <div className="mx-auto grid max-w-[1200px] grid-cols-2 overflow-hidden rounded-3xl border border-border bg-white shadow-[var(--shadow-card)] lg:grid-cols-4">
+          <div className="mx-auto grid max-w-[1200px] grid-cols-2 overflow-hidden rounded-3xl border border-border bg-card shadow-sm lg:grid-cols-4">
             {highlights.map(({ icon: Icon, title, detail }, index) => (
               <div key={title} className={`flex min-h-36 flex-col items-center justify-center px-4 py-6 text-center ${index % 2 ? 'border-l border-border' : ''} ${index > 1 ? 'border-t border-border lg:border-t-0' : ''} ${index === 2 ? 'lg:border-l' : ''}`}>
                 <span className="flex size-11 items-center justify-center rounded-2xl bg-primary-fixed text-primary-ink">
@@ -253,7 +253,7 @@ function LandingPage() {
 
             <ol className="mt-10 grid gap-5 lg:grid-cols-3">
               {journeySteps.map(({ number, icon: Icon, title, description }) => (
-                <li key={number} className="relative overflow-hidden rounded-3xl border border-border bg-white p-6 shadow-[var(--shadow-card)] sm:p-7">
+                <li key={number} className="relative overflow-hidden rounded-3xl border border-border bg-card p-6 shadow-sm sm:p-7">
                   <div className="flex items-center justify-between">
                     <span className="font-display text-sm font-black tracking-[0.12em] text-primary-ink">{number}</span>
                     <span className="flex size-12 items-center justify-center rounded-2xl bg-primary-fixed text-primary-ink"><Icon aria-hidden="true" className="size-6" /></span>
@@ -271,7 +271,7 @@ function LandingPage() {
         </section>
 
         <section id="why-pathways" className="scroll-mt-24 px-4 py-16 sm:px-6 lg:px-8 lg:py-24" aria-labelledby="why-title">
-          <div className="mx-auto overflow-hidden rounded-[2rem] bg-brand-dark px-6 py-10 text-primary-foreground shadow-[var(--shadow-card)] sm:px-10 sm:py-12 lg:px-14 lg:py-16">
+          <div className="mx-auto overflow-hidden rounded-[2rem] bg-primary px-6 py-10 text-primary-foreground shadow-sm sm:px-10 sm:py-12 lg:px-14 lg:py-16">
             <div className="max-w-2xl">
               <p className="text-xs font-bold uppercase tracking-[0.14em] text-brand-green">Why Pathways</p>
               <h2 id="why-title" className="mt-3 font-display text-3xl font-black tracking-[-0.04em] sm:text-4xl">Guidance you can understand and revisit</h2>
@@ -297,7 +297,7 @@ function LandingPage() {
               <h2 id="questions-title" className="mt-3 font-display text-3xl font-black tracking-[-0.04em] sm:text-4xl">Know what the result can—and cannot—tell you</h2>
             </div>
 
-            <div className="mt-10 divide-y divide-border overflow-hidden rounded-3xl border border-border bg-white shadow-[var(--shadow-card)]">
+            <div className="mt-10 divide-y divide-border overflow-hidden rounded-3xl border border-border bg-card shadow-sm">
               {questions.map(({ question, answer }) => (
                 <details key={question} className="group px-5 py-1 open:bg-secondary/45 sm:px-7">
                   <summary className="flex min-h-16 cursor-pointer list-none items-center justify-between gap-5 py-4 font-display text-base font-extrabold focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-inset focus-visible:ring-ring/35 sm:text-lg">

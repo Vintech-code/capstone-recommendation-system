@@ -1,10 +1,4 @@
-import {
-  ArrowRight,
-  CheckCircle2,
-  CircleAlert,
-  History,
-  Search,
-} from "lucide-react";
+import { ArrowRight, History, Search } from "lucide-react";
 import { useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
@@ -23,11 +17,11 @@ import {
   AdminPageSkeleton,
   EmptyPanel,
 } from "@/features/admin/components/admin-shared";
+import { AdminStudentGrid } from "@/features/admin/components/admin-student-grid";
 import { formatDate, humanize } from "@/features/admin/data/admin-formatters";
 import {
   useAdminResource,
   type AdminActivityResponse,
-  type AdminAssessment,
   type AdminStudentDirectory,
 } from "@/features/admin/data/admin-api";
 
@@ -66,11 +60,11 @@ function AdminStudentsPage({ onNavigate }: NavigateProps) {
     );
   const data = resource.data;
   return (
-    <div className="min-w-0 space-y-7">
+    <div className="min-w-0 space-y-4">
       <AdminPageHeader title="Student records" />
       <section data-student-records className="min-w-0">
         <form
-          className="grid gap-3 border-y border-border p-4 md:grid-cols-2 xl:grid-cols-[minmax(16rem,1fr)_12rem_12rem_11rem_auto]"
+          className="grid gap-2 border-y border-border py-3 md:grid-cols-2 xl:grid-cols-[minmax(16rem,1fr)_11rem_11rem_10rem_auto]"
           onSubmit={(event) => {
             event.preventDefault();
             setPage(1);
@@ -117,16 +111,16 @@ function AdminStudentsPage({ onNavigate }: NavigateProps) {
           />
           <Button type="submit">Search</Button>
         </form>
-        <div className="mt-5 flex items-end justify-between gap-3">
+        <div className="mt-3 flex items-end justify-between gap-3">
           <div>
-            <p className="font-label text-xs font-bold uppercase tracking-[0.14em] text-primary">
+            <p className="font-label text-xs font-bold uppercase tracking-[0.14em] text-primary-ink">
               Authoritative ledger
             </p>
-            <h2 className="mt-1 font-display text-2xl font-extrabold">
+            <h2 className="mt-0.5 font-display text-lg font-bold">
               {data.pagination.total} profiles in view
             </h2>
           </div>
-          <p className="font-label text-sm text-muted-foreground">
+          <p className="font-label text-xs text-muted-foreground">
             Showing {data.pagination.from ?? 0}–{data.pagination.to ?? 0}
           </p>
         </div>
@@ -143,7 +137,7 @@ function AdminStudentsPage({ onNavigate }: NavigateProps) {
                         className="size-10 rounded-full object-cover border border-border shrink-0"
                       />
                     ) : (
-                      <span className="flex size-10 items-center justify-center rounded-full bg-primary/10 font-bold text-xs text-primary shrink-0">
+                      <span className="flex size-10 items-center justify-center rounded-full bg-primary/10 font-bold text-xs text-primary-ink shrink-0">
                         {student.name.split(" ").map((n) => n[0]).slice(0, 2).join("").toUpperCase()}
                       </span>
                     )}
@@ -154,7 +148,7 @@ function AdminStudentsPage({ onNavigate }: NavigateProps) {
                       </span>
                     </div>
                   </div>
-                  <StudentStatus student={student} />
+                  <MobileStudentStatus student={student} />
                 </div>
                 <dl className="mt-4 grid grid-cols-2 gap-4">
                   <InlineEvidence
@@ -190,101 +184,13 @@ function AdminStudentsPage({ onNavigate }: NavigateProps) {
           </ul>
         ) : null}
         {data.items.length ? (
-          <div className="mt-4 hidden overflow-x-auto border-y border-border sm:block">
-            <table className="w-full min-w-[70rem] text-left text-sm">
-              <thead>
-                <tr className="border-b border-border font-label text-xs uppercase tracking-[0.08em] text-muted-foreground">
-                  <th className="px-4 py-4">Student</th>
-                  <th className="px-4 py-4">Journey state</th>
-                  <th className="px-4 py-4">Assessment evidence</th>
-                  <th className="px-4 py-4">Recommendation</th>
-                  <th className="px-4 py-4">Last activity</th>
-                  <th className="px-4 py-4">
-                    <span className="sr-only">Action</span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {data.items.map((student) => (
-                  <tr
-                    key={student.id}
-                    className="group hover:bg-primary-fixed/30"
-                  >
-                    <td className="px-4 py-5">
-                      <div className="flex items-center gap-3">
-                        {student.photoUrl ? (
-                          <img
-                            src={student.photoUrl}
-                            alt={student.name}
-                            className="size-9 rounded-full object-cover border border-border shrink-0"
-                          />
-                        ) : (
-                          <span className="flex size-9 items-center justify-center rounded-full bg-primary/10 font-bold text-xs text-primary shrink-0">
-                            {student.name.split(" ").map((n) => n[0]).slice(0, 2).join("").toUpperCase()}
-                          </span>
-                        )}
-                        <div>
-                          <strong className="block text-base">
-                            {student.name}
-                          </strong>
-                          <span className="font-label text-xs text-muted-foreground">
-                            {student.email}
-                          </span>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-4 py-5">
-                      <StudentStatus student={student} />
-                      <span className="mt-2 block text-xs text-muted-foreground">
-                        {student.declarationStatus === "declared"
-                          ? `${student.selfDeclaredScore} · ${humanize(student.eligibilityGroup ?? "")}`
-                          : "Entrance result not declared"}
-                      </span>
-                    </td>
-                    <td className="px-4 py-5">
-                      <span className="font-display text-lg font-extrabold">
-                        {student.attemptCount}
-                      </span>
-                      <span className="ml-2 text-xs text-muted-foreground">
-                        attempts
-                      </span>
-                      <span className="mt-1 block font-label text-xs">
-                        RIASEC {student.latestTopCode ?? "pending"}
-                      </span>
-                    </td>
-                    <td className="px-4 py-5">
-                      <Badge
-                        variant={
-                          student.recommendationAvailable
-                            ? "success"
-                            : "secondary"
-                        }
-                      >
-                        {student.recommendationAvailable
-                          ? "Available"
-                          : "Pending"}
-                      </Badge>
-                      <span className="mt-2 block text-xs text-muted-foreground">
-                        {student.savedProgrammeCount} saved
-                      </span>
-                    </td>
-                    <td className="px-4 py-5 font-label text-xs text-muted-foreground">
-                      {formatDate(student.lastActivityAt)}
-                    </td>
-                    <td className="px-4 py-5">
-                      <Button
-                        variant="ghost"
-                        onClick={() =>
-                          onNavigate(`/admin/students/${student.id}`)
-                        }
-                      >
-                        Open <ArrowRight />
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="mt-3 hidden sm:block">
+            <AdminStudentGrid
+              students={data.items}
+              onOpenStudent={(studentId) =>
+                onNavigate(`/admin/students/${studentId}`)
+              }
+            />
           </div>
         ) : (
           <div className="mt-6">
@@ -334,18 +240,6 @@ const sortOptions: Array<[string, string]> = [
   ["name", "Student name"],
   ["attempt_count", "Attempt count"],
 ];
-function StudentStatus({
-  student,
-}: {
-  student: AdminStudentDirectory["items"][number];
-}) {
-  return student.currentAssessmentStatus === "not_started" ? (
-    <Badge variant="secondary">Not started</Badge>
-  ) : (
-    <StatusBadge status={student.currentAssessmentStatus} />
-  );
-}
-
 import { AdminStudentDetailPage } from "@/features/admin/components/admin-student-detail-page";
 
 
@@ -376,7 +270,7 @@ function AdminActivityPage() {
     );
   const data = resource.data;
   return (
-    <div className="space-y-8">
+    <div className="space-y-5">
       <AdminPageHeader title="Admin activity" />
       <section
         aria-label="Activity filters"
@@ -445,16 +339,16 @@ function AdminActivityPage() {
             {data.items.map((event) => (
               <li
                 key={event.id}
-                className="relative grid gap-3 border-b border-border py-5 pl-14 sm:grid-cols-[minmax(0,1fr)_auto]"
+              className="relative grid gap-2 border-b border-border py-4 pl-12 sm:grid-cols-[minmax(0,1fr)_auto]"
               >
-                <span className="absolute left-0 top-5 z-10 flex size-10 items-center justify-center rounded-full border border-border bg-background">
+                <span className="absolute left-0 top-4 z-10 flex size-9 items-center justify-center rounded-full border border-border bg-background">
                   <History className="size-4" />
                 </span>
                 <div>
-                  <strong className="block text-base">
+                  <strong className="block text-sm">
                     {humanize(event.action.replace(".", " "))}
                   </strong>
-                  <p className="mt-1 font-label text-sm text-muted-foreground">
+                  <p className="mt-0.5 font-label text-xs text-muted-foreground">
                     {event.actor ?? "Administrator"}
                   </p>
                 </div>
@@ -506,12 +400,12 @@ function SectionHeading({
 }) {
   return (
     <div>
-      <p className="font-label text-xs font-bold uppercase tracking-[0.15em] text-primary">
+      <p className="font-label text-xs font-bold uppercase tracking-[0.15em] text-primary-ink">
         {eyebrow}
       </p>
       <h2
         id={id}
-        className={`mt-1 font-display font-extrabold tracking-tight ${compact ? "text-2xl" : "text-3xl"}`}
+        className={`mt-1 font-display font-extrabold tracking-tight ${compact ? "text-lg" : "text-xl"}`}
       >
         {title}
       </h2>
@@ -571,29 +465,25 @@ function FilterSelect({
   );
 }
 
-function StatusBadge({ status }: { status: AdminAssessment["status"] }) {
-  const variants = {
-    in_progress: "warning",
-    preparing_result: "info",
-    result_available: "success",
-    result_failed: "destructive",
-  } as const;
-  const labels = {
-    in_progress: "In progress",
-    preparing_result: "Processing",
-    result_available: "Result available",
-    result_failed: "Needs attention",
-  };
-  const Icon =
-    status === "result_failed"
-      ? CircleAlert
-      : status === "result_available"
-        ? CheckCircle2
-        : History;
+function MobileStudentStatus({
+  student,
+}: {
+  student: AdminStudentDirectory["items"][number];
+}) {
+  const label =
+    student.currentAssessmentStatus === "not_started"
+      ? "Not started"
+      : humanize(student.currentAssessmentStatus);
   return (
-    <Badge variant={variants[status]}>
-      <Icon className="size-3.5" />
-      {labels[status]}
+    <Badge
+      variant={
+        student.currentAssessmentStatus === "result_available"
+          ? "success"
+          : "secondary"
+      }
+      className="rounded-xs"
+    >
+      {label}
     </Badge>
   );
 }

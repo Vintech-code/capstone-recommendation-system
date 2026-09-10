@@ -66,9 +66,9 @@ const dimensionPresentation: Record<
   },
   I: {
     icon: Search,
-    tile: "bg-chart-blue/8",
-    badge: "bg-chart-blue text-foreground",
-    accent: "bg-chart-blue",
+    tile: "bg-chart-pink/8",
+    badge: "bg-chart-pink text-foreground",
+    accent: "bg-chart-pink",
   },
   A: {
     icon: Paintbrush,
@@ -95,6 +95,12 @@ const dimensionPresentation: Record<
     accent: "bg-muted-foreground",
   },
 };
+
+function formatAreaList(labels: string[]) {
+  if (labels.length < 2) return labels[0] ?? "";
+  if (labels.length === 2) return labels.join(" and ");
+  return `${labels.slice(0, -1).join(", ")}, and ${labels.at(-1)}`;
+}
 
 let cachedDashboardState: {
   lifecycle: AssessmentLifecycle | null;
@@ -307,13 +313,13 @@ function StudentDashboardPage({
               >
                 Your journey.
                 <br />
-                <span className="bg-gradient-to-r from-primary via-brand-green to-chart-blue bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-primary via-brand-green to-chart-pink bg-clip-text text-transparent">
                   Your future.
                 </span>
               </h1>
               <p className="mt-4 max-w-md text-sm leading-6 text-muted-foreground">
                 {result
-                  ? `Explore programmes connected to ${result.topLabels.join(" and ")} interests, then compare your strongest matches.`
+                  ? `Explore programmes connected to ${formatAreaList(result.topLabels)} interests, then compare your strongest matches.`
                   : "Explore programmes connected to your interests. Start with the interest assessment."}
               </p>
               <Button
@@ -329,7 +335,7 @@ function StudentDashboardPage({
 
           <section
             aria-labelledby="journey-progress-title"
-            className="rounded-3xl border border-border bg-card p-5 shadow-[var(--shadow-card)] sm:p-6"
+            className="rounded-3xl border border-border bg-card p-5 shadow-sm sm:p-6"
           >
             <div className="flex items-start justify-between gap-5">
               <div className="min-w-0 pt-1">
@@ -444,7 +450,7 @@ function StudentDashboardPage({
               <section
                 data-print-profile
                 aria-labelledby="interest-scores-title"
-                className="relative h-full overflow-hidden rounded-3xl border border-border bg-card p-5 shadow-[var(--shadow-card)] xl:col-span-12 xl:row-start-2 sm:p-6"
+                className="relative h-full overflow-hidden rounded-3xl border border-border bg-card p-5 shadow-sm xl:col-span-12 xl:row-start-2 sm:p-6"
               >
                 <div
                   aria-hidden="true"
@@ -470,7 +476,7 @@ function StudentDashboardPage({
                     </p>
                     <h3
                       id="interest-scores-title"
-                      aria-label={result.topLabels.join(" and ")}
+                      aria-label={formatAreaList(result.topLabels)}
                       className="mt-3 font-display text-3xl font-bold tracking-[-0.04em] sm:text-4xl"
                     >
                       {result.topLabels.map((label, index) => (
@@ -486,7 +492,7 @@ function StudentDashboardPage({
                       Top code {result.topCode} · completed {result.availableAt}
                     </p>
                   </div>
-                  <span className="mr-2 bg-gradient-to-r from-primary via-chart-blue to-secondary-container bg-clip-text font-display text-5xl font-bold tracking-[-0.06em] text-transparent">
+                  <span className="mr-2 bg-gradient-to-r from-primary via-chart-pink to-secondary-container bg-clip-text font-display text-5xl font-bold tracking-[-0.06em] text-transparent">
                     {result.topCode}
                   </span>
                 </div>
@@ -554,7 +560,7 @@ function StudentDashboardPage({
                   <div>
                     <p className="text-sm font-bold text-foreground">
                       Your highest recorded areas are{" "}
-                      {result.topLabels.join(" and ")}.
+                      {formatAreaList(result.topLabels)}.
                     </p>
                     <p className="mt-1 text-xs leading-5 text-muted-foreground">
                       Use this pattern alongside your programme matches when
@@ -642,7 +648,7 @@ function AssessmentHistorySummary({
     <section
       data-print-hidden
       aria-labelledby="assessment-history-title"
-      className="overflow-hidden rounded-3xl border border-border bg-card shadow-[var(--shadow-card)]"
+      className="overflow-hidden rounded-3xl border border-border bg-card shadow-sm"
     >
       <div className="flex flex-col gap-5 bg-card p-5 sm:flex-row sm:items-center sm:justify-between sm:p-7">
         <div className="flex items-start gap-3">
@@ -868,7 +874,7 @@ function HistoricalAttemptDetails({
             Attempt {attempt.attempt_number} result
           </p>
           <h4 className="mt-2 text-2xl font-extrabold">
-            {result.topLabels.join(" and ")}
+            {formatAreaList(result.topLabels)}
           </h4>
           <p className="mt-2 text-sm text-muted-foreground">
             Completed {result.availableAt}
@@ -1014,7 +1020,7 @@ function CourseDirectionPanel({
     <section
       data-print-recommendations
       aria-labelledby="course-direction-title"
-      className={`h-full overflow-hidden rounded-3xl border border-border bg-card shadow-[var(--shadow-card)] xl:row-start-1 ${wide ? "xl:col-span-12" : "xl:col-span-7"}`}
+      className={`h-full overflow-hidden rounded-3xl border border-border bg-card shadow-sm xl:row-start-1 ${wide ? "xl:col-span-12" : "xl:col-span-7"}`}
     >
       {course ? (
         <div className="grid min-h-[17rem] sm:grid-cols-[minmax(0,1fr)_13rem]">
@@ -1187,7 +1193,7 @@ function AssessmentLifecycleCard({
     <section
       data-print-hidden
       aria-labelledby="current-assessment-title"
-      className="flex h-full flex-col overflow-hidden rounded-3xl border border-border bg-card shadow-[var(--shadow-card)] xl:col-span-5 xl:row-start-1"
+      className="flex h-full flex-col overflow-hidden rounded-3xl border border-border bg-card shadow-sm xl:col-span-5 xl:row-start-1"
     >
       <div className="p-5 sm:p-6">
         <span className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary-ink">

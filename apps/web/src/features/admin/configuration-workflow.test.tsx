@@ -15,7 +15,7 @@ describe('Administrator ESCO mapping workflow', () => {
       short_label: 'BSIT',
       display_name: 'BS Information Technology',
       majors: [],
-      riasec_profile: ['I', 'C', 'R'],
+      riasec_profile: ['I', 'R', 'C'],
       description: 'Applies computing technologies to organisational needs.',
       learning_areas: ['Software development'],
       learning_area_descriptions: {},

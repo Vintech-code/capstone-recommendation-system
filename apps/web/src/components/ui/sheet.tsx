@@ -37,7 +37,7 @@ function SheetContent({
       <SheetPrimitive.Content
         data-slot="sheet-content"
         className={cn(
-          'fixed inset-y-0 right-0 z-50 flex h-full w-[min(22rem,88vw)] flex-col gap-4 border-l bg-background p-6 shadow-xl outline-none transition-transform duration-300 data-[state=closed]:translate-x-full data-[state=open]:translate-x-0',
+          'fixed inset-y-0 right-0 z-50 flex h-full w-[min(22rem,88vw)] flex-col gap-4 border-l bg-background p-6 shadow-sm outline-none transition-transform duration-300 data-[state=closed]:translate-x-full data-[state=open]:translate-x-0',
           className,
         )}
         {...props}
