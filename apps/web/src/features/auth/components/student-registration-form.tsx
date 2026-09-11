@@ -66,11 +66,11 @@ function StudentRegistrationForm({ onRegister }: StudentRegistrationFormProps) {
   })
 
   return (
-    <form noValidate onSubmit={submit} className="space-y-5">
+    <form noValidate onSubmit={submit} className="space-y-2.5">
       {errors.root ? (
         <div
           role="alert"
-          className="rounded-lg bg-destructive/8 px-4 py-3 text-sm font-semibold text-destructive-ink"
+          className="rounded-xs bg-destructive/10 px-3 py-2 text-xs font-semibold text-destructive-ink"
         >
           {errors.root.message}
         </div>
@@ -115,9 +115,8 @@ function StudentRegistrationForm({ onRegister }: StudentRegistrationFormProps) {
 
       <Button
         type="submit"
-        size="lg"
         disabled={isSubmitting}
-        className="min-h-12 w-full rounded-lg"
+        className="mt-1 min-h-9.5 h-9.5 w-full rounded-xs text-xs sm:text-sm font-semibold"
       >
         {isSubmitting ? 'Creating account…' : 'Create student account'}
       </Button>

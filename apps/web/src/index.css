@@ -618,7 +618,7 @@
 
 @layer components {
   .student-page {
-    @apply mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-8;
+    @apply mx-auto w-full max-w-300 px-4 sm:px-6 lg:px-8;
   }
 
   .student-grid-page {
@@ -628,7 +628,7 @@
 
   .student-grid-page::before {
     content: "";
-    @apply pointer-events-none absolute inset-x-0 top-0 h-[28rem];
+    @apply pointer-events-none absolute inset-x-0 top-0 h-112;
     background-color: var(--surface-container-high);
     background-image:
       linear-gradient(
@@ -658,7 +658,7 @@
 
   @media (min-width: 64rem) {
     .student-grid-page::before {
-      @apply h-[32rem];
+      @apply h-128;
     }
   }
 
@@ -671,7 +671,7 @@
   }
 
   .catalogue-hero {
-    @apply relative grid min-h-[22rem] overflow-hidden rounded-b-[1.75rem] border-x border-b border-border bg-primary-fixed/70 px-6 py-10 sm:px-8 lg:grid-cols-[minmax(0,1fr)_11rem] lg:items-center lg:px-10;
+    @apply relative grid min-h-88 overflow-hidden rounded-b-[1.75rem] border-x border-b border-border bg-primary-fixed/70 px-6 py-10 sm:px-8 lg:grid-cols-[minmax(0,1fr)_11rem] lg:items-center lg:px-10;
   }
 
   .catalogue-hero::after {
@@ -705,7 +705,7 @@
   }
 
   .programme-visual {
-    @apply flex min-h-32 items-center justify-between overflow-hidden bg-gradient-to-br from-primary via-info to-brand-teal p-5 text-white md:min-h-44 md:min-w-[34%];
+    @apply flex min-h-32 items-center justify-between overflow-hidden bg-linear-to-br from-primary via-info to-brand-teal p-5 text-white md:min-h-44 md:min-w-[34%];
   }
 
   .programme-monogram {
@@ -726,7 +726,7 @@
 
   .programme-detail-hero::after {
     content: "";
-    @apply pointer-events-none absolute -bottom-28 -right-20 z-0 h-48 w-[72%] rotate-[-6deg] rounded-[50%] bg-background;
+    @apply pointer-events-none absolute -bottom-28 -right-20 z-0 h-48 w-[72%] -rotate-6 rounded-[50%] bg-background;
   }
 
   .programme-detail-hero > :not([data-programme-background]) {

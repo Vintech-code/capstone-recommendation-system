@@ -14,11 +14,28 @@ describe("Administration workspace", () => {
     expect(
       screen.getByRole("heading", { name: "Student journey" }),
     ).toBeVisible();
-    expect(screen.getByRole("img", { name: /Registered: 2/ })).toBeVisible();
-    expect(screen.getByText("Recent assessment activity")).toBeVisible();
     expect(
-      screen.getByRole("heading", { name: "Current workload" }),
+      screen.getByRole("heading", { name: "Journey stage detail" }),
     ).toBeVisible();
+    expect(screen.getByRole("img", { name: /Registered: 2/ })).toBeVisible();
+    expect(
+      screen.getByText("Latest recorded assessment activity and available evidence."),
+    ).toBeVisible();
+    expect(screen.getByTestId("admin-operational-strip")).toHaveClass("bg-card");
+    expect(screen.getAllByText("Not available").length).toBeGreaterThan(0);
+    expect(document.querySelector('[class*="bg-gradient"]')).toBeNull();
+    expect(
+      screen.queryByRole("button", { name: /Open student directory/i }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText("Needs attention")).not.toBeInTheDocument();
+    expect(screen.getByText("Recommendation runs")).toBeVisible();
+    expect(
+      screen.queryByRole("heading", { name: "Current workload" }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText("Matches by Track")).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("Top Recommended Programmes"),
+    ).not.toBeInTheDocument();
   });
 
   it("opens a student record with immutable results and recommendations", async () => {
@@ -72,8 +89,10 @@ describe("Administration workspace", () => {
       screen.queryByRole("button", { name: "Open catalogue evidence" }),
     ).not.toBeInTheDocument();
     expect(screen.getByText("BS Information Technology")).toBeVisible();
+    expect(document.querySelector('[class*="bg-gradient"]')).toBeNull();
     await user.click(screen.getByRole("button", { name: "View details" }));
     expect(screen.getByRole("dialog")).toBeVisible();
+    expect(document.querySelector('[class*="bg-gradient"]')).toBeNull();
     expect(
       screen.getByRole("heading", { name: "Possible career directions" }),
     ).toBeVisible();
@@ -88,7 +107,7 @@ describe("Administration workspace", () => {
     ).toBeVisible();
   });
 
-  it("keeps reports focused on assessment and engagement charts", async () => {
+  it("presents aggregate assessment and engagement reporting", async () => {
     await renderAppAt("/admin/reports");
 
     expect(
@@ -99,11 +118,20 @@ describe("Administration workspace", () => {
     ).not.toBeInTheDocument();
     expect(screen.queryByText("Catalogue governance")).not.toBeInTheDocument();
     expect(
-      screen.getByRole("img", { name: /Board eligible: 1/ }),
+      screen.getByRole("heading", {
+        name: "Assessment and recommendation activity",
+      }),
     ).toBeVisible();
     expect(
-      screen.getByRole("img", { name: /Recommendations: 2/ }),
+      screen.getByRole("heading", { name: "Completed results over time" }),
     ).toBeVisible();
+    expect(
+      screen.getByRole("heading", { name: "Current stage distribution" }),
+    ).toBeVisible();
+    expect(
+      screen.getByRole("img", { name: /Board eligible: 1/ }),
+    ).toBeVisible();
+    expect(screen.getByText("Saves per 100 recommendation runs")).toBeVisible();
   });
 
   it("shows a concise activity timeline without raw record metadata", async () => {

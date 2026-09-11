@@ -241,7 +241,6 @@ function AdminProgrammeCard({
             className="absolute inset-0 m-auto size-16 text-primary-ink/25"
           />
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-primary/55 via-transparent to-transparent" />
         <span className="absolute left-4 top-4 rounded-full bg-primary px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-primary-foreground">
           {programmeGroup(programme.id)}
         </span>
@@ -398,7 +397,6 @@ function AdminProgrammeSheet({
           {cover ? (
             <img src={cover} alt="" className="size-full object-cover" />
           ) : null}
-          <div className="absolute inset-0 bg-gradient-to-t from-primary via-primary/30 to-transparent" />
           {logo ? (
             <img
               src={logo}

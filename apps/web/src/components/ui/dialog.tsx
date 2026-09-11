@@ -21,4 +21,4 @@ function DialogHeader({ className, ...props }: ComponentProps<'div'>) { return <
 function DialogTitle({ className, ...props }: ComponentProps<typeof DialogPrimitive.Title>) { return <DialogPrimitive.Title className={cn('font-display text-2xl font-semibold tracking-tight', className)} {...props} /> }
 function DialogDescription({ className, ...props }: ComponentProps<typeof DialogPrimitive.Description>) { return <DialogPrimitive.Description className={cn('text-sm leading-6 text-muted-foreground', className)} {...props} /> }
 
-export { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger }
+export { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogOverlay, DialogPortal, DialogTitle, DialogTrigger }

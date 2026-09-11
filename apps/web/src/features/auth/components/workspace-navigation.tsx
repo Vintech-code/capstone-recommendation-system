@@ -27,11 +27,18 @@ function WorkspaceNavigation({
     { id: 'overview', title: 'Dashboard', icon: LayoutDashboard },
     ...modules,
   ]
+  const staffIconTones = [
+    'bg-primary-fixed text-primary-ink',
+    'bg-[color-mix(in_srgb,var(--riasec-i)_16%,var(--background))] text-foreground',
+    'bg-[var(--canvas-sun)] text-warning-ink',
+    'bg-[color-mix(in_srgb,var(--info)_16%,var(--background))] text-info-ink',
+    'bg-[color-mix(in_srgb,var(--chart-coral)_16%,var(--background))] text-destructive-ink',
+  ]
 
   return (
     <nav aria-label="Workspace navigation">
       <ul className="space-y-1">
-        {items.map((item) => (
+        {items.map((item, index) => (
           <li key={item.id}>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -52,7 +59,15 @@ function WorkspaceNavigation({
                         : 'text-muted-foreground hover:bg-secondary hover:text-foreground',
                   )}
                 >
-                  <item.icon aria-hidden="true" className="size-4 shrink-0" />
+                  <span
+                    aria-hidden="true"
+                    className={cn(
+                      'flex size-7 shrink-0 items-center justify-center rounded-xs',
+                      tone === 'staff' ? staffIconTones[index % staffIconTones.length] : undefined,
+                    )}
+                  >
+                    <item.icon className="size-4" />
+                  </span>
                   <span className={cn(collapsed && 'sr-only')}>
                     {item.title}
                   </span>

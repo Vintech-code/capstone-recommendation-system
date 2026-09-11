@@ -252,6 +252,26 @@ async function expectNoHorizontalOverflow(page: Page) {
   expect(overflow).toBeLessThanOrEqual(1)
 }
 
+test('shows the simplified Student authentication modal', async ({ page }, testInfo) => {
+  await installStudentApi(page)
+  await page.goto('/student/login')
+
+  const dialog = page.getByRole('dialog')
+  await expect(dialog).toBeVisible()
+  await expect(page.getByRole('tablist', { name: 'Authentication modes' })).toHaveCount(0)
+  await expect(dialog).toHaveClass(/max-w-\[500px\]/)
+  await expect(dialog).toHaveClass(/rounded-sm/)
+  const heading = page.getByRole('heading', { name: 'Welcome back!' })
+  await expect(heading).toBeVisible()
+  await expect(heading).toHaveClass(/text-xl/)
+  await expectNoHorizontalOverflow(page)
+
+  await page.getByRole('button', { name: 'Create an account' }).click()
+  await expect(page.getByRole('heading', { name: 'Create your account' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Sign in' })).toBeVisible()
+  await page.screenshot({ path: testInfo.outputPath('student-auth-modal.png') })
+})
+
 test('lets the Student manage personal and academic profile information without GWA', async ({ page }) => {
   await installStudentApi(page)
   await signIn(page)

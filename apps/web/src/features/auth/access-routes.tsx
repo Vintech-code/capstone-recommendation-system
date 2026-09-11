@@ -13,7 +13,6 @@ import { useAuth } from '@/features/auth/auth-context'
 import { ProtectedRoute } from '@/features/auth/components/protected-route'
 import { WorkspacePreview } from '@/features/auth/components/workspace-preview'
 import { PortalSignInPage } from '@/features/auth/portal-sign-in-page'
-import { StudentRegistrationPage } from '@/features/auth/student-registration-page'
 import { PasswordRecoveryPage } from '@/features/auth/password-recovery-page'
 import { PasswordResetPage } from '@/features/auth/password-reset-page'
 import { PasswordChangePage } from '@/features/auth/password-change-page'
@@ -136,11 +135,11 @@ function AccessRoutes() {
       <Route path="/" element={<LandingPage />} />
       <Route
         path="/student/login"
-        element={<PortalSignInPage role="student" />}
+        element={<LandingPage initialAuth="signin" />}
       />
       <Route
         path="/student/register"
-        element={<StudentRegistrationPage />}
+        element={<LandingPage initialAuth="signup" />}
       />
       <Route path="/forgot-password" element={<PasswordRecoveryPage />} />
       <Route path="/reset-password/:token?" element={<PasswordResetPage />} />

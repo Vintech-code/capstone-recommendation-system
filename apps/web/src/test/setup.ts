@@ -28,6 +28,8 @@ vi.mock('recharts', async () => {
   return {
     Area: Empty,
     AreaChart: SvgContainer,
+    Bar: SvgContainer,
+    BarChart: SvgContainer,
     CartesianGrid: Empty,
     Cell: Empty,
     Pie: Empty,

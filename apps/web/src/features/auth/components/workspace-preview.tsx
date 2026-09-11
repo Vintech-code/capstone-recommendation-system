@@ -224,10 +224,16 @@ function WorkspacePreview({
         aria-label="Workspace sidebar"
         data-collapsed={!desktopNavigationExpanded}
         className={cn(
-          'relative hidden h-svh bg-background lg:sticky lg:top-0 lg:flex lg:flex-col lg:border-r lg:border-border lg:transition-[padding] lg:duration-300',
+          'relative hidden h-svh overflow-hidden bg-card lg:sticky lg:top-0 lg:flex lg:flex-col lg:border-r lg:border-border lg:transition-[padding] lg:duration-300',
           desktopNavigationExpanded ? 'p-3' : 'p-2.5',
         )}
       >
+        <div aria-hidden="true" className="absolute inset-x-0 top-0 grid h-1 grid-cols-4">
+          <span className="bg-primary" />
+          <span className="bg-[var(--riasec-i)]" />
+          <span className="bg-warning" />
+          <span className="bg-info" />
+        </div>
         <div
           className={cn(
             'flex h-12 items-center gap-2.5',
@@ -255,7 +261,7 @@ function WorkspacePreview({
       </aside>
 
       <div className="min-w-0">
-        <header className={cn('sticky top-0 z-30 border-b bg-background/95 backdrop-blur-xl', isStaff ? 'border-border' : 'border-transparent shadow-sm')}>
+        <header className={cn('sticky top-0 z-30 border-b bg-background/95 backdrop-blur-xl', isStaff ? 'border-border bg-card/95' : 'border-transparent shadow-sm')}>
           <div className="flex h-14 items-center gap-2.5 px-4 sm:px-5 lg:px-6">
             <Button type="button" variant="ghost" size="icon" aria-label={desktopNavigationExpanded ? 'Collapse workspace navigation' : 'Expand workspace navigation'} aria-expanded={desktopNavigationExpanded} onClick={() => setDesktopNavigationExpanded((isExpanded) => !isExpanded)} className="hidden rounded-xs lg:inline-flex"><Menu aria-hidden="true" /></Button>
             <Sheet

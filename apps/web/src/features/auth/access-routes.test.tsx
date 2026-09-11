@@ -17,28 +17,13 @@ describe('access portals and workspace shell', () => {
   it('opens the Student portal without exposing role selection', async () => {
     await renderAppAt('/student/login')
 
-    expect(screen.getByRole('main')).toHaveClass('portal-sign-in-theme', 'text-foreground')
-    expect(screen.queryByRole('contentinfo')).not.toBeInTheDocument()
     expect(
       screen.getByRole('heading', { name: 'Welcome back!' }),
     ).toBeVisible()
-    expect(screen.getAllByRole('img', { name: 'TCCence' })).toHaveLength(1)
-    screen.getAllByRole('img', { name: 'TCCence' }).forEach((brandLogo) => {
-      expect(brandLogo).toHaveAttribute(
-        'src',
-        expect.stringMatching(/login-logo\.png$/),
-      )
-    })
-    expect(document.querySelector('img[alt=""]')).toHaveAttribute(
-      'src',
-      expect.stringMatching(/login-background1\.png$/),
-    )
-    expect(
-      screen.queryByText('Discover a programme direction built from your recorded interests.'),
-    ).not.toBeInTheDocument()
     expect(
       screen.getByRole('button', { name: 'Continue with Google' }),
     ).toBeEnabled()
+    expect(screen.queryByRole('tablist', { name: 'Authentication modes' })).not.toBeInTheDocument()
     expect(screen.queryByText('Gmail sign-in is not configured yet.')).not.toBeInTheDocument()
     expect(screen.queryByText(/facebook/i)).not.toBeInTheDocument()
     expect(screen.queryByText(/microsoft/i)).not.toBeInTheDocument()
@@ -48,9 +33,7 @@ describe('access portals and workspace shell', () => {
     expect(screen.queryByRole('radio')).not.toBeInTheDocument()
     expect(screen.queryByText(/frontend ui preview/i)).not.toBeInTheDocument()
     expect(screen.queryByText(/no backend/i)).not.toBeInTheDocument()
-    expect(
-      screen.getByRole('link', { name: 'Create an account' }),
-    ).toHaveAttribute('href', '/student/register')
+    expect(screen.getByRole('button', { name: 'Create an account' })).toBeVisible()
   })
 
   it('provides the backend-ready Student registration form without role selection', async () => {
@@ -60,12 +43,8 @@ describe('access portals and workspace shell', () => {
     expect(
       screen.getByRole('heading', { name: 'Create your account' }),
     ).toBeVisible()
-    expect(screen.getByRole('main')).toHaveClass('portal-sign-in-theme', 'text-foreground')
-    expect(screen.getAllByRole('img', { name: 'TCCence' })).toHaveLength(1)
-    expect(document.querySelector('img[alt=""]')).toHaveAttribute(
-      'src',
-      expect.stringMatching(/login-background1\.png$/),
-    )
+    expect(screen.queryByRole('tablist', { name: 'Authentication modes' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Sign in' })).toBeVisible()
     expect(screen.getByRole('textbox', { name: 'Full name' })).toHaveAttribute(
       'placeholder',
       ' ',

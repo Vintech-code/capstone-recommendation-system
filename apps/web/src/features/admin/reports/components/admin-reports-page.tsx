@@ -1,7 +1,13 @@
-import { Printer } from "lucide-react";
-import { useState } from "react";
-
-import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
+import {
+  Bookmark,
+  CalendarDays,
+  CheckCircle2,
+  ClipboardList,
+  Printer,
+  Users,
+} from "lucide-react";
+import { useState, type ReactNode } from "react";
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -23,11 +29,17 @@ import {
   type AdminReport,
 } from "@/features/admin/data/admin-api";
 
+const completionsChartConfig = {
+  count: {
+    label: "Completed assessments",
+    color: "var(--primary)",
+  },
+} satisfies ChartConfig;
+
 export function AdminReportsPage() {
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [query, setQuery] = useState("");
-
   const resource = useAdminResource<AdminReport>(`/reports${query}`);
 
   if (resource.loading) return <AdminPageSkeleton />;
@@ -42,27 +54,41 @@ export function AdminReportsPage() {
 
   const data = resource.data;
   const invalid = Boolean(from && to && to < from);
-
-  const funnel = [
-    ["Started", data.assessmentFunnel.started],
-    ["In progress", data.assessmentFunnel.inProgress],
-    ["Processing", data.assessmentFunnel.processing],
-    ["Results available", data.assessmentFunnel.resultAvailable],
-  ] as const;
-
   const startedTotal = Math.max(1, data.assessmentFunnel.started);
-  const completionRate =
-    data.assessmentCompletionRate > 0
-      ? data.assessmentCompletionRate
-      : Math.round((data.completedAssessments / startedTotal) * 100);
+  const completionRate = Math.min(
+    100,
+    Math.max(
+      0,
+      data.assessmentCompletionRate > 0
+        ? data.assessmentCompletionRate
+        : Math.round((data.completedAssessments / startedTotal) * 100),
+    ),
+  );
+  const saveToRunRatio = data.recommendationRuns
+    ? Math.round((data.programmeSaves / data.recommendationRuns) * 100)
+    : 0;
+  const dateScope =
+    data.from || data.to
+      ? `${data.from ? formatDate(data.from) : "First record"} – ${
+          data.to ? formatDate(data.to) : "Latest record"
+        }`
+      : "All recorded dates";
 
-  const saveRate =
-    data.recommendationRuns > 0
-      ? Math.round((data.programmeSaves / data.recommendationRuns) * 100)
-      : 0;
+  const lifecycle = [
+    { label: "Started", value: data.assessmentFunnel.started },
+    { label: "In progress", value: data.assessmentFunnel.inProgress },
+    { label: "Processing", value: data.assessmentFunnel.processing },
+    {
+      label: "Results available",
+      value: data.assessmentFunnel.resultAvailable,
+    },
+  ];
 
   return (
-    <div className="mx-auto w-full max-w-[1500px] space-y-5" data-report-print>
+    <div
+      className="mx-auto w-full min-w-0 max-w-[1500px] space-y-6 pb-8"
+      data-report-print
+    >
       <AdminPageHeader
         title="System reports"
         action={
@@ -72,171 +98,257 @@ export function AdminReportsPage() {
         }
       />
 
-      {/* Date Filter Toolbar */}
-      <form
-        className="grid gap-4 border-y border-border p-4 sm:grid-cols-[1fr_1fr_auto_auto] sm:items-end"
-        onSubmit={(event) => {
-          event.preventDefault();
-          if (!invalid) {
+      <section aria-labelledby="report-snapshot-heading">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <p className="font-label text-xs font-bold uppercase tracking-[0.14em] text-primary-ink">
+              Institution snapshot
+            </p>
+            <h2
+              id="report-snapshot-heading"
+              className="mt-1 font-display text-xl font-extrabold tracking-tight"
+            >
+              Assessment and recommendation activity
+            </h2>
+            <p className="mt-1 max-w-2xl text-sm leading-6 text-muted-foreground">
+              Aggregate records only. Student-identifiable information is not
+              included in this report.
+            </p>
+          </div>
+          <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
+            <CalendarDays className="size-4 text-primary-ink" /> {dateScope}
+          </div>
+        </div>
+
+        <ReportFilters
+          from={from}
+          to={to}
+          invalid={invalid}
+          onFromChange={setFrom}
+          onToChange={setTo}
+          onApply={() => {
             setQuery(
               from || to
                 ? `?${new URLSearchParams({ ...(from ? { from } : {}), ...(to ? { to } : {}) })}`
                 : "",
             );
-          }
-        }}
-      >
-        <label className="font-label text-xs font-bold uppercase tracking-wide text-muted-foreground">
-          From
-          <Input
-            className="mt-1.5"
-            type="date"
-            value={from}
-            onChange={(event) => setFrom(event.target.value)}
-          />
-        </label>
-        <label className="font-label text-xs font-bold uppercase tracking-wide text-muted-foreground">
-          To
-          <Input
-            className="mt-1.5"
-            type="date"
-            value={to}
-            onChange={(event) => setTo(event.target.value)}
-          />
-        </label>
-        <Button type="submit" disabled={invalid} className="h-10">
-          Apply dates
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          className="h-10"
-          onClick={() => {
+          }}
+          onClear={() => {
             setFrom("");
             setTo("");
             setQuery("");
           }}
-        >
-          Clear
-        </Button>
-        {invalid ? (
-          <p role="alert" className="text-sm text-destructive-ink sm:col-span-4">
-            The end date must be on or after the start date.
-          </p>
-        ) : null}
-      </form>
+        />
+      </section>
 
-      {/* Core Institutional KPIs */}
       <section
-        aria-label="Current operational totals"
-        className="grid border-y border-border sm:grid-cols-2 xl:grid-cols-4"
+        aria-label="Report totals"
+        className="grid overflow-hidden rounded-xs bg-secondary/65 sm:grid-cols-2 xl:grid-cols-4"
       >
-        <ReportMetricCell
+        <SnapshotMetric
+          icon={<Users className="size-4" />}
           label="Students in scope"
           value={data.studentCount}
           detail="Registered accounts"
         />
-        <ReportMetricCell
+        <SnapshotMetric
+          icon={<CheckCircle2 className="size-4" />}
           label="Completed assessments"
           value={data.completedAssessments}
-          detail={`${completionRate}% completion rate`}
-          tone="success"
+          detail={`${completionRate}% of started assessments`}
         />
-        <ReportMetricCell
-          label="Recommendations"
+        <SnapshotMetric
+          icon={<ClipboardList className="size-4" />}
+          label="Recommendation runs"
           value={data.recommendationRuns}
-          detail="Generated matches"
+          detail="Generated result records"
         />
-        <ReportMetricCell
+        <SnapshotMetric
+          icon={<Bookmark className="size-4" />}
           label="Programme saves"
           value={data.programmeSaves}
-          detail={`${saveRate}% bookmark rate`}
+          detail="Recorded student saves"
         />
       </section>
 
-      {/* Primary Analytics Row: Completion Trend & Assessment Pipeline */}
-      <div className="grid overflow-hidden border-y border-border lg:grid-cols-[minmax(0,1.55fr)_minmax(20rem,.65fr)]">
-        <div className="py-5 lg:border-r lg:border-border lg:pr-6">
+      <section
+        aria-labelledby="completion-heading"
+        className="grid gap-8 lg:grid-cols-[minmax(0,1.7fr)_minmax(17rem,.65fr)]"
+      >
+        <div className="min-w-0">
           <SectionHeading
             eyebrow="Completion history"
-            title="Results over time"
-            description="Monthly count of finalized assessments with available recommendation results."
+            title="Completed results over time"
+            description="Monthly finalized assessments within the selected reporting period."
+            id="completion-heading"
           />
           <CompletionTrend items={data.assessmentCompletionsByMonth} />
         </div>
 
-        <div className="py-5 lg:pl-6">
-          <SectionHeading
-            eyebrow="Current progress"
-            title="Assessment status"
-            description="Progression of started assessments through recorded lifecycle stages."
-            compact
+        <aside className="bg-primary/10 px-5 py-5 lg:px-6">
+          <p className="font-label text-xs font-bold uppercase tracking-[0.14em] text-primary-ink">
+            Completion overview
+          </p>
+          <div className="mt-4 flex items-end gap-3">
+            <strong className="font-display text-5xl font-black tracking-tight">
+              {completionRate}%
+            </strong>
+            <span className="pb-1 text-xs leading-5 text-muted-foreground">
+              of started assessments have an available result
+            </span>
+          </div>
+          <Progress
+            value={completionRate}
+            aria-label={`Assessment completion: ${completionRate}%`}
+            className="mt-5 h-2.5 bg-background"
           />
-          <div className="mt-4 flex items-center gap-4 border-b border-border pb-4">
-            <ProgressRing
-              value={completionRate}
-              label="Assessment completion"
+          <dl className="mt-6 grid grid-cols-2 gap-x-5 gap-y-4">
+            <CompactFact label="Started" value={data.assessmentFunnel.started} />
+            <CompactFact
+              label="Results available"
+              value={data.assessmentFunnel.resultAvailable}
             />
-            <div>
-              <p className="font-label text-xs font-bold uppercase tracking-[0.14em] text-muted-foreground">
-                Results available
-              </p>
-              <strong className="mt-1 block font-display text-3xl font-black">
-                {data.assessmentFunnel.resultAvailable}
-              </strong>
-              <p className="mt-1 text-sm text-muted-foreground">
-                of {data.assessmentFunnel.started} started assessments
-              </p>
-            </div>
-          </div>
+            <CompactFact
+              label="In progress"
+              value={data.assessmentFunnel.inProgress}
+            />
+            <CompactFact
+              label="Processing"
+              value={data.assessmentFunnel.processing}
+            />
+          </dl>
+        </aside>
+      </section>
 
-          <div className="mt-6 space-y-4">
-            {funnel.map(([label, value], index) => (
-              <DataBar
-                key={label}
-                label={label}
-                value={value}
-                max={startedTotal}
-                accent={index === funnel.length - 1}
-              />
-            ))}
-          </div>
+      <section aria-labelledby="lifecycle-heading">
+        <SectionHeading
+          eyebrow="Assessment lifecycle"
+          title="Current stage distribution"
+          description="Exact counts from the recorded assessment lifecycle. Stages are shown independently and are not inferred from one another."
+          id="lifecycle-heading"
+        />
+        <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {lifecycle.map((item, index) => (
+            <LifecycleStage
+              key={item.label}
+              index={index + 1}
+              label={item.label}
+              value={item.value}
+              share={Math.round((item.value / startedTotal) * 100)}
+            />
+          ))}
         </div>
+      </section>
+
+      <section
+        className="grid gap-8 lg:grid-cols-2"
+        aria-label="Report breakdowns"
+      >
+        <EligibilityBreakdown
+          board={data.eligibilityDistribution.board}
+          nonBoard={data.eligibilityDistribution.nonBoard}
+        />
+        <EngagementBreakdown
+          recommendations={data.recommendationRuns}
+          saves={data.programmeSaves}
+          ratio={saveToRunRatio}
+        />
+      </section>
+
+      <footer className="flex flex-wrap items-center justify-between gap-2 border-t border-border pt-4 font-label text-xs text-muted-foreground">
+        <span>Updated {formatDate(data.generatedAt)}</span>
+        <span>Institution-wide aggregate reporting scope</span>
+      </footer>
+    </div>
+  );
+}
+
+function ReportFilters({
+  from,
+  to,
+  invalid,
+  onFromChange,
+  onToChange,
+  onApply,
+  onClear,
+}: {
+  from: string;
+  to: string;
+  invalid: boolean;
+  onFromChange: (value: string) => void;
+  onToChange: (value: string) => void;
+  onApply: () => void;
+  onClear: () => void;
+}) {
+  return (
+    <form
+      className="mt-5 grid gap-3 bg-secondary/55 p-4 sm:grid-cols-[minmax(9rem,1fr)_minmax(9rem,1fr)_auto_auto] sm:items-end"
+      onSubmit={(event) => {
+        event.preventDefault();
+        if (!invalid) onApply();
+      }}
+    >
+      <label className="font-label text-xs font-bold text-muted-foreground">
+        From date
+        <Input
+          className="mt-1.5 bg-background"
+          type="date"
+          value={from}
+          onChange={(event) => onFromChange(event.target.value)}
+        />
+      </label>
+      <label className="font-label text-xs font-bold text-muted-foreground">
+        To date
+        <Input
+          className="mt-1.5 bg-background"
+          type="date"
+          value={to}
+          onChange={(event) => onToChange(event.target.value)}
+        />
+      </label>
+      <Button type="submit" disabled={invalid} className="h-10">
+        Apply dates
+      </Button>
+      <Button
+        type="button"
+        variant="ghost"
+        className="h-10"
+        onClick={onClear}
+      >
+        Clear
+      </Button>
+      {invalid ? (
+        <p role="alert" className="text-sm text-destructive-ink sm:col-span-4">
+          The end date must be on or after the start date.
+        </p>
+      ) : null}
+    </form>
+  );
+}
+
+function SnapshotMetric({
+  icon,
+  label,
+  value,
+  detail,
+}: {
+  icon: ReactNode;
+  label: string;
+  value: number;
+  detail: string;
+}) {
+  return (
+    <div className="min-w-0 border-b border-border px-4 py-4 last:border-b-0 sm:border-b-0 sm:border-r sm:last:border-r-0">
+      <div className="flex items-center gap-2 font-label text-xs font-bold text-muted-foreground">
+        <span className="text-primary-ink" aria-hidden="true">
+          {icon}
+        </span>
+        {label}
       </div>
-
-      {/* Secondary Analytics Row: Entrance Eligibility & Student Engagement */}
-      <div className="grid gap-10 border-b border-border pb-8 lg:grid-cols-2">
-        <div>
-          <SectionHeading
-            eyebrow="Entrance result"
-            title="Eligibility distribution"
-            description="Self-declared entrance examination score segmentation under rule SELF-DECLARED-TCC-ENTRANCE-2026-01."
-            compact
-          />
-          <EligibilityChart
-            board={data.eligibilityDistribution.board}
-            nonBoard={data.eligibilityDistribution.nonBoard}
-          />
-        </div>
-
-        <div className="lg:border-l lg:border-border lg:pl-8">
-          <SectionHeading
-            eyebrow="Student choices"
-            title="Recommendation engagement"
-            description="Comparison of generated course recommendations to student programme saves."
-            compact
-          />
-          <EngagementChart
-            recommendations={data.recommendationRuns}
-            saves={data.programmeSaves}
-          />
-        </div>
-      </div>
-
-      <p className="font-label text-sm text-muted-foreground">
-        Updated {formatDate(data.generatedAt)} · Institution-wide reporting
-        scope.
-      </p>
+      <strong className="mt-2 block font-display text-3xl font-black">
+        {value}
+      </strong>
+      <p className="mt-1 text-xs text-muted-foreground">{detail}</p>
     </div>
   );
 }
@@ -245,218 +357,154 @@ function SectionHeading({
   eyebrow,
   title,
   description,
-  compact = false,
   id,
 }: {
   eyebrow: string;
   title: string;
-  description?: string;
-  compact?: boolean;
-  id?: string;
+  description: string;
+  id: string;
 }) {
   return (
     <div>
-      <p className="font-label text-xs font-bold uppercase tracking-[0.15em] text-primary-ink">
+      <p className="font-label text-xs font-bold uppercase tracking-[0.14em] text-primary-ink">
         {eyebrow}
       </p>
       <h2
         id={id}
-        className={`mt-1 font-display font-extrabold tracking-tight ${compact ? "text-lg" : "text-xl"}`}
+        className="mt-1 font-display text-xl font-extrabold tracking-tight"
       >
         {title}
       </h2>
-      {description ? (
-        <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-          {description}
-        </p>
-      ) : null}
-    </div>
-  );
-}
-
-function ReportMetricCell({
-  label,
-  value,
-  detail,
-  tone,
-}: {
-  label: string;
-  value: number;
-  detail: string;
-  tone?: "warning" | "success";
-}) {
-  return (
-    <div className="relative px-4 py-4 sm:border-r sm:border-border sm:last:border-r-0">
-      <span
-        className={`absolute inset-y-5 left-0 w-1 rounded-full ${
-          tone === "warning"
-            ? "bg-warning"
-            : tone === "success"
-              ? "bg-success"
-              : "bg-primary"
-        }`}
-      />
-      <p className="font-label text-xs font-bold uppercase tracking-[0.12em] text-muted-foreground">
-        {label}
+      <p className="mt-1 max-w-2xl text-sm leading-6 text-muted-foreground">
+        {description}
       </p>
-      <div className="mt-2 flex items-end gap-3">
-        <strong className="font-display text-3xl font-black">{value}</strong>
-        <span className="pb-1 text-xs text-muted-foreground">{detail}</span>
-      </div>
     </div>
   );
 }
-
-function ProgressRing({ value, label }: { value: number; label: string }) {
-  const safeValue = Math.min(100, Math.max(0, value));
-  return (
-    <div
-      className="relative flex size-24 shrink-0 items-center justify-center rounded-full"
-      style={{
-        background: `conic-gradient(var(--success) ${safeValue}%, var(--secondary) 0)`,
-      }}
-      role="img"
-      aria-label={`${label}: ${safeValue}%`}
-    >
-      <span className="flex size-16 items-center justify-center rounded-full bg-background font-display text-xl font-black">
-        {safeValue}%
-      </span>
-    </div>
-  );
-}
-
-function DataBar({
-  label,
-  value,
-  max,
-  accent = false,
-}: {
-  label: string;
-  value: number;
-  max: number;
-  accent?: boolean;
-}) {
-  const percentage = Math.min(100, Math.max(0, (value / max) * 100));
-  return (
-    <div>
-      <div className="mb-2 flex items-center justify-between gap-4">
-        <span className="text-sm font-semibold">{label}</span>
-        <div className="flex items-center gap-2">
-          <strong className="font-display text-lg">{value}</strong>
-          <span className="font-label text-xs text-muted-foreground">
-            ({Math.round(percentage)}%)
-          </span>
-        </div>
-      </div>
-      <Progress
-        value={percentage}
-        aria-label={label}
-        className="h-2.5"
-        indicatorClassName={accent ? "bg-success" : "bg-foreground"}
-      />
-    </div>
-  );
-}
-
-const completionsChartConfig = {
-  count: {
-    label: "Completions",
-    color: "var(--success)",
-  },
-} satisfies ChartConfig;
 
 function CompletionTrend({
   items,
 }: {
   items: Array<{ month: string; count: number }>;
 }) {
-  const accessibleLabel = items
-    .map((item) => `${item.month}: ${item.count}`)
-    .join(", ");
-
   if (!items.length) {
     return (
-      <p className="mt-6 border-y border-border py-14 text-sm text-muted-foreground">
-        No completion activity in this period.
+      <p className="mt-5 bg-secondary/55 px-5 py-16 text-center text-sm text-muted-foreground">
+        No completed assessments were recorded in this period.
       </p>
     );
   }
 
+  const accessibleLabel = items
+    .map((item) => `${item.month}: ${item.count}`)
+    .join(", ");
+
   return (
-    <div className="mt-6" role="img" aria-label={accessibleLabel}>
+    <div className="mt-5" role="img" aria-label={accessibleLabel}>
       <ChartContainer
         config={completionsChartConfig}
-        className="aspect-auto h-[230px] w-full"
+        className="aspect-auto h-[260px] w-full"
       >
         <AreaChart
           data={items}
-          margin={{
-            left: 8,
-            right: 8,
-            top: 12,
-            bottom: 8,
-          }}
+          margin={{ left: 0, right: 12, top: 12, bottom: 0 }}
         >
           <defs>
-            <linearGradient id="fillCompletions" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="var(--success)" stopOpacity={0.7} />
+            <linearGradient
+              id="reportCompletionFill"
+              x1="0"
+              y1="0"
+              x2="0"
+              y2="1"
+            >
+              <stop
+                offset="5%"
+                stopColor="var(--primary)"
+                stopOpacity={0.34}
+              />
               <stop
                 offset="95%"
-                stopColor="var(--success)"
-                stopOpacity={0.05}
+                stopColor="var(--primary)"
+                stopOpacity={0.02}
               />
             </linearGradient>
           </defs>
-          <CartesianGrid vertical={false} strokeDasharray="3 3" />
+          <CartesianGrid vertical={false} strokeDasharray="3 5" />
           <XAxis
             dataKey="month"
             tickLine={false}
             axisLine={false}
-            tickMargin={8}
-            className="font-label text-[11px]"
+            tickMargin={10}
+          />
+          <YAxis
+            allowDecimals={false}
+            tickLine={false}
+            axisLine={false}
+            width={28}
           />
           <ChartTooltip
-            cursor={{ stroke: "var(--border)", strokeWidth: 1 }}
+            cursor={{ stroke: "var(--border-strong)", strokeWidth: 1 }}
             content={<ChartTooltipContent indicator="dot" />}
           />
           <Area
             dataKey="count"
             type="monotone"
-            fill="url(#fillCompletions)"
-            fillOpacity={0.4}
-            stroke="var(--success)"
-            strokeWidth={2.5}
-            dot={{ fill: "var(--success)", r: 4 }}
-            activeDot={{ r: 6, fill: "var(--success)" }}
+            fill="url(#reportCompletionFill)"
+            stroke="var(--primary)"
+            strokeWidth={3}
+            dot={{
+              fill: "var(--background)",
+              stroke: "var(--primary)",
+              strokeWidth: 2,
+              r: 4,
+            }}
+            activeDot={{ fill: "var(--primary)", r: 6 }}
           />
         </AreaChart>
       </ChartContainer>
-
-      <div className="mt-4 grid grid-cols-3 divide-x divide-border border-y border-border py-3 font-label text-xs">
-        <div className="pr-4">
-          <span className="text-muted-foreground">Recorded periods</span>
-          <strong className="mt-1 block font-display text-lg font-extrabold">
-            {items.length}
-          </strong>
-        </div>
-        <div className="px-4">
-          <span className="text-muted-foreground">Peak month count</span>
-          <strong className="mt-1 block font-display text-lg font-extrabold">
-            {Math.max(0, ...items.map((i) => i.count))}
-          </strong>
-        </div>
-        <div className="pl-4">
-          <span className="text-muted-foreground">Total completions</span>
-          <strong className="mt-1 block font-display text-lg font-extrabold">
-            {items.reduce((sum, i) => sum + i.count, 0)}
-          </strong>
-        </div>
-      </div>
     </div>
   );
 }
 
-function EligibilityChart({
+function CompactFact({ label, value }: { label: string; value: number }) {
+  return (
+    <div>
+      <dt className="text-xs leading-5 text-muted-foreground">{label}</dt>
+      <dd className="font-display text-2xl font-black">{value}</dd>
+    </div>
+  );
+}
+
+function LifecycleStage({
+  index,
+  label,
+  value,
+  share,
+}: {
+  index: number;
+  label: string;
+  value: number;
+  share: number;
+}) {
+  return (
+    <div className="bg-secondary/55 px-4 py-4">
+      <div className="flex items-center justify-between gap-3">
+        <span className="font-label text-xs font-bold text-muted-foreground">
+          {String(index).padStart(2, "0")}
+        </span>
+        <span className="font-label text-xs text-muted-foreground">
+          {share}% of started
+        </span>
+      </div>
+      <strong className="mt-4 block font-display text-3xl font-black">
+        {value}
+      </strong>
+      <p className="mt-1 text-sm font-semibold">{label}</p>
+    </div>
+  );
+}
+
+function EligibilityBreakdown({
   board,
   nonBoard,
 }: {
@@ -468,107 +516,93 @@ function EligibilityChart({
   const nonBoardShare = total ? 100 - boardShare : 0;
 
   return (
-    <div className="mt-7">
+    <div>
+      <SectionHeading
+        eyebrow="Declared entrance group"
+        title="Recorded group distribution"
+        description="Aggregate self-declared entrance groups. This guidance is separate from programme ranking."
+        id="eligibility-heading"
+      />
       <div
-        className="flex h-10 overflow-hidden rounded-xs bg-secondary"
+        className="mt-5 flex h-3 overflow-hidden rounded-full bg-secondary"
         role="img"
         aria-label={`Board eligible: ${board}, non-board eligible: ${nonBoard}`}
       >
-        {board ? (
-          <span
-            className="bg-success transition-all"
-            style={{ width: `${boardShare}%` }}
-          />
-        ) : null}
-        {nonBoard ? (
-          <span
-            className="bg-primary transition-all"
-            style={{ width: `${nonBoardShare}%` }}
-          />
-        ) : null}
+        <span className="bg-primary" style={{ width: `${boardShare}%` }} />
+        <span className="bg-warning" style={{ width: `${nonBoardShare}%` }} />
       </div>
-
-      <dl className="mt-5 grid grid-cols-2 divide-x divide-border border-y border-border">
-        <div className="py-4 pr-5">
-          <dt className="flex items-center gap-2 text-sm text-muted-foreground">
-            <span className="size-2.5 rounded-full bg-success" /> Board eligible
-          </dt>
-          <dd className="mt-1 font-display text-3xl font-black">{board}</dd>
-          <p className="mt-1 font-label text-xs text-muted-foreground">
-            {boardShare}% of declared · Score 1.0–2.5
-          </p>
-        </div>
-        <div className="py-4 pl-5">
-          <dt className="flex items-center gap-2 text-sm text-muted-foreground">
-            <span className="size-2.5 rounded-full bg-primary" /> Non-board
-            eligible
-          </dt>
-          <dd className="mt-1 font-display text-3xl font-black">{nonBoard}</dd>
-          <p className="mt-1 font-label text-xs text-muted-foreground">
-            {nonBoardShare}% of declared · Score 2.6–5.0
-          </p>
-        </div>
+      <dl className="mt-5 grid grid-cols-2 gap-6">
+        <BreakdownFact
+          label="Board group"
+          value={board}
+          share={boardShare}
+          markerClass="bg-primary"
+        />
+        <BreakdownFact
+          label="Non-board group"
+          value={nonBoard}
+          share={nonBoardShare}
+          markerClass="bg-warning"
+        />
       </dl>
     </div>
   );
 }
 
-function EngagementChart({
+function BreakdownFact({
+  label,
+  value,
+  share,
+  markerClass,
+}: {
+  label: string;
+  value: number;
+  share: number;
+  markerClass: string;
+}) {
+  return (
+    <div>
+      <dt className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
+        <span className={`size-2.5 rounded-full ${markerClass}`} /> {label}
+      </dt>
+      <dd className="mt-2 font-display text-3xl font-black">{value}</dd>
+      <p className="mt-1 text-xs text-muted-foreground">
+        {share}% of declared records
+      </p>
+    </div>
+  );
+}
+
+function EngagementBreakdown({
   recommendations,
   saves,
+  ratio,
 }: {
   recommendations: number;
   saves: number;
+  ratio: number;
 }) {
-  const maximum = Math.max(1, recommendations, saves);
-  const saveRate =
-    recommendations > 0 ? Math.round((saves / recommendations) * 100) : 0;
-
   return (
-    <div className="mt-7">
-      <div
-        className="grid grid-cols-2 items-end gap-6 border-b border-border px-4"
-        role="img"
-        aria-label={`Recommendations: ${recommendations}, programme saves: ${saves}`}
-      >
-        <div className="flex min-h-56 flex-col justify-end">
-          <strong className="mb-2 font-display text-3xl font-black">
-            {recommendations}
-          </strong>
-          <span
-            aria-hidden="true"
-            className="bg-foreground"
-            style={{
-              height: `${Math.max(8, (recommendations / maximum) * 150)}px`,
-            }}
-          />
-          <span className="min-h-14 pt-3 text-sm font-semibold text-muted-foreground">
-            Recommendations
-          </span>
-        </div>
-
-        <div className="flex min-h-56 flex-col justify-end">
-          <strong className="mb-2 font-display text-3xl font-black">
-            {saves}
-          </strong>
-          <span
-            aria-hidden="true"
-            className="bg-success"
-            style={{
-              height: `${Math.max(8, (saves / maximum) * 150)}px`,
-            }}
-          />
-          <span className="min-h-14 pt-3 text-sm font-semibold text-muted-foreground">
-            Programme saves
-          </span>
-        </div>
-      </div>
-
-      <div className="mt-4 flex items-center justify-between border-y border-border py-3 font-label text-xs">
-        <span className="text-muted-foreground">Bookmark conversion rate</span>
-        <strong className="font-display text-base font-extrabold">
-          {saveRate}%
-        </strong>
+    <div className="bg-info/10 px-5 py-5 lg:px-6">
+      <p className="font-label text-xs font-bold uppercase tracking-[0.14em] text-primary-ink">
+        Recommendation engagement
+      </p>
+      <h2 className="mt-1 font-display text-xl font-extrabold tracking-tight">
+        From generated results to saved programmes
+      </h2>
+      <p className="mt-1 text-sm leading-6 text-muted-foreground">
+        Saves record student interest. They do not represent applications,
+        admissions, or enrolments.
+      </p>
+      <dl className="mt-6 grid grid-cols-2 gap-6">
+        <CompactFact label="Recommendation runs" value={recommendations} />
+        <CompactFact label="Programme saves" value={saves} />
+      </dl>
+      <div className="mt-6 flex items-end justify-between gap-4 bg-background/70 px-4 py-3">
+        <span className="text-xs leading-5 text-muted-foreground">
+          Saves per 100 recommendation runs
+        </span>
+        <strong className="font-display text-2xl font-black">{ratio}</strong>
       </div>
     </div>
   );

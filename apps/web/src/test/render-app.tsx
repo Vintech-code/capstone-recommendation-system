@@ -29,7 +29,11 @@ function defaultUserForPath(path: string) {
   if (path.startsWith('/admin') && !path.startsWith('/admin/login')) {
     return testUsers.admin
   }
-  if (path.startsWith('/student') && !path.startsWith('/student/login')) {
+  if (
+    path.startsWith('/student') &&
+    !path.startsWith('/student/login') &&
+    !path.startsWith('/student/register')
+  ) {
     return testUsers.student
   }
   return null

@@ -56,11 +56,11 @@ function SignInForm({ onSignIn }: SignInFormProps) {
   })
 
   return (
-    <form noValidate onSubmit={submit} className="space-y-5">
+    <form noValidate onSubmit={submit} className="space-y-3.5">
       {errors.root ? (
         <div
           role="alert"
-          className="rounded-lg bg-destructive/8 px-4 py-3 text-sm font-semibold text-destructive-ink"
+          className="rounded-xs bg-destructive/10 px-3 py-2 text-xs font-semibold text-destructive-ink"
         >
           {errors.root.message}
         </div>
@@ -87,13 +87,13 @@ function SignInForm({ onSignIn }: SignInFormProps) {
           <button
             type="button"
             onClick={() => setShowPassword((visible) => !visible)}
-            className="absolute right-1.5 top-1/2 z-30 flex size-9 -translate-y-1/2 items-center justify-center rounded-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/40"
+            className="absolute right-1.5 top-1/2 z-30 flex size-7.5 -translate-y-1/2 items-center justify-center rounded-xs text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
             aria-label={showPassword ? 'Hide password' : 'Show password'}
           >
             {showPassword ? (
-              <EyeOff aria-hidden="true" className="size-4" />
+              <EyeOff aria-hidden="true" className="size-3.5" />
             ) : (
-              <Eye aria-hidden="true" className="size-4" />
+              <Eye aria-hidden="true" className="size-3.5" />
             )}
           </button>
         )}
@@ -102,9 +102,8 @@ function SignInForm({ onSignIn }: SignInFormProps) {
 
       <Button
         type="submit"
-        size="lg"
         disabled={isSubmitting}
-        className="min-h-12 w-full rounded-lg"
+        className="min-h-9.5 h-9.5 w-full rounded-xs text-xs sm:text-sm font-semibold"
       >
         {isSubmitting ? 'Signing in…' : 'Sign in'}
       </Button>

@@ -35,6 +35,40 @@ async function installAdminApi(page: Page) {
 const assessment = { id: 1, reference: 'ASMT-000001', studentId: 10, studentName: 'Ana Santos', studentEmail: 'ana@example.test', attemptNumber: 1, instrumentCode: 'tcc-uhcc-riasec-42-v1', status: 'result_available', answerCount: 42, questionCount: 42, topCode: 'I-C-R', startedAt: '2026-08-08T08:00:00+08:00', savedAt: '2026-08-08T08:19:00+08:00', submittedAt: '2026-08-08T08:20:00+08:00', resultAvailableAt: '2026-08-08T08:20:01+08:00', processingErrorCode: null, processingFailedAt: null, entranceExamination: { resultId: 1, score: 2.5, eligibilityGroup: 'board', ruleReference: 'SELF-DECLARED-TCC-ENTRANCE-2026-01', source: 'student_self_declared', declaredAt: '2026-08-08T07:00:00+08:00' }, recommendationSnapshot: { catalogueReference: 'TCC-AY-2026-2027-V2', ruleReference: 'PROPOSED-RIASEC-3-PSG-MATRIX', methodologyStatus: 'Proposed methodology', generatedAt: '2026-08-08T08:20:01+08:00', totalEligible: 6 } }
 const student = { id: 10, name: 'Ana Santos', email: 'ana@example.test', accountStatus: 'active', attemptCount: 1, latestResultAt: '2026-08-08T08:20:01+08:00', latestTopCode: 'I-C-R', declarationStatus: 'declared', selfDeclaredScore: 2.5, eligibilityGroup: 'board', currentAssessmentStatus: 'result_available', currentAssessmentReference: 'ASMT-000001', recommendationAvailable: true, savedProgrammeCount: 1, lastActivityAt: '2026-08-08T08:20:01+08:00' }
 
+test('Admin dashboard uses the semantic multicolor palette without overflow', async ({ page }, testInfo) => {
+  const consoleErrors: string[] = []
+  page.on('console', (message) => { if (message.type() === 'error') consoleErrors.push(message.text()) })
+  await installAdminApi(page)
+  await page.goto('/admin/login')
+  await page.getByLabel('Email address').fill('admin@example.test')
+  await page.getByRole('textbox', { name: 'Password' }).fill('password')
+  await page.getByRole('button', { name: 'Sign in' }).click()
+  consoleErrors.length = 0
+
+  await expect(page.getByRole('heading', { name: 'System overview' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Journey stage detail' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'View all records' })).toBeVisible()
+
+  const metricColors = await page.getByTestId('admin-operational-strip').locator(':scope > div').evaluateAll((cells) =>
+    cells.map((cell) => getComputedStyle(cell).backgroundColor),
+  )
+  expect(new Set(metricColors).size).toBe(4)
+
+  const overflow = await page.evaluate(() => ({
+    clientWidth: document.documentElement.clientWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+  }))
+  expect(overflow.scrollWidth).toBeLessThanOrEqual(overflow.clientWidth)
+
+  const accessibility = await page.evaluate(async (source) => {
+    eval(source)
+    return window.axe.run(document, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa'] } })
+  }, axe.source)
+  expect(accessibility.violations.filter((violation) => ['serious', 'critical'].includes(violation.impact ?? ''))).toEqual([])
+  expect(consoleErrors).toEqual([])
+  await page.screenshot({ path: testInfo.outputPath('admin-dashboard-remake.png'), fullPage: true })
+})
+
 test('Admin workspace is responsive, accessible, and navigable', async ({ page }, testInfo) => {
   const consoleErrors: string[] = []
   page.on('console', (message) => { if (message.type() === 'error') consoleErrors.push(message.text()) })
@@ -47,7 +81,15 @@ test('Admin workspace is responsive, accessible, and navigable', async ({ page }
   await expect(page.getByRole('heading', { name: 'System overview' })).toBeVisible()
   await expect(page.getByRole('contentinfo')).toHaveCount(0)
   consoleErrors.length = 0
-  await expect(page.getByText('Recent assessment activity')).toBeVisible()
+  await expect(page.getByText('Latest recorded assessment activity and available evidence.')).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Journey stage detail' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Open student directory' })).toHaveCount(0)
+  await expect(page.getByText('Needs attention', { exact: true })).toHaveCount(0)
+  await expect(page.getByText('Recommendation runs', { exact: true })).toBeVisible()
+  await expect(page.getByText('Top Recommended Programmes')).toHaveCount(0)
+  await expect(page.getByText('Matches by Track')).toHaveCount(0)
+  await expect(page.getByRole('heading', { name: 'Current workload' })).toHaveCount(0)
+  await page.screenshot({ path: testInfo.outputPath('admin-dashboard-remake.png'), fullPage: true })
   const dashboardOverflow = await page.evaluate(() => ({
     clientWidth: document.documentElement.clientWidth,
     scrollWidth: document.documentElement.scrollWidth,
@@ -118,6 +160,16 @@ test('Admin workspace is responsive, accessible, and navigable', async ({ page }
   ] as const) {
     await page.goto(path)
     await expect(page.getByRole('heading', { name: heading, exact: true })).toBeVisible()
+    if (path === '/admin/programmes') {
+      await expect(page.locator('[class*="bg-gradient"]')).toHaveCount(0)
+      await page.screenshot({ path: testInfo.outputPath('admin-programmes-no-gradient.png'), fullPage: true })
+    }
+    if (path === '/admin/reports') {
+      await expect(page.getByRole('heading', { name: 'Assessment and recommendation activity' })).toBeVisible()
+      await expect(page.getByRole('heading', { name: 'Completed results over time' })).toBeVisible()
+      await expect(page.getByRole('heading', { name: 'Current stage distribution' })).toBeVisible()
+      await page.screenshot({ path: testInfo.outputPath('admin-report-redesign.png'), fullPage: true })
+    }
     const overflow = await page.evaluate(() => ({
       clientWidth: document.documentElement.clientWidth,
       scrollWidth: document.documentElement.scrollWidth,

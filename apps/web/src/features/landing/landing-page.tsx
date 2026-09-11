@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { Link } from "react-router";
+import { Link, useSearchParams } from "react-router";
 import {
   ArrowRight,
   BookCheck,
+  ChartNoAxesCombined,
   Compass,
   FileText,
-  Sparkles,
 } from "lucide-react";
 
 import landingHome from "@/assets/images/landing-image-home.png";
@@ -16,6 +16,7 @@ import landingFooter from "@/assets/images/landing-image-footer.png";
 import logo from "@/assets/logo/header-logo.png";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { StudentAuthModal } from "@/features/auth/components/student-auth-modal";
 
 const reasons = [
   {
@@ -31,7 +32,7 @@ const reasons = [
       "Entrance results are clearly referenced against standard programme tracks.",
   },
   {
-    icon: Sparkles,
+    icon: ChartNoAxesCombined,
     title: "Transparent Scores",
     description:
       "Every recommendation displays exact Holland attribute scores and rationale.",
@@ -46,25 +47,25 @@ const reasons = [
 
 const journeySteps = [
   {
-    number: "01",
-    icon: Compass,
-    title: "Complete the RIASEC assessment",
-    description:
-      "Respond to structured interest prompts covering Realistic, Investigative, Artistic, Social, Enterprising, and Conventional domains.",
-  },
-  {
-    number: "02",
+    number: "1",
     icon: FileText,
-    title: "Self-declare your entrance result",
+    title: "Declare entrance result",
     description:
-      "Record your examination score band to align your interest profile with relevant institutional track guidelines.",
+      "Enter your examination result first — whether board or non-board eligible. It establishes your academic track context before taking the assessment.",
   },
   {
-    number: "03",
-    icon: Sparkles,
-    title: "Review documented recommendations",
+    number: "2",
+    icon: Compass,
+    title: "Answer honestly",
     description:
-      "Inspect transparent match explanations and revisit your recorded profile whenever you consult with college advisors.",
+      "Thirty scenario questions — pick what feels more like you. No right or wrong answers, Holland's RIASEC model captures your natural vocational interests.",
+  },
+  {
+    number: "3",
+    icon: ChartNoAxesCombined,
+    title: "Explore what fits",
+    description:
+      "Get course and career ideas matched to your profile and entrance group — review transparent match scores you can revisit with college advisors.",
   },
 ];
 
@@ -196,65 +197,164 @@ function ScrollReveal({
   );
 }
 
-function LandingPage() {
+interface LandingPageProps {
+  initialAuth?: 'signin' | 'signup';
+}
+
+function LandingPage({ initialAuth }: LandingPageProps = {}) {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const authQuery = searchParams.get("auth");
+  const googleError = searchParams.get("google_error");
+
+  const requestedAuth =
+    initialAuth ??
+    (authQuery === 'signup'
+      ? 'signup'
+      : authQuery === 'signin' || googleError
+        ? 'signin'
+        : null);
+
+  const [authOverride, setAuthOverride] = useState<{
+    open: boolean;
+    mode: 'signin' | 'signup';
+  } | null>(null);
+
+  const authModalOpen = authOverride ? authOverride.open : Boolean(requestedAuth);
+  const authModalMode = authOverride ? authOverride.mode : (requestedAuth ?? 'signin');
+
+  const [isScrolled, setIsScrolled] = useState(
+    () => typeof window !== "undefined" && window.scrollY > 20,
+  );
+
+  const openAuth = (mode: 'signin' | 'signup' = 'signin') => {
+    setAuthOverride({ open: true, mode });
+  };
+
+  const handleAuthOpenChange = (open: boolean) => {
+    setAuthOverride({ open, mode: authModalMode });
+    if (!open) {
+      if (searchParams.has('auth') || searchParams.has('google_error')) {
+        const nextParams = new URLSearchParams(searchParams);
+        nextParams.delete('auth');
+        nextParams.delete('google_error');
+        setSearchParams(nextParams, { replace: true });
+      }
+    }
+  };
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
     <div className="min-h-screen bg-background text-foreground antialiased selection:bg-primary/20 selection:text-primary-ink">
-      {/* HEADER NAVIGATION */}
-      <header className="sticky top-0 z-40 border-b border-border/80 bg-surface/90 backdrop-blur-md">
-        <div className="mx-auto flex max-w-[1200px] items-center justify-between px-4 py-3.5 sm:px-6 lg:px-8">
-          <Link
-            to="/"
-            className="flex items-center gap-3 transition-opacity hover:opacity-90"
+      {/* HEADER NAVIGATION WITH SCROLL TRANSITION */}
+      <header
+        className={cn(
+          "sticky top-0 z-50 w-full transition-all duration-300 ease-in-out",
+          isScrolled
+            ? "pt-3 sm:pt-4 px-4 sm:px-6 lg:px-8 pointer-events-none"
+            : "pt-0 px-0 pointer-events-auto",
+        )}
+      >
+        <div
+          className={cn(
+            "mx-auto flex items-center justify-between transition-all duration-300 ease-in-out pointer-events-auto",
+            isScrolled
+              ? "max-w-255 rounded-full border border-border/80 bg-surface/95 dark:bg-card/95 backdrop-blur-md px-4 sm:px-6 py-2 sm:py-2.5"
+              : "w-full max-w-full border-b border-transparent bg-transparent px-4 sm:px-6 lg:px-8 py-3.5 sm:py-4",
+          )}
+        >
+          <div
+            className={cn(
+              "mx-auto flex w-full items-center justify-between transition-all duration-300",
+              !isScrolled && "max-w-300",
+            )}
           >
-            <img
-              src={logo}
-              alt="TCCence"
-              className="h-10 sm:h-11 w-auto object-contain"
-            />
-          </Link>
+            <Link
+              to="/"
+              className="flex items-center transition-opacity hover:opacity-90 shrink-0"
+            >
+              <img
+                src={logo}
+                alt="TCCence"
+                className={cn(
+                  "w-auto object-contain transition-all duration-300",
+                  isScrolled ? "h-7.5 sm:h-8.5" : "h-8.5 sm:h-9.5",
+                )}
+              />
+            </Link>
 
-          {/* Center Nav Links */}
-          <nav
-            aria-label="Landing navigation"
-            className="hidden items-center gap-7 md:flex text-sm font-semibold"
-          >
-            <a
-              href="#why-pathways"
-              className="text-muted-foreground transition-colors hover:text-foreground"
+            {/* Center Nav Links */}
+            <nav
+              aria-label="Landing navigation"
+              className="hidden items-center gap-6 lg:gap-8 md:flex text-sm font-semibold"
             >
-              What We Provide
-            </a>
-            <a
-              href="#journey"
-              className="text-muted-foreground transition-colors hover:text-foreground"
-            >
-              How It Works
-            </a>
-            <a
-              href="#riasec"
-              className="text-muted-foreground transition-colors hover:text-foreground"
-            >
-              RIASEC
-            </a>
-            <a
-              href="#faq"
-              className="text-muted-foreground transition-colors hover:text-foreground"
-            >
-              FAQ
-            </a>
-          </nav>
+              <a
+                href="#landing-hero"
+                className="text-foreground/80 transition-colors hover:text-foreground"
+              >
+                Home
+              </a>
+              <a
+                href="#why-pathways"
+                className="text-foreground/80 transition-colors hover:text-foreground"
+              >
+                What We Provide
+              </a>
+              <a
+                href="#journey"
+                className="text-foreground/80 transition-colors hover:text-foreground"
+              >
+                How It Works
+              </a>
+              <a
+                href="#riasec"
+                className="text-foreground/80 transition-colors hover:text-foreground"
+              >
+                RIASEC
+              </a>
+              <a
+                href="#faq"
+                className="text-foreground/80 transition-colors hover:text-foreground"
+              >
+                FAQ
+              </a>
+            </nav>
 
-          <div className="flex items-center">
-            <Button
-              asChild
-              size="sm"
-              className="inline-flex rounded-full px-3.5 font-semibold shadow-xs sm:px-4.5"
-            >
-              <Link to="/student/login">
-                Start assessment
-                <ArrowRight aria-hidden="true" className="size-3.5" />
-              </Link>
-            </Button>
+            {/* Right Action Button (Layered 3D Button) */}
+            <div className="relative inline-flex group shrink-0">
+              <span
+                aria-hidden="true"
+                className="absolute -inset-0.5 translate-y-1 rounded-full bg-[#b8f572] border border-[#85d826]/70 shadow-xs transition-transform duration-150 group-hover:translate-y-0.5 group-active:translate-y-0"
+              />
+              <Button
+                asChild
+                size="sm"
+                className={cn(
+                  "relative inline-flex rounded-full font-bold shadow-xs transition-all duration-150 bg-primary text-primary-foreground border border-[#62ad19]/40 hover:bg-[#70c21d] active:translate-y-1",
+                  isScrolled
+                    ? "px-3.5 py-1 text-xs sm:text-sm sm:px-4"
+                    : "px-3.5 sm:px-4.5",
+                )}
+              >
+                <Link
+                  to="/student/login"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    openAuth('signin');
+                  }}
+                >
+                  Start assessment
+                  <ArrowRight aria-hidden="true" className="size-3.5" />
+                </Link>
+              </Button>
+            </div>
           </div>
         </div>
       </header>
@@ -262,9 +362,10 @@ function LandingPage() {
       <main id="main-content">
         {/* SECTION 1: HERO SECTION */}
         <section
+          id="landing-hero"
           aria-labelledby="landing-title"
           data-testid="landing-hero"
-          className="relative isolate overflow-hidden px-4 pb-10 pt-4 sm:px-6 sm:pb-12 sm:pt-5 lg:px-8 lg:pb-14 lg:pt-6"
+          className="relative isolate overflow-hidden -mt-16 sm:-mt-20 px-4 pb-10 pt-20 sm:px-6 sm:pb-12 sm:pt-24 lg:px-8 lg:pb-14 lg:pt-28"
         >
           <div
             aria-hidden="true"
@@ -277,10 +378,13 @@ function LandingPage() {
               className="size-full object-cover object-center opacity-75"
             />
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(247,250,242,0.72)_0%,rgba(247,250,242,0.38)_48%,rgba(247,250,242,0.12)_100%)]" />
-            <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-background to-transparent" />
+            <div className="absolute inset-x-0 bottom-0 h-24 bg-linear-to-t from-background to-transparent" />
           </div>
 
-          <ScrollReveal className="relative z-10 mx-auto max-w-[1200px] text-center" variant="scale">
+          <ScrollReveal
+            className="relative z-10 mx-auto max-w-300 text-center"
+            variant="scale"
+          >
             {/* Main Display Headline */}
             <h1
               id="landing-title"
@@ -301,23 +405,43 @@ function LandingPage() {
 
             {/* Action Buttons */}
             <div className="landing-stagger mt-4.5 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <Button
-                asChild
-                size="default"
-                className="w-full sm:w-auto rounded-full px-6 font-semibold shadow-xs"
-              >
-                <Link to="/student/login">
-                  Start assessment
-                  <ArrowRight aria-hidden="true" className="size-4" />
-                </Link>
-              </Button>
+              <div className="relative inline-flex group w-full sm:w-auto shrink-0">
+                <span
+                  aria-hidden="true"
+                  className="absolute -inset-0.5 translate-y-1 sm:translate-y-1.5 rounded-full bg-[#b8f572] border border-[#85d826]/70 shadow-xs transition-transform duration-150 group-hover:translate-y-0.5 group-active:translate-y-0"
+                />
+                <Button
+                  asChild
+                  size="default"
+                  className="relative inline-flex w-full sm:w-auto rounded-full px-6 font-bold shadow-xs transition-all duration-150 bg-primary text-primary-foreground border border-[#62ad19]/40 hover:bg-[#70c21d] active:translate-y-1 sm:active:translate-y-1.5"
+                >
+                  <Link
+                    to="/student/login"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      openAuth('signin');
+                    }}
+                  >
+                    Start assessment
+                    <ArrowRight aria-hidden="true" className="size-4" />
+                  </Link>
+                </Button>
+              </div>
               <Button
                 asChild
                 size="default"
                 variant="outline"
                 className="w-full sm:w-auto rounded-full bg-surface/90 px-5.5 font-semibold border-border/90 hover:bg-surface-subtle"
               >
-                <Link to="/student/login">Student sign in</Link>
+                <Link
+                  to="/student/login"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    openAuth('signin');
+                  }}
+                >
+                  Student sign in
+                </Link>
               </Button>
             </div>
 
@@ -326,7 +450,7 @@ function LandingPage() {
               <img
                 src={landingHome}
                 alt="Students discovering career interests with laptops"
-                className="relative z-10 mx-auto max-h-[19rem] w-auto object-contain drop-shadow-sm sm:max-h-[22rem] lg:max-h-[25rem]"
+                className="relative z-10 mx-auto max-h-76 w-auto object-contain drop-shadow-sm sm:max-h-88 lg:max-h-100"
               />
             </div>
           </ScrollReveal>
@@ -338,7 +462,7 @@ function LandingPage() {
           className="scroll-mt-24 px-4 py-14 sm:px-6 lg:px-8 lg:py-20 bg-surface-subtle/50 border-y border-border/60"
           aria-labelledby="why-title"
         >
-          <ScrollReveal className="mx-auto max-w-[1200px]" variant="left">
+          <ScrollReveal className="mx-auto max-w-300" variant="left">
             <div className="text-center">
               <p className="font-display text-xs font-bold uppercase tracking-[0.2em] text-primary-ink">
                 / WHAT WE PROVIDE /
@@ -401,35 +525,35 @@ function LandingPage() {
           className="scroll-mt-24 px-4 py-14 sm:px-6 lg:px-8 lg:py-20"
           aria-labelledby="steps-title"
         >
-          <ScrollReveal className="mx-auto max-w-[1200px]" variant="right">
+          <ScrollReveal className="mx-auto max-w-300" variant="right">
             <div className="grid gap-10 lg:grid-cols-12 lg:items-center">
               {/* Left Column: 3D Confident Students Illustration */}
-              <div className="lg:col-span-5 flex justify-center order-2 lg:order-1">
+              <div className="lg:col-span-4 flex justify-center order-2 lg:order-1">
                 <div className="relative max-w-md w-full">
                   <div
                     aria-hidden="true"
-                    className="absolute inset-0 rounded-full bg-gradient-to-tr from-primary/15 via-accent/10 to-transparent blur-2xl -z-10"
+                    className="absolute inset-0 rounded-full bg-linear-to-tr from-primary/15 via-accent/10 to-transparent blur-2xl -z-10"
                   />
                   <img
                     src={landingJourney}
                     alt="Two confident students ready for their college journey"
-                    className="mx-auto max-h-[26rem] w-auto drop-shadow-md object-contain transition-transform duration-500 hover:scale-[1.01]"
+                    className="mx-auto max-h-104 w-auto drop-shadow-md object-contain transition-transform duration-500 hover:scale-[1.01]"
                   />
                 </div>
               </div>
 
               {/* Right Column: Process & Steps */}
-              <div className="lg:col-span-7 order-1 lg:order-2">
+              <div className="lg:col-span-8 order-1 lg:order-2">
                 <p className="font-display text-xs font-bold uppercase tracking-[0.2em] text-primary-ink">
                   / HOW IT WORKS /
                 </p>
                 <h2
                   id="steps-title"
-                  className="mt-2.5 font-display text-2xl font-black tracking-[-0.03em] text-foreground sm:text-3xl lg:text-4xl"
+                  className="mt-2.5 font-display text-2xl font-black tracking-[-0.03em] text-foreground sm:text-3xl lg:whitespace-nowrap lg:text-[2.15rem]"
                 >
                   Three clear stages, with evidence at each step
                 </h2>
-                <p className="mt-2 text-sm sm:text-base font-medium leading-relaxed text-muted-foreground">
+                <p className="mt-2 text-sm font-medium leading-relaxed text-muted-foreground sm:text-base lg:whitespace-nowrap">
                   Move from account setup to a recorded result and programme
                   directions you can inspect.
                 </p>
@@ -441,7 +565,7 @@ function LandingPage() {
                         key={number}
                         className="group flex items-start gap-4 rounded-2xl border border-border/80 bg-card p-4.5 shadow-2xs transition-all duration-200 hover:border-primary/40 hover:bg-surface"
                       >
-                        <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary-soft text-primary-ink font-mono font-bold text-sm">
+                        <div className="flex size-14 shrink-0 items-center justify-center rounded-xl bg-primary-soft text-primary-ink font-mono text-2xl font-black">
                           {number}
                         </div>
                         <div className="min-w-0">
@@ -469,7 +593,13 @@ function LandingPage() {
                     size="default"
                     className="rounded-full px-7 shadow-xs"
                   >
-                    <Link to="/student/login">
+                    <Link
+                      to="/student/login"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        openAuth('signin');
+                      }}
+                    >
                       Begin your assessment
                       <ArrowRight aria-hidden="true" className="size-4" />
                     </Link>
@@ -486,7 +616,7 @@ function LandingPage() {
           className="scroll-mt-24 px-4 py-14 sm:px-6 lg:px-8 lg:py-20 bg-surface-subtle/50 border-y border-border/60"
           aria-labelledby="riasec-title"
         >
-          <ScrollReveal className="mx-auto max-w-[1200px]" variant="scale">
+          <ScrollReveal className="mx-auto max-w-300" variant="scale">
             <div className="text-center">
               <p className="font-display text-xs font-bold uppercase tracking-[0.2em] text-primary-ink">
                 / DISCOVER RIASEC /
@@ -537,7 +667,7 @@ function LandingPage() {
           className="scroll-mt-24 px-4 py-14 sm:px-6 lg:px-8 lg:py-20"
           aria-labelledby="questions-title"
         >
-          <ScrollReveal className="mx-auto max-w-[1200px]" variant="left">
+          <ScrollReveal className="mx-auto max-w-300" variant="left">
             <div className="grid gap-10 lg:grid-cols-12 lg:items-center">
               {/* Left Column: FAQ Questions Accordion */}
               <div className="lg:col-span-7">
@@ -583,12 +713,12 @@ function LandingPage() {
                 <div className="relative max-w-sm w-full">
                   <div
                     aria-hidden="true"
-                    className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/20 via-info/15 to-transparent blur-3xl -z-10"
+                    className="absolute inset-0 rounded-full bg-linear-to-br from-primary/20 via-info/15 to-transparent blur-3xl -z-10"
                   />
                   <img
                     src={landingQuestion}
                     alt="Student thoughtfully considering academic and career options"
-                    className="mx-auto max-h-[26rem] w-auto drop-shadow-md object-contain transition-transform duration-500 hover:scale-[1.01]"
+                    className="mx-auto max-h-104 w-auto drop-shadow-md object-contain transition-transform duration-500 hover:scale-[1.01]"
                   />
                 </div>
               </div>
@@ -601,7 +731,10 @@ function LandingPage() {
           className="px-4 pb-14 sm:px-6 lg:px-8 lg:pb-20"
           aria-labelledby="ready-title"
         >
-          <ScrollReveal className="mx-auto flex max-w-[1200px] flex-col items-center justify-between gap-8 overflow-hidden rounded-[2.5rem] border border-primary/25 bg-gradient-to-r from-primary-soft via-surface to-primary-soft/40 p-7 shadow-sm sm:p-10 lg:flex-row" variant="right">
+          <ScrollReveal
+            className="mx-auto flex max-w-300 flex-col items-center justify-between gap-8 overflow-hidden rounded-[2.5rem] border border-primary/25 bg-linear-to-r from-primary-soft via-surface to-primary-soft/40 p-7 shadow-sm sm:p-10 lg:flex-row"
+            variant="right"
+          >
             <div className="max-w-xl text-center lg:text-left">
               <span className="inline-block font-display text-xs font-bold uppercase tracking-[0.16em] text-primary-ink">
                 When you are ready
@@ -621,7 +754,13 @@ function LandingPage() {
                   size="default"
                   className="rounded-full px-7 shadow-xs"
                 >
-                  <Link to="/student/login">
+                  <Link
+                    to="/student/login"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      openAuth('signin');
+                    }}
+                  >
                     Start assessment
                     <ArrowRight aria-hidden="true" className="size-4" />
                   </Link>
@@ -632,7 +771,15 @@ function LandingPage() {
                   variant="outline"
                   className="rounded-full bg-surface/90 px-6 font-semibold"
                 >
-                  <Link to="/student/register">Get started now</Link>
+                  <Link
+                    to="/student/register"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      openAuth('signup');
+                    }}
+                  >
+                    Get started now
+                  </Link>
                 </Button>
               </div>
             </div>
@@ -653,7 +800,7 @@ function LandingPage() {
         className="border-t border-border/80 bg-card/90 backdrop-blur-sm"
         aria-label="Public site footer"
       >
-        <div className="mx-auto max-w-[1200px] px-4 pt-12 pb-8 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-300 px-4 pt-12 pb-8 sm:px-6 lg:px-8">
           <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-12 lg:gap-12 pb-10 border-b border-border/70">
             {/* Brand Column */}
             <div className="lg:col-span-5 space-y-3.5">
@@ -686,6 +833,14 @@ function LandingPage() {
               <ul className="mt-3.5 space-y-2.5 text-sm font-medium">
                 <li>
                   <a
+                    href="#landing-hero"
+                    className="text-muted-foreground transition-colors hover:text-primary-ink"
+                  >
+                    Home
+                  </a>
+                </li>
+                <li>
+                  <a
                     href="#why-pathways"
                     className="text-muted-foreground transition-colors hover:text-primary-ink"
                   >
@@ -716,6 +871,30 @@ function LandingPage() {
                     Frequently Asked Questions
                   </a>
                 </li>
+                <li>
+                  <Link
+                    to="/student/login"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      openAuth('signin');
+                    }}
+                    className="text-muted-foreground transition-colors hover:text-primary-ink"
+                  >
+                    Student sign in
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/student/register"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      openAuth('signup');
+                    }}
+                    className="text-muted-foreground transition-colors hover:text-primary-ink"
+                  >
+                    Create account
+                  </Link>
+                </li>
               </ul>
             </div>
 
@@ -739,6 +918,13 @@ function LandingPage() {
           </div>
         </div>
       </footer>
+
+      {/* Student Authentication Modal (Glassy / Glossy Card) */}
+      <StudentAuthModal
+        open={authModalOpen}
+        onOpenChange={handleAuthOpenChange}
+        initialMode={authModalMode}
+      />
     </div>
   );
 }

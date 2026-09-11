@@ -1,11 +1,15 @@
 import {
   ArrowRight,
+  BadgeCheck,
   CheckCircle2,
   CircleAlert,
+  ClipboardList,
   History,
-  ShieldCheck,
+  Route,
+  UserRound,
 } from "lucide-react";
-import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
+import type { LucideIcon } from "lucide-react";
+import { Bar, BarChart, CartesianGrid, Cell, XAxis, YAxis } from "recharts";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -15,7 +19,6 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from "@/components/ui/chart";
-import { Progress } from "@/components/ui/progress";
 import {
   AdminPageError,
   AdminPageHeader,
@@ -27,13 +30,50 @@ import {
   useAdminResource,
   type AdminAssessment,
   type AdminOverview,
-  type AdminProgrammeCatalogue,
-  type AdminReport,
 } from "@/features/admin/data/admin-api";
+import { cn } from "@/lib/utils";
 
 interface NavigateProps {
   onNavigate: (path: string) => void;
 }
+
+type MetricTone = "green" | "violet" | "yellow" | "pink";
+
+const metricToneClasses: Record<
+  MetricTone,
+  { surface: string; icon: string; accent: string }
+> = {
+  green: {
+    surface: "bg-primary-fixed",
+    icon: "bg-primary text-primary-foreground",
+    accent: "bg-primary",
+  },
+  violet: {
+    surface:
+      "bg-[color-mix(in_srgb,var(--riasec-i)_13%,var(--background))]",
+    icon: "bg-[var(--riasec-i)] text-white",
+    accent: "bg-[var(--riasec-i)]",
+  },
+  yellow: {
+    surface: "bg-[var(--canvas-sun)]",
+    icon: "bg-warning text-warning-foreground",
+    accent: "bg-warning",
+  },
+  pink: {
+    surface: "bg-[color-mix(in_srgb,var(--info)_13%,var(--background))]",
+    icon: "bg-info text-info-foreground",
+    accent: "bg-info",
+  },
+};
+
+const journeyColors = [
+  "var(--riasec-i)",
+  "var(--chart-coral)",
+  "var(--chart-yellow)",
+  "var(--chart-pink)",
+  "var(--chart-teal)",
+  "var(--chart-green)",
+];
 
 const journeyChartConfig = {
   students: {
@@ -44,9 +84,6 @@ const journeyChartConfig = {
 
 export function AdminDashboardPage({ onNavigate }: NavigateProps) {
   const resource = useAdminResource<AdminOverview>("/overview");
-  const catalogueResource =
-    useAdminResource<AdminProgrammeCatalogue>("/programmes");
-  const reportResource = useAdminResource<AdminReport>("/reports");
 
   if (resource.loading) return <AdminPageSkeleton />;
   if (resource.error || !resource.data) {
@@ -59,9 +96,6 @@ export function AdminDashboardPage({ onNavigate }: NavigateProps) {
   }
 
   const data = resource.data;
-  const programmes = catalogueResource.data?.programmes ?? [];
-  const report = reportResource.data;
-
   const funnel = [
     ["Registered", data.funnel.registered],
     ["Entrance declared", data.funnel.entranceDeclared],
@@ -70,451 +104,401 @@ export function AdminDashboardPage({ onNavigate }: NavigateProps) {
     ["Processing", data.funnel.processing],
     ["Result available", data.funnel.resultAvailable],
   ] as const;
-
   const completionRate = data.funnel.assessmentStarted
     ? Math.round(
         (data.funnel.resultAvailable / data.funnel.assessmentStarted) * 100,
       )
     : 0;
-
-  const chartData = funnel.map(([label, value]) => ({
-    stage: label,
-    students: value,
+  const chartData = funnel.map(([stage, students], index) => ({
+    stage,
+    students,
+    color: journeyColors[index],
   }));
-
   const accessibleFunnelLabel = funnel
     .map(([label, value]) => `${label}: ${value}`)
     .join(", ");
 
-  const topProgrammes = programmes.slice(0, 5);
-
-  const maxProgrammeSaves = Math.max(
-    1,
-    ...topProgrammes.map((p) => p.monitoring?.savedByStudents || 0),
-  );
-
-  const boardEligible = report?.eligibilityDistribution?.board ?? 0;
-  const nonBoardEligible = report?.eligibilityDistribution?.nonBoard ?? 0;
-  const totalEligible = boardEligible + nonBoardEligible;
-  const boardPct = totalEligible
-    ? Math.round((boardEligible / totalEligible) * 100)
-    : 0;
-  const nonBoardPct = totalEligible
-    ? Math.round((nonBoardEligible / totalEligible) * 100)
-    : 0;
-
   return (
     <div className="mx-auto w-full min-w-0 max-w-[1500px] space-y-5">
       <AdminPageHeader
+        eyebrow="Administrator workspace"
         title="System overview"
-        action={
-          <Button onClick={() => onNavigate("/admin/students")}>
-            Open student directory <ArrowRight className="size-4" />
-          </Button>
-        }
+        description="Follow recorded Student movement from account creation to available programme recommendations."
       />
 
-      {/* Row 1: Line-based Metric Cells */}
       <section
         aria-label="Current operational totals"
-        className="grid border-y border-border sm:grid-cols-2 xl:grid-cols-4"
+        data-testid="admin-operational-strip"
+        className="grid overflow-hidden rounded-xs border border-border bg-card shadow-sm sm:grid-cols-2 xl:grid-cols-4"
       >
         <MetricCell
+          icon={UserRound}
           label="Students in scope"
           value={data.students}
           detail="Registered accounts"
+          tone="green"
         />
         <MetricCell
+          icon={ClipboardList}
           label="Assessment records"
           value={data.assessments}
           detail={`${data.inProgress} currently active`}
+          tone="violet"
         />
         <MetricCell
+          icon={BadgeCheck}
           label="Results available"
           value={data.completed}
-          detail={`${data.recommendations} recommendation runs`}
+          detail="Recorded results"
+          tone="yellow"
         />
         <MetricCell
-          label="Needs attention"
-          value={data.needsAttention}
-          detail="Operational exceptions"
-          tone={data.needsAttention ? "warning" : "success"}
+          icon={Route}
+          label="Recommendation runs"
+          value={data.recommendations}
+          detail="Generated matches"
+          tone="pink"
         />
       </section>
 
-      {/* Row 2: Recommendation Overview (AreaChart) + Top Recommended Programmes */}
       <section
         aria-labelledby="funnel-heading"
-        className="grid overflow-hidden border-y border-border lg:grid-cols-[minmax(0,1.65fr)_minmax(18rem,.65fr)]"
+        className="grid min-w-0 overflow-hidden rounded-xs border border-border bg-card shadow-sm xl:grid-cols-[minmax(0,1.45fr)_minmax(18rem,0.55fr)]"
       >
-        {/* Left: Recommendation Overview / Student Journey AreaChart */}
-        <div className="py-5 lg:border-r lg:border-border lg:pr-6">
-          <SectionHeading
-            id="funnel-heading"
-            eyebrow="Assessment movement"
-            title="Student journey"
-            description="Recommendation overview and verified Student counts at each recorded stage."
-          />
+        <div className="min-w-0 p-4 sm:p-5 lg:p-6">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <SectionHeading
+              id="funnel-heading"
+              eyebrow="Assessment movement"
+              title="Student journey"
+              description="Recorded counts at each step of the current assessment journey."
+            />
+            <div className="rounded-xs border border-primary/25 bg-primary-fixed px-3 py-2 text-right">
+              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-primary-ink">
+                Completion
+              </p>
+              <p className="font-display text-2xl font-black text-foreground">
+                {completionRate}%
+              </p>
+            </div>
+          </div>
 
-          <div className="mt-4" role="img" aria-label={accessibleFunnelLabel}>
+          <div
+            className="mt-5"
+            role="img"
+            aria-label={accessibleFunnelLabel}
+          >
             <ChartContainer
               config={journeyChartConfig}
-              className="aspect-auto h-[220px] w-full"
+              className="aspect-auto h-[250px] w-full"
             >
-              <AreaChart
+              <BarChart
                 data={chartData}
-                margin={{
-                  left: 8,
-                  right: 8,
-                  top: 12,
-                  bottom: 8,
-                }}
+                margin={{ left: 0, right: 4, top: 10, bottom: 8 }}
               >
-                <defs>
-                  <linearGradient
-                    id="fillJourneyStudents"
-                    x1="0"
-                    y1="0"
-                    x2="0"
-                    y2="1"
-                  >
-                    <stop
-                      offset="5%"
-                      stopColor="var(--primary)"
-                      stopOpacity={0.7}
-                    />
-                    <stop
-                      offset="95%"
-                      stopColor="var(--primary)"
-                      stopOpacity={0.05}
-                    />
-                  </linearGradient>
-                </defs>
                 <CartesianGrid vertical={false} strokeDasharray="3 3" />
                 <XAxis
                   dataKey="stage"
                   tickLine={false}
                   axisLine={false}
-                  tickMargin={8}
-                  className="font-label text-[11px]"
+                  tickMargin={9}
+                  className="font-label text-[10px]"
                 />
                 <YAxis
+                  allowDecimals={false}
                   tickLine={false}
                   axisLine={false}
+                  width={24}
                   className="font-label text-[10px]"
                 />
                 <ChartTooltip
-                  cursor={{ stroke: "var(--border)", strokeWidth: 1 }}
+                  cursor={{ fill: "var(--secondary)" }}
                   content={<ChartTooltipContent indicator="dot" />}
                 />
-                <Area
-                  dataKey="students"
-                  type="monotone"
-                  fill="url(#fillJourneyStudents)"
-                  fillOpacity={0.4}
-                  stroke="var(--primary)"
-                  strokeWidth={2.5}
-                  dot={{ fill: "var(--primary)", r: 4 }}
-                  activeDot={{ r: 6, fill: "var(--primary)" }}
-                />
-              </AreaChart>
+                <Bar dataKey="students" radius={[2, 2, 0, 0]} maxBarSize={54}>
+                  {chartData.map((entry) => (
+                    <Cell key={entry.stage} fill={entry.color} />
+                  ))}
+                </Bar>
+              </BarChart>
             </ChartContainer>
           </div>
 
-          <div className="mt-4 flex items-center justify-between border-t border-border pt-4 text-xs text-muted-foreground font-label">
-            <span>
-              Overall journey completion:{" "}
-              <strong className="font-display text-sm font-bold text-foreground">
-                {completionRate}%
-              </strong>
-            </span>
-            <span>
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-border pt-3 text-xs text-muted-foreground">
+            <span>Each color marks a named journey stage.</span>
+            <strong className="font-semibold text-foreground">
               {data.funnel.resultAvailable} of {data.funnel.assessmentStarted}{" "}
-              started assessments ready
-            </span>
+              started assessments have results
+            </strong>
           </div>
         </div>
 
-        {/* Right: Top Recommended Programmes */}
-        <div className="py-5 lg:pl-6">
-          <SectionHeading
-            id="programmes-heading"
-            eyebrow="Academic catalogue"
-            title="Top Recommended Programmes"
-            description="Leading programmes by student recommendations and saves."
-            compact
-          />
-
-          <div className="mt-5 divide-y divide-border border-y border-border">
-            {topProgrammes.length ? (
-              topProgrammes.map((prog, index) => {
-                const saves = prog.monitoring?.savedByStudents || 0;
-                const percentage = Math.round(
-                  (saves / maxProgrammeSaves) * 100,
-                );
-                return (
-                  <div key={prog.id} className="py-3">
-                    <div className="flex items-center justify-between gap-3">
-                      <span className="flex items-center gap-2.5 font-semibold text-sm">
-                        <span className="font-display text-xs font-black text-muted-foreground">
-                          {String(index + 1).padStart(2, "0")}
-                        </span>
-                        <span className="truncate">{prog.name}</span>
-                      </span>
-                      <span className="font-display text-xs font-bold text-muted-foreground shrink-0">
-                        {saves} saves
-                      </span>
-                    </div>
-                    <div className="mt-2">
-                      <Progress value={percentage} className="h-1.5" />
-                    </div>
-                  </div>
-                );
-              })
-            ) : (
-              <p className="py-5 text-sm text-muted-foreground">
-                No programme save data is available yet.
-              </p>
-            )}
+        <aside className="border-t border-border bg-secondary/45 xl:border-l xl:border-t-0">
+          <div className="border-b border-border px-4 py-4 sm:px-5">
+            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
+              Recorded flow
+            </p>
+            <h3 className="mt-1 font-display text-lg font-extrabold">
+              Journey stage detail
+            </h3>
           </div>
-
-          <div className="mt-5">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onNavigate("/admin/programmes")}
-              className="gap-1.5 text-xs font-semibold p-0 h-auto hover:bg-transparent text-primary-ink hover:underline"
-            >
-              View all programmes <ArrowRight className="size-3.5" />
-            </Button>
-          </div>
-        </div>
+          <ol className="divide-y divide-border">
+            {chartData.map((item, index) => (
+              <li
+                key={item.stage}
+                className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-4 py-3 sm:px-5"
+              >
+                <span
+                  aria-hidden="true"
+                  className="flex size-7 items-center justify-center rounded-xs text-[10px] font-black text-foreground"
+                  style={{ backgroundColor: item.color }}
+                >
+                  {index + 1}
+                </span>
+                <span className="text-xs font-semibold text-foreground">
+                  {item.stage}
+                </span>
+                <strong className="font-display text-lg font-black">
+                  {item.students}
+                </strong>
+              </li>
+            ))}
+          </ol>
+        </aside>
       </section>
 
-      {/* Row 3: Recent Students Table + Matches by Track + System Activities (Workload) */}
-      <div className="grid min-w-0 gap-5 border-t border-border pt-5 xl:grid-cols-[minmax(0,1.4fr)_minmax(15rem,.65fr)_minmax(16rem,.75fr)]">
-        {/* 1. Recent Students Table */}
-        <section aria-labelledby="recent-heading" className="min-w-0">
-          <div className="flex flex-wrap items-end justify-between gap-4">
-            <SectionHeading
-              id="recent-heading"
-              eyebrow="Evidence stream"
-              title="Recent Students"
-              description="Recent assessment activity"
-              compact
-            />
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onNavigate("/admin/students")}
-            >
-              View all <ArrowRight className="size-4" />
-            </Button>
-          </div>
+      <section aria-labelledby="recent-heading" className="min-w-0 pt-1">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <SectionHeading
+            id="recent-heading"
+            eyebrow="Evidence stream"
+            title="Recent Students"
+            description="Latest recorded assessment activity and available evidence."
+            compact
+          />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onNavigate("/admin/students")}
+          >
+            View all records <ArrowRight className="size-4" />
+          </Button>
+        </div>
 
-          {data.recentActivity.length ? (
-            <div className="mt-5 overflow-x-auto border-y border-border">
-              <table className="w-full text-left font-sans text-xs">
+        {data.recentActivity.length ? (
+          <div className="mt-4 overflow-hidden rounded-xs border border-border bg-card shadow-sm">
+            <div className="hidden overflow-x-auto sm:block">
+              <table className="w-full min-w-[700px] text-left text-xs">
                 <thead>
-                  <tr className="border-b border-border font-label text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-                    <th className="py-3 pr-3">Student</th>
-                    <th className="px-3 py-3">Track / Eligibility</th>
-                    <th className="px-3 py-3">Top Match</th>
+                  <tr className="border-b border-border bg-secondary/70 text-[10px] font-bold uppercase tracking-[0.13em] text-muted-foreground">
+                    <th className="px-4 py-3">Student</th>
+                    <th className="px-3 py-3">Entrance group</th>
+                    <th className="px-3 py-3">Top match</th>
                     <th className="px-3 py-3 text-center">Status</th>
-                    <th className="py-3 pl-3 text-right">Date</th>
+                    <th className="px-3 py-3 text-right">Date</th>
+                    <th className="px-4 py-3 text-right"><span className="sr-only">Action</span></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  {data.recentActivity.slice(0, 6).map((item) => {
-                    const track =
-                      item.entranceExamination?.eligibilityGroup === "board"
-                        ? "Board Eligible"
-                        : item.entranceExamination
-                          ? "Non-Board"
-                          : "Not Declared";
-                    const topMatch =
-                      item.recommendations?.[0]?.name ||
-                      (item.topCode
-                        ? `BS ${item.topCode}`
-                        : "BS Information Technology");
-
-                    return (
-                      <tr
-                        key={item.id}
-                        onClick={() =>
-                          onNavigate(`/admin/students/${item.studentId}`)
-                        }
-                        className="group cursor-pointer hover:bg-secondary/40 transition-colors"
-                      >
-                        <td className="py-3 pr-3 font-semibold text-foreground group-hover:text-primary-ink">
-                          {item.studentName}
-                        </td>
-                        <td className="px-3 py-3 font-medium text-muted-foreground">
-                          {track}
-                        </td>
-                        <td className="px-3 py-3 font-semibold text-foreground truncate max-w-44">
-                          {topMatch}
-                        </td>
-                        <td className="px-3 py-3 text-center">
-                          <StatusBadge status={item.status} />
-                        </td>
-                        <td className="py-3 pl-3 text-right font-label text-[11px] text-muted-foreground whitespace-nowrap">
-                          {formatDate(
-                            item.resultAvailableAt ?? item.submittedAt,
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
+                  {data.recentActivity.slice(0, 6).map((item, index) => (
+                    <RecentStudentRow
+                      key={item.id}
+                      item={item}
+                      color={journeyColors[index % journeyColors.length]}
+                      onOpen={() =>
+                        onNavigate(`/admin/students/${item.studentId}`)
+                      }
+                    />
+                  ))}
                 </tbody>
               </table>
             </div>
-          ) : (
-            <div className="mt-5">
-              <EmptyPanel
-                title="No recent activity"
-                description="Assessment activity will appear here as students complete questionnaires."
-              />
-            </div>
-          )}
-        </section>
 
-        {/* 2. Matches by Track / Eligibility */}
-        <section
-          aria-labelledby="track-heading"
-          className="border-t border-border pt-6 xl:border-t-0 xl:border-l xl:border-border xl:pl-6 xl:pt-0"
-        >
-          <SectionHeading
-            id="track-heading"
-            eyebrow="Segmentation"
-            title="Matches by Track"
-            description="Candidate eligibility distribution."
-            compact
-          />
-
-          <div className="mt-5 space-y-4">
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between text-xs font-semibold">
-                <span>Board programmes (entrance result 1.0–2.5)</span>
-                <span className="font-display font-bold">
-                  {boardEligible} ({boardPct}%)
-                </span>
-              </div>
-              <Progress value={boardPct} className="h-2" />
-            </div>
-
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between text-xs font-semibold">
-                <span>Non-board programmes (entrance result 2.6–5.0)</span>
-                <span className="font-display font-bold">
-                  {nonBoardEligible} ({nonBoardPct}%)
-                </span>
-              </div>
-              <Progress value={nonBoardPct} className="h-2" />
-            </div>
+            <ul className="divide-y divide-border sm:hidden">
+              {data.recentActivity.slice(0, 6).map((item, index) => (
+                <li key={item.id}>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      onNavigate(`/admin/students/${item.studentId}`)
+                    }
+                    className="grid min-h-24 w-full grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-3 px-4 py-4 text-left transition-colors hover:bg-secondary/60 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-inset focus-visible:ring-ring/30"
+                  >
+                    <StudentMarker
+                      name={studentName(item)}
+                      color={journeyColors[index % journeyColors.length]}
+                    />
+                    <span className="min-w-0">
+                      <span className="block truncate text-sm font-bold text-foreground">
+                        {studentName(item)}
+                      </span>
+                      <span className="mt-1 block text-xs text-muted-foreground">
+                        {entranceGroupLabel(item)}
+                      </span>
+                      <span className="mt-1 block truncate text-xs font-semibold text-foreground">
+                        {topMatchLabel(item)}
+                      </span>
+                    </span>
+                    <span className="flex flex-col items-end gap-2">
+                      <StatusBadge status={item.status} />
+                      <ArrowRight aria-hidden="true" className="size-4 text-muted-foreground" />
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
           </div>
-
-          <div className="mt-6 border-t border-border pt-4 text-xs text-muted-foreground leading-5">
-            <p>
-              Under rule snapshot{" "}
-              <strong className="text-foreground">
-                SELF-DECLARED-TCC-ENTRANCE-2026-01
-              </strong>
-              , entrance examination result categorizes candidates for
-              curriculum pathways.
-            </p>
-          </div>
-        </section>
-
-        {/* 3. System Activities / Current Workload */}
-        <aside
-          aria-labelledby="workload-heading"
-          className="border-t border-border pt-6 xl:border-t-0 xl:border-l xl:border-border xl:pl-6 xl:pt-0"
-        >
-          <p className="font-label text-xs font-bold uppercase tracking-[0.16em] text-success-ink">
-            At a glance
-          </p>
-          <h2
-            id="workload-heading"
-            className="mt-1 font-display text-lg font-extrabold"
-          >
-            Current workload
-          </h2>
-          <p className="mt-1 text-xs text-muted-foreground">
-            System activities and records requiring operational monitoring.
-          </p>
-
-          <div className="mt-5 divide-y divide-border border-y border-border">
-            <QueueRow
-              label="Assessments in progress"
-              value={data.funnel.inProgress}
-              onClick={() => onNavigate("/admin/students")}
-            />
-            <QueueRow
-              label="Processing results"
-              value={data.funnel.processing}
-              onClick={() => onNavigate("/admin/students")}
-            />
-            <QueueRow
-              label="Processing failures"
-              value={data.operationalAttention.processingFailures}
-              onClick={() => onNavigate("/admin/students")}
+        ) : (
+          <div className="mt-4">
+            <EmptyPanel
+              title="No recent activity"
+              description="Assessment activity will appear here as students complete questionnaires."
             />
           </div>
-
-          <div className="mt-6 flex items-center justify-between gap-3">
-            <span className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
-              <ShieldCheck className="size-4 text-success-ink" /> Individual
-              administrator
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onNavigate("/admin/activity")}
-              className="text-xs h-8"
-            >
-              View activity
-            </Button>
-          </div>
-        </aside>
-      </div>
+        )}
+      </section>
     </div>
   );
 }
 
-/* Reusable Canvas Sub-components */
-
 function MetricCell({
+  icon: Icon,
   label,
   value,
   detail,
   tone,
 }: {
+  icon: LucideIcon;
   label: string;
   value: number;
   detail: string;
-  tone?: "warning" | "success";
+  tone: MetricTone;
 }) {
+  const colors = metricToneClasses[tone];
+
   return (
-    <div className="relative px-4 py-4 sm:border-r sm:border-border sm:last:border-r-0">
+    <div
+      className={cn(
+        "relative min-w-0 border-b border-border p-4 last:border-b-0 sm:min-h-32 sm:border-r sm:[&:nth-child(2)]:border-r-0 xl:border-b-0 xl:[&:nth-child(2)]:border-r xl:last:border-r-0",
+        colors.surface,
+      )}
+    >
       <span
-        className={`absolute inset-y-5 left-0 w-1 rounded-full ${
-          tone === "warning"
-            ? "bg-warning"
-            : tone === "success"
-              ? "bg-success"
-              : "bg-primary"
-        }`}
+        aria-hidden="true"
+        className={cn("absolute inset-x-0 top-0 h-1", colors.accent)}
       />
-      <p className="font-label text-xs font-bold uppercase tracking-[0.12em] text-muted-foreground">
-        {label}
-      </p>
-      <div className="mt-1.5 flex items-end gap-2.5">
-        <strong className="font-display text-3xl font-black">{value}</strong>
-        <span className="pb-1 text-xs text-muted-foreground">{detail}</span>
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-[10px] font-bold uppercase tracking-[0.13em] text-foreground">
+            {label}
+          </p>
+          <strong className="mt-2 block font-display text-3xl font-black leading-none text-foreground">
+            {value}
+          </strong>
+          <p className="mt-2 text-xs font-medium text-foreground">
+            {detail}
+          </p>
+        </div>
+        <span
+          className={cn(
+            "flex size-9 shrink-0 items-center justify-center rounded-xs shadow-sm",
+            colors.icon,
+          )}
+        >
+          <Icon aria-hidden="true" className="size-4.5" />
+        </span>
       </div>
     </div>
   );
+}
+
+function RecentStudentRow({
+  item,
+  color,
+  onOpen,
+}: {
+  item: AdminAssessment;
+  color: string;
+  onOpen: () => void;
+}) {
+  const name = studentName(item);
+
+  return (
+    <tr className="transition-colors hover:bg-secondary/45">
+      <td className="px-4 py-3">
+        <div className="flex items-center gap-3">
+          <StudentMarker name={name} color={color} />
+          <div className="min-w-0">
+            <p className="truncate font-semibold text-foreground">{name}</p>
+            <p className="mt-0.5 truncate text-[10px] text-muted-foreground">
+              {item.studentEmail ?? "Email unavailable"}
+            </p>
+          </div>
+        </div>
+      </td>
+      <td className="px-3 py-3 font-medium text-muted-foreground">
+        {entranceGroupLabel(item)}
+      </td>
+      <td className="max-w-48 truncate px-3 py-3 font-semibold text-foreground">
+        {topMatchLabel(item)}
+      </td>
+      <td className="px-3 py-3 text-center">
+        <StatusBadge status={item.status} />
+      </td>
+      <td className="whitespace-nowrap px-3 py-3 text-right text-[10px] text-muted-foreground">
+        {formatDate(item.resultAvailableAt ?? item.submittedAt)}
+      </td>
+      <td className="px-4 py-3 text-right">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="min-h-9 px-2.5"
+          onClick={onOpen}
+          aria-label={`Open ${name}'s Student record`}
+        >
+          Open <ArrowRight aria-hidden="true" className="size-3.5" />
+        </Button>
+      </td>
+    </tr>
+  );
+}
+
+function StudentMarker({ name, color }: { name: string; color: string }) {
+  const initials = name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase();
+
+  return (
+    <span
+      aria-hidden="true"
+      className="flex size-9 shrink-0 items-center justify-center rounded-xs text-[10px] font-black text-foreground"
+      style={{
+        backgroundColor: `color-mix(in srgb, ${color} 20%, var(--background))`,
+      }}
+    >
+      {initials || "ST"}
+    </span>
+  );
+}
+
+function studentName(item: AdminAssessment) {
+  return item.studentName ?? "Student record";
+}
+
+function entranceGroupLabel(item: AdminAssessment) {
+  if (!item.entranceExamination) return "Not declared";
+  return item.entranceExamination.eligibilityGroup === "board"
+    ? "Board programme group"
+    : "Non-board programme group";
+}
+
+function topMatchLabel(item: AdminAssessment) {
+  return item.recommendations?.[0]?.name ?? "Not available";
 }
 
 function SectionHeading({
@@ -532,12 +516,15 @@ function SectionHeading({
 }) {
   return (
     <div className="space-y-1">
-      <p className="font-label text-xs font-bold uppercase tracking-[0.16em] text-success-ink">
+      <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-primary-ink">
         {eyebrow}
       </p>
       <h2
         id={id}
-        className={`font-display font-extrabold tracking-tight ${compact ? "text-lg" : "text-xl"}`}
+        className={cn(
+          "font-display font-extrabold tracking-tight",
+          compact ? "text-lg" : "text-xl",
+        )}
       >
         {title}
       </h2>
@@ -545,30 +532,6 @@ function SectionHeading({
         <p className="text-xs leading-5 text-muted-foreground">{description}</p>
       ) : null}
     </div>
-  );
-}
-
-function QueueRow({
-  label,
-  value,
-  onClick,
-}: {
-  label: string;
-  value: number;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="group flex min-h-12 w-full items-center justify-between gap-4 py-2.5 text-left transition-colors hover:text-primary-ink"
-    >
-      <span className="text-xs font-semibold">{label}</span>
-      <span className="flex items-center gap-2">
-        <strong className="font-display text-base font-black">{value}</strong>
-        <ArrowRight className="size-3.5 text-muted-foreground group-hover:text-primary-ink transition-transform group-hover:translate-x-0.5" />
-      </span>
-    </button>
   );
 }
 
@@ -591,8 +554,12 @@ function StatusBadge({ status }: { status: AdminAssessment["status"] }) {
       : status === "result_available"
         ? CheckCircle2
         : History;
+
   return (
-    <Badge variant={variants[status]} className="text-[11px] gap-1 py-0.5">
+    <Badge
+      variant={variants[status]}
+      className="gap-1 whitespace-nowrap py-0.5 text-[10px]"
+    >
       <Icon className="size-3" />
       {labels[status]}
     </Badge>
