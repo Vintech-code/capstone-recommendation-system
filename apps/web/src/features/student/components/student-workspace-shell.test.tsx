@@ -62,9 +62,9 @@ describe("StudentWorkspaceShell", () => {
     expect(header).toHaveClass("relative", "md:sticky", "md:top-0");
     expect(header).not.toHaveClass("sticky", "top-0");
     expect(logos).toHaveLength(2);
-    expect(logos[0].getAttribute("src")).toContain("logo-optimized.png");
+    expect(logos[0].getAttribute("src")).toContain("header-logo.png");
     expect(logos[0]).toHaveClass("md:hidden", "object-contain");
-    expect(logos[1].getAttribute("src")).toContain("logo.png");
+    expect(logos[1].getAttribute("src")).toContain("header-logo.png");
     expect(logos[1]).toHaveClass("hidden", "md:block", "object-contain");
     expect(logos[0]).not.toHaveClass("bg-background", "shadow-sm");
     expect(mobileNavigation.querySelector("ul")).toHaveClass("grid");

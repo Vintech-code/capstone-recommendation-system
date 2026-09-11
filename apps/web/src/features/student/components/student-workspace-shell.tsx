@@ -1,8 +1,8 @@
 import { ChevronDown, LogOut } from "lucide-react";
 import type { ReactNode } from "react";
 
-import logo from "@/assets/logo.png";
-import mobileLogo from "@/assets/logo-optimized.png";
+import logo from "@/assets/logo/header-logo.png";
+import mobileLogo from "@/assets/logo/header-logo.png";
 import {
   DropdownMenu,
   DropdownMenuContent,

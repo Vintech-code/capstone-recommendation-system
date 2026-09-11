@@ -1,343 +1,746 @@
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { Link } from "react-router";
 import {
   ArrowRight,
-  ClipboardCheck,
+  BookCheck,
   Compass,
-  Database,
-  FileClock,
-  GraduationCap,
-  ListChecks,
-  Route as RouteIcon,
-  SearchCheck,
-  ShieldCheck,
-  UserRoundCheck,
-} from 'lucide-react'
-import { Link } from 'react-router'
+  FileText,
+  Sparkles,
+} from "lucide-react";
 
-import landingArtwork from '@/assets/bg-landing.png'
-import logo from '@/assets/logo-optimized.png'
-import { Button } from '@/components/ui/button'
-
-const highlights = [
-  { icon: Database, title: 'Locally managed', detail: 'Project-owned questionnaire' },
-  { icon: Compass, title: 'Six interest areas', detail: 'Recorded separately' },
-  { icon: SearchCheck, title: 'Explainable matches', detail: 'Reasons you can review' },
-  { icon: FileClock, title: 'Versioned history', detail: 'Past results stay available' },
-]
-
-const riasecAreas = [
-  {
-    code: 'R',
-    name: 'Realistic',
-    description: 'Interest in practical activities, tools, materials, and hands-on problem-solving.',
-    className: 'bg-riasec-r/10 text-riasec-r ring-riasec-r/20',
-  },
-  {
-    code: 'I',
-    name: 'Investigative',
-    description: 'Interest in examining questions, working with information, and understanding how things work.',
-    className: 'bg-riasec-i/10 text-riasec-i ring-riasec-i/20',
-  },
-  {
-    code: 'A',
-    name: 'Artistic',
-    description: 'Interest in expression, imagination, design, and exploring original ways to communicate ideas.',
-    className: 'bg-riasec-a/10 text-riasec-a ring-riasec-a/20',
-  },
-  {
-    code: 'S',
-    name: 'Social',
-    description: 'Interest in helping, teaching, communicating, and working with people in supportive settings.',
-    className: 'bg-riasec-s/10 text-riasec-s ring-riasec-s/20',
-  },
-  {
-    code: 'E',
-    name: 'Enterprising',
-    description: 'Interest in initiating plans, leading activities, persuading, and coordinating toward a goal.',
-    className: 'bg-riasec-e/10 text-riasec-e ring-riasec-e/20',
-  },
-  {
-    code: 'C',
-    name: 'Conventional',
-    description: 'Interest in organizing details, records, routines, and structured information carefully.',
-    className: 'bg-riasec-c/10 text-riasec-c ring-riasec-c/20',
-  },
-]
-
-const journeySteps = [
-  {
-    number: '01',
-    icon: UserRoundCheck,
-    title: 'Create your Student account',
-    description: 'Sign in and provide the self-declared entrance examination result required before assessment.',
-  },
-  {
-    number: '02',
-    icon: ClipboardCheck,
-    title: 'Complete the assessment',
-    description: 'Respond to each locally stored RIASEC statement using the available answer choices.',
-  },
-  {
-    number: '03',
-    icon: RouteIcon,
-    title: 'Review programme directions',
-    description: 'Explore eligible programmes, recorded match values, and the evidence used for each recommendation.',
-  },
-]
+import landingHome from "@/assets/images/landing-image-home.png";
+import landingBackground from "@/assets/images/landing-image-bg.png";
+import landingJourney from "@/assets/images/landing-image2.png";
+import landingQuestion from "@/assets/images/landing-image-question.png";
+import landingFooter from "@/assets/images/landing-image-footer.png";
+import logo from "@/assets/logo/header-logo.png";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 const reasons = [
   {
-    icon: Database,
-    title: 'Locally controlled questions',
-    description: 'The assessment content is stored and versioned within the project instead of fetched from a live questionnaire API.',
+    icon: Compass,
+    title: "Objective Exploration",
+    description:
+      "Compare interests across our academic catalogue without premature filtering.",
   },
   {
-    icon: ListChecks,
-    title: 'Recorded evidence',
-    description: 'Your result keeps the assessment, scoring, entrance-rule, catalogue, and recommendation versions used at that time.',
+    icon: BookCheck,
+    title: "Documented Rules",
+    description:
+      "Entrance results are clearly referenced against standard programme tracks.",
   },
   {
-    icon: SearchCheck,
-    title: 'Reasons beside each match',
-    description: 'Programme recommendations connect your recorded scores with configured programme areas and catalogue information.',
+    icon: Sparkles,
+    title: "Transparent Scores",
+    description:
+      "Every recommendation displays exact Holland attribute scores and rationale.",
   },
   {
-    icon: ShieldCheck,
-    title: 'Guidance, not a guarantee',
-    description: 'A recommendation supports exploration. It does not promise admission, enrolment, academic success, or a final course choice.',
+    icon: FileText,
+    title: "Actionable Next Steps",
+    description:
+      "Take your immutable assessment profile directly to academic advisory.",
   },
-]
+];
+
+const journeySteps = [
+  {
+    number: "01",
+    icon: Compass,
+    title: "Complete the RIASEC assessment",
+    description:
+      "Respond to structured interest prompts covering Realistic, Investigative, Artistic, Social, Enterprising, and Conventional domains.",
+  },
+  {
+    number: "02",
+    icon: FileText,
+    title: "Self-declare your entrance result",
+    description:
+      "Record your examination score band to align your interest profile with relevant institutional track guidelines.",
+  },
+  {
+    number: "03",
+    icon: Sparkles,
+    title: "Review documented recommendations",
+    description:
+      "Inspect transparent match explanations and revisit your recorded profile whenever you consult with college advisors.",
+  },
+];
+
+const riasecAreas = [
+  {
+    code: "R",
+    name: "Realistic",
+    description:
+      "Hands-on, practical, mechanical, or outdoor activities and concrete problem-solving.",
+    className: "bg-emerald-50 text-emerald-800 border-emerald-200/80",
+  },
+  {
+    code: "I",
+    name: "Investigative",
+    description:
+      "Analytical, intellectual, scientific, or research-oriented inquiry and problem-solving.",
+    className: "bg-sky-50 text-sky-800 border-sky-200/80",
+  },
+  {
+    code: "A",
+    name: "Artistic",
+    description:
+      "Creative, expressive, original, and unstructured tasks in design, media, or language.",
+    className: "bg-purple-50 text-purple-800 border-purple-200/80",
+  },
+  {
+    code: "S",
+    name: "Social",
+    description:
+      "Helping, teaching, counseling, and working directly to support others in the community.",
+    className: "bg-amber-50 text-amber-900 border-amber-200/80",
+  },
+  {
+    code: "E",
+    name: "Enterprising",
+    description:
+      "Persuading, leading, organizing initiatives, and driving collective goals forward.",
+    className: "bg-rose-50 text-rose-800 border-rose-200/80",
+  },
+  {
+    code: "C",
+    name: "Conventional",
+    description:
+      "Systematic, organized, data-driven, structured, and detail-attentive workflows.",
+    className: "bg-slate-50 text-slate-800 border-slate-200/80",
+  },
+];
 
 const questions = [
   {
-    question: 'What does RIASEC mean?',
-    answer: 'RIASEC groups vocational interests into six areas: Realistic, Investigative, Artistic, Social, Enterprising, and Conventional. The system records all six scores and shows the leading pattern without treating it as a diagnosis or ability test.',
+    question: "Does a strong match guarantee admission to a programme?",
+    answer:
+      "No. Recommendations support academic exploration and advising. Official admission remains governed by TCC enrolment policy and requirements.",
   },
   {
-    question: 'Who can use the assessment?',
-    answer: 'The current assessment flow is designed for Student Applicants using an individual Student account.',
+    question: "Are my answers and results permanently recorded?",
+    answer:
+      "Yes. Completed assessments create an immutable record with versioned rules so you and your advisors can always audit how recommendations were reached.",
   },
   {
-    question: 'Why is an entrance examination result requested?',
-    answer: 'The project uses a self-declared entrance result to determine the eligible programme group before RIASEC-based ranking. This project rule does not guarantee admission.',
+    question: "How is my entrance examination score used?",
+    answer:
+      "Your self-declared score informs standard academic guideline groupings alongside your RIASEC profile to highlight relevant college tracks.",
   },
-  {
-    question: 'How are programme recommendations produced?',
-    answer: 'The Laravel backend applies the stored entrance rule first, then compares the recorded RIASEC scores with versioned programme profiles using a deterministic matching process.',
-  },
-  {
-    question: 'What will I see after finishing?',
-    answer: 'When processing is complete, you can review your recorded interest pattern, score breakdown, ranked programme matches, matching reasons, and result history.',
-  },
-  {
-    question: 'Does a recommendation decide my course?',
-    answer: 'No. The result is decision-support guidance. You remain responsible for your final programme choice, and admission requirements still apply.',
-  },
-]
+];
+
+interface ScrollRevealProps {
+  children: ReactNode;
+  className?: string;
+  delay?: number;
+  variant?: "up" | "left" | "right" | "scale";
+}
+
+const revealOffset = {
+  up: "translate-y-3",
+  left: "-translate-x-3",
+  right: "translate-x-3",
+  scale: "scale-[0.98]",
+} as const;
+
+function ScrollReveal({
+  children,
+  className,
+  delay = 0,
+  variant = "up",
+}: ScrollRevealProps) {
+  const [isVisible, setIsVisible] = useState(
+    () => typeof IntersectionObserver === "undefined",
+  );
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (typeof IntersectionObserver === "undefined") {
+      return;
+    }
+
+    const node = ref.current;
+    if (!node) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsVisible(entry.isIntersecting);
+      },
+      {
+        threshold: 0.1,
+        rootMargin: "0px 0px -40px 0px",
+      },
+    );
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div
+      ref={ref}
+      data-landing-reveal={variant}
+      style={{ transitionDelay: `${delay}ms` }}
+      className={cn(
+        "transition-all duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)] motion-reduce:transform-none motion-reduce:opacity-100 motion-reduce:transition-none",
+        isVisible
+          ? "landing-reveal-visible translate-x-0 translate-y-0 scale-100 opacity-100"
+          : cn("opacity-0", revealOffset[variant]),
+        className,
+      )}
+    >
+      {children}
+    </div>
+  );
+}
 
 function LandingPage() {
   return (
-    <div className="min-h-svh overflow-x-hidden bg-background text-foreground">
-      <header className="sticky top-0 z-50 border-b border-border/80 bg-white/92 backdrop-blur-xl">
-        <div className="mx-auto flex h-16 w-full max-w-[1200px] items-center justify-between px-4 sm:h-[4.5rem] sm:px-6 lg:px-8">
-          <a href="#top" aria-label="Pathways home" className="rounded-full focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/35">
-            <img src={logo} alt="Pathways" className="h-12 w-auto object-contain sm:h-14" />
-          </a>
+    <div className="min-h-screen bg-background text-foreground antialiased selection:bg-primary/20 selection:text-primary-ink">
+      {/* HEADER NAVIGATION */}
+      <header className="sticky top-0 z-40 border-b border-border/80 bg-surface/90 backdrop-blur-md">
+        <div className="mx-auto flex max-w-[1200px] items-center justify-between px-4 py-3.5 sm:px-6 lg:px-8">
+          <Link
+            to="/"
+            className="flex items-center gap-3 transition-opacity hover:opacity-90"
+          >
+            <img
+              src={logo}
+              alt="TCCence"
+              className="h-10 sm:h-11 w-auto object-contain"
+            />
+          </Link>
 
-          <nav aria-label="Landing page" className="hidden items-center gap-7 text-sm font-semibold lg:flex">
-            <a className="transition-colors hover:text-primary-ink" href="#riasec">RIASEC</a>
-            <a className="transition-colors hover:text-primary-ink" href="#how-it-works">How it works</a>
-            <a className="transition-colors hover:text-primary-ink" href="#why-pathways">Why Pathways</a>
-            <a className="transition-colors hover:text-primary-ink" href="#questions">Questions</a>
+          {/* Center Nav Links */}
+          <nav
+            aria-label="Landing navigation"
+            className="hidden items-center gap-7 md:flex text-sm font-semibold"
+          >
+            <a
+              href="#why-pathways"
+              className="text-muted-foreground transition-colors hover:text-foreground"
+            >
+              What We Provide
+            </a>
+            <a
+              href="#journey"
+              className="text-muted-foreground transition-colors hover:text-foreground"
+            >
+              How It Works
+            </a>
+            <a
+              href="#riasec"
+              className="text-muted-foreground transition-colors hover:text-foreground"
+            >
+              RIASEC
+            </a>
+            <a
+              href="#faq"
+              className="text-muted-foreground transition-colors hover:text-foreground"
+            >
+              FAQ
+            </a>
           </nav>
 
-          <Button asChild className="h-11 rounded-full px-5 sm:px-6">
-            <Link to="/student/login">
-              Start assessment
-              <ArrowRight aria-hidden="true" />
-            </Link>
-          </Button>
+          <div className="flex items-center">
+            <Button
+              asChild
+              size="sm"
+              className="inline-flex rounded-full px-3.5 font-semibold shadow-xs sm:px-4.5"
+            >
+              <Link to="/student/login">
+                Start assessment
+                <ArrowRight aria-hidden="true" className="size-3.5" />
+              </Link>
+            </Button>
+          </div>
         </div>
       </header>
 
-      <main id="top">
-        <section className="px-4 pt-5 sm:px-6 sm:pt-7 lg:px-8" aria-labelledby="landing-title">
-          <div className="relative mx-auto grid min-h-[38rem] max-w-[1200px] overflow-hidden rounded-[2rem] border border-primary/10 bg-gradient-to-br from-primary-fixed via-card to-info/10 px-6 py-12 shadow-sm sm:px-10 lg:grid-cols-[0.88fr_1.12fr] lg:items-center lg:px-14 lg:py-16">
-            <div aria-hidden="true" className="absolute -left-24 top-16 size-64 rounded-full bg-brand-green/12 blur-3xl" />
-            <div aria-hidden="true" className="absolute bottom-0 right-0 h-48 w-2/3 rounded-tl-full bg-info/8" />
+      <main id="main-content">
+        {/* SECTION 1: HERO SECTION */}
+        <section
+          aria-labelledby="landing-title"
+          data-testid="landing-hero"
+          className="relative isolate overflow-hidden px-4 pb-10 pt-4 sm:px-6 sm:pb-12 sm:pt-5 lg:px-8 lg:pb-14 lg:pt-6"
+        >
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 z-0 overflow-hidden"
+          >
+            <img
+              src={landingBackground}
+              alt=""
+              data-testid="landing-hero-background"
+              className="size-full object-cover object-center opacity-75"
+            />
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(247,250,242,0.72)_0%,rgba(247,250,242,0.38)_48%,rgba(247,250,242,0.12)_100%)]" />
+            <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-background to-transparent" />
+          </div>
 
-            <div className="relative z-10 max-w-xl">
-              <p className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-white/80 px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-primary-ink shadow-sm">
-                <GraduationCap aria-hidden="true" className="size-4" />
-                For TCC Student Applicants
-              </p>
-              <h1 id="landing-title" className="mt-7 font-display text-4xl font-black leading-[1.05] tracking-[-0.05em] text-brand-dark sm:text-5xl lg:text-6xl">
-                Explore your interests.
-                <span className="mt-1 block text-primary-ink">Understand your options.</span>
-              </h1>
-              <p className="mt-6 max-w-[36rem] text-base font-medium leading-7 text-muted-foreground sm:text-lg sm:leading-8">
-                Complete a locally managed RIASEC assessment and review programme recommendations supported by your recorded scores, eligible programme group, and configured catalogue evidence.
-              </p>
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                <Button asChild size="lg" className="rounded-full px-7">
-                  <Link to="/student/login">
-                    Start assessment
-                    <ArrowRight aria-hidden="true" />
-                  </Link>
-                </Button>
-                <Button asChild size="lg" variant="outline" className="rounded-full bg-white/80 px-7">
-                  <Link to="/student/login">Student sign in</Link>
-                </Button>
-              </div>
-              <p className="mt-5 text-sm font-medium leading-6 text-muted-foreground">
-                Recommendations support exploration and do not guarantee admission or programme success.
-              </p>
+          <ScrollReveal className="relative z-10 mx-auto max-w-[1200px] text-center" variant="scale">
+            {/* Main Display Headline */}
+            <h1
+              id="landing-title"
+              className="mx-auto max-w-3xl font-display text-3xl font-black leading-tight tracking-[-0.03em] text-foreground sm:text-4xl lg:text-[2.75rem]"
+            >
+              Explore your interests.
+              <span className="mt-0.5 block text-primary-ink">
+                Understand your options.
+              </span>
+            </h1>
+
+            {/* Supporting Description (minimized to 2 lines) */}
+            <p className="mx-auto mt-2 max-w-xl text-sm font-medium leading-relaxed text-muted-foreground sm:max-w-2xl sm:text-base">
+              Complete a RIASEC assessment and review programme recommendations
+              <br className="hidden sm:inline" /> supported by your recorded
+              scores and configured catalogue evidence.
+            </p>
+
+            {/* Action Buttons */}
+            <div className="landing-stagger mt-4.5 flex flex-col items-center justify-center gap-3 sm:flex-row">
+              <Button
+                asChild
+                size="default"
+                className="w-full sm:w-auto rounded-full px-6 font-semibold shadow-xs"
+              >
+                <Link to="/student/login">
+                  Start assessment
+                  <ArrowRight aria-hidden="true" className="size-4" />
+                </Link>
+              </Button>
+              <Button
+                asChild
+                size="default"
+                variant="outline"
+                className="w-full sm:w-auto rounded-full bg-surface/90 px-5.5 font-semibold border-border/90 hover:bg-surface-subtle"
+              >
+                <Link to="/student/login">Student sign in</Link>
+              </Button>
             </div>
 
-            <div className="relative mt-10 min-h-72 lg:mt-0 lg:min-h-[34rem]" aria-hidden="true">
+            {/* Centerpiece 3D Illustration Avatar (prominently sized and visible above the fold, NO hover effect) */}
+            <div className="relative mx-auto mt-3 max-w-xl sm:mt-4 lg:max-w-2xl">
               <img
-                src={landingArtwork}
-                alt=""
-                className="absolute left-1/2 top-1/2 w-[155%] max-w-none -translate-x-[47%] -translate-y-1/2 object-contain sm:w-[135%] lg:w-[155%]"
+                src={landingHome}
+                alt="Students discovering career interests with laptops"
+                className="relative z-10 mx-auto max-h-[19rem] w-auto object-contain drop-shadow-sm sm:max-h-[22rem] lg:max-h-[25rem]"
               />
             </div>
-          </div>
+          </ScrollReveal>
         </section>
 
-        <section aria-label="Assessment highlights" className="px-4 py-8 sm:px-6 lg:px-8">
-          <div className="mx-auto grid max-w-[1200px] grid-cols-2 overflow-hidden rounded-3xl border border-border bg-card shadow-sm lg:grid-cols-4">
-            {highlights.map(({ icon: Icon, title, detail }, index) => (
-              <div key={title} className={`flex min-h-36 flex-col items-center justify-center px-4 py-6 text-center ${index % 2 ? 'border-l border-border' : ''} ${index > 1 ? 'border-t border-border lg:border-t-0' : ''} ${index === 2 ? 'lg:border-l' : ''}`}>
-                <span className="flex size-11 items-center justify-center rounded-2xl bg-primary-fixed text-primary-ink">
-                  <Icon aria-hidden="true" className="size-5" />
-                </span>
-                <strong className="mt-3 font-display text-base font-extrabold">{title}</strong>
-                <span className="mt-1 text-xs font-medium leading-5 text-muted-foreground">{detail}</span>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <section id="riasec" className="scroll-mt-24 px-4 py-16 sm:px-6 lg:px-8 lg:py-24" aria-labelledby="riasec-title">
-          <div className="mx-auto max-w-[1200px]">
-            <div className="max-w-2xl">
-              <p className="eyebrow">Your recorded interest areas</p>
-              <h2 id="riasec-title" className="mt-3 font-display text-3xl font-black tracking-[-0.04em] sm:text-4xl">Six ways interests can show up</h2>
-              <p className="mt-4 text-base font-medium leading-7 text-muted-foreground">
-                RIASEC provides six categories for organizing vocational interests. It does not measure intelligence, diagnose personality, or decide what programme you must take.
+        {/* SECTION 2: WHAT WE PROVIDE (4-Card Grid) */}
+        <section
+          id="why-pathways"
+          className="scroll-mt-24 px-4 py-14 sm:px-6 lg:px-8 lg:py-20 bg-surface-subtle/50 border-y border-border/60"
+          aria-labelledby="why-title"
+        >
+          <ScrollReveal className="mx-auto max-w-[1200px]" variant="left">
+            <div className="text-center">
+              <p className="font-display text-xs font-bold uppercase tracking-[0.2em] text-primary-ink">
+                / WHAT WE PROVIDE /
+              </p>
+              <h2
+                id="why-title"
+                className="mt-2.5 font-display text-2xl font-black tracking-[-0.03em] text-foreground sm:text-3xl lg:text-4xl"
+              >
+                Guidance you can understand and revisit
+              </h2>
+              <p className="mx-auto mt-2 max-w-xl text-sm font-medium text-muted-foreground sm:text-base">
+                The system keeps eligibility and interest matching separate,
+                then presents the recorded basis for each recommendation.
               </p>
             </div>
 
-            <div className="mt-10 grid gap-x-8 gap-y-6 sm:grid-cols-2 lg:grid-cols-3">
-              {riasecAreas.map((area) => (
-                <article key={area.code} className="group grid grid-cols-[4.5rem_minmax(0,1fr)] gap-4 border-t border-border py-6">
-                  <div className={`flex size-16 items-center justify-center rounded-[1.35rem] font-display text-4xl font-black ring-1 transition-transform duration-200 group-hover:-translate-y-0.5 ${area.className}`} aria-hidden="true">
-                    {area.code}
-                  </div>
+            {/* 4 Cards Grid */}
+            <div className="landing-stagger mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+              {reasons.map(({ icon: Icon, title, description }) => (
+                <article
+                  key={title}
+                  className="group relative flex flex-col justify-between rounded-3xl border border-border/80 bg-card p-5.5 shadow-xs transition-all duration-300 hover:border-primary/40 hover:shadow-md hover:-translate-y-1"
+                >
                   <div>
-                    <h3 className="font-display text-xl font-extrabold">{area.name}</h3>
-                    <p className="mt-2 text-sm font-medium leading-6 text-muted-foreground">{area.description}</p>
+                    <span className="inline-flex size-11 items-center justify-center rounded-2xl bg-primary-soft text-primary-ink transition-transform duration-200 group-hover:scale-105">
+                      <Icon
+                        aria-hidden="true"
+                        className="size-5.5 text-primary"
+                      />
+                    </span>
+                    <h3 className="mt-4 font-display text-base sm:text-lg font-bold text-foreground">
+                      {title}
+                    </h3>
+                    <p className="mt-2 text-xs sm:text-sm font-medium leading-relaxed text-muted-foreground">
+                      {description}
+                    </p>
                   </div>
                 </article>
               ))}
             </div>
-          </div>
-        </section>
-
-        <section id="how-it-works" className="scroll-mt-24 bg-secondary/65 px-4 py-16 sm:px-6 lg:px-8 lg:py-24" aria-labelledby="steps-title">
-          <div className="mx-auto max-w-[1200px]">
-            <div className="max-w-2xl">
-              <p className="eyebrow">How the journey works</p>
-              <h2 id="steps-title" className="mt-3 font-display text-3xl font-black tracking-[-0.04em] sm:text-4xl">Three clear stages, with evidence at each step</h2>
-              <p className="mt-4 text-base font-medium leading-7 text-muted-foreground">Move from account setup to a recorded result and programme directions you can inspect.</p>
-            </div>
-
-            <ol className="mt-10 grid gap-5 lg:grid-cols-3">
-              {journeySteps.map(({ number, icon: Icon, title, description }) => (
-                <li key={number} className="relative overflow-hidden rounded-3xl border border-border bg-card p-6 shadow-sm sm:p-7">
-                  <div className="flex items-center justify-between">
-                    <span className="font-display text-sm font-black tracking-[0.12em] text-primary-ink">{number}</span>
-                    <span className="flex size-12 items-center justify-center rounded-2xl bg-primary-fixed text-primary-ink"><Icon aria-hidden="true" className="size-6" /></span>
-                  </div>
-                  <h3 className="mt-8 font-display text-xl font-extrabold">{title}</h3>
-                  <p className="mt-3 text-sm font-medium leading-6 text-muted-foreground">{description}</p>
-                </li>
-              ))}
-            </ol>
 
             <div className="mt-9 text-center">
-              <Button asChild size="lg" className="rounded-full px-8"><Link to="/student/login">Begin your assessment <ArrowRight aria-hidden="true" /></Link></Button>
+              <Button
+                asChild
+                size="default"
+                className="rounded-full px-7 shadow-xs"
+              >
+                <a href="#journey">
+                  Learn more about the journey
+                  <ArrowRight aria-hidden="true" className="size-4" />
+                </a>
+              </Button>
             </div>
-          </div>
+          </ScrollReveal>
         </section>
 
-        <section id="why-pathways" className="scroll-mt-24 px-4 py-16 sm:px-6 lg:px-8 lg:py-24" aria-labelledby="why-title">
-          <div className="mx-auto overflow-hidden rounded-[2rem] bg-primary px-6 py-10 text-primary-foreground shadow-sm sm:px-10 sm:py-12 lg:px-14 lg:py-16">
-            <div className="max-w-2xl">
-              <p className="text-xs font-bold uppercase tracking-[0.14em] text-brand-green">Why Pathways</p>
-              <h2 id="why-title" className="mt-3 font-display text-3xl font-black tracking-[-0.04em] sm:text-4xl">Guidance you can understand and revisit</h2>
-              <p className="mt-4 text-base font-medium leading-7 text-primary-foreground/80">The system keeps eligibility and interest matching separate, then presents the recorded basis for each recommendation.</p>
+        {/* SECTION 3: HOW IT WORKS (Split Section with landingJourney) */}
+        <section
+          id="journey"
+          className="scroll-mt-24 px-4 py-14 sm:px-6 lg:px-8 lg:py-20"
+          aria-labelledby="steps-title"
+        >
+          <ScrollReveal className="mx-auto max-w-[1200px]" variant="right">
+            <div className="grid gap-10 lg:grid-cols-12 lg:items-center">
+              {/* Left Column: 3D Confident Students Illustration */}
+              <div className="lg:col-span-5 flex justify-center order-2 lg:order-1">
+                <div className="relative max-w-md w-full">
+                  <div
+                    aria-hidden="true"
+                    className="absolute inset-0 rounded-full bg-gradient-to-tr from-primary/15 via-accent/10 to-transparent blur-2xl -z-10"
+                  />
+                  <img
+                    src={landingJourney}
+                    alt="Two confident students ready for their college journey"
+                    className="mx-auto max-h-[26rem] w-auto drop-shadow-md object-contain transition-transform duration-500 hover:scale-[1.01]"
+                  />
+                </div>
+              </div>
+
+              {/* Right Column: Process & Steps */}
+              <div className="lg:col-span-7 order-1 lg:order-2">
+                <p className="font-display text-xs font-bold uppercase tracking-[0.2em] text-primary-ink">
+                  / HOW IT WORKS /
+                </p>
+                <h2
+                  id="steps-title"
+                  className="mt-2.5 font-display text-2xl font-black tracking-[-0.03em] text-foreground sm:text-3xl lg:text-4xl"
+                >
+                  Three clear stages, with evidence at each step
+                </h2>
+                <p className="mt-2 text-sm sm:text-base font-medium leading-relaxed text-muted-foreground">
+                  Move from account setup to a recorded result and programme
+                  directions you can inspect.
+                </p>
+
+                <ol className="landing-stagger mt-6 space-y-3.5">
+                  {journeySteps.map(
+                    ({ number, icon: Icon, title, description }) => (
+                      <li
+                        key={number}
+                        className="group flex items-start gap-4 rounded-2xl border border-border/80 bg-card p-4.5 shadow-2xs transition-all duration-200 hover:border-primary/40 hover:bg-surface"
+                      >
+                        <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary-soft text-primary-ink font-mono font-bold text-sm">
+                          {number}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <Icon
+                              aria-hidden="true"
+                              className="size-4 text-primary"
+                            />
+                            <h3 className="font-display text-sm sm:text-base font-bold text-foreground">
+                              {title}
+                            </h3>
+                          </div>
+                          <p className="mt-0.5 text-xs sm:text-sm font-medium leading-relaxed text-muted-foreground">
+                            {description}
+                          </p>
+                        </div>
+                      </li>
+                    ),
+                  )}
+                </ol>
+
+                <div className="mt-7">
+                  <Button
+                    asChild
+                    size="default"
+                    className="rounded-full px-7 shadow-xs"
+                  >
+                    <Link to="/student/login">
+                      Begin your assessment
+                      <ArrowRight aria-hidden="true" className="size-4" />
+                    </Link>
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </ScrollReveal>
+        </section>
+
+        {/* SECTION 4: DISCOVER RIASEC (Clean 6-Card Category Grid) */}
+        <section
+          id="riasec"
+          className="scroll-mt-24 px-4 py-14 sm:px-6 lg:px-8 lg:py-20 bg-surface-subtle/50 border-y border-border/60"
+          aria-labelledby="riasec-title"
+        >
+          <ScrollReveal className="mx-auto max-w-[1200px]" variant="scale">
+            <div className="text-center">
+              <p className="font-display text-xs font-bold uppercase tracking-[0.2em] text-primary-ink">
+                / DISCOVER RIASEC /
+              </p>
+              <h2
+                id="riasec-title"
+                className="mt-2.5 font-display text-2xl font-black tracking-[-0.03em] text-foreground sm:text-3xl lg:text-4xl"
+              >
+                Six ways interests can show up
+              </h2>
+              <p className="mx-auto mt-2 max-w-2xl text-sm sm:text-base font-medium leading-relaxed text-muted-foreground">
+                RIASEC provides six categories for organizing vocational
+                interests. It does not measure intelligence, diagnose
+                personality, or decide what programme you must take.
+              </p>
             </div>
 
-            <div className="mt-10 grid gap-4 md:grid-cols-2">
-              {reasons.map(({ icon: Icon, title, description }) => (
-                <article key={title} className="rounded-3xl border border-white/15 bg-white/8 p-6">
-                  <span className="flex size-11 items-center justify-center rounded-2xl bg-white/12 text-brand-green"><Icon aria-hidden="true" className="size-5" /></span>
-                  <h3 className="mt-5 font-display text-xl font-extrabold">{title}</h3>
-                  <p className="mt-2 text-sm font-medium leading-6 text-primary-foreground/80">{description}</p>
+            {/* 6 RIASEC Category Cards in a balanced 3-column grid */}
+            <div className="landing-stagger mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {riasecAreas.map((area) => (
+                <article
+                  key={area.code}
+                  className="group flex items-start gap-4 rounded-2xl border border-border/80 bg-card p-5 shadow-2xs transition-all duration-300 hover:border-primary/40 hover:bg-surface hover:-translate-y-0.5"
+                >
+                  <span
+                    className={`flex size-12 shrink-0 items-center justify-center rounded-xl font-display text-xl font-black ring-1 transition-transform duration-200 group-hover:scale-105 ${area.className}`}
+                    aria-hidden="true"
+                  >
+                    {area.code}
+                  </span>
+                  <div className="min-w-0">
+                    <h3 className="font-display text-base font-bold text-foreground">
+                      {area.name}
+                    </h3>
+                    <p className="mt-1 text-xs sm:text-sm font-medium leading-relaxed text-muted-foreground">
+                      {area.description}
+                    </p>
+                  </div>
                 </article>
               ))}
             </div>
-          </div>
+          </ScrollReveal>
         </section>
 
-        <section id="questions" className="scroll-mt-24 px-4 py-16 sm:px-6 lg:px-8 lg:py-24" aria-labelledby="questions-title">
-          <div className="mx-auto max-w-[960px]">
-            <div className="text-center">
-              <p className="eyebrow justify-center">Questions before you begin</p>
-              <h2 id="questions-title" className="mt-3 font-display text-3xl font-black tracking-[-0.04em] sm:text-4xl">Know what the result can—and cannot—tell you</h2>
-            </div>
+        {/* SECTION 5: QUESTIONS & FAQ (Split Layout with landingQuestion on RIGHT side) */}
+        <section
+          id="faq"
+          className="scroll-mt-24 px-4 py-14 sm:px-6 lg:px-8 lg:py-20"
+          aria-labelledby="questions-title"
+        >
+          <ScrollReveal className="mx-auto max-w-[1200px]" variant="left">
+            <div className="grid gap-10 lg:grid-cols-12 lg:items-center">
+              {/* Left Column: FAQ Questions Accordion */}
+              <div className="lg:col-span-7">
+                <p className="font-display text-xs font-bold uppercase tracking-[0.2em] text-primary-ink">
+                  / FAQ /
+                </p>
+                <h2
+                  id="questions-title"
+                  className="mt-2.5 font-display text-2xl font-black tracking-[-0.03em] text-foreground sm:text-3xl lg:text-4xl"
+                >
+                  Know what the result can—and cannot—tell you
+                </h2>
+                <p className="mt-2 text-sm sm:text-base font-medium leading-relaxed text-muted-foreground">
+                  Find answers about how RIASEC scoring, self-declared entrance
+                  results, and course recommendations work together.
+                </p>
 
-            <div className="mt-10 divide-y divide-border overflow-hidden rounded-3xl border border-border bg-card shadow-sm">
-              {questions.map(({ question, answer }) => (
-                <details key={question} className="group px-5 py-1 open:bg-secondary/45 sm:px-7">
-                  <summary className="flex min-h-16 cursor-pointer list-none items-center justify-between gap-5 py-4 font-display text-base font-extrabold focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-inset focus-visible:ring-ring/35 sm:text-lg">
-                    {question}
-                    <span aria-hidden="true" className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary-fixed text-xl font-medium text-primary-ink transition-transform group-open:rotate-45">+</span>
-                  </summary>
-                  <p className="max-w-3xl pb-5 pr-10 text-sm font-medium leading-6 text-muted-foreground sm:text-base sm:leading-7">{answer}</p>
-                </details>
-              ))}
+                <div className="landing-stagger mt-7 divide-y divide-border/80 overflow-hidden rounded-3xl border border-border/80 bg-card shadow-xs">
+                  {questions.map(({ question, answer }) => (
+                    <details
+                      key={question}
+                      className="group px-6 py-1 open:bg-surface-subtle/50 transition-colors"
+                    >
+                      <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-5 py-3.5 font-display text-base font-bold text-foreground focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-inset focus-visible:ring-ring/35">
+                        {question}
+                        <span
+                          aria-hidden="true"
+                          className="flex size-6.5 shrink-0 items-center justify-center rounded-full bg-primary-soft text-base font-medium text-primary-ink transition-transform duration-200 group-open:rotate-45"
+                        >
+                          +
+                        </span>
+                      </summary>
+                      <p className="max-w-3xl pb-4 pr-8 text-xs sm:text-sm font-medium leading-relaxed text-muted-foreground sm:leading-6">
+                        {answer}
+                      </p>
+                    </details>
+                  ))}
+                </div>
+              </div>
+
+              {/* Right Column: 3D Thinking Student Illustration */}
+              <div className="lg:col-span-5 flex justify-center">
+                <div className="relative max-w-sm w-full">
+                  <div
+                    aria-hidden="true"
+                    className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/20 via-info/15 to-transparent blur-3xl -z-10"
+                  />
+                  <img
+                    src={landingQuestion}
+                    alt="Student thoughtfully considering academic and career options"
+                    className="mx-auto max-h-[26rem] w-auto drop-shadow-md object-contain transition-transform duration-500 hover:scale-[1.01]"
+                  />
+                </div>
+              </div>
             </div>
-          </div>
+          </ScrollReveal>
         </section>
 
-        <section className="px-4 pb-16 sm:px-6 lg:px-8 lg:pb-24" aria-labelledby="ready-title">
-          <div className="mx-auto flex max-w-[1200px] flex-col items-start justify-between gap-7 overflow-hidden rounded-[2rem] border border-primary/15 bg-gradient-to-r from-primary-fixed via-white to-info/10 px-6 py-9 sm:px-10 lg:flex-row lg:items-center lg:px-12">
-            <div>
-              <p className="eyebrow">When you are ready</p>
-              <h2 id="ready-title" className="mt-2 font-display text-2xl font-black tracking-[-0.03em] sm:text-3xl">Start building your recorded interest profile</h2>
-              <p className="mt-2 text-sm font-medium leading-6 text-muted-foreground">Sign in or create a Student account to continue.</p>
+        {/* SECTION 6: READY TO BEGIN BANNER (with landingFooter) */}
+        <section
+          className="px-4 pb-14 sm:px-6 lg:px-8 lg:pb-20"
+          aria-labelledby="ready-title"
+        >
+          <ScrollReveal className="mx-auto flex max-w-[1200px] flex-col items-center justify-between gap-8 overflow-hidden rounded-[2.5rem] border border-primary/25 bg-gradient-to-r from-primary-soft via-surface to-primary-soft/40 p-7 shadow-sm sm:p-10 lg:flex-row" variant="right">
+            <div className="max-w-xl text-center lg:text-left">
+              <span className="inline-block font-display text-xs font-bold uppercase tracking-[0.16em] text-primary-ink">
+                When you are ready
+              </span>
+              <h2
+                id="ready-title"
+                className="mt-2 font-display text-2xl font-black tracking-[-0.03em] text-foreground sm:text-3xl lg:text-4xl"
+              >
+                Start building your recorded interest profile
+              </h2>
+              <p className="mt-2 text-sm font-medium leading-relaxed text-muted-foreground sm:text-base">
+                Sign in or create a Student account to continue.
+              </p>
+              <div className="mt-6 flex flex-wrap justify-center lg:justify-start gap-3">
+                <Button
+                  asChild
+                  size="default"
+                  className="rounded-full px-7 shadow-xs"
+                >
+                  <Link to="/student/login">
+                    Start assessment
+                    <ArrowRight aria-hidden="true" className="size-4" />
+                  </Link>
+                </Button>
+                <Button
+                  asChild
+                  size="default"
+                  variant="outline"
+                  className="rounded-full bg-surface/90 px-6 font-semibold"
+                >
+                  <Link to="/student/register">Get started now</Link>
+                </Button>
+              </div>
             </div>
-            <Button asChild size="lg" className="w-full rounded-full px-8 sm:w-auto"><Link to="/student/login">Start assessment <ArrowRight aria-hidden="true" /></Link></Button>
-          </div>
+
+            <div className="relative shrink-0 max-w-xs sm:max-w-sm">
+              <img
+                src={landingFooter}
+                alt="Two smiling students welcoming you to start your course recommendations"
+                className="max-h-64 w-auto object-contain drop-shadow-sm transition-transform duration-300 hover:scale-[1.02]"
+              />
+            </div>
+          </ScrollReveal>
         </section>
       </main>
 
-      <footer className="border-t border-border bg-white" aria-label="Public site footer">
-        <div className="mx-auto flex max-w-[1200px] flex-col gap-7 px-4 py-9 sm:px-6 md:flex-row md:items-center md:justify-between lg:px-8">
-          <div className="flex items-center gap-4">
-            <img src={logo} alt="" className="h-14 w-auto object-contain" />
-            <p className="max-w-sm text-xs font-medium leading-5 text-muted-foreground">TCC course-recommendation decision support for Student Applicants.</p>
+      {/* REDESIGNED PUBLIC FOOTER */}
+      <footer
+        className="border-t border-border/80 bg-card/90 backdrop-blur-sm"
+        aria-label="Public site footer"
+      >
+        <div className="mx-auto max-w-[1200px] px-4 pt-12 pb-8 sm:px-6 lg:px-8">
+          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-12 lg:gap-12 pb-10 border-b border-border/70">
+            {/* Brand Column */}
+            <div className="lg:col-span-5 space-y-3.5">
+              <div className="flex items-center gap-3">
+                <img
+                  src={logo}
+                  alt="TCCence"
+                  className="h-10 w-auto object-contain"
+                />
+              </div>
+              <p className="text-sm font-semibold text-foreground">
+                TCCence Recommendation System
+              </p>
+              <p className="max-w-md text-xs sm:text-sm leading-relaxed text-muted-foreground">
+                An explainable vocational interest assessment and academic
+                guidance platform tailored for Tagoloan Community College
+                applicants.
+              </p>
+              <p className="text-xs font-medium text-muted-foreground">
+                Recommendations support exploration and do not guarantee
+                admission or programme success.
+              </p>
+            </div>
+
+            {/* Platform Navigation */}
+            <div className="lg:col-span-3">
+              <p className="font-display text-xs font-bold uppercase tracking-[0.16em] text-primary-ink">
+                Platform
+              </p>
+              <ul className="mt-3.5 space-y-2.5 text-sm font-medium">
+                <li>
+                  <a
+                    href="#why-pathways"
+                    className="text-muted-foreground transition-colors hover:text-primary-ink"
+                  >
+                    What We Provide
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#journey"
+                    className="text-muted-foreground transition-colors hover:text-primary-ink"
+                  >
+                    How It Works
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#riasec"
+                    className="text-muted-foreground transition-colors hover:text-primary-ink"
+                  >
+                    RIASEC Framework
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#faq"
+                    className="text-muted-foreground transition-colors hover:text-primary-ink"
+                  >
+                    Frequently Asked Questions
+                  </a>
+                </li>
+              </ul>
+            </div>
+
+            {/* Guidance boundaries */}
+            <div className="lg:col-span-4">
+              <p className="font-display text-xs font-bold uppercase tracking-[0.16em] text-primary-ink">
+                Guidance principles
+              </p>
+              <ul className="mt-3.5 space-y-2.5 text-sm font-medium text-muted-foreground">
+                <li>Interest scores remain explainable.</li>
+                <li>Entrance guidance stays separate from RIASEC fit.</li>
+                <li>Recommendations support—not replace—advising.</li>
+              </ul>
+            </div>
           </div>
-          <nav aria-label="Portal links" className="flex flex-wrap gap-x-6 gap-y-3 text-sm font-semibold">
-            <Link className="hover:text-primary-ink" to="/student/login">Student sign in</Link>
-            <Link className="hover:text-primary-ink" to="/student/register">Create account</Link>
-            <Link className="hover:text-primary-ink" to="/admin/login">Administrator sign in</Link>
-          </nav>
+
+          {/* Bottom Bar */}
+          <div className="mt-8 flex flex-col items-center justify-between gap-4 text-xs font-medium text-muted-foreground sm:flex-row">
+            <p>© 2026 Tagoloan Community College. Pathways Capstone Project.</p>
+            <p>Built with deterministic RIASEC guidance and admission rules.</p>
+          </div>
         </div>
       </footer>
     </div>
-  )
+  );
 }
 
-export { LandingPage }
+export { LandingPage };

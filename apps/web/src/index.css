@@ -882,6 +882,39 @@
   animation: visual-float 7s ease-in-out infinite;
 }
 
+.landing-stagger > * {
+  opacity: 0;
+  transform: translateY(10px);
+  transition:
+    opacity 300ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    transform 300ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.landing-reveal-visible .landing-stagger > * {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.landing-stagger > :nth-child(2) {
+  transition-delay: 60ms;
+}
+
+.landing-stagger > :nth-child(3) {
+  transition-delay: 120ms;
+}
+
+.landing-stagger > :nth-child(4) {
+  transition-delay: 180ms;
+}
+
+.landing-stagger > :nth-child(5) {
+  transition-delay: 120ms;
+}
+
+.landing-stagger > :nth-child(6) {
+  transition-delay: 180ms;
+}
+
 .guidance-orbit {
   animation: orbit-spin 24s linear infinite;
 }
@@ -972,6 +1005,18 @@
   .animate-accordion-down,
   .animate-accordion-up {
     animation: none;
+  }
+
+  .landing-stagger > * {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  [data-landing-reveal] {
+    opacity: 1;
+    transform: none;
+    transition: none;
   }
 
   [data-reveal] {

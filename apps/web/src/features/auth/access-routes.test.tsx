@@ -22,11 +22,11 @@ describe('access portals and workspace shell', () => {
     expect(
       screen.getByRole('heading', { name: 'Welcome back!' }),
     ).toBeVisible()
-    expect(screen.getAllByRole('img', { name: 'Pathways' })).toHaveLength(1)
-    screen.getAllByRole('img', { name: 'Pathways' }).forEach((brandLogo) => {
+    expect(screen.getAllByRole('img', { name: 'TCCence' })).toHaveLength(1)
+    screen.getAllByRole('img', { name: 'TCCence' }).forEach((brandLogo) => {
       expect(brandLogo).toHaveAttribute(
         'src',
-        expect.stringMatching(/logo-optimized\.png$/),
+        expect.stringMatching(/login-logo\.png$/),
       )
     })
     expect(document.querySelector('img[alt=""]')).toHaveAttribute(
@@ -61,7 +61,7 @@ describe('access portals and workspace shell', () => {
       screen.getByRole('heading', { name: 'Create your account' }),
     ).toBeVisible()
     expect(screen.getByRole('main')).toHaveClass('portal-sign-in-theme', 'text-foreground')
-    expect(screen.getAllByRole('img', { name: 'Pathways' })).toHaveLength(1)
+    expect(screen.getAllByRole('img', { name: 'TCCence' })).toHaveLength(1)
     expect(document.querySelector('img[alt=""]')).toHaveAttribute(
       'src',
       expect.stringMatching(/login-background1\.png$/),

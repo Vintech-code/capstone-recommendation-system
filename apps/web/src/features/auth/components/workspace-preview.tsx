@@ -7,7 +7,7 @@ import {
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 
 import { Button } from '@/components/ui/button'
-import logo from '@/assets/logo.png'
+import logo from '@/assets/logo/header-logo.png'
 import {
   DropdownMenu,
   DropdownMenuContent,

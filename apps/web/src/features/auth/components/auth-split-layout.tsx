@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
 import loginBackground from "@/assets/login-background1.png";
-import logo from "@/assets/logo-optimized.png";
+import logo from "@/assets/logo/login-logo.png";
 
 interface AuthSplitLayoutProps {
   children: ReactNode;
@@ -25,7 +25,7 @@ function AuthSplitLayout({ children }: AuthSplitLayoutProps) {
           <div className="-mb-2 flex justify-center">
             <img
               src={logo}
-              alt="Pathways"
+              alt="TCCence"
               className="size-24 object-contain sm:size-28"
             />
           </div>
