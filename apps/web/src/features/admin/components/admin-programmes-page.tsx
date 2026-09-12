@@ -12,7 +12,6 @@ import {
 } from "lucide-react";
 import { useMemo, useState } from "react";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -35,6 +34,7 @@ import {
   type AdminProgrammeCatalogue,
 } from "@/features/admin/data/admin-api";
 import { getProgrammeImages } from "@/features/student/programmes/programme-images";
+import { cn } from "@/lib/utils";
 
 const programmeGroups = [
   { label: "Technology", ids: ["bs-information-technology"] },
@@ -74,6 +74,48 @@ function getProgrammeType(programme: AdminProgramme) {
   if (programme.eligibilityGroup === "non_board") return "Non-board programme";
   return "Classification unavailable";
 }
+
+const RIASEC_META: Record<
+  string,
+  { label: string; bg: string; text: string; border: string }
+> = {
+  R: {
+    label: "Realistic",
+    bg: "bg-[var(--riasec-r)]/15",
+    text: "text-[var(--riasec-r)]",
+    border: "border-[var(--riasec-r)]/30",
+  },
+  I: {
+    label: "Investigative",
+    bg: "bg-[var(--riasec-i)]/15",
+    text: "text-[var(--riasec-i)]",
+    border: "border-[var(--riasec-i)]/30",
+  },
+  A: {
+    label: "Artistic",
+    bg: "bg-[var(--riasec-a)]/15",
+    text: "text-[var(--riasec-a)]",
+    border: "border-[var(--riasec-a)]/30",
+  },
+  S: {
+    label: "Social",
+    bg: "bg-[var(--riasec-s)]/15",
+    text: "text-[var(--riasec-s)]",
+    border: "border-[var(--riasec-s)]/30",
+  },
+  E: {
+    label: "Enterprising",
+    bg: "bg-[var(--riasec-e)]/15",
+    text: "text-[var(--riasec-e)]",
+    border: "border-[var(--riasec-e)]/30",
+  },
+  C: {
+    label: "Conventional",
+    bg: "bg-[var(--riasec-c)]/15",
+    text: "text-[var(--riasec-c)]",
+    border: "border-[var(--riasec-c)]/30",
+  },
+};
 
 function AdminProgrammesPage() {
   const resource = useAdminResource<AdminProgrammeCatalogue>("/programmes");
@@ -173,7 +215,7 @@ function AdminProgrammesPage() {
 
       {visibleProgrammes.length ? (
         <section
-          className="grid gap-4 xl:grid-cols-2"
+          className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3"
           aria-label="Programme catalogue monitoring cards"
         >
           {visibleProgrammes.map((programme) => (
@@ -220,65 +262,69 @@ function AdminProgrammeCard({
 }) {
   const fallback = getProgrammeImages(programme.id);
   const cover = programme.coverImageUrl || fallback.cover;
-  const needsReview = programme.duration?.status !== "ched_psg";
   const programmeType = getProgrammeType(programme);
   const primaryCareer = programme.careerDirections[0] || "Various pathways";
 
   return (
-    <article className="group overflow-hidden rounded-xs border border-border bg-card shadow-sm transition-colors hover:border-primary/35">
-      <div className="relative h-44 overflow-hidden bg-primary/10">
+    <article className="group flex flex-col overflow-hidden rounded-xs border border-border bg-card shadow-xs transition-colors hover:border-primary/40">
+      <div className="relative h-44 w-full overflow-hidden bg-surface-subtle sm:h-48">
         {cover ? (
           <img
             src={cover}
             alt={`${programme.name} programme`}
             loading="lazy"
             decoding="async"
-            className="size-full object-cover transition-transform duration-300 group-hover:scale-105"
+            className="size-full object-cover object-top transition-transform duration-300 group-hover:scale-105"
           />
         ) : (
-          <BookOpen
-            aria-hidden="true"
-            className="absolute inset-0 m-auto size-16 text-primary-ink/25"
-          />
-        )}
-        <span className="absolute left-4 top-4 rounded-full bg-primary px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-primary-foreground">
-          {programmeGroup(programme.id)}
-        </span>
-        <Badge
-          variant={needsReview ? "warning" : "success"}
-          className="absolute bottom-4 left-4"
-        >
-          {needsReview ? "Source review needed" : "CHED duration sourced"}
-        </Badge>
-      </div>
-      <div className="p-5 sm:p-6">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary-ink">
-              {programme.code}
-            </p>
-            <h3 className="mt-1.5 font-display text-lg font-semibold leading-6">
-              {programme.name}
-            </h3>
+          <div className="flex size-full items-center justify-center bg-primary/10">
+            <BookOpen
+              aria-hidden="true"
+              className="size-12 text-primary-ink/25"
+            />
           </div>
+        )}
+      </div>
+      <div className="flex flex-1 flex-col p-3.5 sm:p-4">
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-xs font-bold uppercase tracking-[0.14em] text-primary-ink">
+            {programme.code}
+          </span>
           <div
-            className="flex shrink-0 gap-1"
+            className="flex shrink-0 items-center gap-1"
             aria-label={`RIASEC profile ${programme.profile.join(", ")}`}
           >
-            {programme.profile.map((code) => (
-              <span
-                key={code}
-                className="flex size-8 items-center justify-center rounded-xs bg-primary-fixed text-xs font-bold text-on-primary-fixed"
-              >
-                {code}
-              </span>
-            ))}
+            {programme.profile.map((code) => {
+              const meta = RIASEC_META[code] ?? {
+                label: code,
+                bg: "bg-primary-fixed",
+                text: "text-on-primary-fixed",
+                border: "border-primary/20",
+              };
+              return (
+                <span
+                  key={code}
+                  title={`${code} · ${meta.label}`}
+                  className={cn(
+                    "flex size-6 items-center justify-center rounded-xs text-[11px] font-bold border",
+                    meta.bg,
+                    meta.text,
+                    meta.border,
+                  )}
+                >
+                  {code}
+                </span>
+              );
+            })}
           </div>
         </div>
-        <p className="mt-3 line-clamp-2 text-sm leading-6 text-muted-foreground">
+        <h3 className="mt-1 font-display text-base font-bold leading-snug text-foreground line-clamp-1 group-hover:text-primary-ink transition-colors">
+          {programme.name}
+        </h3>
+        <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
           {programme.description}
         </p>
-        <dl className="mt-5 grid grid-cols-2 gap-x-5 gap-y-4 text-sm">
+        <dl className="mt-3 grid grid-cols-2 gap-2 rounded-xs border border-border/70 bg-surface-subtle/50 p-2.5 text-xs">
           <CardDatum
             icon={Clock3}
             label="Duration"
@@ -300,35 +346,43 @@ function AdminProgrammeCard({
             value={primaryCareer}
           />
         </dl>
-        <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
+        <div className="mt-3.5 flex flex-wrap items-center justify-between gap-2 border-t border-border/60 pt-3">
           {programme.duration?.source_url ? (
             <a
               href={programme.duration.source_url}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex min-h-11 items-center gap-2 text-xs font-semibold text-primary-ink underline underline-offset-4"
+              className="inline-flex items-center gap-1 text-xs font-semibold text-primary-ink underline underline-offset-4 hover:text-primary"
             >
-              {programme.duration.source_name || "CHED source"}
-              <ExternalLink aria-hidden="true" className="size-3" />
+              <span className="truncate max-w-[110px]">
+                {programme.duration.source_name || "CHED source"}
+              </span>
+              <ExternalLink aria-hidden="true" className="size-3 shrink-0" />
             </a>
           ) : (
             <span className="text-xs text-muted-foreground">
               No duration source published
             </span>
           )}
-          <div className="flex gap-2">
+          <div className="flex items-center gap-1.5 ml-auto">
             <Button
               type="button"
               variant="ghost"
-              className="rounded-xs"
+              size="sm"
+              className="h-8 rounded-xs px-2.5 text-xs"
               onClick={onInspect}
             >
-              <Eye aria-hidden="true" />
+              <Eye aria-hidden="true" className="size-3.5" />
               View details
             </Button>
-            <Button type="button" className="rounded-xs" onClick={onEdit}>
-              <Pencil aria-hidden="true" />
-              Edit programme
+            <Button
+              type="button"
+              size="sm"
+              className="h-8 rounded-xs px-2.5 text-xs"
+              onClick={onEdit}
+            >
+              <Pencil aria-hidden="true" className="size-3.5" />
+              Manage programme
             </Button>
           </div>
         </div>
@@ -350,17 +404,15 @@ function ProgrammeEditorSheet({
   return (
     <Sheet open onOpenChange={onOpenChange}>
       <SheetContent className="w-[min(56rem,96vw)] max-w-none overflow-y-auto p-0">
-        <div className="sticky top-0 z-10 bg-primary px-6 py-5 text-primary-foreground">
+        <div className="sticky top-0 z-10 border-b border-border bg-background px-6 py-5">
           <SheetHeader>
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary-foreground/70">
-              Programme editor · {programme.code}
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary-ink">
+              Programme governance - {programme.code}
             </p>
-            <SheetTitle className="text-primary-foreground">
-              Edit {programme.name}
-            </SheetTitle>
-            <SheetDescription className="text-primary-foreground/75">
-              Update student-visible content and media here. CHED and Philippine
-              API fields remain locked.
+            <SheetTitle>Manage {programme.name}</SheetTitle>
+            <SheetDescription>
+              Review protected programme facts and manage only the student
+              enrichment and media fields owned by this catalogue workflow.
             </SheetDescription>
           </SheetHeader>
         </div>
@@ -427,6 +479,7 @@ function AdminProgrammeSheet({
             <DetailDatum label="Programme type" value={programmeType} />
             <DetailDatum label="Career field" value={primaryCareer} />
           </dl>
+          <ContentSourcePanel source={programme.contentSource} />
           <SourcePanel title="Duration source" value={programme.duration} />
           <DetailSection
             title="Learning areas"
@@ -461,12 +514,20 @@ function CardDatum({
   value: string;
 }) {
   return (
-    <div>
-      <dt className="flex items-center gap-2 text-xs text-muted-foreground">
-        <Icon aria-hidden="true" className="size-4 text-primary-ink" />
-        {label}
+    <div className="min-w-0">
+      <dt className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+        <Icon
+          aria-hidden="true"
+          className="size-3.5 shrink-0 text-primary-ink"
+        />
+        <span className="truncate">{label}</span>
       </dt>
-      <dd className="mt-1 font-semibold">{value}</dd>
+      <dd
+        className="mt-0.5 truncate font-semibold text-foreground"
+        title={value}
+      >
+        {value}
+      </dd>
     </div>
   );
 }
@@ -476,6 +537,49 @@ function DetailDatum({ label, value }: { label: string; value: string }) {
       <dt className="text-xs font-medium text-muted-foreground">{label}</dt>
       <dd className="mt-1 font-semibold">{value}</dd>
     </div>
+  );
+}
+function ContentSourcePanel({
+  source,
+}: {
+  source: AdminProgramme["contentSource"];
+}) {
+  if (!source) return null;
+  return (
+    <section className="mt-3 rounded-xs bg-secondary/80 p-3">
+      <div className="flex items-start gap-3">
+        {source.document_path ? (
+          <BookOpen
+            aria-hidden="true"
+            className="mt-0.5 size-5 text-primary-ink"
+          />
+        ) : (
+          <AlertTriangle
+            aria-hidden="true"
+            className="mt-0.5 size-5 text-warning-ink"
+          />
+        )}
+        <div>
+          <h3 className="font-semibold">Programme content source</h3>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {source.note ||
+              source.reference ||
+              "Source details are pending review."}
+          </p>
+          {source.source_url && source.source_name ? (
+            <a
+              href={source.source_url}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-primary-ink underline underline-offset-4"
+            >
+              {source.source_name}
+              <ExternalLink aria-hidden="true" className="size-3" />
+            </a>
+          ) : null}
+        </div>
+      </div>
+    </section>
   );
 }
 function SourcePanel({
@@ -490,7 +594,10 @@ function SourcePanel({
     <section className="mt-3 rounded-xs bg-secondary/80 p-3">
       <div className="flex items-start gap-3">
         {value.status === "ched_psg" ? (
-          <BookOpen aria-hidden="true" className="mt-0.5 size-5 text-primary-ink" />
+          <BookOpen
+            aria-hidden="true"
+            className="mt-0.5 size-5 text-primary-ink"
+          />
         ) : (
           <AlertTriangle
             aria-hidden="true"

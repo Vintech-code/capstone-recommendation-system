@@ -23,6 +23,9 @@ describe('Administrator ESCO mapping workflow', () => {
       career_directions: ['Software and application development', 'Systems administration'],
       career_opportunities: [],
       recommended_strands: ['STEM'],
+      strand_guidance: 'STEM may support preparation.',
+      content_status: 'ched_psg_sourced',
+      content_source: { source_name: 'CHED CMO No. 25, series of 2015', source_url: 'https://ched.gov.ph/', reference: 'Article IV, Sections 5 and 6' },
       degree_type: "Bachelor's degree",
       duration: { display: '4 years' },
     }
@@ -42,6 +45,14 @@ describe('Administrator ESCO mapping workflow', () => {
     const user = userEvent.setup()
     render(<ConfigurationWorkflow kind="catalogue" programmeId="bs-information-technology" />)
 
+    expect(await screen.findByRole('heading', { name: 'BS Information Technology' })).toBeVisible()
+    expect(screen.getByText('Protected source-controlled facts')).toBeVisible()
+    expect(screen.getByRole('link', { name: /CHED CMO No. 25/ })).toBeVisible()
+    expect(screen.queryByRole('textbox', { name: 'Programme name' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('textbox', { name: 'RIASEC codes, one per line' })).not.toBeInTheDocument()
+    expect(screen.getByRole('textbox', { name: 'Recommended SHS strands, one per line' })).toBeVisible()
+    expect(screen.getByRole('textbox', { name: 'Preparation guidance' })).toBeVisible()
+    expect(screen.getByRole('button', { name: 'Publish full catalogue' })).toBeDisabled()
     await user.type(await screen.findByRole('textbox', { name: 'Occupation name' }), 'software')
     expect(screen.queryByRole('heading', { name: 'API-controlled information' })).not.toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Search ESCO' }))

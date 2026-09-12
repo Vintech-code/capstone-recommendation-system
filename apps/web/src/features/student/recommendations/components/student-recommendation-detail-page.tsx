@@ -4,6 +4,7 @@ import {
   BookOpen,
   BriefcaseBusiness,
   Clock3,
+  ExternalLink,
   GraduationCap,
   ShieldCheck,
   Target,
@@ -210,6 +211,22 @@ function StudentRecommendationDetailPage({
               </div>
             ))}
           </dl>
+
+          {course.contentSource ? (
+            <section aria-labelledby="recommendation-content-source-title" className="rounded-2xl border border-border/70 bg-card/60 p-4 shadow-sm sm:p-5">
+              <h2 id="recommendation-content-source-title" className="font-display text-base font-bold text-foreground">Programme content source</h2>
+              <p className="mt-1 text-xs leading-5 text-muted-foreground sm:text-sm">
+                {course.contentSource.note ?? 'This description, its learning areas, and career directions summarize the recorded CHED programme standard.'}
+              </p>
+              {course.contentSource.reference ? <p className="mt-2 text-xs font-medium text-foreground">{course.contentSource.reference}</p> : null}
+              {course.contentSource.source_url && course.contentSource.source_name ? (
+                <a href={course.contentSource.source_url} target="_blank" rel="noreferrer" className="mt-2 inline-flex min-h-8 items-center gap-1 text-xs font-semibold text-primary-ink underline underline-offset-4">
+                  {course.contentSource.source_name}
+                  <ExternalLink aria-hidden="true" className="size-3" />
+                </a>
+              ) : null}
+            </section>
+          ) : null}
 
           <section
             aria-labelledby="learning-areas-title"

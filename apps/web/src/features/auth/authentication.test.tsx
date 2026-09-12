@@ -1,10 +1,41 @@
-import { screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
 import { renderAppAt } from "@/test/render-app";
+import { AuthProvider } from "@/features/auth/auth-provider";
+import { useAuth } from "@/features/auth/auth-context";
+
+function SessionProbe() {
+  const { status, user } = useAuth();
+
+  return <p>{status}:{user?.email ?? "guest"}</p>;
+}
 
 describe("server-backed authentication", () => {
+  it("restores a guest session without calling the protected current-user endpoint", async () => {
+    vi.mocked(fetch).mockImplementation(async (input) => {
+      if (input.toString() === "/api/v1/auth/session") {
+        return Response.json({ user: null });
+      }
+
+      return Response.json({ message: "Unexpected request." }, { status: 500 });
+    });
+
+    render(<AuthProvider><SessionProbe /></AuthProvider>);
+
+    expect(await screen.findByText("ready:guest")).toBeVisible();
+    expect(fetch).toHaveBeenCalledWith(
+      "/api/v1/auth/session",
+      expect.objectContaining({ credentials: "include" }),
+    );
+    expect(fetch).not.toHaveBeenCalledWith(
+      "/api/v1/auth/me",
+      expect.anything(),
+    );
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
   it("requests password recovery without exposing whether the account exists", async () => {
     const user = userEvent.setup();
     await renderAppAt("/forgot-password?portal=student");

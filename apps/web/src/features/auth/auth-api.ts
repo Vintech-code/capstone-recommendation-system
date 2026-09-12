@@ -27,6 +27,10 @@ interface AuthResponse {
   user: AuthUser
 }
 
+interface SessionResponse {
+  user: AuthUser | null
+}
+
 interface ErrorResponse {
   message?: string
   errors?: Record<string, string[]>
@@ -131,6 +135,10 @@ async function currentUser() {
   return request<AuthResponse>('/api/v1/auth/me')
 }
 
+async function restoreSession() {
+  return request<SessionResponse>('/api/v1/auth/session')
+}
+
 async function authorizePortal(portal: AccessRole) {
   return request<{ authorized: true; portal: AccessRole }>(
     `/api/v1/auth/authorize/${portal}`,
@@ -177,6 +185,7 @@ export {
   AuthApiError,
   authorizePortal,
   currentUser,
+  restoreSession,
   registerStudent,
   signIn,
   signOut,

@@ -42,6 +42,14 @@ const catalogue = {
     strandGuidance: 'STEM supports analytical preparation while TVL-ICT provides practical computer experience.',
     requirements: ['Meet the published general admission requirements.'],
     readinessPrompt: 'Discuss your interest in problem solving and technology.',
+    contentStatus: 'ched_psg_sourced',
+    contentSource: {
+      source_name: 'CHED CMO No. 25, series of 2015',
+      source_url: 'https://legacy.ched.gov.ph/2015-ched-memorandum-orders/',
+      document_path: 'docs/cmo/CMO-no.-25-s.-2015-1.pdf',
+      reference: 'Article IV, Sections 5.2.3, 5.4 and 6.3',
+      pages: [4, 5, 8],
+    },
     contentVersion: 'GUIDANCE-1',
     degreeType: "Bachelor's degree",
     duration: { status: 'ched_psg' as const, display: '4 years', source_name: 'CHED CMO', source_url: 'https://ched.gov.ph/issuances/' },
@@ -208,6 +216,9 @@ describe('Student programme catalogue', () => {
     expect(screen.getByText('Programming fundamentals')).toBeVisible()
     expect(screen.getByText('Application testing')).toBeVisible()
     expect(screen.getByRole('heading', { name: 'Programme information' })).toBeVisible()
+    expect(screen.getByRole('heading', { name: 'Programme content source' })).toBeVisible()
+    expect(screen.getByText('Article IV, Sections 5.2.3, 5.4 and 6.3')).toBeVisible()
+    expect(screen.getByRole('link', { name: 'CHED CMO No. 25, series of 2015' })).toHaveAttribute('href', 'https://legacy.ched.gov.ph/2015-ched-memorandum-orders/')
     expect(screen.getByRole('heading', { name: 'Helpful tracks and strands' })).toBeVisible()
     expect(screen.getByRole('heading', { name: 'Possible career directions' })).toBeVisible()
     expect(screen.getByText('Software and application development')).toBeVisible()

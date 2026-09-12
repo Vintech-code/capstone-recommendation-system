@@ -1,33 +1,33 @@
-import { zodResolver } from '@hookform/resolvers/zod'
-import { LockKeyhole, Mail, UserRound } from 'lucide-react'
-import { useForm } from 'react-hook-form'
-import { z } from 'zod'
+import { zodResolver } from "@hookform/resolvers/zod";
+import { LockKeyhole, Mail, UserRound } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
-import { Button } from '@/components/ui/button'
+import { Button } from "@/components/ui/button";
 import {
   AuthApiError,
   type StudentRegistrationFields,
-} from '@/features/auth/auth-api'
-import { FloatingInputField } from '@/features/auth/components/floating-input-field'
+} from "@/features/auth/auth-api";
+import { FloatingInputField } from "@/features/auth/components/floating-input-field";
 
 const registrationSchema = z
   .object({
-    name: z.string().trim().min(1, 'Enter your full name.'),
+    name: z.string().trim().min(1, "Enter your full name."),
     email: z
       .string()
       .trim()
-      .min(1, 'Enter your email address.')
-      .email('Enter a valid email address.'),
-    password: z.string().min(1, 'Enter a password.'),
-    passwordConfirmation: z.string().min(1, 'Confirm your password.'),
+      .min(1, "Enter your email address.")
+      .email("Enter a valid email address."),
+    password: z.string().min(1, "Enter a password."),
+    passwordConfirmation: z.string().min(1, "Confirm your password."),
   })
   .refine((fields) => fields.password === fields.passwordConfirmation, {
-    path: ['passwordConfirmation'],
-    message: 'Passwords must match.',
-  })
+    path: ["passwordConfirmation"],
+    message: "Passwords must match.",
+  });
 
 interface StudentRegistrationFormProps {
-  onRegister: (fields: StudentRegistrationFields) => Promise<void>
+  onRegister: (fields: StudentRegistrationFields) => Promise<void>;
 }
 
 function StudentRegistrationForm({ onRegister }: StudentRegistrationFormProps) {
@@ -39,31 +39,31 @@ function StudentRegistrationForm({ onRegister }: StudentRegistrationFormProps) {
   } = useForm<StudentRegistrationFields>({
     resolver: zodResolver(registrationSchema),
     defaultValues: {
-      name: '',
-      email: '',
-      password: '',
-      passwordConfirmation: '',
+      name: "",
+      email: "",
+      password: "",
+      passwordConfirmation: "",
     },
-  })
+  });
 
   const submit = handleSubmit(async (fields) => {
     try {
-      await onRegister(fields)
+      await onRegister(fields);
     } catch (error) {
       if (error instanceof AuthApiError) {
-        const emailError = error.fieldErrors.email?.[0]
+        const emailError = error.fieldErrors.email?.[0];
         if (emailError) {
-          setError('email', { message: emailError }, { shouldFocus: true })
-          return
+          setError("email", { message: emailError }, { shouldFocus: true });
+          return;
         }
-        setError('root', { message: error.message })
-        return
+        setError("root", { message: error.message });
+        return;
       }
-      setError('root', {
-        message: 'Account creation could not be completed. Please try again.',
-      })
+      setError("root", {
+        message: "Account creation could not be completed. Please try again.",
+      });
     }
-  })
+  });
 
   return (
     <form noValidate onSubmit={submit} className="space-y-2.5">
@@ -83,7 +83,7 @@ function StudentRegistrationForm({ onRegister }: StudentRegistrationFormProps) {
         type="text"
         autoComplete="name"
         error={errors.name?.message}
-        {...register('name')}
+        {...register("name")}
       />
       <FloatingInputField
         id="registration-email"
@@ -92,7 +92,7 @@ function StudentRegistrationForm({ onRegister }: StudentRegistrationFormProps) {
         type="email"
         autoComplete="email"
         error={errors.email?.message}
-        {...register('email')}
+        {...register("email")}
       />
       <FloatingInputField
         id="registration-password"
@@ -101,7 +101,7 @@ function StudentRegistrationForm({ onRegister }: StudentRegistrationFormProps) {
         type="password"
         autoComplete="new-password"
         error={errors.password?.message}
-        {...register('password')}
+        {...register("password")}
       />
       <FloatingInputField
         id="registration-password-confirmation"
@@ -110,7 +110,7 @@ function StudentRegistrationForm({ onRegister }: StudentRegistrationFormProps) {
         type="password"
         autoComplete="new-password"
         error={errors.passwordConfirmation?.message}
-        {...register('passwordConfirmation')}
+        {...register("passwordConfirmation")}
       />
 
       <Button
@@ -118,10 +118,10 @@ function StudentRegistrationForm({ onRegister }: StudentRegistrationFormProps) {
         disabled={isSubmitting}
         className="mt-1 min-h-9.5 h-9.5 w-full rounded-xs text-xs sm:text-sm font-semibold"
       >
-        {isSubmitting ? 'Creating account…' : 'Create student account'}
+        {isSubmitting ? "Creating account…" : "Create student account"}
       </Button>
     </form>
-  )
+  );
 }
 
-export { StudentRegistrationForm }
+export { StudentRegistrationForm };

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 
-import type { CareerOpportunity } from '@/features/student/programmes/programme-types'
+import type { CareerOpportunity, ProgrammeContentSource } from '@/features/student/programmes/programme-types'
 
 interface AdminOverview {
   students: number
@@ -152,6 +152,8 @@ interface AdminProgramme {
   strandGuidance: string
   requirements: string[]
   readinessPrompt: string
+  contentStatus?: string
+  contentSource?: ProgrammeContentSource | null
   contentVersion: string | null
   degreeType: string
   duration: ProgrammeSourceValue | null

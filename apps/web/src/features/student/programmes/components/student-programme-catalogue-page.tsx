@@ -7,6 +7,7 @@ import {
   CalendarDays,
   ChevronDown,
   Clock3,
+  ExternalLink,
   GraduationCap,
   GitCompareArrows,
   HeartHandshake,
@@ -710,6 +711,22 @@ function StudentProgrammeDetail({ programme, academicYear, onBack }: { programme
               ) : null}
             </dl>
           </section>
+
+          {programme.contentSource ? (
+            <section aria-labelledby="programme-source-title" className="rounded-3xl border border-border bg-card p-6 shadow-sm">
+              <h2 id="programme-source-title" className="font-display text-base font-bold text-foreground">Programme content source</h2>
+              <p className="mt-2 text-xs leading-5 text-muted-foreground sm:text-sm">
+                {programme.contentSource.note ?? 'The programme description, learning areas, and career directions summarize the recorded CHED programme standard.'}
+              </p>
+              {programme.contentSource.reference ? <p className="mt-3 text-xs font-medium text-foreground">{programme.contentSource.reference}</p> : null}
+              {programme.contentSource.source_url && programme.contentSource.source_name ? (
+                <a href={programme.contentSource.source_url} target="_blank" rel="noreferrer" className="mt-3 inline-flex min-h-8 items-center gap-1 text-xs font-semibold text-primary-ink underline underline-offset-4">
+                  {programme.contentSource.source_name}
+                  <ExternalLink aria-hidden="true" className="size-3" />
+                </a>
+              ) : null}
+            </section>
+          ) : null}
 
           <CareerDirectionsSection directions={careerDirections} opportunities={programme.careerOpportunities} />
         </aside>

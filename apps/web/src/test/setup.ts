@@ -76,6 +76,10 @@ async function defaultFetch(
     })
   }
 
+  if (url === '/api/v1/auth/session') {
+    return Response.json({ user: null })
+  }
+
   if (url === '/api/v1/auth/register') {
     const body = JSON.parse(String(init?.body ?? '{}')) as { name: string; email: string }
     return Response.json({

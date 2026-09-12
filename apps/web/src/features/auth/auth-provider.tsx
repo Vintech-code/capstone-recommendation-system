@@ -2,6 +2,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from 'react'
@@ -9,6 +10,7 @@ import {
 import {
   AuthApiError,
   currentUser,
+  restoreSession,
   signIn as requestSignIn,
   signOut as requestSignOut,
   type AuthUser,
@@ -32,16 +34,20 @@ function AuthProvider({ children, initialUser }: AuthProviderProps) {
     initialUser === undefined ? 'loading' : 'ready',
   )
   const [sessionAttempt, setSessionAttempt] = useState(0)
+  const sessionRequest = useRef<ReturnType<typeof restoreSession> | null>(null)
 
   useEffect(() => {
     if (initialUser !== undefined) return
 
     let active = true
 
-    currentUser()
-      .then(({ user: authenticatedUser }) => {
+    const restoration = sessionRequest.current ?? restoreSession()
+    sessionRequest.current = restoration
+
+    restoration
+      .then(({ user: restoredUser }) => {
         if (!active) return
-        setUser(authenticatedUser)
+        setUser(restoredUser)
         setStatus('ready')
       })
       .catch((error: unknown) => {
@@ -91,6 +97,7 @@ function AuthProvider({ children, initialUser }: AuthProviderProps) {
       signOut,
       refreshUser,
       retrySession: () => {
+        sessionRequest.current = null
         setStatus('loading')
         setSessionAttempt((attempt) => attempt + 1)
       },

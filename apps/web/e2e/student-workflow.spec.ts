@@ -93,6 +93,9 @@ async function installStudentApi(page: Page, initiallyComplete = false) {
     if (path === '/api/v1/auth/me') {
       return authenticated ? json(route, { user }) : json(route, { message: 'Unauthenticated.' }, 401)
     }
+    if (path === '/api/v1/auth/session') {
+      return json(route, { user: authenticated ? user : null })
+    }
     if (path === '/api/v1/auth/login' && method === 'POST') {
       authenticated = true
       return json(route, { user })

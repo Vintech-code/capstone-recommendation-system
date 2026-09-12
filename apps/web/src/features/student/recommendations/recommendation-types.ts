@@ -1,4 +1,4 @@
-import type { CareerOpportunity, ProgrammeMediaPosition } from '@/features/student/programmes/programme-types'
+import type { CareerOpportunity, ProgrammeContentSource, ProgrammeMediaPosition } from '@/features/student/programmes/programme-types'
 
 type StudentRecommendationEligibility = 'Eligible' | 'Needs review' | 'Provisional'
 
@@ -36,7 +36,8 @@ interface StudentRecommendedCourse {
   careerDirections: string[]
   careerOpportunities?: CareerOpportunity[]
   reviewNotes: string[]
-  contentStatus?: 'proposed'
+  contentStatus?: string
+  contentSource?: ProgrammeContentSource | null
   contentVersion?: string
   coverImageUrl?: string | null
   logoImageUrl?: string | null
@@ -102,7 +103,7 @@ interface StudentRecommendationSnapshot {
   }>
   canViewAll: boolean
   showingAll: boolean
-  guidanceContentStatus?: 'proposed'
+  guidanceContentStatus?: string
   entranceExamination?: {
     resultId: number
     score: number

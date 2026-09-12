@@ -6,6 +6,8 @@ import {
   ChartNoAxesCombined,
   Compass,
   FileText,
+  Menu,
+  X,
 } from "lucide-react";
 
 import landingHome from "@/assets/images/landing-image-home.png";
@@ -14,6 +16,12 @@ import landingJourney from "@/assets/images/landing-image2.png";
 import landingQuestion from "@/assets/images/landing-image-question.png";
 import landingFooter from "@/assets/images/landing-image-footer.png";
 import logo from "@/assets/logo/header-logo.png";
+import riasecR from "@/assets/landing/R.png";
+import riasecI from "@/assets/landing/I.png";
+import riasecA from "@/assets/landing/A.png";
+import riasecS from "@/assets/landing/S.png";
+import riasecE from "@/assets/landing/E.png";
+import riasecC from "@/assets/landing/C.png";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { StudentAuthModal } from "@/features/auth/components/student-auth-modal";
@@ -21,27 +29,26 @@ import { StudentAuthModal } from "@/features/auth/components/student-auth-modal"
 const reasons = [
   {
     icon: Compass,
-    title: "Objective Exploration",
-    description:
-      "Compare interests across our academic catalogue without premature filtering.",
+    title: "Objective TCC Exploration",
+    description: "See how your interests match the programs offered at TCC.",
   },
   {
     icon: BookCheck,
-    title: "Documented Rules",
+    title: "TCC Entrance Exam",
     description:
-      "Entrance results are clearly referenced against standard programme tracks.",
+      "Use your TCC entrance exam score together with your RIASEC results.",
   },
   {
     icon: ChartNoAxesCombined,
-    title: "Transparent Scores",
+    title: "Clear Results",
     description:
-      "Every recommendation displays exact Holland attribute scores and rationale.",
+      "See your RIASEC results and understand why certain TCC programs are recommended.",
   },
   {
     icon: FileText,
-    title: "Actionable Next Steps",
+    title: "Helpful Guidance",
     description:
-      "Take your immutable assessment profile directly to academic advisory.",
+      "Use your results as a guide when choosing the right program for you at TCC.",
   },
 ];
 
@@ -49,23 +56,23 @@ const journeySteps = [
   {
     number: "1",
     icon: FileText,
-    title: "Declare entrance result",
+    title: "Enter your entrance exam result",
     description:
-      "Enter your examination result first — whether board or non-board eligible. It establishes your academic track context before taking the assessment.",
+      "Enter your self-declared TCC entrance examination score (1.0–5.0). This establishes your eligibility group for TCC board or non-board programmes before taking the assessment.",
   },
   {
     number: "2",
     icon: Compass,
     title: "Answer honestly",
     description:
-      "Thirty scenario questions — pick what feels more like you. No right or wrong answers, Holland's RIASEC model captures your natural vocational interests.",
+      "Answer 42 questions about your interests, activities, and preferences. Your answers are used to identify your RIASEC profile.",
   },
   {
     number: "3",
     icon: ChartNoAxesCombined,
     title: "Explore what fits",
     description:
-      "Get course and career ideas matched to your profile and entrance group — review transparent match scores you can revisit with college advisors.",
+      "View the TCC programs that match your interests and check your results to help you decide which program may be right for you.",
   },
 ];
 
@@ -73,64 +80,114 @@ const riasecAreas = [
   {
     code: "R",
     name: "Realistic",
+    image: riasecR,
+    alt: "Realistic Holland dimension",
+    badgeBg: "bg-[#FEF6E4]",
+    badgeText: "text-[#8C5D07]",
+    circleBg: "bg-[#ECA72C]",
     description:
-      "Hands-on, practical, mechanical, or outdoor activities and concrete problem-solving.",
-    className: "bg-emerald-50 text-emerald-800 border-emerald-200/80",
+      "You enjoy hands-on work with tools, technical equipment, and machinery, solving real-world challenges through practical craftsmanship and tangible construction.",
   },
   {
     code: "I",
     name: "Investigative",
+    image: riasecI,
+    alt: "Investigative Holland dimension",
+    badgeBg: "bg-[#EFF6FF]",
+    badgeText: "text-[#1E40AF]",
+    circleBg: "bg-[#2E75D3]",
     description:
-      "Analytical, intellectual, scientific, or research-oriented inquiry and problem-solving.",
-    className: "bg-sky-50 text-sky-800 border-sky-200/80",
+      "You love discovering how things work through research, scientific inquiry, quantitative analysis, and solving complex intellectual or technical puzzles.",
   },
   {
     code: "A",
     name: "Artistic",
+    image: riasecA,
+    alt: "Artistic Holland dimension",
+    badgeBg: "bg-[#F5EEFB]",
+    badgeText: "text-[#6B21A8]",
+    circleBg: "bg-[#B666D2]",
     description:
-      "Creative, expressive, original, and unstructured tasks in design, media, or language.",
-    className: "bg-purple-50 text-purple-800 border-purple-200/80",
+      "You thrive when expressing ideas creatively through design, digital media, writing, visual arts, and innovative, unstructured problem-solving.",
   },
   {
     code: "S",
     name: "Social",
+    image: riasecS,
+    alt: "Social Holland dimension",
+    badgeBg: "bg-[#FFF0ED]",
+    badgeText: "text-[#9A3412]",
+    circleBg: "bg-[#FF6550]",
     description:
-      "Helping, teaching, counseling, and working directly to support others in the community.",
-    className: "bg-amber-50 text-amber-900 border-amber-200/80",
+      "You find purpose in helping, mentoring, counseling, and teaching others, working collaboratively to support people and uplift your community.",
   },
   {
     code: "E",
     name: "Enterprising",
+    image: riasecE,
+    alt: "Enterprising Holland dimension",
+    badgeBg: "bg-[#FFF1F2]",
+    badgeText: "text-[#9F1239]",
+    circleBg: "bg-[#E23B48]",
     description:
-      "Persuading, leading, organizing initiatives, and driving collective goals forward.",
-    className: "bg-rose-50 text-rose-800 border-rose-200/80",
+      "You are driven to take the lead, persuade others, launch initiatives, and make decisive decisions that guide teams toward shared goals.",
   },
   {
     code: "C",
     name: "Conventional",
+    image: riasecC,
+    alt: "Conventional Holland dimension",
+    badgeBg: "bg-[#ECFDF5]",
+    badgeText: "text-[#166534]",
+    circleBg: "bg-[#289E62]",
     description:
-      "Systematic, organized, data-driven, structured, and detail-attentive workflows.",
-    className: "bg-slate-50 text-slate-800 border-slate-200/80",
+      "You excel at organizing details, managing systematic workflows, working with data and records, and ensuring accuracy across structured processes.",
   },
 ];
 
 const questions = [
   {
-    question: "Does a strong match guarantee admission to a programme?",
+    question: "What is TCCence and who is it designed for?",
     answer:
-      "No. Recommendations support academic exploration and advising. Official admission remains governed by TCC enrolment policy and requirements.",
+      "TCCence is a course recommendation system built for students planning to study at Tagoloan Community College (TCC). It helps applicants who have taken the TCC entrance exam decide which TCC program to pursue.",
   },
   {
-    question: "Are my answers and results permanently recorded?",
+    question:
+      "Does TCCence recommend programmes from other colleges or universities?",
     answer:
-      "Yes. Completed assessments create an immutable record with versioned rules so you and your advisors can always audit how recommendations were reached.",
+      "No. TCCence is designed exclusively for Tagoloan Community College. It only recommends official degree programs offered by TCC across its academic departments.",
   },
   {
-    question: "How is my entrance examination score used?",
+    question: "How is my self-declared TCC entrance examination score used?",
     answer:
-      "Your self-declared score informs standard academic guideline groupings alongside your RIASEC profile to highlight relevant college tracks.",
+      "When you start, you enter your TCC entrance examination score (1.0 to 5.0). Scores from 1.0 to 2.5 indicate eligibility for board programs, while scores from 2.6 to 5.0 correspond to non-board programs. Available TCC programs are then ranked by your RIASEC interest fit while clearly showing your eligibility track.",
+  },
+  {
+    question: "How does the RIASEC assessment match me to TCC programmes?",
+    answer:
+      "The questionnaire measures your interests across the six RIASEC themes. Your profile is compared directly with the curriculum attributes and Holland codes of TCC programs to calculate clear compatibility scores.",
+  },
+  {
+    question:
+      "Does a high recommendation match guarantee admission to my chosen TCC programme?",
+    answer:
+      "No. TCCence is an academic decision-support tool. Official admission and enrolment remain governed exclusively by Tagoloan Community College admission quotas, interview evaluations, and verification of documentary credentials by the TCC Registrar.",
+  },
+  {
+    question:
+      "Can I save my results and present them during TCC enrolment advising?",
+    answer:
+      "Yes. Your completed assessment and ranked TCC programme recommendations are preserved in your student profile. You can log in anytime to review your match scores, inspect rule explanations, or discuss them with TCC guidance counselors and faculty advisors.",
   },
 ];
+
+const landingNavigation = [
+  { href: "#landing-hero", label: "Home" },
+  { href: "#why-pathways", label: "What We Provide" },
+  { href: "#journey", label: "How It Works" },
+  { href: "#riasec", label: "RIASEC" },
+  { href: "#faq", label: "FAQ" },
+] as const;
 
 interface ScrollRevealProps {
   children: ReactNode;
@@ -198,7 +255,7 @@ function ScrollReveal({
 }
 
 interface LandingPageProps {
-  initialAuth?: 'signin' | 'signup';
+  initialAuth?: "signin" | "signup";
 }
 
 function LandingPage({ initialAuth }: LandingPageProps = {}) {
@@ -208,35 +265,40 @@ function LandingPage({ initialAuth }: LandingPageProps = {}) {
 
   const requestedAuth =
     initialAuth ??
-    (authQuery === 'signup'
-      ? 'signup'
-      : authQuery === 'signin' || googleError
-        ? 'signin'
+    (authQuery === "signup"
+      ? "signup"
+      : authQuery === "signin" || googleError
+        ? "signin"
         : null);
 
   const [authOverride, setAuthOverride] = useState<{
     open: boolean;
-    mode: 'signin' | 'signup';
+    mode: "signin" | "signup";
   } | null>(null);
 
-  const authModalOpen = authOverride ? authOverride.open : Boolean(requestedAuth);
-  const authModalMode = authOverride ? authOverride.mode : (requestedAuth ?? 'signin');
+  const authModalOpen = authOverride
+    ? authOverride.open
+    : Boolean(requestedAuth);
+  const authModalMode = authOverride
+    ? authOverride.mode
+    : (requestedAuth ?? "signin");
 
   const [isScrolled, setIsScrolled] = useState(
     () => typeof window !== "undefined" && window.scrollY > 20,
   );
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const openAuth = (mode: 'signin' | 'signup' = 'signin') => {
+  const openAuth = (mode: "signin" | "signup" = "signin") => {
     setAuthOverride({ open: true, mode });
   };
 
   const handleAuthOpenChange = (open: boolean) => {
     setAuthOverride({ open, mode: authModalMode });
     if (!open) {
-      if (searchParams.has('auth') || searchParams.has('google_error')) {
+      if (searchParams.has("auth") || searchParams.has("google_error")) {
         const nextParams = new URLSearchParams(searchParams);
-        nextParams.delete('auth');
-        nextParams.delete('google_error');
+        nextParams.delete("auth");
+        nextParams.delete("google_error");
         setSearchParams(nextParams, { replace: true });
       }
     }
@@ -258,16 +320,16 @@ function LandingPage({ initialAuth }: LandingPageProps = {}) {
         className={cn(
           "sticky top-0 z-50 w-full transition-all duration-300 ease-in-out",
           isScrolled
-            ? "pt-3 sm:pt-4 px-4 sm:px-6 lg:px-8 pointer-events-none"
-            : "pt-0 px-0 pointer-events-auto",
+            ? "pointer-events-none px-4 pt-3 sm:px-6 sm:pt-4 lg:px-8"
+            : "pointer-events-auto px-0 pt-0",
         )}
       >
         <div
           className={cn(
-            "mx-auto flex items-center justify-between transition-all duration-300 ease-in-out pointer-events-auto",
+            "pointer-events-auto relative mx-auto flex flex-col transition-all duration-300 ease-in-out",
             isScrolled
-              ? "max-w-255 rounded-full border border-border/80 bg-surface/95 dark:bg-card/95 backdrop-blur-md px-4 sm:px-6 py-2 sm:py-2.5"
-              : "w-full max-w-full border-b border-transparent bg-transparent px-4 sm:px-6 lg:px-8 py-3.5 sm:py-4",
+              ? "max-w-255 rounded-full border border-border/80 bg-surface/95 px-4 py-2 backdrop-blur-md sm:px-6 sm:py-2.5"
+              : "w-full max-w-full border-b border-transparent bg-transparent px-4 py-3.5 sm:px-6 sm:py-4 lg:px-8",
           )}
         >
           <div
@@ -295,49 +357,28 @@ function LandingPage({ initialAuth }: LandingPageProps = {}) {
               aria-label="Landing navigation"
               className="hidden items-center gap-6 lg:gap-8 md:flex text-sm font-semibold"
             >
-              <a
-                href="#landing-hero"
-                className="text-foreground/80 transition-colors hover:text-foreground"
-              >
-                Home
-              </a>
-              <a
-                href="#why-pathways"
-                className="text-foreground/80 transition-colors hover:text-foreground"
-              >
-                What We Provide
-              </a>
-              <a
-                href="#journey"
-                className="text-foreground/80 transition-colors hover:text-foreground"
-              >
-                How It Works
-              </a>
-              <a
-                href="#riasec"
-                className="text-foreground/80 transition-colors hover:text-foreground"
-              >
-                RIASEC
-              </a>
-              <a
-                href="#faq"
-                className="text-foreground/80 transition-colors hover:text-foreground"
-              >
-                FAQ
-              </a>
+              {landingNavigation.map((item) => (
+                <a
+                  key={item.href}
+                  href={item.href}
+                  className="text-foreground/80 transition-colors hover:text-foreground"
+                >
+                  {item.label}
+                </a>
+              ))}
             </nav>
 
             {/* Right Action Button (Layered 3D Button) */}
-            <div className="relative inline-flex group shrink-0">
+            <div className="relative hidden group shrink-0 md:inline-flex">
               <span
                 aria-hidden="true"
-                className="absolute -inset-0.5 translate-y-1 rounded-full bg-[#b8f572] border border-[#85d826]/70 shadow-xs transition-transform duration-150 group-hover:translate-y-0.5 group-active:translate-y-0"
+                className="absolute -inset-px translate-y-0.5 rounded-full bg-[#b8f572] border border-[#85d826]/70 shadow-xs transition-transform duration-150 group-hover:translate-y-px group-active:translate-y-0"
               />
               <Button
                 asChild
                 size="sm"
                 className={cn(
-                  "relative inline-flex rounded-full font-bold shadow-xs transition-all duration-150 bg-primary text-primary-foreground border border-[#62ad19]/40 hover:bg-[#70c21d] active:translate-y-1",
+                  "relative inline-flex rounded-full font-bold shadow-xs transition-all duration-150 bg-primary text-white border border-[#62ad19]/40 hover:bg-[#70c21d] active:translate-y-1",
                   isScrolled
                     ? "px-3.5 py-1 text-xs sm:text-sm sm:px-4"
                     : "px-3.5 sm:px-4.5",
@@ -347,7 +388,7 @@ function LandingPage({ initialAuth }: LandingPageProps = {}) {
                   to="/student/login"
                   onClick={(e) => {
                     e.preventDefault();
-                    openAuth('signin');
+                    openAuth("signin");
                   }}
                 >
                   Start assessment
@@ -355,7 +396,51 @@ function LandingPage({ initialAuth }: LandingPageProps = {}) {
                 </Link>
               </Button>
             </div>
+
+            <button
+              type="button"
+              aria-label={
+                mobileMenuOpen
+                  ? "Close navigation menu"
+                  : "Open navigation menu"
+              }
+              aria-expanded={mobileMenuOpen}
+              aria-controls="landing-mobile-navigation"
+              onClick={() => setMobileMenuOpen((open) => !open)}
+              className="inline-flex size-11 items-center justify-center rounded-full border border-border bg-surface text-foreground shadow-sm transition-colors hover:bg-surface-subtle focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/35 md:hidden"
+            >
+              {mobileMenuOpen ? (
+                <X aria-hidden="true" className="size-5" />
+              ) : (
+                <Menu aria-hidden="true" className="size-5" />
+              )}
+            </button>
           </div>
+
+          <nav
+            id="landing-mobile-navigation"
+            aria-label="Mobile landing navigation"
+            aria-hidden={!mobileMenuOpen}
+            className={cn(
+              "absolute inset-x-0 top-full z-50 border-b border-border bg-surface px-4 py-3 shadow-sm transition-[opacity,transform,visibility] duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)] md:hidden",
+              mobileMenuOpen
+                ? "visible translate-y-0 opacity-100"
+                : "invisible pointer-events-none -translate-y-2 opacity-0",
+            )}
+          >
+            <div className="mx-auto grid max-w-300 gap-1">
+              {landingNavigation.map((item) => (
+                <a
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex min-h-11 items-center rounded-xl px-3 text-sm font-semibold text-foreground/80 transition-colors hover:bg-primary-soft hover:text-primary-ink focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/35"
+                >
+                  {item.label}
+                </a>
+              ))}
+            </div>
+          </nav>
         </div>
       </header>
 
@@ -390,36 +475,36 @@ function LandingPage({ initialAuth }: LandingPageProps = {}) {
               id="landing-title"
               className="mx-auto max-w-3xl font-display text-3xl font-black leading-tight tracking-[-0.03em] text-foreground sm:text-4xl lg:text-[2.75rem]"
             >
-              Explore your interests.
+              Discover your interests.
               <span className="mt-0.5 block text-primary-ink">
-                Understand your options.
+                Find your TCC path.
               </span>
             </h1>
 
             {/* Supporting Description (minimized to 2 lines) */}
             <p className="mx-auto mt-2 max-w-xl text-sm font-medium leading-relaxed text-muted-foreground sm:max-w-2xl sm:text-base">
-              Complete a RIASEC assessment and review programme recommendations
-              <br className="hidden sm:inline" /> supported by your recorded
-              scores and configured catalogue evidence.
+              Complete the RIASEC assessment to discover which TCC
+              <br className="hidden sm:inline" /> programs best match your
+              interests and entrance exam results.
             </p>
 
             {/* Action Buttons */}
-            <div className="landing-stagger mt-4.5 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <div className="landing-stagger mt-4.5 flex items-center justify-center">
               <div className="relative inline-flex group w-full sm:w-auto shrink-0">
                 <span
                   aria-hidden="true"
-                  className="absolute -inset-0.5 translate-y-1 sm:translate-y-1.5 rounded-full bg-[#b8f572] border border-[#85d826]/70 shadow-xs transition-transform duration-150 group-hover:translate-y-0.5 group-active:translate-y-0"
+                  className="absolute -inset-px translate-y-0.5 sm:translate-y-1 rounded-full bg-[#b8f572] border border-[#85d826]/70 shadow-xs transition-transform duration-150 group-hover:translate-y-px group-active:translate-y-0"
                 />
                 <Button
                   asChild
                   size="default"
-                  className="relative inline-flex w-full sm:w-auto rounded-full px-6 font-bold shadow-xs transition-all duration-150 bg-primary text-primary-foreground border border-[#62ad19]/40 hover:bg-[#70c21d] active:translate-y-1 sm:active:translate-y-1.5"
+                  className="relative inline-flex w-full sm:w-auto rounded-full px-6 font-bold shadow-xs transition-all duration-150 bg-primary text-white border border-[#62ad19]/40 hover:bg-[#70c21d] active:translate-y-1 sm:active:translate-y-1.5"
                 >
                   <Link
                     to="/student/login"
                     onClick={(e) => {
                       e.preventDefault();
-                      openAuth('signin');
+                      openAuth("signin");
                     }}
                   >
                     Start assessment
@@ -427,22 +512,6 @@ function LandingPage({ initialAuth }: LandingPageProps = {}) {
                   </Link>
                 </Button>
               </div>
-              <Button
-                asChild
-                size="default"
-                variant="outline"
-                className="w-full sm:w-auto rounded-full bg-surface/90 px-5.5 font-semibold border-border/90 hover:bg-surface-subtle"
-              >
-                <Link
-                  to="/student/login"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    openAuth('signin');
-                  }}
-                >
-                  Student sign in
-                </Link>
-              </Button>
             </div>
 
             {/* Centerpiece 3D Illustration Avatar (prominently sized and visible above the fold, NO hover effect) */}
@@ -474,8 +543,8 @@ function LandingPage({ initialAuth }: LandingPageProps = {}) {
                 Guidance you can understand and revisit
               </h2>
               <p className="mx-auto mt-2 max-w-xl text-sm font-medium text-muted-foreground sm:text-base">
-                The system keeps eligibility and interest matching separate,
-                then presents the recorded basis for each recommendation.
+                Understand your interests, check your results, and explore the
+                TCC programs that may be a good fit for you.
               </p>
             </div>
 
@@ -508,7 +577,7 @@ function LandingPage({ initialAuth }: LandingPageProps = {}) {
               <Button
                 asChild
                 size="default"
-                className="rounded-full px-7 shadow-xs"
+                className="rounded-full px-7 text-white shadow-xs"
               >
                 <a href="#journey">
                   Learn more about the journey
@@ -554,8 +623,8 @@ function LandingPage({ initialAuth }: LandingPageProps = {}) {
                   Three clear stages, with evidence at each step
                 </h2>
                 <p className="mt-2 text-sm font-medium leading-relaxed text-muted-foreground sm:text-base lg:whitespace-nowrap">
-                  Move from account setup to a recorded result and programme
-                  directions you can inspect.
+                  Answer a few questions, check your results, and explore the
+                  TCC programs that match your interests.
                 </p>
 
                 <ol className="landing-stagger mt-6 space-y-3.5">
@@ -591,13 +660,13 @@ function LandingPage({ initialAuth }: LandingPageProps = {}) {
                   <Button
                     asChild
                     size="default"
-                    className="rounded-full px-7 shadow-xs"
+                    className="rounded-full px-7 text-white shadow-xs"
                   >
                     <Link
                       to="/student/login"
                       onClick={(e) => {
                         e.preventDefault();
-                        openAuth('signin');
+                        openAuth("signin");
                       }}
                     >
                       Begin your assessment
@@ -610,48 +679,72 @@ function LandingPage({ initialAuth }: LandingPageProps = {}) {
           </ScrollReveal>
         </section>
 
-        {/* SECTION 4: DISCOVER RIASEC (Clean 6-Card Category Grid) */}
+        {/* SECTION 4: DISCOVER RIASEC (Transparent 3D Assets with Matched Letter Colors) */}
         <section
           id="riasec"
-          className="scroll-mt-24 px-4 py-14 sm:px-6 lg:px-8 lg:py-20 bg-surface-subtle/50 border-y border-border/60"
+          className="scroll-mt-32 px-4 py-16 sm:px-6 lg:px-8 lg:py-24 bg-surface-subtle/30 border-y border-border/60"
           aria-labelledby="riasec-title"
         >
           <ScrollReveal className="mx-auto max-w-300" variant="scale">
-            <div className="text-center">
-              <p className="font-display text-xs font-bold uppercase tracking-[0.2em] text-primary-ink">
-                / DISCOVER RIASEC /
-              </p>
+            <div className="mx-auto max-w-3xl text-center">
               <h2
                 id="riasec-title"
-                className="mt-2.5 font-display text-2xl font-black tracking-[-0.03em] text-foreground sm:text-3xl lg:text-4xl"
+                className="mt-2.5 font-display text-3xl font-black tracking-tight text-foreground sm:text-4xl lg:text-5xl"
               >
-                Six ways interests can show up
+                What is RIASEC?
               </h2>
-              <p className="mx-auto mt-2 max-w-2xl text-sm sm:text-base font-medium leading-relaxed text-muted-foreground">
-                RIASEC provides six categories for organizing vocational
-                interests. It does not measure intelligence, diagnose
-                personality, or decide what programme you must take.
+              <h3 className="sr-only">Six ways interests can show up</h3>
+              <p className="mx-auto mt-4 max-w-2xl text-base sm:text-lg font-normal leading-relaxed text-muted-foreground">
+                The RIASEC model organizes vocational interests into six
+                distinct learning and career themes. By understanding your
+                interests and strengths, you can explore which TCC degree
+                programmes best match how you like to learn and work.
               </p>
             </div>
 
-            {/* 6 RIASEC Category Cards in a balanced 3-column grid */}
-            <div className="landing-stagger mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {/* 6 RIASEC Category Dimensions without background cards behind PNGs */}
+            <div
+              data-testid="riasec-grid"
+              className="landing-stagger mt-10 grid grid-cols-2 gap-x-3 gap-y-10 sm:mt-12 sm:gap-x-8 sm:gap-y-12 lg:grid-cols-3"
+            >
               {riasecAreas.map((area) => (
                 <article
                   key={area.code}
-                  className="group flex items-start gap-4 rounded-2xl border border-border/80 bg-card p-5 shadow-2xs transition-all duration-300 hover:border-primary/40 hover:bg-surface hover:-translate-y-0.5"
+                  className="group flex flex-col items-center text-center"
                 >
-                  <span
-                    className={`flex size-12 shrink-0 items-center justify-center rounded-xl font-display text-xl font-black ring-1 transition-transform duration-200 group-hover:scale-105 ${area.className}`}
-                    aria-hidden="true"
-                  >
-                    {area.code}
-                  </span>
-                  <div className="min-w-0">
-                    <h3 className="font-display text-base font-bold text-foreground">
-                      {area.name}
-                    </h3>
-                    <p className="mt-1 text-xs sm:text-sm font-medium leading-relaxed text-muted-foreground">
+                  {/* 3D Transparent Illustration without any background card */}
+                  <div className="relative flex aspect-square w-full max-w-40 items-center justify-center transition-transform duration-300 ease-out group-hover:-translate-y-2 group-hover:scale-105 sm:max-w-[250px]">
+                    <img
+                      src={area.image}
+                      alt={area.alt}
+                      loading="lazy"
+                      className="size-full object-contain drop-shadow-sm transition-all duration-300 group-hover:drop-shadow-md"
+                    />
+                  </div>
+
+                  {/* Centered Pill Badge matching the letter PNG color */}
+                  <div className="mt-3 flex flex-col items-center sm:mt-5">
+                    <span
+                      className={cn(
+                        "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold shadow-2xs transition-transform duration-200 group-hover:scale-105 sm:gap-2 sm:px-3.5 sm:text-sm",
+                        area.badgeBg,
+                        area.badgeText,
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          "flex size-5 shrink-0 items-center justify-center rounded-full text-[11px] font-extrabold text-white shadow-xs",
+                          area.circleBg,
+                        )}
+                        aria-hidden="true"
+                      >
+                        {area.code}
+                      </span>
+                      <span>{area.name}</span>
+                    </span>
+
+                    {/* Original Custom Description Text */}
+                    <p className="mt-2 max-w-xs text-[11px] font-medium leading-relaxed text-muted-foreground sm:mt-3 sm:text-sm">
                       {area.description}
                     </p>
                   </div>
@@ -664,7 +757,7 @@ function LandingPage({ initialAuth }: LandingPageProps = {}) {
         {/* SECTION 5: QUESTIONS & FAQ (Split Layout with landingQuestion on RIGHT side) */}
         <section
           id="faq"
-          className="scroll-mt-24 px-4 py-14 sm:px-6 lg:px-8 lg:py-20"
+          className="scroll-mt-32 px-4 py-16 sm:px-6 lg:px-8 lg:py-24"
           aria-labelledby="questions-title"
         >
           <ScrollReveal className="mx-auto max-w-300" variant="left">
@@ -678,11 +771,12 @@ function LandingPage({ initialAuth }: LandingPageProps = {}) {
                   id="questions-title"
                   className="mt-2.5 font-display text-2xl font-black tracking-[-0.03em] text-foreground sm:text-3xl lg:text-4xl"
                 >
-                  Know what the result can—and cannot—tell you
+                  Frequently Asked Questions
                 </h2>
-                <p className="mt-2 text-sm sm:text-base font-medium leading-relaxed text-muted-foreground">
-                  Find answers about how RIASEC scoring, self-declared entrance
-                  results, and course recommendations work together.
+                <p className="mt-3 text-sm sm:text-base font-medium leading-relaxed text-muted-foreground">
+                  Find answers to common questions about the RIASEC assessment,
+                  entrance exam scoring, and program recommendations at Tagoloan
+                  Community College.
                 </p>
 
                 <div className="landing-stagger mt-7 divide-y divide-border/80 overflow-hidden rounded-3xl border border-border/80 bg-card shadow-xs">
@@ -700,9 +794,13 @@ function LandingPage({ initialAuth }: LandingPageProps = {}) {
                           +
                         </span>
                       </summary>
-                      <p className="max-w-3xl pb-4 pr-8 text-xs sm:text-sm font-medium leading-relaxed text-muted-foreground sm:leading-6">
-                        {answer}
-                      </p>
+                      <div className="grid grid-rows-[0fr] opacity-0 transition-[grid-template-rows,opacity] duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)] group-open:grid-rows-[1fr] group-open:opacity-100 motion-reduce:transition-none">
+                        <div className="overflow-hidden">
+                          <p className="max-w-3xl pb-4 pr-8 text-xs font-medium leading-relaxed text-muted-foreground sm:text-sm sm:leading-6">
+                            {answer}
+                          </p>
+                        </div>
+                      </div>
                     </details>
                   ))}
                 </div>
@@ -746,19 +844,20 @@ function LandingPage({ initialAuth }: LandingPageProps = {}) {
                 Start building your recorded interest profile
               </h2>
               <p className="mt-2 text-sm font-medium leading-relaxed text-muted-foreground sm:text-base">
-                Sign in or create a Student account to continue.
+                Sign in or create a Student account to discover which TCC
+                programs best match your interests and entrance exam results.
               </p>
               <div className="mt-6 flex flex-wrap justify-center lg:justify-start gap-3">
                 <Button
                   asChild
                   size="default"
-                  className="rounded-full px-7 shadow-xs"
+                  className="rounded-full px-7 text-white shadow-xs"
                 >
                   <Link
                     to="/student/login"
                     onClick={(e) => {
                       e.preventDefault();
-                      openAuth('signin');
+                      openAuth("signin");
                     }}
                   >
                     Start assessment
@@ -775,7 +874,7 @@ function LandingPage({ initialAuth }: LandingPageProps = {}) {
                     to="/student/register"
                     onClick={(e) => {
                       e.preventDefault();
-                      openAuth('signup');
+                      openAuth("signup");
                     }}
                   >
                     Get started now
@@ -795,31 +894,31 @@ function LandingPage({ initialAuth }: LandingPageProps = {}) {
         </section>
       </main>
 
-      {/* REDESIGNED PUBLIC FOOTER */}
+      {/* PUBLIC FOOTER */}
       <footer
-        className="border-t border-border/80 bg-card/90 backdrop-blur-sm"
+        className="relative isolate overflow-hidden bg-primary text-white"
         aria-label="Public site footer"
       >
-        <div className="mx-auto max-w-300 px-4 pt-12 pb-8 sm:px-6 lg:px-8">
-          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-12 lg:gap-12 pb-10 border-b border-border/70">
+        <div className="relative z-10 mx-auto max-w-300 px-4 pb-32 pt-12 sm:px-6 sm:pb-40 lg:px-8 lg:pb-48 lg:pt-16">
+          <div className="grid gap-10 border-b border-white/25 pb-10 sm:grid-cols-2 lg:grid-cols-12 lg:gap-12">
             {/* Brand Column */}
-            <div className="lg:col-span-5 space-y-3.5">
+            <div className="space-y-3.5 lg:col-span-5">
               <div className="flex items-center gap-3">
                 <img
                   src={logo}
                   alt="TCCence"
-                  className="h-10 w-auto object-contain"
+                  className="h-11 w-auto object-contain"
                 />
               </div>
-              <p className="text-sm font-semibold text-foreground">
+              <p className="text-sm font-semibold text-white">
                 TCCence Recommendation System
               </p>
-              <p className="max-w-md text-xs sm:text-sm leading-relaxed text-muted-foreground">
-                An explainable vocational interest assessment and academic
-                guidance platform tailored for Tagoloan Community College
-                applicants.
+              <p className="max-w-md text-xs leading-relaxed text-white/90 sm:text-sm">
+                An explainable vocational interest assessment and guidance
+                platform built specifically for students applying to Tagoloan
+                Community College.
               </p>
-              <p className="text-xs font-medium text-muted-foreground">
+              <p className="text-xs font-medium text-white/90">
                 Recommendations support exploration and do not guarantee
                 admission or programme success.
               </p>
@@ -827,14 +926,14 @@ function LandingPage({ initialAuth }: LandingPageProps = {}) {
 
             {/* Platform Navigation */}
             <div className="lg:col-span-3">
-              <p className="font-display text-xs font-bold uppercase tracking-[0.16em] text-primary-ink">
-                Platform
+              <p className="font-display text-xs font-bold uppercase tracking-[0.16em] text-white">
+                Explore
               </p>
               <ul className="mt-3.5 space-y-2.5 text-sm font-medium">
                 <li>
                   <a
                     href="#landing-hero"
-                    className="text-muted-foreground transition-colors hover:text-primary-ink"
+                    className="text-white/90 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-white/50"
                   >
                     Home
                   </a>
@@ -842,7 +941,7 @@ function LandingPage({ initialAuth }: LandingPageProps = {}) {
                 <li>
                   <a
                     href="#why-pathways"
-                    className="text-muted-foreground transition-colors hover:text-primary-ink"
+                    className="text-white/90 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-white/50"
                   >
                     What We Provide
                   </a>
@@ -850,7 +949,7 @@ function LandingPage({ initialAuth }: LandingPageProps = {}) {
                 <li>
                   <a
                     href="#journey"
-                    className="text-muted-foreground transition-colors hover:text-primary-ink"
+                    className="text-white/90 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-white/50"
                   >
                     How It Works
                   </a>
@@ -858,7 +957,7 @@ function LandingPage({ initialAuth }: LandingPageProps = {}) {
                 <li>
                   <a
                     href="#riasec"
-                    className="text-muted-foreground transition-colors hover:text-primary-ink"
+                    className="text-white/90 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-white/50"
                   >
                     RIASEC Framework
                   </a>
@@ -866,57 +965,42 @@ function LandingPage({ initialAuth }: LandingPageProps = {}) {
                 <li>
                   <a
                     href="#faq"
-                    className="text-muted-foreground transition-colors hover:text-primary-ink"
+                    className="text-white/90 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-white/50"
                   >
                     Frequently Asked Questions
                   </a>
-                </li>
-                <li>
-                  <Link
-                    to="/student/login"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      openAuth('signin');
-                    }}
-                    className="text-muted-foreground transition-colors hover:text-primary-ink"
-                  >
-                    Student sign in
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/student/register"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      openAuth('signup');
-                    }}
-                    className="text-muted-foreground transition-colors hover:text-primary-ink"
-                  >
-                    Create account
-                  </Link>
                 </li>
               </ul>
             </div>
 
             {/* Guidance boundaries */}
             <div className="lg:col-span-4">
-              <p className="font-display text-xs font-bold uppercase tracking-[0.16em] text-primary-ink">
+              <p className="font-display text-xs font-bold uppercase tracking-[0.16em] text-white">
                 Guidance principles
               </p>
-              <ul className="mt-3.5 space-y-2.5 text-sm font-medium text-muted-foreground">
-                <li>Interest scores remain explainable.</li>
-                <li>Entrance guidance stays separate from RIASEC fit.</li>
-                <li>Recommendations support—not replace—advising.</li>
+              <ul className="mt-3.5 space-y-2.5 text-sm font-medium text-white/90">
+                <li>
+                  Specifically tailored to academic programs offered at TCC.
+                </li>
+                <li>
+                  Self-declared TCC entrance exam guidance stays transparent.
+                </li>
+                <li>
+                  Recommendations support—not replace—official TCC admission
+                  advising.
+                </li>
               </ul>
             </div>
           </div>
-
-          {/* Bottom Bar */}
-          <div className="mt-8 flex flex-col items-center justify-between gap-4 text-xs font-medium text-muted-foreground sm:flex-row">
-            <p>© 2026 Tagoloan Community College. Pathways Capstone Project.</p>
-            <p>Built with deterministic RIASEC guidance and admission rules.</p>
-          </div>
         </div>
+
+        <img
+          src={logo}
+          alt=""
+          aria-hidden="true"
+          data-testid="footer-logo-watermark"
+          className="pointer-events-none absolute -bottom-4 left-1/2 z-0 w-[min(88vw,54rem)] -translate-x-1/2 select-none opacity-10 brightness-0 invert sm:-bottom-8"
+        />
       </footer>
 
       {/* Student Authentication Modal (Glassy / Glossy Card) */}

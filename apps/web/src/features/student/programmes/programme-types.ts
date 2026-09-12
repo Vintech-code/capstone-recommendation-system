@@ -18,6 +18,15 @@ interface CareerOpportunity {
   reviewStatus: 'proposed'
 }
 
+interface ProgrammeContentSource {
+  source_name?: string | null
+  source_url?: string | null
+  document_path?: string | null
+  reference?: string | null
+  pages: number[]
+  note?: string
+}
+
 interface StudentProgramme {
   id: string
   name: string
@@ -35,6 +44,8 @@ interface StudentProgramme {
   strandGuidance: string
   requirements: string[]
   readinessPrompt: string
+  contentStatus?: string
+  contentSource?: ProgrammeContentSource | null
   contentVersion?: string | null
   degreeType?: string
   duration?: {
@@ -56,6 +67,9 @@ interface StudentProgramme {
 interface StudentProgrammeCatalogue {
   academicYear: string
   catalogueVersion: number
+  guidanceContentStatus?: string
+  guidanceContentVersion?: string | null
+  guidanceContentNotice?: string | null
   programmes: StudentProgramme[]
 }
 
@@ -65,4 +79,4 @@ interface StudentProgrammeMatchContext {
   factors: string[]
 }
 
-export type { CareerOpportunity, ProgrammeMediaPosition, StudentProgramme, StudentProgrammeCatalogue, StudentProgrammeMatchContext }
+export type { CareerOpportunity, ProgrammeContentSource, ProgrammeMediaPosition, StudentProgramme, StudentProgrammeCatalogue, StudentProgrammeMatchContext }
