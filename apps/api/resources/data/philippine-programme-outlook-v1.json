@@ -45,7 +45,7 @@
             "duration": { "status": "ched_psg", "display": "4 years", "source_name": "CHED CMO No. 24, series of 2015", "source_url": "https://legacy.ched.gov.ph/2015-ched-memorandum-orders/" }
         },
         "bs-sociology": {
-            "duration": { "status": "needs_tcc_confirmation", "display": "Confirm with TCC", "source_name": "CHED 2017 Memorandum Orders", "source_url": "https://ched.gov.ph/2017-ched-memorandum-orders/", "note": "The CHED PSG located is for BA Sociology, while the TCC catalogue records BS Sociology." }
+            "duration": { "status": "ched_psg", "display": "4 years", "source_name": "CHED CMO No. 40, series of 2017", "source_url": "https://ched.gov.ph/2017-ched-memorandum-orders/" }
         },
         "bs-community-development": {
             "duration": { "status": "needs_tcc_confirmation", "display": "Confirm with TCC", "source_name": "CHED issuances", "source_url": "https://ched.gov.ph/issuances/", "note": "A matching current CHED PSG was not located for the exact TCC programme title." }

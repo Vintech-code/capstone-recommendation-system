@@ -255,6 +255,8 @@ final class AdminWorkspaceController extends Controller
                     'strandGuidance' => $programme['strand_guidance'] ?? '',
                     'requirements' => $programme['requirements'] ?? [],
                     'readinessPrompt' => $programme['readiness_prompt'] ?? '',
+                    'contentStatus' => $programme['content_status'] ?? 'proposed',
+                    'contentSource' => $programme['content_source'] ?? null,
                     'contentVersion' => $programme['content_version'] ?? null,
                     'degreeType' => $programme['degree_type'] ?? '',
                     'duration' => $programme['duration'] ?? null,

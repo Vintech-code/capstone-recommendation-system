@@ -186,9 +186,47 @@ final class AdminConfigurationController extends Controller
     private function preserveApiFields(array $payload, array $runtime): array
     {
         $locked = collect($runtime['programmes'] ?? [])->keyBy('id');
+        $submittedIds = collect($payload['programmes'] ?? [])->pluck('id');
+        $runtimeIds = $locked->keys();
+        if ($submittedIds->duplicates()->isNotEmpty()
+            || $submittedIds->sort()->values()->all() !== $runtimeIds->sort()->values()->all()) {
+            throw ValidationException::withMessages([
+                'payload.programmes' => 'Programme identifiers and catalogue membership cannot be changed in the programme editor.',
+            ]);
+        }
+
         $payload['programmes'] = array_map(static function (array $programme) use ($locked): array {
             $source = $locked->get($programme['id'] ?? '', []);
-            foreach (['eligibility_group', 'degree_type', 'duration', 'salary', 'job_growth', 'outlook_version'] as $field) {
+            foreach ([
+                'id',
+                'display_name',
+                'short_label',
+                'majors',
+                'major_confirmation_status',
+                'eligibility_group',
+                'riasec_profile',
+                'riasec_profile_status',
+                'profile_version',
+                'profile_rationale',
+                'major_riasec_profiles',
+                'profile_approved_by',
+                'profile_approved_on',
+                'description',
+                'learning_areas',
+                'learning_area_descriptions',
+                'learning_area_topics',
+                'career_directions',
+                'requirements',
+                'readiness_prompt',
+                'content_status',
+                'content_source',
+                'content_version',
+                'degree_type',
+                'duration',
+                'salary',
+                'job_growth',
+                'outlook_version',
+            ] as $field) {
                 $programme[$field] = $source[$field] ?? null;
             }
 

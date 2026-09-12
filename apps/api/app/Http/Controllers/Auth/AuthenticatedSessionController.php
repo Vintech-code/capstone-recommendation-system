@@ -12,6 +12,29 @@ use Illuminate\Validation\ValidationException;
 
 class AuthenticatedSessionController extends Controller
 {
+    public function session(Request $request): JsonResponse
+    {
+        /** @var User|null $user */
+        $user = Auth::guard('web')->user();
+        if ($user === null) {
+            return response()->json(['user' => null]);
+        }
+
+        $user->refresh();
+        if ($user->account_status !== 'active') {
+            Auth::guard('web')->logout();
+            if ($request->hasSession()) {
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+            }
+            Auth::forgetGuards();
+
+            return response()->json(['user' => null]);
+        }
+
+        return response()->json(['user' => $this->userPayload($user->load(['roles', 'studentProfile']))]);
+    }
+
     public function store(LoginRequest $request): JsonResponse
     {
         if (! Auth::attempt($request->safe()->only(['email', 'password']))) {

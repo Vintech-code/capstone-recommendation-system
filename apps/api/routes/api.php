@@ -32,6 +32,8 @@ Route::prefix('v1/auth')->group(function (): void {
         ->middleware('throttle:6,1');
     Route::post('/reset-password', [PasswordRecoveryController::class, 'reset'])
         ->middleware('throttle:6,1');
+    Route::get('/session', [AuthenticatedSessionController::class, 'session'])
+        ->middleware('throttle:120,1');
 
     Route::middleware(['auth:sanctum', 'active'])->group(function (): void {
         Route::get('/me', [AuthenticatedSessionController::class, 'show']);

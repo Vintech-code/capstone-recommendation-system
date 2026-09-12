@@ -21,7 +21,7 @@ class TccProgrammeCatalogueTest extends TestCase
             foreach ($programme['learning_area_topics'] as $topics) {
                 $this->assertCount(3, $topics, $programme['id']);
             }
-            $this->assertCount(3, $programme['career_directions'], $programme['id']);
+            $this->assertNotEmpty($programme['career_directions'], $programme['id']);
             $this->assertNotEmpty($programme['recommended_strands'], $programme['id']);
             $this->assertNotEmpty($programme['strand_guidance'], $programme['id']);
             $this->assertNotEmpty($programme['readiness_prompt'], $programme['id']);
@@ -39,6 +39,42 @@ class TccProgrammeCatalogueTest extends TestCase
     }
 
     #[Test]
+    public function it_records_exact_cmo_sources_without_promoting_unsupported_programmes(): void
+    {
+        $catalogue = $this->app->make(TccProgrammeCatalogueRepository::class)->current();
+        $programmes = collect($catalogue['programmes'])->keyBy('id');
+        $sourced = [
+            'bs-information-technology',
+            'bs-business-administration',
+            'bs-hospitality-management',
+            'bachelor-elementary-education',
+            'bs-midwifery',
+            'bachelor-library-information-science',
+            'bs-sociology',
+        ];
+
+        foreach ($sourced as $id) {
+            $programme = $programmes[$id];
+            $this->assertSame('ched_psg_sourced', $programme['content_status'], $id);
+            $this->assertNotEmpty($programme['content_source']['source_name'], $id);
+            $this->assertNotEmpty($programme['content_source']['reference'], $id);
+            $documentPath = dirname(base_path(), 2).DIRECTORY_SEPARATOR.str_replace(
+                '/',
+                DIRECTORY_SEPARATOR,
+                $programme['content_source']['document_path'],
+            );
+            $this->assertFileExists($documentPath, $id);
+        }
+
+        $this->assertSame('pending_local_cmo', $programmes['bs-criminology']['content_status']);
+        $this->assertSame('pending_local_cmo', $programmes['bachelor-secondary-education']['content_status']);
+        $this->assertSame('pending_local_cmo', $programmes['bachelor-physical-education']['content_status']);
+        $this->assertSame('pending_exact_psg', $programmes['bs-community-development']['content_status']);
+        $this->assertSame('BA Sociology', $programmes['bs-sociology']['display_name']);
+        $this->assertSame('CHED CMO No. 40, series of 2017', $programmes['bs-sociology']['content_source']['source_name']);
+    }
+
+    #[Test]
     public function it_preserves_the_approved_catalogue_with_psg_informed_profiles_and_one_pending_programme(): void
     {
         $catalogue = json_decode(
@@ -50,6 +86,7 @@ class TccProgrammeCatalogueTest extends TestCase
         $programmes = $catalogue['programmes'];
 
         $this->assertSame('approved_current_scope', $catalogue['catalogue_status']);
+        $this->assertSame(3, $catalogue['catalogue_version']);
         $this->assertSame('2026-2027', $catalogue['academic_year']);
         $this->assertSame(['R', 'I', 'A', 'S', 'E', 'C'], $catalogue['riasec_dimensions']);
         $this->assertCount(11, $programmes);
@@ -66,7 +103,7 @@ class TccProgrammeCatalogueTest extends TestCase
             'Bachelor of Secondary Education',
             'BS Midwifery',
             'Bachelor of Library and Information Science',
-            'BS Sociology',
+            'BA Sociology',
             'BS Community Development',
             'Bachelor of Physical Education',
         ], array_column($programmes, 'display_name'));

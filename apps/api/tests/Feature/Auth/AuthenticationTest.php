@@ -38,6 +38,10 @@ class AuthenticationTest extends TestCase
             ->assertJsonPath('user.email', $user->email)
             ->assertJsonPath('user.roles.0', RoleSlug::Admin->value);
 
+        $this->getJson('/api/v1/auth/session')
+            ->assertOk()
+            ->assertJsonPath('user.email', $user->email);
+
         $this->getJson('/api/v1/auth/me')
             ->assertOk()
             ->assertJsonPath('user.email', $user->email);
@@ -45,6 +49,28 @@ class AuthenticationTest extends TestCase
         $this->postJson('/api/v1/auth/logout')->assertOk();
         $this->assertGuest();
         $this->getJson('/api/v1/auth/me')->assertUnauthorized();
+    }
+
+    public function test_guest_session_bootstrap_returns_an_empty_success_response(): void
+    {
+        $this->getJson('/api/v1/auth/session')
+            ->assertOk()
+            ->assertJsonPath('user', null);
+
+        $this->getJson('/api/v1/auth/me')->assertUnauthorized();
+    }
+
+    public function test_session_bootstrap_clears_an_inactive_account_without_exposing_it(): void
+    {
+        $user = $this->adminUser();
+        $this->actingAs($user);
+        $user->update(['account_status' => 'suspended', 'status_changed_at' => now()]);
+
+        $this->getJson('/api/v1/auth/session')
+            ->assertOk()
+            ->assertJsonPath('user', null);
+
+        $this->assertGuest();
     }
 
     public function test_student_can_register_with_only_the_student_role_and_then_sign_in(): void

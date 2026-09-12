@@ -46,20 +46,23 @@ class StudentRecommendationTest extends TestCase
             ->getJson('/api/v1/student/programmes')
             ->assertOk()
             ->assertJsonPath('data.academicYear', '2026-2027')
+            ->assertJsonPath('data.catalogueVersion', 3)
             ->assertJsonCount(11, 'data.programmes')
             ->assertJsonPath('data.programmes.0.id', 'bs-information-technology');
 
         $this->getJson('/api/v1/student/programmes/bs-information-technology')
             ->assertOk()
             ->assertJsonPath('data.code', 'BSIT')
-            ->assertJsonPath('data.learningAreas.0', 'Software development')
+            ->assertJsonPath('data.learningAreas.0', 'IT infrastructure')
             ->assertJsonPath(
-                'data.learningAreaDescriptions.Software development',
-                'Design, build, test, and maintain software applications using programming concepts and development tools.',
+                'data.learningAreaDescriptions.IT infrastructure',
+                'Plan, install, customise, operate, manage, administer, and maintain the hardware and software infrastructure used by an organisation.',
             )
-            ->assertJsonPath('data.learningAreaTopics.Software development.0', 'Programming fundamentals')
-            ->assertJsonPath('data.learningAreaTopics.Software development.1', 'Application testing')
-            ->assertJsonPath('data.careerDirections.0', 'Software and application development')
+            ->assertJsonPath('data.learningAreaTopics.IT infrastructure.0', 'Hardware and software technologies')
+            ->assertJsonPath('data.learningAreaTopics.IT infrastructure.1', 'Installation and configuration')
+            ->assertJsonPath('data.careerDirections.0', 'Web and applications developer')
+            ->assertJsonPath('data.contentStatus', 'ched_psg_sourced')
+            ->assertJsonPath('data.contentSource.source_name', 'CHED CMO No. 25, series of 2015')
             ->assertJsonPath('data.degreeType', "Bachelor's degree")
             ->assertJsonPath('data.duration.display', '4 years')
             ->assertJsonPath('data.salary.status', 'not_published')
@@ -71,6 +74,14 @@ class StudentRecommendationTest extends TestCase
                 'data.strandGuidance',
                 'STEM supports mathematics and analytical preparation, while TVL-ICT provides practical exposure to computer systems and digital tools.',
             );
+
+        $this->getJson('/api/v1/student/programmes/bs-sociology')
+            ->assertOk()
+            ->assertJsonPath('data.name', 'BA Sociology')
+            ->assertJsonPath('data.code', 'BA Sociology')
+            ->assertJsonPath('data.contentStatus', 'ched_psg_sourced')
+            ->assertJsonPath('data.contentSource.source_name', 'CHED CMO No. 40, series of 2017')
+            ->assertJsonPath('data.duration.display', '4 years');
     }
 
     public function test_programme_catalogue_requires_student_access_and_returns_not_found_for_unknown_records(): void
@@ -157,8 +168,9 @@ class StudentRecommendationTest extends TestCase
             ->assertJsonPath('data.recommendation.totalRanked', 10)
             ->assertJsonPath('data.recommendation.canViewAll', false)
             ->assertJsonPath('data.recommendation.showingAll', true)
-            ->assertJsonPath('data.recommendation.guidanceContentStatus', 'proposed')
-            ->assertJsonPath('data.recommendation.courses.0.contentStatus', 'proposed')
+            ->assertJsonPath('data.recommendation.guidanceContentStatus', 'mixed_cmo_sourced_and_proposed')
+            ->assertJsonPath('data.recommendation.courses.0.contentStatus', 'ched_psg_sourced')
+            ->assertJsonPath('data.recommendation.courses.0.contentSource.source_name', 'CHED CMO No. 24, series of 2015')
             ->assertJsonPath('data.recommendation.courses.0.degreeType', "Bachelor's degree")
             ->assertJsonPath('data.recommendation.courses.0.salary.status', 'not_published')
             ->assertJsonPath('data.recommendation.courses.0.jobGrowth.status', 'not_published')
@@ -294,11 +306,11 @@ class StudentRecommendationTest extends TestCase
             ->assertOk()
             ->assertJsonPath('data.recommendation.courses.0.degreeType', "Bachelor's degree")
             ->assertJsonPath('data.recommendation.courses.0.duration', '4 years')
-            ->assertJsonPath('data.recommendation.courses.0.learningAreaDescriptions.Management', 'Develop skills in planning, organising, leading teams, and evaluating organisational performance.')
+            ->assertJsonPath('data.recommendation.courses.0.learningAreaDescriptions.Financial institutions and markets', 'Study banking, credit, trust operations, insurance, foreign-currency markets, money markets, capital markets, and financial-securities markets.')
             ->assertJsonPath('data.recommendation.courses.0.explanation.recordedProgrammeAreas.0.label', 'Enterprising')
             ->assertJsonPath('data.recommendation.courses.0.explanation.recordedProgrammeAreas.0.score', 6)
-            ->assertJsonPath('data.recommendation.courses.0.explanation.learningAreas.0', 'Management')
-            ->assertJsonPath('data.recommendation.courses.0.careerDirections.0', 'Business and operations administration');
+            ->assertJsonPath('data.recommendation.courses.0.explanation.learningAreas.0', 'Financial institutions and markets')
+            ->assertJsonPath('data.recommendation.courses.0.careerDirections.0', 'Corporate-finance or financial-management trainee');
     }
 
     public function test_student_can_read_recommendations_for_an_owned_historical_attempt_only(): void

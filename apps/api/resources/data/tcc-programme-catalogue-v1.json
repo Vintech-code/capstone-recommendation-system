@@ -1,7 +1,7 @@
 {
     "schema_version": 3,
     "catalogue_id": "tcc-programme-catalogue",
-    "catalogue_version": 2,
+    "catalogue_version": 3,
     "catalogue_status": "approved_current_scope",
     "scope_approved_on": "2026-08-07",
     "academic_year": "2026-2027",
@@ -174,8 +174,8 @@
         {
             "id": "bs-sociology",
             "eligibility_group": "non_board",
-            "display_name": "BS Sociology",
-            "short_label": "BS Sociology",
+            "display_name": "BA Sociology",
+            "short_label": "BA Sociology",
             "majors": null,
             "major_confirmation_status": "not_specified",
             "riasec_profile": ["I", "S", "A"],

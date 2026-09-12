@@ -1,9 +1,18 @@
 {
-  "policy_status": "proposed",
-  "policy_version": "GUIDANCE-PROPOSED-2026-01",
+  "policy_status": "mixed_cmo_sourced_and_proposed",
+  "policy_version": "GUIDANCE-CMO-2026-03",
   "reviewed_by": null,
   "approved_on": null,
-  "student_notice": "These descriptions and explanations are proposed guidance content for review. They are not admission decisions or psychometric diagnoses.",
+  "student_notice": "Programme descriptions, learning areas, and career directions with a recorded CHED CMO source summarize national programme standards. Records without an exact matching CMO remain proposed for review. This guidance is not an admission decision or psychometric diagnosis.",
+  "field_provenance": {
+    "cmo_sourced_fields": ["description", "learning_areas", "learning_area_descriptions", "learning_area_topics", "career_directions", "readiness_prompt"],
+    "separately_governed_fields": {
+      "recommended_strands": "Proposed preparation guidance; not sourced from the programme CMO.",
+      "strand_guidance": "Proposed preparation guidance; not sourced from the programme CMO.",
+      "requirements": "Must come from current TCC Registrar or Admissions records.",
+      "riasec_profile": "Researcher-proposed analytical classification; not issued by CHED."
+    }
+  },
   "riasec_explanations": {
     "R": "You may enjoy practical activities that involve tools, equipment, movement, or producing visible results.",
     "I": "You may enjoy exploring questions, analysing information, solving problems, and understanding how things work.",
@@ -19,46 +28,71 @@
   ],
   "programmes": {
     "bs-information-technology": {
-      "description": "Focuses on applying computing, software, data, and network technologies to organisational needs.",
-      "learning_areas": ["Software development", "Information management", "Computer networks", "Systems analysis"],
+      "content_status": "ched_psg_sourced",
+      "content_source": {
+        "source_name": "CHED CMO No. 25, series of 2015",
+        "source_url": "https://legacy.ched.gov.ph/2015-ched-memorandum-orders/",
+        "document_path": "docs/cmo/CMO-no.-25-s.-2015-1.pdf",
+        "reference": "Article IV, Sections 5.2.3, 5.4 and 6.3",
+        "pages": [4, 5, 8]
+      },
+      "description": "Studies hardware and software technologies used to plan, install, customise, operate, administer, and maintain information technology infrastructure and computing solutions for organisational needs.",
+      "learning_areas": ["IT infrastructure", "Computing solutions", "Systems and network administration", "Application and database development"],
       "learning_area_descriptions": {
-        "Software development": "Design, build, test, and maintain software applications using programming concepts and development tools.",
-        "Information management": "Organise, store, retrieve, and protect information using databases and structured data practices.",
-        "Computer networks": "Set up, manage, secure, and troubleshoot the systems that connect computers and digital services.",
-        "Systems analysis": "Study organisational needs and workflows, gather requirements, and design appropriate technology solutions."
+        "IT infrastructure": "Plan, install, customise, operate, manage, administer, and maintain the hardware and software infrastructure used by an organisation.",
+        "Computing solutions": "Identify user needs and select, develop, apply, integrate, and manage computing technologies that address them.",
+        "Systems and network administration": "Configure and support computer systems, networks, services, and their secure day-to-day operation.",
+        "Application and database development": "Develop web or application solutions and work with the databases and integrated systems that support organisational processes."
       },
       "learning_area_topics": {
-        "Software development": ["Programming fundamentals", "Application testing", "Software maintenance"],
-        "Information management": ["Database design", "Data organisation", "Information security"],
-        "Computer networks": ["Network configuration", "Connectivity and services", "Troubleshooting and security"],
-        "Systems analysis": ["Requirements gathering", "Process modelling", "Solution design"]
+        "IT infrastructure": ["Hardware and software technologies", "Installation and configuration", "Operations and maintenance"],
+        "Computing solutions": ["User-needs analysis", "Technology selection", "Solution integration"],
+        "Systems and network administration": ["Systems administration", "Network engineering", "Information security"],
+        "Application and database development": ["Web and application development", "Database administration", "Systems integration"]
       },
-      "career_directions": ["Software and application development", "Systems and business analysis", "Network and systems administration"],
+      "career_directions": ["Web and applications developer", "Database, systems, or network administrator", "Information security, systems integration, or technical support"],
       "recommended_strands": ["STEM", "TVL-ICT", "GAS"],
       "strand_guidance": "STEM supports mathematics and analytical preparation, while TVL-ICT provides practical exposure to computer systems and digital tools.",
-      "readiness_prompt": "Discuss your interest in problem solving, technology, detail-oriented work, and continuous learning."
+      "readiness_prompt": "The CMO expects graduates to address organisational user needs through the selection, development, application, integration, and management of computing technologies."
     },
     "bs-business-administration": {
-      "description": "Focuses on managing organisations, people, operations, markets, and business information.",
-      "learning_areas": ["Management", "Marketing", "Finance fundamentals", "Business operations"],
+      "content_status": "ched_psg_sourced",
+      "content_source": {
+        "source_name": "CHED CMO No. 17, series of 2017",
+        "source_url": "https://ched.gov.ph/2017-ched-memorandum-orders/",
+        "document_path": "docs/cmo/CMO-17-s-2017.pdf",
+        "reference": "Article IV, Sections 5.1(c), 5.2, 5.4 and 6.3; Article V, Section 8",
+        "pages": [3, 4, 5, 6, 8]
+      },
+      "description": "The Financial Management major prepares graduates for financial-management and related work through knowledge of financial institutions, established financial theories and methodologies, analytical tools, ethics, regulation, governance, and a competitive global perspective.",
+      "learning_areas": ["Financial institutions and markets", "Corporate finance and investment", "Financial analysis and decision-making", "Ethics, regulation, and governance"],
       "learning_area_descriptions": {
-        "Management": "Develop skills in planning, organising, leading teams, and evaluating organisational performance.",
-        "Marketing": "Understand customer needs, market research, product positioning, promotion, and relationship building.",
-        "Finance fundamentals": "Learn budgeting, financial statements, cash-flow concepts, and responsible business decision-making.",
-        "Business operations": "Examine the processes, resources, quality controls, and services needed to run an organisation effectively."
+        "Financial institutions and markets": "Study banking, credit, trust operations, insurance, foreign-currency markets, money markets, capital markets, and financial-securities markets.",
+        "Corporate finance and investment": "Develop knowledge for corporate-finance, investment-management, treasury, and related financial-management decisions.",
+        "Financial analysis and decision-making": "Apply established financial theories, methodologies, and analytical tools to evaluate information and support effective decisions.",
+        "Ethics, regulation, and governance": "Approach financial decisions with attention to ethics, market integrity, regulation, good governance, and global competition."
       },
       "learning_area_topics": {
-        "Management": ["Planning and organising", "Leadership", "Performance evaluation"],
-        "Marketing": ["Market research", "Customer behaviour", "Promotion strategy"],
-        "Finance fundamentals": ["Budgeting", "Financial statements", "Cash-flow concepts"],
-        "Business operations": ["Process improvement", "Resource coordination", "Quality and service"]
+        "Financial institutions and markets": ["Banking and credit", "Insurance and trust operations", "Money and capital markets"],
+        "Corporate finance and investment": ["Corporate finance", "Investment management", "Treasury operations"],
+        "Financial analysis and decision-making": ["Financial theories", "Analytical methodologies", "Decision tools"],
+        "Ethics, regulation, and governance": ["Market integrity", "Financial regulation", "Good governance"]
       },
-      "career_directions": ["Business and operations administration", "Marketing and customer development", "Entrepreneurship and enterprise support"],
+      "career_directions": ["Corporate-finance or financial-management trainee", "Banking, credit, collections, or treasury work", "Investment, trading, insurance, or financial-analysis work"],
       "recommended_strands": ["ABM", "GAS"],
       "strand_guidance": "ABM offers the closest preparation in business, accounting, management, and entrepreneurship; GAS also provides broad academic preparation.",
-      "readiness_prompt": "Discuss your interest in leadership, communication, planning, and working with business information."
+      "readiness_prompt": "The CMO frames effective financial decision-making around analytical tools, ethics, market integrity, regulation, good governance, and a competitive global perspective."
     },
     "bs-criminology": {
+      "content_status": "pending_local_cmo",
+      "content_source": {
+        "source_name": "CHED CMO No. 5, series of 2018",
+        "source_url": "https://ched.gov.ph/wp-content/uploads/2018/05/CMO-No.-05-s.-2018-PSG-for-BS-Criminology.pdf",
+        "document_path": null,
+        "reference": null,
+        "pages": [],
+        "note": "The exact CMO is referenced by the project but is not currently stored in docs/cmo. Existing guidance remains proposed until the document is locally reviewed."
+      },
       "description": "Focuses on crime, public safety, justice systems, investigation, and community-based prevention.",
       "learning_areas": ["Criminal justice", "Law-enforcement foundations", "Investigation", "Community safety"],
       "learning_area_descriptions": {
@@ -79,46 +113,71 @@
       "readiness_prompt": "Ask TCC about current fitness, conduct, health, or other programme requirements before making a decision."
     },
     "bs-hospitality-management": {
-      "description": "Focuses on guest service, hospitality operations, events, food service, and tourism-related management.",
-      "learning_areas": ["Guest service", "Hospitality operations", "Events", "Food-service management"],
+      "content_status": "ched_psg_sourced",
+      "content_source": {
+        "source_name": "CHED CMO No. 62, series of 2017",
+        "source_url": "https://ched.gov.ph/wp-content/uploads/2018/03/CMO-62-BS-Hospitality-Tourism-Management.pdf",
+        "document_path": "docs/cmo/CMO-62-BS-Hospitality-Tourism-Management.pdf",
+        "reference": "Article I, Section 1; Article IV, Sections 5.2, 5.3, 6.3 and 6.5",
+        "pages": [2, 4, 5, 6]
+      },
+      "description": "Develops the operational and management competencies needed in hospitality and tourism, including food production, accommodation, food-and-beverage service, events, and other emerging sectors of the industry.",
+      "learning_areas": ["Food production and service", "Food and beverage operations", "Front office and guest services", "Housekeeping and risk management"],
       "learning_area_descriptions": {
-        "Guest service": "Practise professional communication, service recovery, and creating positive experiences for diverse guests.",
-        "Hospitality operations": "Learn how lodging, front-office, housekeeping, reservations, and service teams work together.",
-        "Events": "Plan and coordinate event concepts, schedules, venues, suppliers, guests, and on-site operations.",
-        "Food-service management": "Study food-service workflows, sanitation, menu planning, cost control, and customer service."
+        "Food production and service": "Produce food products and services in line with enterprise standards and safe hospitality operations.",
+        "Food and beverage operations": "Apply management skills to food-and-beverage service and provide coordinated service based on industry standards.",
+        "Front office and guest services": "Perform full guest-cycle services and communicate professionally with guests, colleagues, and other stakeholders.",
+        "Housekeeping and risk management": "Maintain housekeeping services for guests and facilities and plan measures that support a safe and secure workplace."
       },
       "learning_area_topics": {
-        "Guest service": ["Professional communication", "Service recovery", "Guest experience"],
-        "Hospitality operations": ["Front-office services", "Housekeeping coordination", "Reservations"],
-        "Events": ["Event planning", "Supplier coordination", "On-site operations"],
-        "Food-service management": ["Food safety", "Menu planning", "Cost control"]
+        "Food production and service": ["Food production", "Enterprise standards", "Service delivery"],
+        "Food and beverage operations": ["Food-and-beverage service", "Operations management", "Industry standards"],
+        "Front office and guest services": ["Guest-cycle services", "Front-office operations", "Professional communication"],
+        "Housekeeping and risk management": ["Housekeeping services", "Facility operations", "Workplace safety and security"]
       },
-      "career_directions": ["Hospitality operations", "Guest and customer services", "Events and food-service coordination"],
+      "career_directions": ["Accommodation and front-office operations", "Food production and food-and-beverage operations", "Housekeeping, guest-service, or hospitality-management work"],
       "recommended_strands": ["TVL-HE", "ABM", "GAS"],
       "strand_guidance": "TVL-Home Economics can provide practical hospitality and food-service exposure, while ABM supports the management side of hospitality operations.",
-      "readiness_prompt": "Discuss your interest in service, teamwork, communication, and working in active operational settings."
+      "readiness_prompt": "The CMO requires operational and managerial preparation and identifies longer practicum training as part of preparing graduates for hospitality-industry work."
     },
     "bachelor-elementary-education": {
-      "description": "Prepares learners for teaching and supporting children across elementary learning areas.",
-      "learning_areas": ["Teaching methods", "Child development", "Classroom assessment", "Learning resources"],
+      "content_status": "ched_psg_sourced",
+      "content_source": {
+        "source_name": "CHED CMO No. 74, series of 2017",
+        "source_url": "https://ched.gov.ph/wp-content/uploads/2017/11/CMO-No.-74-s.-2017.pdf",
+        "document_path": "docs/cmo/CMO-No.-74-s.-2017.pdf",
+        "reference": "Article IV, Sections 5 and 6; Article V, Sections 8 and 9",
+        "pages": [3, 4, 6, 7]
+      },
+      "description": "An undergraduate teacher-education degree that prepares individuals to teach at the elementary level through multidisciplinary preparation in subject content and pedagogy.",
+      "learning_areas": ["Learner diversity", "Pedagogical content knowledge", "Assessment and evaluation", "Teaching tools and technology"],
       "learning_area_descriptions": {
-        "Teaching methods": "Plan age-appropriate lessons and use varied strategies to help elementary learners understand different subjects.",
-        "Child development": "Understand how children grow, learn, communicate, and develop socially, emotionally, physically, and cognitively.",
-        "Classroom assessment": "Create and interpret activities, observations, and assessments that guide instruction and learner support.",
-        "Learning resources": "Select, design, and adapt print, digital, and hands-on materials for inclusive elementary classrooms."
+        "Learner diversity": "Develop an in-depth understanding of diverse elementary learners and select appropriate, culturally relevant learning experiences.",
+        "Pedagogical content knowledge": "Build comprehensive content and teaching knowledge across elementary subject areas and use suitable teaching-learning methods.",
+        "Assessment and evaluation": "Design and use appropriate assessment tools, interpret results, keep accurate records, and provide timely feedback.",
+        "Teaching tools and technology": "Use communication, higher-order thinking, learning resources, and technology to support and improve teaching and learning."
       },
       "learning_area_topics": {
-        "Teaching methods": ["Lesson planning", "Instructional strategies", "Inclusive teaching"],
-        "Child development": ["Cognitive growth", "Social-emotional development", "Learner diversity"],
-        "Classroom assessment": ["Observation", "Learning evidence", "Feedback and support"],
-        "Learning resources": ["Instructional materials", "Digital resources", "Resource adaptation"]
+        "Learner diversity": ["Learner types", "Culturally relevant activities", "Inclusive education"],
+        "Pedagogical content knowledge": ["Elementary subject content", "Teaching methods", "Curriculum and lesson planning"],
+        "Assessment and evaluation": ["Assessment design", "Result interpretation", "Feedback and records"],
+        "Teaching tools and technology": ["Instructional resources", "ICT for teaching", "Higher-order thinking"]
       },
-      "career_directions": ["Elementary teaching", "Learning and classroom support", "Education programme support"],
+      "career_directions": ["Elementary-level teaching"],
       "recommended_strands": ["HUMSS", "GAS"],
       "strand_guidance": "HUMSS develops communication and understanding of people and society; GAS provides broad preparation across subjects taught in elementary school.",
-      "readiness_prompt": "Discuss your interest in teaching children, communication, patience, and responsible classroom practice."
+      "readiness_prompt": "The CMO prepares graduates to practise the teaching profession at the elementary level; current professional-licensure requirements are governed separately."
     },
     "bachelor-secondary-education": {
+      "content_status": "pending_local_cmo",
+      "content_source": {
+        "source_name": "CHED CMO No. 75, series of 2017",
+        "source_url": "https://ched.gov.ph/2017-ched-memorandum-orders/",
+        "document_path": null,
+        "reference": null,
+        "pages": [],
+        "note": "The exact CMO is referenced by the project but is not currently stored in docs/cmo. Existing guidance remains proposed until the document is locally reviewed."
+      },
       "description": "Prepares learners for secondary teaching, including the currently recorded English, Filipino, and Social Studies or Araling Panlipunan majors.",
       "learning_areas": ["Teaching methods", "Adolescent learning", "Subject specialisation", "Classroom assessment"],
       "learning_area_descriptions": {
@@ -139,66 +198,99 @@
       "readiness_prompt": "Confirm the available major with TCC and discuss your interest in teaching, communication, and subject-focused study."
     },
     "bs-midwifery": {
-      "description": "Focuses on maternal and newborn care, community health, professional practice, and supervised clinical learning.",
-      "learning_areas": ["Maternal care", "Newborn care", "Community health", "Clinical practice"],
+      "content_status": "ched_psg_sourced",
+      "content_source": {
+        "source_name": "CHED CMO No. 3, series of 2023",
+        "source_url": "https://ched.gov.ph/2023-ched-memorandum-orders/",
+        "document_path": "docs/cmo/CMO-No.-03-s.-2023.pdf",
+        "reference": "Article IV, Sections 5 and 6",
+        "pages": [3, 4, 5, 6, 7, 8]
+      },
+      "description": "A four-year degree comprising general education and professional courses that prepare future midwives for higher-level practice, including intensive fourth-year clinical practicum and midwifery specialisation.",
+      "learning_areas": ["Maternal care", "Newborn care", "Primary and community health", "Professional and clinical practice"],
       "learning_area_descriptions": {
-        "Maternal care": "Study health support before, during, and after childbirth, including monitoring, education, and appropriate referral.",
-        "Newborn care": "Learn essential newborn assessment, routine care, parent education, and recognition of conditions needing referral.",
-        "Community health": "Understand preventive care, health promotion, family support, and maternal-newborn services in community settings.",
-        "Clinical practice": "Apply knowledge and professional standards through supervised skills training and clinical learning experiences."
+        "Maternal care": "Provide culturally appropriate antepartum, intrapartum, and postpartum care, including early detection, emergency management, and referral of complicated conditions.",
+        "Newborn care": "Assess and care for newborns, support breastfeeding and family education, detect complications, and refer cases outside the midwifery scope of practice.",
+        "Primary and community health": "Provide health education and primary-health-care services to individuals, families, and communities using promotion and disease-prevention strategies.",
+        "Professional and clinical practice": "Apply obstetrics, neonatology, social science, public health, ethics, communication, documentation, law, and professional accountability in supervised practice."
       },
       "learning_area_topics": {
-        "Maternal care": ["Prenatal support", "Childbirth care", "Postpartum monitoring"],
-        "Newborn care": ["Newborn assessment", "Routine care", "Parent education"],
-        "Community health": ["Health promotion", "Preventive care", "Family support"],
-        "Clinical practice": ["Supervised skills", "Professional standards", "Clinical documentation"]
+        "Maternal care": ["Antepartum care", "Labour and delivery", "Postpartum care and referral"],
+        "Newborn care": ["Newborn assessment", "Breastfeeding support", "Complication detection and referral"],
+        "Primary and community health": ["Health education", "Disease prevention", "Community-based primary care"],
+        "Professional and clinical practice": ["Clinical practicum", "Professional accountability", "Documentation and regulation"]
       },
-      "career_directions": ["Maternal health services", "Newborn care services", "Community health support"],
+      "career_directions": ["Health-care provider", "Entrepreneur or clinic owner/manager", "Administrator, educator, or researcher"],
       "recommended_strands": ["STEM", "TVL-HE", "GAS"],
       "strand_guidance": "STEM strengthens preparation in the sciences, while relevant TVL-Home Economics health-care subjects may provide practical care experience.",
-      "readiness_prompt": "Ask TCC about current health, clinical placement, equipment, and regulatory requirements before making a decision."
+      "readiness_prompt": "The CMO states that the four-year programme includes intensive fourth-year clinical practicum and prepares graduates to take the Midwifery Licensure Examination."
     },
     "bachelor-library-information-science": {
-      "description": "Focuses on organising, preserving, finding, and providing access to information and knowledge resources.",
-      "learning_areas": ["Information organisation", "Reference services", "Digital libraries", "Records and collections"],
+      "content_status": "ched_psg_sourced",
+      "content_source": {
+        "source_name": "CHED CMO No. 24, series of 2015",
+        "source_url": "https://legacy.ched.gov.ph/2015-ched-memorandum-orders/",
+        "document_path": "docs/cmo/CMO-no.-24-s.-2015.pdf",
+        "reference": "Article IV, Sections 5 and 6; Article V, Section 8",
+        "pages": [3, 4, 5, 6, 7, 8]
+      },
+      "description": "Studies the development, deployment, and management of information resources and services in print, non-print, electronic, and digital formats, including the use of information technology in library operations.",
+      "learning_areas": ["Managing information resources", "Managing information services", "Information tools and technologies", "Managing information organisations"],
       "learning_area_descriptions": {
-        "Information organisation": "Describe, classify, index, and arrange information so people can discover and retrieve it efficiently.",
-        "Reference services": "Identify information needs, evaluate sources, conduct searches, and guide users toward reliable resources.",
-        "Digital libraries": "Work with digital collections, repositories, metadata, access systems, and long-term digital preservation.",
-        "Records and collections": "Develop, preserve, and manage physical or digital records and collections throughout their useful life."
+        "Managing information resources": "Select, acquire, catalogue, classify, index, manage, preserve, and provide access to print, multimedia, electronic, and digital resources.",
+        "Managing information services": "Identify users' needs and deliver access, reference, reader-advisory, information-literacy, outreach, and related public services.",
+        "Information tools and technologies": "Use hardware, software, internet services, web applications, automation systems, and security practices in library and information work.",
+        "Managing information organisations": "Apply planning, policy, budgeting, project and personnel management, research, public relations, collaboration, and facilities management."
       },
       "learning_area_topics": {
-        "Information organisation": ["Classification", "Cataloguing", "Indexing and metadata"],
-        "Reference services": ["Information searching", "Source evaluation", "User assistance"],
-        "Digital libraries": ["Digital repositories", "Metadata systems", "Digital preservation"],
-        "Records and collections": ["Collection development", "Records lifecycle", "Preservation"]
+        "Managing information resources": ["Selection and acquisition", "Cataloguing and classification", "Preservation and e-resources"],
+        "Managing information services": ["Reference and access services", "Information literacy", "Public services and outreach"],
+        "Information tools and technologies": ["Library automation", "Internet and web applications", "Computer security and ethics"],
+        "Managing information organisations": ["Strategic planning and policy", "Project and personnel management", "Collaboration and facilities"]
       },
-      "career_directions": ["Library and reference services", "Records and information management", "Digital information services"],
+      "career_directions": ["Entry-level library, documentation, or records support", "Licensed librarian or information-specialist practice", "Archives, preservation, database, or library-systems work"],
       "recommended_strands": ["HUMSS", "TVL-ICT", "GAS"],
       "strand_guidance": "HUMSS supports research and communication, while TVL-ICT can help with digital information systems and technology-enabled library services.",
-      "readiness_prompt": "Discuss your interest in information, service, technology, organisation, and careful record keeping."
+      "readiness_prompt": "The CMO distinguishes entry-level roles from professional librarian roles that require the necessary licence; confirm current PRC and TCC requirements."
     },
     "bs-sociology": {
-      "description": "Focuses on society, communities, institutions, culture, social research, and social change.",
-      "learning_areas": ["Social theory", "Research methods", "Community studies", "Social analysis"],
+      "content_status": "ched_psg_sourced",
+      "content_source": {
+        "source_name": "CHED CMO No. 40, series of 2017",
+        "source_url": "https://ched.gov.ph/2017-ched-memorandum-orders/",
+        "document_path": "docs/cmo/CMO-40-s-2017.pdf",
+        "reference": "Article IV, Sections 5 and 6; Article V, Sections 8 and 9",
+        "pages": [2, 3, 4, 5, 6]
+      },
+      "description": "Examines social life, groups, societies, world systems, and virtual communities, with attention to the changing relationship between individuals and society.",
+      "learning_areas": ["Sociological concepts and theories", "Social research", "Social problems and issues", "Social programmes and professional practice"],
       "learning_area_descriptions": {
-        "Social theory": "Use major sociological ideas to understand relationships, institutions, inequality, culture, and social change.",
-        "Research methods": "Design ethical studies and collect, organise, analyse, and interpret qualitative and quantitative social data.",
-        "Community studies": "Examine how communities are formed, how they change, and how local institutions shape everyday life.",
-        "Social analysis": "Evaluate social issues using evidence, multiple perspectives, and clear written or oral communication."
+        "Sociological concepts and theories": "Explain and apply sociological concepts and theories to understand social life and the relationship between individuals and society.",
+        "Social research": "Design, carry out, and assess research using appropriate sociological approaches, methods, and analytical tools.",
+        "Social problems and issues": "Analyse social problems and issues in light of economic, political, ecological, and sociocultural trends.",
+        "Social programmes and professional practice": "Apply sociological research skills in designing, implementing, and assessing social programmes and projects while communicating responsibly and observing professional ethics."
       },
       "learning_area_topics": {
-        "Social theory": ["Social institutions", "Culture and inequality", "Social change"],
-        "Research methods": ["Study design", "Qualitative research", "Quantitative analysis"],
-        "Community studies": ["Local institutions", "Community relationships", "Patterns of change"],
-        "Social analysis": ["Evidence evaluation", "Multiple perspectives", "Research communication"]
+        "Sociological concepts and theories": ["Sociological theory", "Social institutions", "Individuals and society"],
+        "Social research": ["Research design and methods", "Social statistics", "Directed research or thesis"],
+        "Social problems and issues": ["Social analysis", "Contemporary social issues", "Economic, political, ecological, and sociocultural trends"],
+        "Social programmes and professional practice": ["Programme and project design", "Implementation and assessment", "Communication and professional ethics"]
       },
-      "career_directions": ["Social and field research", "Community programme support", "Policy and social analysis"],
+      "career_directions": ["Teaching and academic work", "Social research", "Development work in academic, corporate, government, local, or international organisations"],
       "recommended_strands": ["HUMSS", "GAS"],
       "strand_guidance": "HUMSS provides close preparation in society, culture, communication, and social sciences; GAS offers a broad academic foundation.",
-      "readiness_prompt": "Discuss your interest in people, communities, research, writing, and analysing social issues."
+      "readiness_prompt": "The CMO emphasizes sociological theories and research methodologies for understanding, analysing, and addressing social problems and issues."
     },
     "bs-community-development": {
+      "content_status": "pending_exact_psg",
+      "content_source": {
+        "source_name": null,
+        "source_url": null,
+        "document_path": null,
+        "reference": null,
+        "pages": [],
+        "note": "No exact programme PSG is currently stored in docs/cmo. Existing guidance remains proposed and must not be inferred from Sociology or general career-learning material."
+      },
       "description": "Focuses on participatory community work, programme planning, local development, and social mobilisation.",
       "learning_areas": ["Community organising", "Development planning", "Project work", "Participatory research"],
       "learning_area_descriptions": {
@@ -219,6 +311,15 @@
       "readiness_prompt": "Discuss your interest in community service, facilitation, fieldwork, teamwork, and project planning."
     },
     "bachelor-physical-education": {
+      "content_status": "pending_local_cmo",
+      "content_source": {
+        "source_name": "CHED CMO No. 80, series of 2017",
+        "source_url": "https://ched.gov.ph/2017-ched-memorandum-orders/",
+        "document_path": null,
+        "reference": null,
+        "pages": [],
+        "note": "The exact CMO is referenced by the project but is not currently stored in docs/cmo. Existing guidance remains proposed until the document is locally reviewed."
+      },
       "description": "Prepares learners to teach and facilitate physical activity, movement, fitness, sports, and wellness education.",
       "learning_areas": ["Movement education", "Fitness", "Sports instruction", "Teaching methods"],
       "learning_area_descriptions": {

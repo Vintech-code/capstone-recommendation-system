@@ -94,6 +94,7 @@ final class ProvisionalRiasecRecommendationEngine
                 'requirements' => array_values($programme['requirements'] ?? []),
                 'readiness_prompt' => (string) ($programme['readiness_prompt'] ?? ''),
                 'content_status' => (string) ($programme['content_status'] ?? 'proposed'),
+                'content_source' => $programme['content_source'] ?? null,
                 'content_version' => (string) ($programme['content_version'] ?? ''),
                 'degree_type' => (string) ($programme['degree_type'] ?? ''),
                 'duration' => $programme['duration'] ?? null,
