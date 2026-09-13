@@ -7,6 +7,7 @@ use App\Http\Requests\Assessment\SaveAssessmentSessionRequest;
 use App\Jobs\ProcessAssessmentResult;
 use App\Models\AssessmentSession;
 use App\Services\Assessment\EntranceExaminationPolicy;
+use App\Services\Assessment\ResultCardPresenter;
 use App\Services\Assessment\RiasecQuestionnaire;
 use App\Services\Recommendation\ProposedGuidanceContentRepository;
 use Illuminate\Http\JsonResponse;
@@ -16,7 +17,9 @@ use Throwable;
 
 class AssessmentSessionController extends Controller
 {
-    public function __construct(private ProposedGuidanceContentRepository $guidance) {}
+    public function __construct(private ProposedGuidanceContentRepository $guidance)
+    {
+    }
 
     public function current(Request $request, RiasecQuestionnaire $questionnaire): JsonResponse
     {
@@ -31,10 +34,12 @@ class AssessmentSessionController extends Controller
             $session = $this->processResultNow($session, $questionnaire);
         }
 
-        return response()->json(['data' => $session ? $this->resource($session) : [
-            'status' => 'not_started',
-            'question_count' => RiasecQuestionnaire::QUESTION_COUNT,
-        ]]);
+        return response()->json([
+            'data' => $session ? $this->resource($session) : [
+                'status' => 'not_started',
+                'question_count' => RiasecQuestionnaire::QUESTION_COUNT,
+            ]
+        ]);
     }
 
     public function store(Request $request, EntranceExaminationPolicy $entranceExamination): JsonResponse
@@ -80,6 +85,14 @@ class AssessmentSessionController extends Controller
 
             if (in_array($current->status, ['in_progress', 'preparing_result', 'result_failed'], true)) {
                 return $current;
+            }
+
+            $minDays = (int) config('assessment.retake.minimum_days_between_completed_attempts', 0);
+            if ($minDays > 0 && $current->result_available_at !== null) {
+                $nextAvailable = $current->result_available_at->copy()->addDays($minDays);
+                if (now()->lt($nextAvailable)) {
+                    abort(422, "Assessment retake is not available yet under policy rule. A minimum waiting period of {$minDays} day(s) is required between attempts. Next retake available on {$nextAvailable->toDateString()}.");
+                }
             }
 
             $current->update(['is_current' => false]);
@@ -137,8 +150,10 @@ class AssessmentSessionController extends Controller
         }
 
         $answers = $assessmentSession->answers ?? [];
-        if (count($answers) !== RiasecQuestionnaire::QUESTION_COUNT
-            || array_map('intval', array_keys($answers)) !== range(1, RiasecQuestionnaire::QUESTION_COUNT)) {
+        if (
+            count($answers) !== RiasecQuestionnaire::QUESTION_COUNT
+            || array_map('intval', array_keys($answers)) !== range(1, RiasecQuestionnaire::QUESTION_COUNT)
+        ) {
             return response()->json([
                 'message' => 'All 42 questions must be answered before submission.',
                 'errors' => ['answers' => ['All 42 questions must be answered before submission.']],
@@ -179,13 +194,41 @@ class AssessmentSessionController extends Controller
         $sessions = AssessmentSession::query()
             ->whereBelongsTo($request->user())
             ->whereIn('instrument_code', RiasecQuestionnaire::supportedInstrumentCodes())
-            ->latest('started_at')
+            ->with(['entranceExaminationResult', 'recommendationRun'])
+            ->orderByDesc('attempt_number')
+            ->orderByDesc('id')
             ->get()
-            ->map(fn (AssessmentSession $session): array => $this->resource($session));
+            ->map(fn(AssessmentSession $session): array => $this->resource($session));
 
         return response()->json([
             'data' => $sessions,
             'policy' => config('assessment.retake'),
+        ]);
+    }
+
+    public function share(Request $request, AssessmentSession $assessmentSession): JsonResponse
+    {
+        $this->assertOwnedBy($request, $assessmentSession);
+        abort_unless($assessmentSession->status === 'result_available', 409, 'Result must be available before sharing.');
+
+        $token = $assessmentSession->ensureShareToken();
+
+        return response()->json([
+            'data' => [
+                'shareToken' => $token,
+                'shareUrl' => url("/results/shared/{$token}"),
+                'sharedAt' => $assessmentSession->shared_at?->toAtomString() ?? now()->toAtomString(),
+            ],
+        ]);
+    }
+
+    public function card(Request $request, AssessmentSession $assessmentSession, ResultCardPresenter $presenter): JsonResponse
+    {
+        $this->assertOwnedBy($request, $assessmentSession);
+        abort_unless($assessmentSession->status === 'result_available', 404, 'Assessment result is not available for this attempt.');
+
+        return response()->json([
+            'data' => $presenter->present($assessmentSession),
         ]);
     }
 
@@ -259,7 +302,7 @@ class AssessmentSessionController extends Controller
             $resultPayload['result'] = RiasecQuestionnaire::normalizeResultEntries(
                 $resultPayload['result'],
             );
-            if (! is_array($resultPayload['guidance'] ?? null)) {
+            if (!is_array($resultPayload['guidance'] ?? null)) {
                 $content = $this->guidance->current();
                 $resultPayload['guidance'] = [
                     'status' => $content['policy_status'],
@@ -272,7 +315,7 @@ class AssessmentSessionController extends Controller
 
         return [
             'id' => $session->getKey(),
-            'reference' => 'ASMT-'.str_pad((string) $session->getKey(), 6, '0', STR_PAD_LEFT),
+            'reference' => 'ASMT-' . str_pad((string) $session->getKey(), 6, '0', STR_PAD_LEFT),
             'instrument_code' => $session->instrument_code,
             'entrance_examination_result_id' => $session->entrance_examination_result_id,
             'attempt_number' => $session->attempt_number,
@@ -288,11 +331,26 @@ class AssessmentSessionController extends Controller
             'result_available_at' => $session->result_available_at?->toAtomString(),
             'retake_available_at' => $session->retake_available_at?->toAtomString(),
             'retake_reason' => $session->retake_reason,
+            'share_token' => $session->share_token,
+            'shared_at' => $session->shared_at?->toAtomString(),
             'can_retake' => $session->status === 'result_available'
-                && $session->is_current,
+                && $session->is_current
+                && ($session->retake_available_at === null || now()->gte($session->retake_available_at)),
             'processing_error_code' => $session->processing_error_code,
             'processing_failed_at' => $session->processing_failed_at?->toAtomString(),
             'result' => $resultPayload,
+            'entrance_examination' => $session->entranceExaminationResult ? [
+                'score' => (float) $session->entranceExaminationResult->score,
+                'eligibility_group' => $session->entranceExaminationResult->eligibility_group,
+                'declared_at' => $session->entranceExaminationResult->declared_at?->toAtomString(),
+            ] : null,
+            'recommendation_summary' => $session->recommendationRun ? [
+                'id' => $session->recommendationRun->getKey(),
+                'catalogue_reference' => $session->recommendationRun->catalogue_reference,
+                'total_eligible' => $session->recommendationRun->total_eligible,
+                'ranked_count' => count($session->recommendationRun->ranked_courses ?? []),
+                'generated_at' => $session->recommendationRun->generated_at?->toAtomString(),
+            ] : null,
         ];
     }
 }

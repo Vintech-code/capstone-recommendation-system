@@ -12,6 +12,8 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
     'entrance_examination_result_id',
     'previous_session_id',
     'retake_reason',
+    'share_token',
+    'shared_at',
     'instrument_code',
     'attempt_number',
     'status',
@@ -59,7 +61,23 @@ class AssessmentSession extends Model
             'result_available_at' => 'datetime',
             'retake_available_at' => 'datetime',
             'processing_failed_at' => 'datetime',
+            'shared_at' => 'datetime',
             'is_current' => 'boolean',
         ];
+    }
+
+    public function ensureShareToken(): string
+    {
+        if ($this->share_token) {
+            return $this->share_token;
+        }
+
+        $token = bin2hex(random_bytes(32));
+        $this->update([
+            'share_token' => $token,
+            'shared_at' => now(),
+        ]);
+
+        return $token;
     }
 }

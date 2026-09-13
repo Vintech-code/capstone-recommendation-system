@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\AdminWorkspaceController;
 use App\Http\Controllers\Assessment\AssessmentSessionController;
 use App\Http\Controllers\Assessment\EntranceExaminationResultController;
 use App\Http\Controllers\Assessment\RiasecQuestionnaireController;
+use App\Http\Controllers\Assessment\SharedResultController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\PasswordChangeController;
 use App\Http\Controllers\Auth\PasswordRecoveryController;
@@ -58,8 +59,13 @@ Route::prefix('v1/student/assessments/riasec')
         Route::patch('/sessions/{assessmentSession}', [AssessmentSessionController::class, 'update']);
         Route::post('/sessions/{assessmentSession}/submit', [AssessmentSessionController::class, 'submit']);
         Route::post('/sessions/{assessmentSession}/retry-result', [AssessmentSessionController::class, 'retryResult']);
+        Route::post('/sessions/{assessmentSession}/share', [AssessmentSessionController::class, 'share']);
+        Route::get('/sessions/{assessmentSession}/card', [AssessmentSessionController::class, 'card']);
         Route::get('/history', [AssessmentSessionController::class, 'history']);
     });
+
+Route::get('v1/shared/results/{shareToken}', [SharedResultController::class, 'show'])
+    ->middleware('throttle:60,1');
 
 Route::prefix('v1/student/entrance-examination')
     ->middleware(['auth:sanctum', 'active', 'role:student'])
@@ -115,6 +121,7 @@ Route::prefix('v1/admin')
         Route::get('/overview', [AdminWorkspaceController::class, 'overview']);
         Route::get('/students', [AdminWorkspaceController::class, 'students']);
         Route::get('/students/{student}', [AdminWorkspaceController::class, 'student']);
+        Route::get('/students/{student}/attempts/{assessmentSession}/card', [AdminWorkspaceController::class, 'studentResultCard']);
         Route::get('/programmes', [AdminWorkspaceController::class, 'programmes']);
         Route::get('/esco/occupations', [AdminEscoOccupationController::class, 'index'])->middleware('throttle:30,1');
         Route::get('/esco/occupation', [AdminEscoOccupationController::class, 'show'])->middleware('throttle:30,1');

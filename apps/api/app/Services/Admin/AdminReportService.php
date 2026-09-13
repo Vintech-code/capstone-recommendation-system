@@ -18,15 +18,16 @@ final class AdminReportService
     public function __construct(
         private readonly TccProgrammeCatalogueRepository $catalogues,
         private readonly ProgrammeSourceRegistry $sourceRegistry,
-    ) {}
+    ) {
+    }
 
     /** @return array<string, mixed> */
     public function generate(?string $from, ?string $to): array
     {
         $period = static function (Builder $query, string $column) use ($from, $to): Builder {
             return $query
-                ->when($from, fn (Builder $builder) => $builder->whereDate($column, '>=', $from))
-                ->when($to, fn (Builder $builder) => $builder->whereDate($column, '<=', $to));
+                ->when($from, fn(Builder $builder) => $builder->whereDate($column, '>=', $from))
+                ->when($to, fn(Builder $builder) => $builder->whereDate($column, '<=', $to));
         };
 
         $assessmentActivityQuery = AssessmentSession::query();
@@ -53,32 +54,32 @@ final class AdminReportService
         $period($completionEventQuery, 'result_available_at');
 
         $runs = RecommendationRun::query()
-            ->when($from, fn (Builder $query) => $query->whereDate('generated_at', '>=', $from))
-            ->when($to, fn (Builder $query) => $query->whereDate('generated_at', '<=', $to))
+            ->when($from, fn(Builder $query) => $query->whereDate('generated_at', '>=', $from))
+            ->when($to, fn(Builder $query) => $query->whereDate('generated_at', '<=', $to))
             ->get(['user_id']);
 
         $savedProgrammeQuery = StudentSavedProgramme::query();
         $period($savedProgrammeQuery, 'created_at');
 
         $recommendationGroups = RecommendationRun::query()
-            ->when($from, fn (Builder $query) => $query->whereDate('generated_at', '>=', $from))
-            ->when($to, fn (Builder $query) => $query->whereDate('generated_at', '<=', $to))
+            ->when($from, fn(Builder $query) => $query->whereDate('generated_at', '>=', $from))
+            ->when($to, fn(Builder $query) => $query->whereDate('generated_at', '<=', $to))
             ->get(['user_id', 'entrance_examination_snapshot'])
-            ->groupBy(fn (RecommendationRun $run): string => (string) ($run->entrance_examination_snapshot['eligibilityGroup'] ?? 'unavailable'))
-            ->map(fn ($group): int => $group->pluck('user_id')->unique()->count());
+            ->groupBy(fn(RecommendationRun $run): string => (string) ($run->entrance_examination_snapshot['eligibilityGroup'] ?? 'unavailable'))
+            ->map(fn($group): int => $group->pluck('user_id')->unique()->count());
 
         $savedByEligibility = (clone $savedProgrammeQuery)
             ->with('user.currentEntranceExaminationResult')
             ->get()
-            ->groupBy(fn (StudentSavedProgramme $save): string => (string) ($save->user?->currentEntranceExaminationResult?->eligibility_group ?? 'unavailable'))
+            ->groupBy(fn(StudentSavedProgramme $save): string => (string) ($save->user?->currentEntranceExaminationResult?->eligibility_group ?? 'unavailable'))
             ->map->count();
 
         $sources = collect($this->sourceRegistry->entries($this->catalogues->current()));
         $completionMonths = (clone $completionEventQuery)
             ->get(['user_id', 'result_available_at'])
-            ->groupBy(static fn (AssessmentSession $session): string => $session->result_available_at->format('Y-m'))
+            ->groupBy(static fn(AssessmentSession $session): string => $session->result_available_at->format('Y-m'))
             ->sortKeys()
-            ->map(static fn ($sessions, string $month): array => [
+            ->map(static fn($sessions, string $month): array => [
                 'month' => $month,
                 'count' => $sessions->pluck('user_id')->unique()->count(),
             ])
@@ -122,6 +123,18 @@ final class AdminReportService
                 'unverifiedSources' => $sources->where('reviewStatus', 'not_verified')->count(),
                 'draftVersions' => ConfigurationVersion::query()->where('status', 'draft')->count(),
             ],
+            'retakeMetrics' => [
+                'totalAssessmentAttempts' => (clone $assessmentActivityQuery)->count(),
+                'totalCompletedAttempts' => (clone $completionEventQuery)->count(),
+                'studentsWithRetakes' => AssessmentSession::query()
+                    ->where('status', 'result_available')
+                    ->selectRaw('user_id, count(*) as completed_count')
+                    ->groupBy('user_id')
+                    ->havingRaw('count(*) > 1')
+                    ->get()
+                    ->count(),
+                'totalRetakeAttempts' => (clone $assessmentActivityQuery)->where('attempt_number', '>', 1)->count(),
+            ],
             'assessmentCompletionsByMonth' => $completionMonths,
         ];
     }
@@ -129,6 +142,6 @@ final class AdminReportService
     /** @return Builder<User> */
     private function studentQuery(): Builder
     {
-        return User::query()->whereHas('roles', static fn (Builder $query) => $query->where('slug', RoleSlug::Student->value));
+        return User::query()->whereHas('roles', static fn(Builder $query) => $query->where('slug', RoleSlug::Student->value));
     }
 }

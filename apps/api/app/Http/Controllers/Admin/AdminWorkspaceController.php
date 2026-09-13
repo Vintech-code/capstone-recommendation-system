@@ -14,6 +14,7 @@ use App\Models\User;
 use App\Services\Admin\AdminAssessmentPresenter;
 use App\Services\Admin\AdminAuditPresenter;
 use App\Services\Admin\AdminReportService;
+use App\Services\Assessment\ResultCardPresenter;
 use App\Services\Recommendation\ProgrammeSourceRegistry;
 use App\Services\Recommendation\TccProgrammeCatalogueRepository;
 use Carbon\CarbonImmutable;
@@ -28,7 +29,8 @@ final class AdminWorkspaceController extends Controller
         private readonly AdminAssessmentPresenter $assessmentPresenter,
         private readonly AdminAuditPresenter $auditPresenter,
         private readonly AdminReportService $reportService,
-    ) {}
+    ) {
+    }
 
     public function overview(Request $request, TccProgrammeCatalogueRepository $catalogues, ProgrammeSourceRegistry $sourceRegistry): JsonResponse
     {
@@ -50,7 +52,7 @@ final class AdminWorkspaceController extends Controller
             ->latest('updated_at')
             ->limit(6)
             ->get()
-            ->map(fn (AssessmentSession $session): array => $this->assessmentPresenter->summary($session));
+            ->map(fn(AssessmentSession $session): array => $this->assessmentPresenter->summary($session));
         $operationalAttention = [
             'processingFailures' => (int) ($statusCounts['result_failed'] ?? 0),
             'unverifiedSources' => collect($sourceRegistry->entries($catalogues->current()))
@@ -107,29 +109,30 @@ final class AdminWorkspaceController extends Controller
                 $query->where(static function (Builder $query) use ($search, $assessmentId): void {
                     $query->where('name', 'like', "%{$search}%")
                         ->orWhere('email', 'like', "%{$search}%")
-                        ->orWhereHas('latestAssessmentSession', fn (Builder $session) => $session
+                        ->orWhereHas('latestAssessmentSession', fn(Builder $session) => $session
                             ->where('result_payload', 'like', "%{$search}%"));
                     if ($assessmentId !== null) {
-                        $query->orWhereHas('latestAssessmentSession', fn (Builder $session) => $session->whereKey($assessmentId));
+                        $query->orWhereHas('latestAssessmentSession', fn(Builder $session) => $session->whereKey($assessmentId));
                     }
                 });
             })
             ->withCount('assessmentSessions')
+            ->withCount(['assessmentSessions as completed_assessment_sessions_count' => fn(Builder $q) => $q->where('status', 'result_available')])
             ->withCount('savedProgrammes')
             ->with([
                 'latestAssessmentSession.recommendationRun',
                 'currentEntranceExaminationResult',
                 'studentProfile',
             ])
-            ->when($status === 'not_started', fn (Builder $query) => $query->whereDoesntHave('assessmentSessions'))
-            ->when($status !== null && $status !== 'not_started', fn (Builder $query) => $query->whereHas(
+            ->when($status === 'not_started', fn(Builder $query) => $query->whereDoesntHave('assessmentSessions'))
+            ->when($status !== null && $status !== 'not_started', fn(Builder $query) => $query->whereHas(
                 'latestAssessmentSession',
-                fn (Builder $session) => $session->where('status', $status),
+                fn(Builder $session) => $session->where('status', $status),
             ))
-            ->when($eligibility === 'not_declared', fn (Builder $query) => $query->whereDoesntHave('currentEntranceExaminationResult'))
-            ->when(in_array($eligibility, ['board', 'non_board'], true), fn (Builder $query) => $query->whereHas(
+            ->when($eligibility === 'not_declared', fn(Builder $query) => $query->whereDoesntHave('currentEntranceExaminationResult'))
+            ->when(in_array($eligibility, ['board', 'non_board'], true), fn(Builder $query) => $query->whereHas(
                 'currentEntranceExaminationResult',
-                fn (Builder $result) => $result->where('eligibility_group', $eligibility),
+                fn(Builder $result) => $result->where('eligibility_group', $eligibility),
             ));
 
         match ($sort) {
@@ -150,6 +153,7 @@ final class AdminWorkspaceController extends Controller
             ->map(function (User $student): array {
                 $latest = $student->latestAssessmentSession;
                 $declaration = $student->currentEntranceExaminationResult;
+                $completedCount = (int) $student->completed_assessment_sessions_count;
 
                 return [
                     'id' => $student->getKey(),
@@ -157,9 +161,11 @@ final class AdminWorkspaceController extends Controller
                     'email' => $student->email,
                     'accountStatus' => $student->account_status,
                     'photoUrl' => $student->studentProfile?->photo_path
-                        ? '/api/v1/profile-photos/'.$student->getKey().'?v='.$student->studentProfile->updated_at?->getTimestamp()
+                        ? '/api/v1/profile-photos/' . $student->getKey() . '?v=' . $student->studentProfile->updated_at?->getTimestamp()
                         : $student->google_avatar_url,
                     'attemptCount' => $student->assessment_sessions_count,
+                    'completedAssessmentCount' => $completedCount,
+                    'retakeCount' => max(0, $completedCount - 1),
                     'latestResultAt' => $latest?->result_available_at?->toAtomString(),
                     'latestTopCode' => $latest ? $this->assessmentPresenter->topCode($latest) : null,
                     'declarationStatus' => $declaration ? 'declared' : 'required',
@@ -190,7 +196,7 @@ final class AdminWorkspaceController extends Controller
             ->with(['recommendationRun', 'entranceExaminationResult'])
             ->latest('attempt_number')
             ->get()
-            ->map(fn (AssessmentSession $session): array => array_merge(
+            ->map(fn(AssessmentSession $session): array => array_merge(
                 $this->assessmentPresenter->summary($session),
                 [
                     'dimensions' => $this->assessmentPresenter->dimensions($session),
@@ -204,13 +210,13 @@ final class AdminWorkspaceController extends Controller
                 'name' => $student->name,
                 'email' => $student->email,
                 'photoUrl' => $student->studentProfile?->photo_path
-                    ? '/api/v1/profile-photos/'.$student->getKey().'?v='.$student->studentProfile->updated_at?->getTimestamp()
+                    ? '/api/v1/profile-photos/' . $student->getKey() . '?v=' . $student->studentProfile->updated_at?->getTimestamp()
                     : $student->google_avatar_url,
                 'accountStatus' => $student->account_status,
                 'savedProgrammeCount' => $student->savedProgrammes()->count(),
                 'profile' => $student->studentProfile ? [
                     'photoUrl' => $student->studentProfile->photo_path
-                        ? '/api/v1/profile-photos/'.$student->getKey().'?v='.$student->studentProfile->updated_at?->getTimestamp()
+                        ? '/api/v1/profile-photos/' . $student->getKey() . '?v=' . $student->studentProfile->updated_at?->getTimestamp()
                         : $student->google_avatar_url,
                     'lrn' => $student->studentProfile->lrn,
                     'birthDate' => $student->studentProfile->birth_date,
@@ -227,8 +233,25 @@ final class AdminWorkspaceController extends Controller
                     'shsStrand' => $student->studentProfile->shs_strand,
                     'shsGraduationYear' => $student->studentProfile->shs_graduation_year,
                 ] : null,
+                'assessmentSummary' => [
+                    'totalAttempts' => $student->assessmentSessions()->count(),
+                    'completedAttempts' => $student->assessmentSessions()->where('status', 'result_available')->count(),
+                    'retakeCount' => max(0, $student->assessmentSessions()->where('status', 'result_available')->count() - 1),
+                    'latestAttempt' => $attempts->first() ?? null,
+                ],
                 'attempts' => $attempts,
             ],
+        ]);
+    }
+
+    public function studentResultCard(User $student, AssessmentSession $assessmentSession, ResultCardPresenter $presenter): JsonResponse
+    {
+        abort_unless($student->roles()->where('slug', RoleSlug::Student->value)->exists(), 404);
+        abort_unless($assessmentSession->user_id === $student->getKey(), 404);
+        abort_unless($assessmentSession->status === 'result_available', 404, 'Assessment result is not available for this attempt.');
+
+        return response()->json([
+            'data' => $presenter->present($assessmentSession),
         ]);
     }
 
@@ -245,7 +268,7 @@ final class AdminWorkspaceController extends Controller
                 'academicYear' => $catalogue['academic_year'],
                 'catalogueVersion' => $catalogue['catalogue_version'],
                 'catalogueStatus' => $catalogue['catalogue_status'],
-                'programmes' => array_map(static fn (array $programme): array => [
+                'programmes' => array_map(static fn(array $programme): array => [
                     'id' => $programme['id'],
                     'code' => $programme['short_label'],
                     'name' => $programme['display_name'],
@@ -298,7 +321,7 @@ final class AdminWorkspaceController extends Controller
                 'eligibility' => $policy['eligibility'],
                 'tieBreak' => $policy['tie_break'],
                 'display' => $policy['display'],
-                'catalogueReference' => 'TCC-AY-'.$catalogue['academic_year'].'-V'.$catalogue['catalogue_version'],
+                'catalogueReference' => 'TCC-AY-' . $catalogue['academic_year'] . '-V' . $catalogue['catalogue_version'],
             ],
         ]);
     }
@@ -331,15 +354,15 @@ final class AdminWorkspaceController extends Controller
         ]);
         $events = AdminAuditEvent::query()
             ->with('actor:id,name')
-            ->when(isset($validated['actor']), fn (Builder $query) => $query->where('actor_id', $validated['actor']))
-            ->when(isset($validated['action']), fn (Builder $query) => $query->where('action', $validated['action']))
-            ->when(isset($validated['subjectType']), fn (Builder $query) => $query->where('subject_type', $validated['subjectType']))
-            ->when(isset($validated['from']), fn (Builder $query) => $query->whereDate('created_at', '>=', $validated['from']))
-            ->when(isset($validated['to']), fn (Builder $query) => $query->whereDate('created_at', '<=', $validated['to']))
+            ->when(isset($validated['actor']), fn(Builder $query) => $query->where('actor_id', $validated['actor']))
+            ->when(isset($validated['action']), fn(Builder $query) => $query->where('action', $validated['action']))
+            ->when(isset($validated['subjectType']), fn(Builder $query) => $query->where('subject_type', $validated['subjectType']))
+            ->when(isset($validated['from']), fn(Builder $query) => $query->whereDate('created_at', '>=', $validated['from']))
+            ->when(isset($validated['to']), fn(Builder $query) => $query->whereDate('created_at', '<=', $validated['to']))
             ->latest()
             ->paginate((int) ($validated['perPage'] ?? 25));
         $items = $events->getCollection()
-            ->map(fn (AdminAuditEvent $event): array => [
+            ->map(fn(AdminAuditEvent $event): array => [
                 'id' => $event->getKey(),
                 'actorId' => $event->actor_id,
                 'actor' => $event->actor?->name,
@@ -356,7 +379,7 @@ final class AdminWorkspaceController extends Controller
                 'items' => $items,
                 'pagination' => $this->pagination($events),
                 'filters' => [
-                    'actors' => AdminAuditEvent::query()->with('actor:id,name')->get()->pluck('actor')->filter()->unique('id')->values()->map(fn (User $actor) => ['id' => $actor->getKey(), 'name' => $actor->name]),
+                    'actors' => AdminAuditEvent::query()->with('actor:id,name')->get()->pluck('actor')->filter()->unique('id')->values()->map(fn(User $actor) => ['id' => $actor->getKey(), 'name' => $actor->name]),
                     'actions' => AdminAuditEvent::query()->distinct()->orderBy('action')->pluck('action'),
                     'subjectTypes' => AdminAuditEvent::query()->distinct()->orderBy('subject_type')->pluck('subject_type'),
                 ],
@@ -367,7 +390,7 @@ final class AdminWorkspaceController extends Controller
     /** @return Builder<User> */
     private function studentQuery(): Builder
     {
-        return User::query()->whereHas('roles', static fn (Builder $query) => $query->where('slug', RoleSlug::Student->value));
+        return User::query()->whereHas('roles', static fn(Builder $query) => $query->where('slug', RoleSlug::Student->value));
     }
 
     private function latestSessionQuery(): Builder
