@@ -1,6 +1,6 @@
 # Administrator visual redesign
 
-**Status:** UPDATED for the owner-approved line-based reference direction on 2026-09-01; browser revalidation pending.
+**Status:** Layout remains APPROVED; the Admin-only black/neon palette was SUPERSEDED on 2026-09-05 by `2026-09-05-reference-derived-color-system.md`; browser revalidation pending.
 
 ## Scope
 
@@ -12,7 +12,7 @@ The follow-up owner direction retains the desktop sidebar, moves the Admin theme
 
 ## Design boundary
 
-- The Admin-only interface uses the owner-approved white, near-black, light-gray, and bright-green reference palette with Nunito Sans/Montserrat typography; Student and authentication themes remain unchanged.
+- The Administrator retains its white line-based layout and now follows the current balanced blue, green, coral-red, yellow, mint, and slate light palette with Nunito Sans/Montserrat Alternates typography.
 - Visual hierarchy comes from scale, alignment, dividers, and restrained tone rather than cards.
 - Admin controls use the existing shadcn primitives, including Button, Input, Select, Badge, Sheet, DropdownMenu, and Tooltip.
 - Report graphics use only stored aggregate counts. RIASEC evidence remains exact raw data and is not normalized or interpreted in the browser.

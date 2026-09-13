@@ -3,7 +3,7 @@ import path from 'node:path'
 
 import sharp from 'sharp'
 
-const assetsDirectory = path.resolve('src/assets/Pcs')
+const assetsDirectory = path.resolve('src/assets/programmes')
 const sourceExtensions = new Set(['.jpg', '.jpeg', '.jfif', '.png'])
 
 async function collectSourceImages(directory) {

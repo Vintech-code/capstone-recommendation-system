@@ -16,12 +16,12 @@ import landingJourney from "@/assets/images/landing-image2.png";
 import landingQuestion from "@/assets/images/landing-image-question.png";
 import landingFooter from "@/assets/images/landing-image-footer.png";
 import logo from "@/assets/logo/header-logo.png";
-import riasecR from "@/assets/landing/R.png";
-import riasecI from "@/assets/landing/I.png";
-import riasecA from "@/assets/landing/A.png";
-import riasecS from "@/assets/landing/S.png";
-import riasecE from "@/assets/landing/E.png";
-import riasecC from "@/assets/landing/C.png";
+import riasecR from "@/assets/images/R.png";
+import riasecI from "@/assets/images/I.png";
+import riasecA from "@/assets/images/A.png";
+import riasecS from "@/assets/images/S.png";
+import riasecE from "@/assets/images/E.png";
+import riasecC from "@/assets/images/C.png";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { StudentAuthModal } from "@/features/auth/components/student-auth-modal";
@@ -378,7 +378,7 @@ function LandingPage({ initialAuth }: LandingPageProps = {}) {
                 asChild
                 size="sm"
                 className={cn(
-                  "relative inline-flex rounded-full font-bold shadow-xs transition-all duration-150 bg-primary text-white border border-[#62ad19]/40 hover:bg-[#70c21d] active:translate-y-1",
+                  "relative inline-flex rounded-full border border-[#62ad19]/40 bg-primary font-bold text-primary-foreground shadow-xs transition-all duration-150 hover:bg-[#70c21d] active:translate-y-1",
                   isScrolled
                     ? "px-3.5 py-1 text-xs sm:text-sm sm:px-4"
                     : "px-3.5 sm:px-4.5",
@@ -498,7 +498,7 @@ function LandingPage({ initialAuth }: LandingPageProps = {}) {
                 <Button
                   asChild
                   size="default"
-                  className="relative inline-flex w-full sm:w-auto rounded-full px-6 font-bold shadow-xs transition-all duration-150 bg-primary text-white border border-[#62ad19]/40 hover:bg-[#70c21d] active:translate-y-1 sm:active:translate-y-1.5"
+                  className="relative inline-flex w-full rounded-full border border-[#62ad19]/40 bg-primary px-6 font-bold text-primary-foreground shadow-xs transition-all duration-150 hover:bg-[#70c21d] active:translate-y-1 sm:w-auto sm:active:translate-y-1.5"
                 >
                   <Link
                     to="/student/login"
@@ -577,7 +577,7 @@ function LandingPage({ initialAuth }: LandingPageProps = {}) {
               <Button
                 asChild
                 size="default"
-                className="rounded-full px-7 text-white shadow-xs"
+                className="rounded-full px-7 text-primary-foreground shadow-xs"
               >
                 <a href="#journey">
                   Learn more about the journey
@@ -660,7 +660,7 @@ function LandingPage({ initialAuth }: LandingPageProps = {}) {
                   <Button
                     asChild
                     size="default"
-                    className="rounded-full px-7 text-white shadow-xs"
+                    className="rounded-full px-7 text-primary-foreground shadow-xs"
                   >
                     <Link
                       to="/student/login"
@@ -851,7 +851,7 @@ function LandingPage({ initialAuth }: LandingPageProps = {}) {
                 <Button
                   asChild
                   size="default"
-                  className="rounded-full px-7 text-white shadow-xs"
+                  className="rounded-full px-7 text-primary-foreground shadow-xs"
                 >
                   <Link
                     to="/student/login"
@@ -896,7 +896,7 @@ function LandingPage({ initialAuth }: LandingPageProps = {}) {
 
       {/* PUBLIC FOOTER */}
       <footer
-        className="relative isolate overflow-hidden bg-primary text-white"
+        className="relative isolate overflow-hidden bg-primary-ink text-white"
         aria-label="Public site footer"
       >
         <div className="relative z-10 mx-auto max-w-300 px-4 pb-32 pt-12 sm:px-6 sm:pb-40 lg:px-8 lg:pb-48 lg:pt-16">

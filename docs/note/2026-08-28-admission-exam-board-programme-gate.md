@@ -20,7 +20,7 @@ Mapped to the current versioned application catalogue, the proposed classificati
 | Group | Current catalogue programmes |
 | --- | --- |
 | Board | Bachelor of Elementary Education; Bachelor of Secondary Education; Bachelor of Physical Education; Bachelor of Library and Information Science; BS Criminology; BS Midwifery |
-| Non-board | BS Information Technology; BS Business Administration; BS Hospitality Management; BS Sociology; BS Community Development |
+| Non-board | BS Information Technology; BS Business Administration; BS Hospitality Management; BA Sociology; BS Community Development |
 
 PRC materials independently show licensure-examination paths for criminology, librarianship, midwifery, BEEd/BSEd, and Bachelor of Physical Education.
 

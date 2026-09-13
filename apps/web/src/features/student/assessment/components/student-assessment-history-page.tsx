@@ -1,70 +1,103 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState } from "react";
 
-import { ErrorState, LoadingState } from '@/components/shared'
+import { ErrorState, LoadingState } from "@/components/shared";
 import {
   getAssessmentHistory,
   getCurrentAssessment,
   startAssessment,
   type AssessmentHistoryResponse,
   type AssessmentLifecycle,
-} from '@/features/student/assessment/assessment-api'
-import { StudentPageHeader } from '@/features/student/components/student-page-header'
-import { AssessmentHistorySummary } from '@/features/student/dashboard/components/student-dashboard-page'
-import { getRecommendationForAttempt } from '@/features/student/recommendations/recommendation-api'
-import type { StudentRecommendationState } from '@/features/student/recommendations/recommendation-types'
+} from "@/features/student/assessment/assessment-api";
+import { StudentPageHeader } from "@/features/student/components/student-page-header";
+import { AssessmentHistorySummary } from "@/features/student/dashboard/components/student-dashboard-page";
+import { getRecommendationForAttempt } from "@/features/student/recommendations/recommendation-api";
+import type { StudentRecommendationState } from "@/features/student/recommendations/recommendation-types";
 
 interface StudentAssessmentHistoryPageProps {
-  onBack: () => void
-  onOpenAssessment: () => void
+  onBack: () => void;
+  onOpenAssessment: () => void;
+  onExploreMatches?: () => void;
 }
 
-function StudentAssessmentHistoryPage({ onBack, onOpenAssessment }: StudentAssessmentHistoryPageProps) {
-  const [lifecycle, setLifecycle] = useState<AssessmentLifecycle | null>(null)
-  const [history, setHistory] = useState<AssessmentHistoryResponse | null>(null)
-  const [loadState, setLoadState] = useState<'loading' | 'ready' | 'error'>('loading')
-  const [historyError, setHistoryError] = useState(false)
-  const [selectedAttemptId, setSelectedAttemptId] = useState<number | null>(null)
-  const [selectedRecommendation, setSelectedRecommendation] = useState<StudentRecommendationState | null>(null)
-  const [selectedRecommendationState, setSelectedRecommendationState] = useState<'idle' | 'loading' | 'error'>('idle')
+function StudentAssessmentHistoryPage({
+  onBack,
+  onOpenAssessment,
+  onExploreMatches,
+}: StudentAssessmentHistoryPageProps) {
+  const [lifecycle, setLifecycle] = useState<AssessmentLifecycle | null>(null);
+  const [history, setHistory] = useState<AssessmentHistoryResponse | null>(
+    null,
+  );
+  const [loadState, setLoadState] = useState<"loading" | "ready" | "error">(
+    "loading",
+  );
+  const [historyError, setHistoryError] = useState(false);
+  const [selectedAttemptId, setSelectedAttemptId] = useState<number | null>(
+    null,
+  );
+  const [selectedRecommendation, setSelectedRecommendation] =
+    useState<StudentRecommendationState | null>(null);
+  const [selectedRecommendationState, setSelectedRecommendationState] =
+    useState<"idle" | "loading" | "error">("idle");
 
   async function loadHistory() {
-    setHistoryError(false)
-    const attempts = await getAssessmentHistory()
-    setHistory(attempts)
-    return attempts
+    setHistoryError(false);
+    const attempts = await getAssessmentHistory();
+    setHistory(attempts);
+    return attempts;
   }
 
   useEffect(() => {
-    let active = true
+    let active = true;
     Promise.all([getCurrentAssessment(), getAssessmentHistory()])
       .then(([current, attempts]) => {
-        if (!active) return
-        setLifecycle(current)
-        setHistory(attempts)
-        setLoadState('ready')
+        if (!active) return;
+        setLifecycle(current);
+        setHistory(attempts);
+        setLoadState("ready");
       })
-      .catch(() => active && setLoadState('error'))
-    return () => { active = false }
-  }, [])
+      .catch(() => active && setLoadState("error"));
+    return () => {
+      active = false;
+    };
+  }, []);
 
   async function selectAttempt(assessmentSessionId: number) {
-    setSelectedAttemptId(assessmentSessionId)
-    setSelectedRecommendation(null)
-    setSelectedRecommendationState('loading')
+    setSelectedAttemptId(assessmentSessionId);
+    setSelectedRecommendation(null);
+    setSelectedRecommendationState("loading");
     try {
-      setSelectedRecommendation(await getRecommendationForAttempt(assessmentSessionId))
-      setSelectedRecommendationState('idle')
+      setSelectedRecommendation(
+        await getRecommendationForAttempt(assessmentSessionId),
+      );
+      setSelectedRecommendationState("idle");
     } catch {
-      setSelectedRecommendationState('error')
+      setSelectedRecommendationState("error");
     }
   }
 
-  if (loadState === 'loading') {
-    return <div className="student-page py-8"><LoadingState variant="dashboard" title="Loading assessment history" description="Restoring your recorded attempts." /></div>
+  if (loadState === "loading") {
+    return (
+      <div className="student-page py-8">
+        <LoadingState
+          variant="dashboard"
+          title="Loading assessment history"
+          description="Restoring your recorded attempts."
+        />
+      </div>
+    );
   }
 
-  if (loadState === 'error' || !lifecycle) {
-    return <div className="student-page py-8"><ErrorState title="Assessment history could not be loaded" description="Your assessment records were not changed. Check your connection and try again." onRetry={() => window.location.reload()} /></div>
+  if (loadState === "error" || !lifecycle) {
+    return (
+      <div className="student-page py-8">
+        <ErrorState
+          title="Assessment history could not be loaded"
+          description="Your assessment records were not changed. Check your connection and try again."
+          onRetry={() => window.location.reload()}
+        />
+      </div>
+    );
   }
 
   return (
@@ -84,20 +117,22 @@ function StudentAssessmentHistoryPage({ onBack, onOpenAssessment }: StudentAsses
             selectedRecommendation={selectedRecommendation}
             selectedRecommendationState={selectedRecommendationState}
             onSelectAttempt={selectAttempt}
+            onResumeAssessment={onOpenAssessment}
+            onExploreMatches={onExploreMatches}
             onRetryHistory={() => {
-              void loadHistory().catch(() => setHistoryError(true))
+              void loadHistory().catch(() => setHistoryError(true));
             }}
             onStartRetake={async (reason) => {
-              const next = await startAssessment(reason)
-              setLifecycle(next)
-              await loadHistory()
-              onOpenAssessment()
+              const next = await startAssessment(reason);
+              setLifecycle(next);
+              await loadHistory();
+              onOpenAssessment();
             }}
           />
         </div>
       </div>
     </div>
-  )
+  );
 }
 
-export { StudentAssessmentHistoryPage }
+export { StudentAssessmentHistoryPage };

@@ -240,6 +240,63 @@ export function AdminReportsPage() {
         </div>
       </section>
 
+      {data.retakeMetrics ? (
+        <section aria-labelledby="retakes-heading">
+          <SectionHeading
+            eyebrow="Assessment frequency & retakes"
+            title="Retake assessment activity"
+            description="Institutional monitoring of multiple assessment attempts and completed retakes."
+            id="retakes-heading"
+          />
+          <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <div className="rounded-xs border border-border bg-card p-4 shadow-sm">
+              <span className="block font-label text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                Total Attempts
+              </span>
+              <span className="mt-1 block font-display text-2xl font-black text-foreground">
+                {data.retakeMetrics.totalAssessmentAttempts}
+              </span>
+              <span className="mt-1 block text-xs text-muted-foreground">
+                All initiated assessment sessions
+              </span>
+            </div>
+            <div className="rounded-xs border border-border bg-card p-4 shadow-sm">
+              <span className="block font-label text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                Completed Attempts
+              </span>
+              <span className="mt-1 block font-display text-2xl font-black text-primary-ink">
+                {data.retakeMetrics.totalCompletedAttempts}
+              </span>
+              <span className="mt-1 block text-xs text-muted-foreground">
+                All finalized RIASEC outcomes
+              </span>
+            </div>
+            <div className="rounded-xs border border-border bg-card p-4 shadow-sm">
+              <span className="block font-label text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                Students with Retakes
+              </span>
+              <span className="mt-1 block font-display text-2xl font-black text-foreground">
+                {data.retakeMetrics.studentsWithRetakes}
+              </span>
+              <span className="mt-1 block text-xs text-muted-foreground">
+                Students with &gt;1 completed result
+              </span>
+            </div>
+            <div className="rounded-xs border border-border bg-card p-4 shadow-sm">
+              <span className="block font-label text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                Total Retake Sessions
+              </span>
+              <span className="mt-1 block font-display text-2xl font-black text-amber-800 dark:text-amber-300">
+                {data.retakeMetrics.totalRetakeAttempts}
+              </span>
+              <span className="mt-1 block text-xs text-muted-foreground">
+                Attempts beyond initial (attempt &gt; 1)
+              </span>
+            </div>
+          </div>
+        </section>
+      ) : null}
+
       <section
         className="grid gap-8 lg:grid-cols-2"
         aria-label="Report breakdowns"

@@ -1,6 +1,6 @@
 # Warm coastal color system
 
-**Status:** APPROVED working product direction; PROVISIONAL institutional identity; implementation IN PROGRESS.  
+**Status:** SUPERSEDED on 2026-09-05 by `2026-09-05-reference-derived-color-system.md`.
 **Recorded:** 2026-08-30.  
 **Authority:** Repository owner request to replace the reference-adjacent palette across the product.
 

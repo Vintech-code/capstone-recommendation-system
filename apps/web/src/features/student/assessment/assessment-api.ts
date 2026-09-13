@@ -1,4 +1,5 @@
 import { getCachedStudentResource, invalidateStudentResources, setCachedStudentResource } from '@/features/student/student-resource-cache'
+import { apiDataRequest, apiRequest } from '@/services/api-client'
 
 const currentAssessmentKey = 'assessment:current'
 const assessmentQuestionsKey = 'assessment:questions'
@@ -38,6 +39,8 @@ interface AssessmentLifecycle {
   result_available_at?: string | null
   retake_available_at?: string | null
   retake_reason?: string | null
+  share_token?: string | null
+  shared_at?: string | null
   can_retake?: boolean
   attempt_number?: number
   is_current?: boolean
@@ -50,6 +53,46 @@ interface AssessmentLifecycle {
     result: AssessmentResultEntry[]
     guidance?: ProposedRiasecGuidance
   } | null
+  entrance_examination?: {
+    score: number
+    eligibility_group: 'board' | 'non_board'
+    declared_at?: string | null
+  } | null
+  recommendation_summary?: {
+    id: number
+    catalogue_reference: string
+    total_eligible: number
+    ranked_count: number
+    generated_at?: string | null
+  } | null
+}
+
+interface ResultDimension {
+  code: 'R' | 'I' | 'A' | 'S' | 'E' | 'C'
+  label: string
+  value: number
+}
+
+interface ResultCardData {
+  id: number
+  reference: string
+  studentName: string
+  attemptNumber: number
+  isCurrent: boolean
+  instrumentCode: string
+  status: string
+  startedAt?: string | null
+  submittedAt?: string | null
+  resultAvailableAt?: string | null
+  topCode: string
+  formattedTopCode: string
+  topDimensions: ResultDimension[]
+  dimensions: ResultDimension[]
+  scoringVersion: string
+  guidanceVersion: string
+  disclaimer: string
+  shareToken?: string | null
+  sharedAt?: string | null
 }
 
 interface AssessmentHistoryResponse {
@@ -126,43 +169,12 @@ class AssessmentApiError extends Error {
   }
 }
 
-function csrfToken() {
-  const cookie = document.cookie
-    .split('; ')
-    .find((item) => item.startsWith('XSRF-TOKEN='))
-
-  return cookie ? decodeURIComponent(cookie.split('=').slice(1).join('=')) : ''
-}
-
 async function assessmentRequest<T>(path: string, init: RequestInit = {}) {
-  const headers = new Headers(init.headers)
-  headers.set('Accept', 'application/json')
-  if (init.body) headers.set('Content-Type', 'application/json')
-  const token = csrfToken()
-  if (token) headers.set('X-XSRF-TOKEN', token)
-
-  let response: Response
-  try {
-    response = await fetch(path, { ...init, headers, credentials: 'include' })
-  } catch {
-    throw new AssessmentApiError(
-      'Unable to reach the assessment service.',
-      0,
-    )
-  }
-
-  const payload = (await response.json().catch(() => ({}))) as {
-    data?: T
-    message?: string
-  }
-  if (!response.ok || payload.data === undefined) {
-    throw new AssessmentApiError(
-      payload.message ?? 'The assessment request could not be completed.',
-      response.status,
-    )
-  }
-
-  return payload.data
+  return apiDataRequest<T>(path, init, {
+    fallbackMessage: 'The assessment request could not be completed.',
+    networkMessage: 'Unable to reach the assessment service.',
+    errorFactory: (message, status) => new AssessmentApiError(message, status),
+  })
 }
 
 function getCurrentAssessment(force = false) {
@@ -243,20 +255,45 @@ async function retryAssessmentResult(sessionId: number) {
 
 function getAssessmentHistory(): Promise<AssessmentHistoryResponse> {
   return getCachedStudentResource(assessmentHistoryKey, async () => {
-    const response = await fetch('/api/v1/student/assessments/riasec/history', {
-    headers: { Accept: 'application/json' },
-    credentials: 'include',
-  })
-    const payload = (await response.json().catch(() => ({}))) as {
-    data?: AssessmentLifecycle[]
-    policy?: AssessmentHistoryResponse['policy']
-    message?: string
-  }
-    if (!response.ok || !payload.data || !payload.policy) {
-      throw new AssessmentApiError(payload.message ?? 'Assessment history could not be loaded.', response.status)
+    const payload = await apiRequest<{
+      data?: AssessmentLifecycle[]
+      policy?: AssessmentHistoryResponse['policy']
+      message?: string
+    }>('/api/v1/student/assessments/riasec/history', {}, {
+      fallbackMessage: 'Assessment history could not be loaded.',
+      networkMessage: 'Unable to reach the assessment service.',
+      errorFactory: (message, status) => new AssessmentApiError(message, status),
+    })
+    if (!payload.data || !payload.policy) {
+      throw new AssessmentApiError(payload.message ?? 'Assessment history could not be loaded.', 200)
     }
     return { attempts: payload.data, policy: payload.policy }
   })
+}
+
+async function shareAssessmentResult(sessionId: number): Promise<{ shareToken: string; shareUrl: string; sharedAt: string }> {
+  return assessmentRequest<{ shareToken: string; shareUrl: string; sharedAt: string }>(
+    `/api/v1/student/assessments/riasec/sessions/${sessionId}/share`,
+    { method: 'POST' },
+  )
+}
+
+async function getAssessmentResultCard(sessionId: number): Promise<ResultCardData> {
+  return assessmentRequest<ResultCardData>(
+    `/api/v1/student/assessments/riasec/sessions/${sessionId}/card`,
+  )
+}
+
+async function getSharedResult(shareToken: string): Promise<ResultCardData> {
+  return apiDataRequest<ResultCardData>(
+    `/api/v1/shared/results/${shareToken}`,
+    {},
+    {
+      fallbackMessage: 'Shared assessment result could not be loaded.',
+      networkMessage: 'Unable to reach the result sharing service.',
+      errorFactory: (message, status) => new AssessmentApiError(message, status),
+    },
+  )
 }
 
 export {
@@ -270,6 +307,9 @@ export {
   submitAssessmentSession,
   retryAssessmentResult,
   getAssessmentHistory,
+  shareAssessmentResult,
+  getAssessmentResultCard,
+  getSharedResult,
 }
 export type {
   AssessmentHistoryResponse,
@@ -278,4 +318,6 @@ export type {
   AssessmentQuestionPayload,
   EntranceExaminationEligibilityGroup,
   EntranceExaminationState,
+  ResultCardData,
+  ResultDimension,
 }

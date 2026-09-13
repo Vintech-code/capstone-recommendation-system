@@ -17,6 +17,7 @@ import {
   RotateCcw,
   Route,
   Search,
+  Award,
   Target,
   UsersRound,
   type LucideIcon,
@@ -27,12 +28,21 @@ import { ErrorState, LoadingState } from "@/components/shared";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   getAssessmentHistory,
+  getAssessmentResultCard,
   getCurrentAssessment,
   retryAssessmentResult,
   type AssessmentHistoryResponse,
   type AssessmentLifecycle,
+  type ResultCardData,
 } from "@/features/student/assessment/assessment-api";
+import { StudentResultCard } from "@/features/student/assessment/components/student-result-card";
 import { RetakeAssessmentDialog } from "@/features/student/assessment/components/retake-assessment-dialog";
 import {
   formatAssessmentDate,
@@ -577,6 +587,51 @@ function StudentDashboardPage({
   );
 }
 
+function toResultCardData(
+  attempt: AssessmentLifecycle,
+  studentName = "Student Applicant",
+): ResultCardData | null {
+  const result = mapAssessmentResult(attempt);
+  if (!result || !attempt.id) return null;
+
+  const dimensions = result.dimensions.map((d) => ({
+    code: d.code,
+    label: d.label,
+    value: d.value,
+  }));
+
+  const sorted = [...dimensions].sort((a, b) => b.value - a.value);
+  const topCodes = sorted.slice(0, 3).map((d) => d.code);
+
+  return {
+    id: attempt.id,
+    reference:
+      attempt.reference ?? `ASMT-${String(attempt.id).padStart(6, "0")}`,
+    studentName,
+    attemptNumber: attempt.attempt_number ?? 1,
+    isCurrent: Boolean(attempt.is_current),
+    instrumentCode: attempt.instrument_code ?? "tcc-uhcc-riasec-42-v1",
+    status: attempt.status,
+    startedAt: attempt.started_at,
+    submittedAt: attempt.submitted_at,
+    resultAvailableAt: attempt.result_available_at,
+    topCode: topCodes.join(""),
+    formattedTopCode: topCodes.join("-"),
+    topDimensions: sorted.slice(0, 3),
+    dimensions,
+    scoringVersion:
+      attempt.result?.scoring_source ??
+      attempt.result?.instrument_code ??
+      "RIASEC-OQ42-2026-01",
+    guidanceVersion:
+      attempt.result?.guidance?.version ?? "METHODOLOGY-PROPOSED-2026-01",
+    disclaimer:
+      "This assessment result reflects self-reported interest alignment and researcher-proposed guidance rules. It does not constitute official admission or an institutional guarantee by Tanauan City College.",
+    shareToken: attempt.share_token,
+    sharedAt: attempt.shared_at,
+  };
+}
+
 interface AssessmentHistorySummaryProps {
   history: AssessmentHistoryResponse | null;
   historyError: boolean;
@@ -587,6 +642,8 @@ interface AssessmentHistorySummaryProps {
   onSelectAttempt: (assessmentSessionId: number) => Promise<void>;
   onRetryHistory: () => void;
   onStartRetake: (reason?: string) => Promise<void>;
+  onResumeAssessment?: () => void;
+  onExploreMatches?: () => void;
 }
 
 function AssessmentHistorySummary({
@@ -599,10 +656,28 @@ function AssessmentHistorySummary({
   onSelectAttempt,
   onRetryHistory,
   onStartRetake,
+  onResumeAssessment,
+  onExploreMatches,
 }: AssessmentHistorySummaryProps) {
   const [starting, setStarting] = useState(false);
   const [confirmingRetake, setConfirmingRetake] = useState(false);
   const [retakeError, setRetakeError] = useState(false);
+  const [activeResultCard, setActiveResultCard] =
+    useState<ResultCardData | null>(null);
+
+  async function handleOpenResultCard(attempt: AssessmentLifecycle) {
+    if (attempt.id) {
+      try {
+        const card = await getAssessmentResultCard(attempt.id);
+        setActiveResultCard(card);
+        return;
+      } catch {
+        // fallback to local mapped card
+      }
+    }
+    const local = toResultCardData(attempt);
+    if (local) setActiveResultCard(local);
+  }
   const availableDate = formatAssessmentDate(lifecycle.retake_available_at);
   const retakeLabel = lifecycle.can_retake
     ? "Start retake"
@@ -683,6 +758,27 @@ function AssessmentHistorySummary({
         </Button>
       </div>
       <div className="p-5 pt-0 sm:p-7 sm:pt-0">
+        {lifecycle.status === "result_available" &&
+        !lifecycle.can_retake &&
+        Boolean(lifecycle.retake_available_at) &&
+        new Date() < new Date(lifecycle.retake_available_at!) ? (
+          <Alert className="mb-5 border-warning/40 bg-warning/10 text-foreground">
+            <AlertCircle
+              className="size-4 text-warning-ink"
+              aria-hidden="true"
+            />
+            <AlertTitle className="font-bold text-warning-ink">
+              Retake policy waiting period
+            </AlertTitle>
+            <AlertDescription className="text-xs text-muted-foreground">
+              Under policy rule{" "}
+              {history?.policy?.version ?? "RETAKE-PROPOSED-2026-01"}, retaking
+              requires a waiting period. Next attempt available on{" "}
+              {availableDate}.
+            </AlertDescription>
+          </Alert>
+        ) : null}
+
         {retakeError ? (
           <Alert variant="destructive" className="mb-5">
             <AlertCircle aria-hidden="true" />
@@ -701,12 +797,15 @@ function AssessmentHistorySummary({
               onRetry={onRetryHistory}
             />
           ) : history ? (
-            <ol className="relative space-y-2 border-l border-outline-variant pl-5">
+            <ol className="relative space-y-3 border-l border-outline-variant pl-5">
               {history.attempts.map((item) => {
                 const result = mapAssessmentResult(item);
                 const isSelected = selectedAttemptId === item.id;
                 const isCurrent = item.is_current;
                 const isCurrentResult = item.id === latestCompletedId;
+                const itemReference =
+                  item.reference ??
+                  (item.id ? `ASMT-${String(item.id).padStart(6, "0")}` : null);
                 return (
                   <li
                     key={item.id}
@@ -721,10 +820,19 @@ function AssessmentHistorySummary({
                     >
                       <span className="flex items-start justify-between gap-3">
                         <span>
-                          <span
-                            className={`text-xs font-extrabold uppercase tracking-[0.12em] ${isSelected ? "text-primary-foreground/75" : "text-primary-ink"}`}
-                          >
-                            Attempt {item.attempt_number}
+                          <span className="flex items-center gap-2">
+                            <span
+                              className={`text-xs font-extrabold uppercase tracking-[0.12em] ${isSelected ? "text-primary-foreground/75" : "text-primary-ink"}`}
+                            >
+                              Attempt {item.attempt_number}
+                            </span>
+                            {itemReference ? (
+                              <span
+                                className={`font-mono text-[10px] font-bold ${isSelected ? "text-primary-foreground/65" : "text-muted-foreground"}`}
+                              >
+                                {itemReference}
+                              </span>
+                            ) : null}
                           </span>
                           <span className="mt-2 block text-xl font-extrabold">
                             {result?.topCode ??
@@ -779,8 +887,89 @@ function AssessmentHistorySummary({
                             Previous result
                           </span>
                         ) : null}
+                        {item.status === "preparing_result" ? (
+                          <span className="rounded-full bg-warning/20 px-2.5 py-1 text-[10px] font-bold text-warning-ink">
+                            Processing
+                          </span>
+                        ) : null}
+                        {item.status === "result_failed" ? (
+                          <span className="rounded-full bg-destructive/20 px-2.5 py-1 text-[10px] font-bold text-destructive-ink">
+                            Result unavailable
+                          </span>
+                        ) : null}
                       </span>
                     </button>
+
+                    <div
+                      className="mt-2 flex flex-wrap items-center gap-1.5"
+                      data-print-hidden
+                    >
+                      {item.status === "result_available" ? (
+                        <>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 gap-1 px-2.5 text-[11px] font-extrabold text-primary-ink hover:bg-primary/10"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              void handleOpenResultCard(item);
+                            }}
+                          >
+                            <Award className="size-3" aria-hidden="true" />
+                            View Result Card
+                          </Button>
+                          {onExploreMatches ? (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="h-7 gap-1 px-2.5 text-[11px] font-bold text-muted-foreground hover:bg-secondary"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (item.id) void onSelectAttempt(item.id);
+                                onExploreMatches();
+                              }}
+                            >
+                              Explore Matches
+                            </Button>
+                          ) : null}
+                        </>
+                      ) : null}
+                      {item.status === "in_progress" && onResumeAssessment ? (
+                        <Button
+                          type="button"
+                          variant="default"
+                          size="sm"
+                          className="h-7 gap-1 px-3 text-[11px] font-extrabold"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onResumeAssessment();
+                          }}
+                        >
+                          Resume Assessment
+                          <ArrowRight className="size-3" aria-hidden="true" />
+                        </Button>
+                      ) : null}
+                      {item.status === "result_failed" ? (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="h-7 gap-1 border-destructive/40 px-2.5 text-[11px] font-bold text-destructive-ink hover:bg-destructive/10"
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            if (item.id) {
+                              await retryAssessmentResult(item.id);
+                              onRetryHistory();
+                            }
+                          }}
+                        >
+                          <RotateCcw className="size-3" aria-hidden="true" />
+                          Retry Result
+                        </Button>
+                      ) : null}
+                    </div>
                   </li>
                 );
               })}
@@ -799,6 +988,18 @@ function AssessmentHistorySummary({
                 previousAttempt={previousCompletedAttempt}
                 recommendation={selectedRecommendation}
                 recommendationState={selectedRecommendationState}
+                onViewResultCard={() =>
+                  void handleOpenResultCard(selectedAttempt)
+                }
+                onExploreMatches={
+                  onExploreMatches
+                    ? () => {
+                        if (selectedAttempt.id)
+                          void onSelectAttempt(selectedAttempt.id);
+                        onExploreMatches();
+                      }
+                    : undefined
+                }
               />
             ) : (
               <div className="flex min-h-72 flex-col justify-between rounded-2xl bg-primary-fixed/45 p-6 sm:p-8">
@@ -835,6 +1036,32 @@ function AssessmentHistorySummary({
         description="Your completed results will stay available in Assessment history. The new attempt starts with no answers and becomes your current assessment."
         onConfirm={startRetake}
       />
+
+      <Dialog
+        open={Boolean(activeResultCard)}
+        onOpenChange={(open) => {
+          if (!open) setActiveResultCard(null);
+        }}
+      >
+        <DialogContent
+          className="max-h-[92vh] max-w-3xl overflow-y-auto border-none bg-transparent p-0 shadow-2xl"
+          closeLabel="Close result card"
+        >
+          <DialogTitle className="sr-only">
+            RIASEC Assessment Result Card
+          </DialogTitle>
+          <DialogDescription className="sr-only">
+            Official Holland interest alignment record for Attempt{" "}
+            {activeResultCard?.attemptNumber}
+          </DialogDescription>
+          {activeResultCard ? (
+            <StudentResultCard
+              card={activeResultCard}
+              onClose={() => setActiveResultCard(null)}
+            />
+          ) : null}
+        </DialogContent>
+      </Dialog>
     </section>
   );
 }
@@ -844,11 +1071,15 @@ function HistoricalAttemptDetails({
   previousAttempt,
   recommendation,
   recommendationState,
+  onViewResultCard,
+  onExploreMatches,
 }: {
   attempt: AssessmentLifecycle;
   previousAttempt: AssessmentLifecycle | null;
   recommendation: StudentRecommendationState | null;
   recommendationState: "idle" | "loading" | "error";
+  onViewResultCard?: () => void;
+  onExploreMatches?: () => void;
 }) {
   const result = mapAssessmentResult(attempt);
   if (!result) return null;
@@ -890,6 +1121,100 @@ function HistoricalAttemptDetails({
           <p className="mt-1 text-3xl font-extrabold">{result.topCode}</p>
         </div>
       </div>
+
+      <div
+        className="mt-4 flex flex-wrap items-center gap-2.5"
+        data-print-hidden
+      >
+        <Button
+          type="button"
+          size="sm"
+          onClick={onViewResultCard}
+          className="h-9 gap-1.5 rounded-full px-4 text-xs font-extrabold"
+        >
+          <Award className="size-3.5" aria-hidden="true" />
+          View Result Card
+        </Button>
+        {onExploreMatches ? (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={onExploreMatches}
+            className="h-9 gap-1.5 rounded-full bg-background px-4 text-xs font-bold"
+          >
+            Explore Matches
+            <ArrowRight className="size-3.5" aria-hidden="true" />
+          </Button>
+        ) : null}
+      </div>
+
+      <div className="mt-4 grid grid-cols-2 gap-2 text-xs sm:grid-cols-3">
+        <div className="rounded-xl bg-background p-2.5 text-center shadow-2xs">
+          <span className="block text-[10px] font-bold text-muted-foreground">
+            Started
+          </span>
+          <span className="font-extrabold">
+            {formatAssessmentDate(attempt.started_at)}
+          </span>
+        </div>
+        <div className="rounded-xl bg-background p-2.5 text-center shadow-2xs">
+          <span className="block text-[10px] font-bold text-muted-foreground">
+            Submitted
+          </span>
+          <span className="font-extrabold">
+            {formatAssessmentDate(attempt.submitted_at ?? attempt.saved_at)}
+          </span>
+        </div>
+        <div className="rounded-xl bg-background p-2.5 text-center shadow-2xs">
+          <span className="block text-[10px] font-bold text-muted-foreground">
+            Result Available
+          </span>
+          <span className="font-extrabold">
+            {formatAssessmentDate(attempt.result_available_at)}
+          </span>
+        </div>
+      </div>
+
+      {attempt.entrance_examination ? (
+        <div className="mt-4 flex items-center justify-between rounded-xl bg-background p-3.5 shadow-2xs text-xs">
+          <div>
+            <span className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+              Self-Declared Entrance Exam
+            </span>
+            <span className="font-extrabold">
+              Score: {attempt.entrance_examination.score}
+            </span>
+          </div>
+          <span className="rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-extrabold text-primary-ink">
+            {attempt.entrance_examination.eligibility_group === "board"
+              ? "Board Programme Group (1.0 - 2.5)"
+              : "Non-Board Programme Group (2.6 - 5.0)"}
+          </span>
+        </div>
+      ) : null}
+
+      {attempt.recommendation_summary ? (
+        <div className="mt-3 flex items-center justify-between rounded-xl bg-background p-3.5 shadow-2xs text-xs">
+          <div>
+            <span className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+              Recommendation Snapshot
+            </span>
+            <span className="font-extrabold">
+              Catalogue {attempt.recommendation_summary.catalogue_reference}
+            </span>
+          </div>
+          <div className="text-right">
+            <span className="block font-extrabold text-primary-ink">
+              {attempt.recommendation_summary.total_eligible} eligible
+              programmes
+            </span>
+            <span className="text-[10px] text-muted-foreground">
+              {attempt.recommendation_summary.ranked_count} ranked matches
+            </span>
+          </div>
+        </div>
+      ) : null}
       <dl className="mt-5 grid grid-cols-3 gap-2 sm:grid-cols-6">
         {result.dimensions.map((dimension) => (
           <div

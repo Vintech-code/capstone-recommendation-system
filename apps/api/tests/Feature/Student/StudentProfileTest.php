@@ -189,7 +189,7 @@ class StudentProfileTest extends TestCase
         $this->actingAs($student)
             ->getJson('/api/v1/student/profile')
             ->assertOk()
-            ->assertJsonPath('data.careerInterests.0', 'Software and application development')
+            ->assertJsonPath('data.careerInterests.0', 'Web and applications developer')
             ->assertJsonPath('data.riasec.code', 'I-S-A');
     }
 

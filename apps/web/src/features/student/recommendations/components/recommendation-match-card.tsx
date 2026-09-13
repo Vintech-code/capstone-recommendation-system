@@ -59,7 +59,7 @@ function RecommendationMatchCard({
         >
           <div className="relative z-10">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="font-label text-xs font-bold uppercase tracking-[0.12em] text-muted-foreground">
+              <span className="font-label text-xs font-bold uppercase tracking-[0.12em] text-foreground">
                 Rank #{course.rank}
               </span>
               <span
@@ -83,7 +83,7 @@ function RecommendationMatchCard({
             </h3>
 
             {course.summary ? (
-              <p className="mt-1.5 max-w-4xl text-sm font-medium leading-6 text-muted-foreground sm:text-base">
+              <p className="mt-1.5 max-w-4xl text-sm font-medium leading-6 text-foreground sm:text-base">
                 {course.summary}
               </p>
             ) : null}

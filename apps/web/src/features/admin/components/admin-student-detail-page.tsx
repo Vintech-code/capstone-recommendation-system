@@ -1,26 +1,40 @@
+import { useState } from "react";
 import {
   ArrowLeft,
+  Award,
   Check,
-  Printer,
-  Radar,
   CheckCircle2,
   Mail,
   MapPin,
   Phone,
+  Printer,
+  Radar,
   School,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   AdminPageError,
   AdminPageSkeleton,
   EmptyPanel,
 } from "@/features/admin/components/admin-shared";
 import {
+  getAdminStudentResultCard,
+  type AdminAssessment,
   type AdminStudentRecord,
   type RiasecDimension,
   useAdminResource,
 } from "@/features/admin/data/admin-api";
+import { formatDate } from "@/features/admin/data/admin-formatters";
+import type { ResultCardData } from "@/features/student/assessment/assessment-api";
+import { StudentResultCard } from "@/features/student/assessment/components/student-result-card";
 import { cn } from "@/lib/utils";
 
 const dimensionMeta: Record<
@@ -87,6 +101,24 @@ const dimensionMeta: Record<
   },
 };
 
+function getAttemptStatusTone(status: AdminAssessment["status"]) {
+  if (status === "result_available")
+    return "border-emerald-500/30 bg-emerald-500/15 text-emerald-800 dark:text-emerald-200";
+  if (status === "result_failed")
+    return "border-destructive/30 bg-destructive/15 text-destructive";
+  if (status === "preparing_result" || status === "in_progress")
+    return "border-amber-500/30 bg-amber-500/15 text-amber-800 dark:text-amber-300";
+  return "border-border bg-muted/40 text-muted-foreground";
+}
+
+function getAttemptStatusLabel(status: AdminAssessment["status"]) {
+  if (status === "result_available") return "Result available";
+  if (status === "result_failed") return "Needs attention";
+  if (status === "preparing_result") return "Processing";
+  if (status === "in_progress") return "In progress";
+  return "Not started";
+}
+
 export function AdminStudentDetailPage({
   studentId,
   onNavigate,
@@ -97,6 +129,31 @@ export function AdminStudentDetailPage({
   const resource = useAdminResource<AdminStudentRecord>(
     `/students/${studentId}`,
   );
+  const [selectedCard, setSelectedCard] = useState<ResultCardData | null>(null);
+  const [cardLoading, setCardLoading] = useState(false);
+  const [cardError, setCardError] = useState<string | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  async function handleViewResultCard(sessionId: number) {
+    setDialogOpen(true);
+    setCardLoading(true);
+    setCardError(null);
+    try {
+      const card = await getAdminStudentResultCard(
+        Number(studentId),
+        sessionId,
+      );
+      setSelectedCard(card);
+    } catch (err) {
+      setCardError(
+        err instanceof Error
+          ? err.message
+          : "The result card could not be loaded.",
+      );
+    } finally {
+      setCardLoading(false);
+    }
+  }
 
   if (resource.loading) return <AdminPageSkeleton />;
   if (resource.error || !resource.data) {
@@ -115,6 +172,15 @@ export function AdminStudentDetailPage({
     .map((part) => part[0])
     .join("")
     .toUpperCase();
+
+  const totalAttempts =
+    student.assessmentSummary?.totalAttempts ?? student.attempts.length;
+  const completedAttempts =
+    student.assessmentSummary?.completedAttempts ??
+    student.attempts.filter((a) => a.status === "result_available").length;
+  const retakeCount =
+    student.assessmentSummary?.retakeCount ??
+    Math.max(0, completedAttempts - 1);
 
   const latestAttempt = student.attempts[0];
   const topCode = latestAttempt?.topCode ?? "I-C-R";
@@ -620,6 +686,174 @@ export function AdminStudentDetailPage({
                 })}
             </div>
           </section>
+
+          {/* 6. Assessment Attempts Timeline */}
+          <section
+            aria-labelledby="assessment-attempts-heading"
+            className="flex flex-col gap-4 border-t border-border/80 pt-6"
+          >
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <div>
+                <h2
+                  id="assessment-attempts-heading"
+                  className="font-display text-xl font-bold tracking-tight text-foreground"
+                >
+                  Assessment attempts timeline
+                </h2>
+                <p className="font-body text-xs sm:text-sm text-muted-foreground mt-0.5">
+                  Chronological record of student assessment attempts and
+                  generated results.
+                </p>
+              </div>
+              <div className="flex flex-wrap items-center gap-2 text-xs font-semibold">
+                <span className="rounded-full border border-border bg-secondary/70 px-3 py-1 text-foreground">
+                  Total attempts: {totalAttempts}
+                </span>
+                <span className="rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-primary-ink">
+                  Completed: {completedAttempts}
+                </span>
+                {retakeCount > 0 ? (
+                  <span className="rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-1 text-amber-800 dark:text-amber-300">
+                    Retakes: {retakeCount}
+                  </span>
+                ) : null}
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              {student.attempts.map((attempt) => (
+                <div
+                  key={attempt.id}
+                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-xs border border-border bg-card p-4 shadow-sm"
+                >
+                  <div className="flex flex-col gap-1.5 min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="font-display text-sm font-extrabold text-foreground">
+                        Attempt #{attempt.attemptNumber}
+                      </span>
+                      {attempt.reference ? (
+                        <span className="rounded-xs bg-muted/60 px-2 py-0.5 font-label text-[11px] font-bold text-muted-foreground">
+                          Ref: {attempt.reference}
+                        </span>
+                      ) : null}
+                      <span
+                        className={cn(
+                          "rounded-full border px-2.5 py-0.5 font-label text-[11px] font-bold",
+                          getAttemptStatusTone(attempt.status),
+                        )}
+                      >
+                        {getAttemptStatusLabel(attempt.status)}
+                      </span>
+                      {attempt.attemptNumber > 1 ? (
+                        <span className="rounded-full bg-amber-500/15 border border-amber-500/25 px-2 py-0.5 font-label text-[10px] font-bold text-amber-800 dark:text-amber-200">
+                          Retake
+                        </span>
+                      ) : (
+                        <span className="rounded-full bg-primary/10 border border-primary/20 px-2 py-0.5 font-label text-[10px] font-bold text-primary-ink">
+                          Initial
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 font-body text-xs text-muted-foreground">
+                      {attempt.startedAt ? (
+                        <span>Started: {formatDate(attempt.startedAt)}</span>
+                      ) : null}
+                      {attempt.resultAvailableAt || attempt.submittedAt ? (
+                        <span>
+                          Completed:{" "}
+                          {formatDate(
+                            attempt.resultAvailableAt ?? attempt.submittedAt,
+                          )}
+                        </span>
+                      ) : null}
+                      {attempt.topCode ? (
+                        <span className="font-semibold text-primary-ink">
+                          Holland Code: {attempt.topCode}
+                        </span>
+                      ) : null}
+                    </div>
+
+                    {attempt.entranceExamination ? (
+                      <div className="text-xs text-muted-foreground">
+                        Entrance score snapshot:{" "}
+                        <strong className="text-foreground">
+                          {attempt.entranceExamination.score}
+                        </strong>{" "}
+                        (
+                        {attempt.entranceExamination.eligibilityGroup ===
+                        "board"
+                          ? "Board eligible"
+                          : "Non-board eligible"}
+                        )
+                      </div>
+                    ) : null}
+                  </div>
+
+                  <div className="flex items-center gap-2 shrink-0">
+                    {attempt.status === "result_available" ? (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="gap-1.5 text-xs font-semibold hover:bg-primary/10 hover:text-primary-ink transition-colors cursor-pointer"
+                        onClick={() => void handleViewResultCard(attempt.id)}
+                      >
+                        <Award className="size-3.5 text-primary" />
+                        View Result Card
+                      </Button>
+                    ) : (
+                      <span className="font-label text-xs text-muted-foreground italic">
+                        {attempt.status === "preparing_result"
+                          ? "Processing..."
+                          : "Not completed"}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogContent className="max-w-3xl overflow-hidden p-0 border-none bg-transparent shadow-2xl">
+              <DialogHeader className="sr-only">
+                <DialogTitle>RIASEC Result Card</DialogTitle>
+                <DialogDescription>
+                  Student assessment result card details
+                </DialogDescription>
+              </DialogHeader>
+              {cardLoading ? (
+                <div className="flex min-h-[300px] items-center justify-center rounded-3xl bg-card p-8 shadow-md">
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="size-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                    <p className="text-sm font-semibold text-muted-foreground">
+                      Loading result card...
+                    </p>
+                  </div>
+                </div>
+              ) : cardError ? (
+                <div className="rounded-3xl bg-card p-8 text-center shadow-md">
+                  <p className="text-sm font-bold text-destructive">
+                    {cardError}
+                  </p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="mt-4"
+                    onClick={() => setDialogOpen(false)}
+                  >
+                    Close
+                  </Button>
+                </div>
+              ) : selectedCard ? (
+                <StudentResultCard
+                  card={selectedCard}
+                  onClose={() => setDialogOpen(false)}
+                />
+              ) : null}
+            </DialogContent>
+          </Dialog>
         </>
       ) : (
         <EmptyPanel

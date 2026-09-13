@@ -86,6 +86,8 @@ test('Admin dashboard uses the semantic multicolor palette without overflow', as
     cells.map((cell) => getComputedStyle(cell).backgroundColor),
   )
   expect(new Set(metricColors).size).toBe(4)
+  const metricCount = await page.getByTestId('admin-operational-strip').locator(':scope > div').count()
+  expect(metricCount).toBe(3)
 
   const overflow = await page.evaluate(() => ({
     clientWidth: document.documentElement.clientWidth,

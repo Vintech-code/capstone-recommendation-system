@@ -1,4 +1,4 @@
-const programmeAssets = import.meta.glob('/src/assets/Pcs/**/*.webp', { eager: true, import: 'default' }) as Record<string, string>
+const programmeAssets = import.meta.glob('/src/assets/programmes/**/*.webp', { eager: true, import: 'default' }) as Record<string, string>
 
 const programmeFolders: Record<string, string> = {
   'bs-business-administration': 'BA',
@@ -18,7 +18,7 @@ function getProgrammeImages(id: string) {
   const folder = programmeFolders[id]
   if (!folder) return { cover: null, logo: null }
 
-  const prefix = `/src/assets/Pcs/${folder}/`
+  const prefix = `/src/assets/programmes/${folder}/`
   const files = Object.keys(programmeAssets).filter((path) => path.startsWith(prefix))
   const logoKey = files.find((path) => path.toLowerCase().endsWith('logo.webp'))
   const coverKey = files.find((path) => path !== logoKey)

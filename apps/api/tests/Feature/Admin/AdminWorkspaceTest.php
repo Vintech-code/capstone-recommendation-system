@@ -148,7 +148,7 @@ class AdminWorkspaceTest extends TestCase
                     ['area' => 'Social', 'score' => 6],
                     ['area' => 'Enterprising', 'score' => 3],
                     ['area' => 'Conventional', 'score' => 5],
-                ]
+                ],
             ],
             'started_at' => now()->subHour(),
             'submitted_at' => now()->subMinute(),
@@ -174,7 +174,7 @@ class AdminWorkspaceTest extends TestCase
                     'code' => 'BSIT',
                     'name' => 'BS Information Technology',
                     'match' => 90,
-                ]
+                ],
             ],
             'generated_at' => now(),
         ]);

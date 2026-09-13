@@ -87,6 +87,11 @@ test('public landing is compact, responsive, and uses transition-only motion', a
   expect(layout.revealCount).toBeGreaterThan(1)
   expect(layout.transitionDurations.some((duration) => duration !== '0s')).toBe(true)
 
+  // Measure final colours, not opacity-composited colours while an offscreen
+  // section begins its intersection-triggered reveal during the Axe scan.
+  await page.addStyleTag({
+    content: '[data-landing-reveal], .landing-stagger > * { opacity: 1 !important; transform: none !important; transition: none !important; }',
+  })
   const accessibility = await page.evaluate(async (source) => {
     eval(source)
     return window.axe.run(document, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa'] } })

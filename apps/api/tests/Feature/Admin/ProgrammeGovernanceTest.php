@@ -5,6 +5,7 @@ namespace Tests\Feature\Admin;
 use App\Models\Role;
 use App\Models\RoleSlug;
 use App\Models\User;
+use App\Services\Recommendation\TccProgrammeCatalogueRepository;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -14,13 +15,15 @@ class ProgrammeGovernanceTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_catalogue_media_and_editable_content_publish_while_api_facts_remain_locked(): void
+    public function test_catalogue_media_and_editable_enrichment_publish_while_source_facts_remain_locked(): void
     {
         Storage::fake('public');
         $admin = $this->userWithRole(RoleSlug::Admin);
         $student = $this->userWithRole(RoleSlug::Student);
         $draft = $this->actingAs($admin)->postJson('/api/v1/admin/configurations/catalogue')
             ->assertCreated()->json('data');
+        $sourceProgramme = collect(app(TccProgrammeCatalogueRepository::class)->current()['programmes'])
+            ->firstWhere('id', 'bs-information-technology');
 
         $media = $this->post('/api/v1/admin/programmes/bs-information-technology/media', [
             'kind' => 'cover',
@@ -55,9 +58,9 @@ class ProgrammeGovernanceTest extends TestCase
         $this->postJson("/api/v1/admin/configurations/versions/{$saved['id']}/publish")->assertOk();
         $this->actingAs($student)->getJson('/api/v1/student/programmes/bs-information-technology')
             ->assertOk()
-            ->assertJsonPath('data.description', 'Updated student-facing programme description.')
+            ->assertJsonPath('data.description', $sourceProgramme['description'])
             ->assertJsonPath('data.coverImageUrl', $media['url'])
-            ->assertJsonPath('data.careerDirections.0', 'Software and application development')
+            ->assertJsonPath('data.careerDirections.0', $sourceProgramme['career_directions'][0])
             ->assertJsonPath('data.careerOpportunities.0.label', 'software developer')
             ->assertJsonPath('data.careerOpportunities.0.iscoCode', '2512')
             ->assertJsonPath('data.degreeType', "Bachelor's degree")

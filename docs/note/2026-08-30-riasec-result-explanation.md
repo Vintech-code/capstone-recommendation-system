@@ -1,14 +1,14 @@
 # RIASEC result explanation and scoring audit
 
-**Status:** UI explanation implemented; recommendation normalization requires a separate approved correction.  
-**Recorded:** 2026-08-30.  
-**Instrument:** `tcc-riasec-42-v1` (`researcher-questionnaire-v1`, PROPOSED).
+**Status:** SUPERSEDED for current result-code length and normalization; retained as historical audit context.
+**Recorded:** 2026-08-30.
+**Instrument:** Superseded by `tcc-uhcc-riasec-42-v1` (`riasec-assessment-asset-v1`, PROPOSED) on 2026-09-08.
 
 ## How the current result is produced
 
 - Each of the 42 stored statements belongs to one Holland/RIASEC category: Realistic, Investigative, Artistic, Social, Enterprising, or Conventional.
 - **Agree** adds one raw point to the statement's stored category; **Do not agree** adds zero.
-- The result service orders the six raw category counts from highest to lowest and stores the first two category codes as the displayed top code. Stable R-I-A-S-E-C order resolves equal raw counts.
+- As of 2026-09-10, the result service orders the six raw category counts from highest to lowest and returns the first three category codes as the displayed Student code. Stable R-I-A-S-E-C order resolves equal raw counts. See `2026-09-10-psg-informed-riasec-classification.md`.
 - Proposed, versioned category descriptions explain what activities a Student may enjoy. They do not diagnose personality, aptitude, intelligence, or likely success.
 - Programme eligibility is filtered first by the separate entrance-examination group. The recommendation engine then compares RIASEC results with researcher-proposed programme profiles.
 

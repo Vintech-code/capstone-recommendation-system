@@ -114,18 +114,27 @@ class RiasecQuestionnaireTest extends TestCase
             ->assertOk()
             ->assertJsonPath('data.status', 'result_available');
 
-        $this->getJson('/api/v1/student/recommendations/latest')
+        $response = $this->getJson('/api/v1/student/recommendations/latest')
             ->assertOk()
             ->assertJsonPath('data.status', 'available')
             ->assertJsonPath('data.recommendation.totalEligible', 6)
             ->assertJsonPath('data.recommendation.entranceExamination.score', 2.5)
             ->assertJsonPath('data.recommendation.entranceExamination.eligibilityGroup', 'board')
-            ->assertJsonPath('data.recommendation.courses.0.eligibilityGroup', 'board')
             ->assertJsonPath('data.recommendation.profile.dimensions.0.value', 7)
             ->assertJsonPath('data.recommendation.profile.dimensions.0.maximum', 7)
             ->assertJsonPath('data.recommendation.profile.dimensions.1.maximum', 7)
-            ->assertJsonPath('data.recommendation.profile.guidance.status', 'proposed')
+            ->assertJsonPath('data.recommendation.profile.guidance.status', 'mixed_cmo_sourced_and_proposed')
             ->assertJsonPath('data.recommendation.profile.guidance.explanations.R', fn (string $value): bool => $value !== '');
+
+        $this->assertEqualsCanonicalizing(
+            ['board', 'non_board'],
+            collect($response->json('data.recommendation.courses'))
+                ->pluck('eligibilityGroup')
+                ->unique()
+                ->values()
+                ->all(),
+            'The entrance group is guidance and must not filter the RIASEC ranking.',
+        );
     }
 
     private function userWithRole(RoleSlug $roleSlug): User

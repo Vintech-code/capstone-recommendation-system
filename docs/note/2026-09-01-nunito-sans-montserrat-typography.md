@@ -1,8 +1,8 @@
-# Nunito Sans and Montserrat typography
+# Nunito Sans and Montserrat Alternates typography
 
-**Status:** APPROVED by the repository owner on 2026-09-01.
+**Status:** APPROVED replacement on 2026-09-07; the earlier Montserrat Variable choice is superseded.
 
-The responsive Student and Administrator interfaces use bundled open-source Nunito Sans Variable for headings and Montserrat Variable for paragraphs, labels, controls, and data. System sans-serif fallbacks remain required.
+The responsive Student and Administrator interfaces use bundled open-source Nunito Sans Variable for headings and Montserrat Alternates weights 400–900 for paragraphs, labels, controls, and data. System sans-serif fallbacks remain required. The earlier Montserrat Variable body family is removed.
 
 Recorded result hero headings use a bold Nunito Sans treatment with weight 900, compact line height, and restrained negative tracking. The supplied reference informs typography only; its illustration, purple palette, archetype title, supporting phrase, and product identity are not copied. Result wording continues to come only from the stored RIASEC evidence and approved explanation boundary.
 

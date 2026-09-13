@@ -36,7 +36,7 @@ export default defineConfig({
             },
             {
               name: 'vendor-data',
-              test: /node_modules[\\/](@tanstack|react-hook-form|zod)[\\/]/,
+              test: /node_modules[\\/](react-hook-form|zod)[\\/]/,
             },
             {
               name: 'vendor-charts',

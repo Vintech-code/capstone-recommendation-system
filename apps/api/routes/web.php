@@ -4,7 +4,11 @@ use App\Http\Controllers\Auth\GoogleAuthenticationController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('welcome');
+    return response()->json([
+        'name' => config('app.name'),
+        'service' => 'TCC Pathways API',
+        'health' => url('/up'),
+    ]);
 });
 
 Route::middleware('throttle:10,1')->group(function (): void {

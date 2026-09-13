@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import loginBackground from "@/assets/login-background1.png";
+import loginBackground from "@/assets/logo/login-background1.png";
 import logo from "@/assets/logo/login-logo.png";
 
 interface AuthSplitLayoutProps {

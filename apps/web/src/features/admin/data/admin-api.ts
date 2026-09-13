@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
 
 import type { CareerOpportunity, ProgrammeContentSource } from '@/features/student/programmes/programme-types'
+import type { ResultCardData } from '@/features/student/assessment/assessment-api'
+import { apiDataRequest, csrfToken } from '@/services/api-client'
 
 interface AdminOverview {
   students: number
@@ -30,6 +32,8 @@ interface AdminStudent {
   photoUrl?: string | null
   accountStatus: string
   attemptCount: number
+  completedAssessmentCount?: number
+  retakeCount?: number
   latestResultAt: string | null
   latestTopCode: string | null
   declarationStatus: 'required' | 'declared'
@@ -131,6 +135,12 @@ interface AdminStudentRecord {
     shsStrand: string | null
     shsGraduationYear: number | null
   } | null
+  assessmentSummary?: {
+    totalAttempts: number
+    completedAttempts: number
+    retakeCount: number
+    latestAttempt: AdminAssessment | null
+  } | null
   attempts: AdminAssessment[]
 }
 
@@ -201,6 +211,12 @@ interface AdminReport {
   recommendationRuns: number
   programmeSaves: number
   assessmentCompletionsByMonth: Array<{ month: string; count: number }>
+  retakeMetrics?: {
+    totalAssessmentAttempts: number
+    totalCompletedAttempts: number
+    studentsWithRetakes: number
+    totalRetakeAttempts: number
+  }
 }
 
 interface ConfigurationVersion {
@@ -275,45 +291,22 @@ interface AdminActivityResponse {
 class AdminApiError extends Error {}
 
 async function requestAdmin<T>(path: string, signal?: AbortSignal): Promise<T> {
-  const response = await fetch(`/api/v1/admin${path}`, {
-    headers: { Accept: 'application/json' },
-    credentials: 'include',
-    signal,
+  return apiDataRequest<T>(`/api/v1/admin${path}`, { signal }, {
+    fallbackMessage: 'The administration workspace could not be loaded.',
+    errorFactory: (message) => new AdminApiError(message),
   })
-  const payload = (await response.json().catch(() => ({}))) as {
-    data?: T
-    message?: string
-  }
-
-  if (!response.ok || payload.data === undefined) {
-    throw new AdminApiError(payload.message ?? 'The administration workspace could not be loaded.')
-  }
-
-  return payload.data
-}
-
-function csrfToken() {
-  const cookie = document.cookie.split('; ').find((item) => item.startsWith('XSRF-TOKEN='))
-  return cookie ? decodeURIComponent(cookie.split('=').slice(1).join('=')) : ''
 }
 
 async function mutateAdmin<T>(path: string, method: 'POST' | 'PUT', body?: unknown): Promise<T> {
-  const headers = new Headers({ Accept: 'application/json' })
-  if (body !== undefined) headers.set('Content-Type', 'application/json')
-  const token = csrfToken()
-  if (token) headers.set('X-XSRF-TOKEN', token)
-  const response = await fetch(`/api/v1/admin${path}`, {
+  const result = await apiDataRequest<T>(`/api/v1/admin${path}`, {
     method,
-    headers,
-    credentials: 'include',
     body: body === undefined ? undefined : JSON.stringify(body),
+  }, {
+    fallbackMessage: 'The change could not be saved.',
+    errorFactory: (message) => new AdminApiError(message),
   })
-  const payload = (await response.json().catch(() => ({}))) as { data?: T; message?: string }
-  if (!response.ok || payload.data === undefined) {
-    throw new AdminApiError(payload.message ?? 'The change could not be saved.')
-  }
   invalidateAdminResource()
-  return payload.data
+  return result
 }
 
 interface EscoOccupationSearchResult {
@@ -421,7 +414,11 @@ function useAdminResource<T>(path: string) {
   return { data, error, loading, retry }
 }
 
-export { getEscoOccupation, invalidateAdminResource, mutateAdmin, requestAdmin, searchEscoOccupations, uploadProgrammeMedia, useAdminResource }
+async function getAdminStudentResultCard(studentId: number, sessionId: number): Promise<ResultCardData> {
+  return requestAdmin<ResultCardData>(`/students/${studentId}/attempts/${sessionId}/card`)
+}
+
+export { getAdminStudentResultCard, getEscoOccupation, invalidateAdminResource, mutateAdmin, requestAdmin, searchEscoOccupations, uploadProgrammeMedia, useAdminResource }
 export type {
   AdminActivity,
   AdminAssessment,

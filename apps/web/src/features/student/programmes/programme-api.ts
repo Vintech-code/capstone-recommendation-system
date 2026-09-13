@@ -1,17 +1,11 @@
 import type { StudentProgramme, StudentProgrammeCatalogue } from '@/features/student/programmes/programme-types'
 import { getCachedStudentResource, invalidateStudentResources } from '@/features/student/student-resource-cache'
+import { apiDataRequest } from '@/services/api-client'
 
 async function programmeRequest<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(path, {
-    headers: { Accept: 'application/json' },
-    credentials: 'include',
-    ...init,
+  return apiDataRequest<T>(path, init, {
+    fallbackMessage: 'Programme information could not be loaded.',
   })
-  const payload = (await response.json().catch(() => ({}))) as { data?: T; message?: string }
-  if (!response.ok || !payload.data) {
-    throw new Error(payload.message ?? 'Programme information could not be loaded.')
-  }
-  return payload.data
 }
 
 function getProgrammeCatalogue() {

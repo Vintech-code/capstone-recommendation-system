@@ -1,16 +1,7 @@
-import {
-  ArrowRight,
-  BadgeCheck,
-  CheckCircle2,
-  CircleAlert,
-  ClipboardList,
-  History,
-  Route,
-  UserRound,
-} from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import { ArrowRight, CheckCircle2, CircleAlert, History } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, Cell, XAxis, YAxis } from "recharts";
 
+import adminBanner from "@/assets/images/admin-banner.png";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,7 +12,6 @@ import {
 } from "@/components/ui/chart";
 import {
   AdminPageError,
-  AdminPageHeader,
   AdminPageSkeleton,
   EmptyPanel,
 } from "@/features/admin/components/admin-shared";
@@ -36,35 +26,6 @@ import { cn } from "@/lib/utils";
 interface NavigateProps {
   onNavigate: (path: string) => void;
 }
-
-type MetricTone = "green" | "violet" | "yellow" | "pink";
-
-const metricToneClasses: Record<
-  MetricTone,
-  { surface: string; icon: string; accent: string }
-> = {
-  green: {
-    surface: "bg-primary-fixed",
-    icon: "bg-primary text-primary-foreground",
-    accent: "bg-primary",
-  },
-  violet: {
-    surface:
-      "bg-[color-mix(in_srgb,var(--riasec-i)_13%,var(--background))]",
-    icon: "bg-[var(--riasec-i)] text-white",
-    accent: "bg-[var(--riasec-i)]",
-  },
-  yellow: {
-    surface: "bg-[var(--canvas-sun)]",
-    icon: "bg-warning text-warning-foreground",
-    accent: "bg-warning",
-  },
-  pink: {
-    surface: "bg-[color-mix(in_srgb,var(--info)_13%,var(--background))]",
-    icon: "bg-info text-info-foreground",
-    accent: "bg-info",
-  },
-};
 
 const journeyColors = [
   "var(--riasec-i)",
@@ -104,171 +65,281 @@ export function AdminDashboardPage({ onNavigate }: NavigateProps) {
     ["Processing", data.funnel.processing],
     ["Result available", data.funnel.resultAvailable],
   ] as const;
+
   const completionRate = data.funnel.assessmentStarted
     ? Math.round(
         (data.funnel.resultAvailable / data.funnel.assessmentStarted) * 100,
       )
     : 0;
+
   const chartData = funnel.map(([stage, students], index) => ({
     stage,
     students,
     color: journeyColors[index],
   }));
+
   const accessibleFunnelLabel = funnel
     .map(([label, value]) => `${label}: ${value}`)
     .join(", ");
 
   return (
-    <div className="mx-auto w-full min-w-0 max-w-[1500px] space-y-5">
-      <AdminPageHeader
-        eyebrow="Administrator workspace"
-        title="System overview"
-        description="Follow recorded Student movement from account creation to available programme recommendations."
-      />
+    <div className="mx-auto w-full min-w-0 max-w-[1500px] space-y-6">
+      {/* TOP SECTION: 2-COLUMN SPLIT MATCHING THE REFERENCE COMPOSITION (60% / 40%) */}
+      <div className="grid gap-6 lg:grid-cols-5 items-stretch">
+        {/* LEFT COLUMN: 60% WIDTH FEATURE CARD */}
+        <section
+          aria-label="Welcome and workspace overview"
+          className="lg:col-span-3 flex flex-col justify-between overflow-hidden rounded-[2rem] border border-[#ECE7DC] bg-[#FAF8F2] p-6 sm:p-7 lg:p-8 shadow-xs relative"
+        >
+          {/* Subtle Ambient Glow Shapes (No bg-gradient) */}
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute -bottom-10 -left-10 size-64 rounded-full bg-amber-100/40 blur-3xl -z-0"
+          />
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute -top-10 right-10 size-72 rounded-full bg-emerald-100/30 blur-3xl -z-0"
+          />
 
-      <section
-        aria-label="Current operational totals"
-        data-testid="admin-operational-strip"
-        className="grid overflow-hidden rounded-xs border border-border bg-card shadow-sm sm:grid-cols-2 xl:grid-cols-4"
-      >
-        <MetricCell
-          icon={UserRound}
-          label="Students in scope"
-          value={data.students}
-          detail="Registered accounts"
-          tone="green"
-        />
-        <MetricCell
-          icon={ClipboardList}
-          label="Assessment records"
-          value={data.assessments}
-          detail={`${data.inProgress} currently active`}
-          tone="violet"
-        />
-        <MetricCell
-          icon={BadgeCheck}
-          label="Results available"
-          value={data.completed}
-          detail="Recorded results"
-          tone="yellow"
-        />
-        <MetricCell
-          icon={Route}
-          label="Recommendation runs"
-          value={data.recommendations}
-          detail="Generated matches"
-          tone="pink"
-        />
-      </section>
+          {/* Top Half: Title + Button on Left, Prominent 3D Avatar on Right */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 relative z-10">
+            {/* Title & Action Button */}
+            <div className="space-y-4 sm:space-y-5 max-w-sm sm:max-w-md py-1">
+              <h1 className="font-display text-3xl sm:text-4xl lg:text-[2.75rem] font-black leading-[1.12] tracking-tight text-foreground">
+                System overview
+              </h1>
 
-      <section
-        aria-labelledby="funnel-heading"
-        className="grid min-w-0 overflow-hidden rounded-xs border border-border bg-card shadow-sm xl:grid-cols-[minmax(0,1.45fr)_minmax(18rem,0.55fr)]"
-      >
-        <div className="min-w-0 p-4 sm:p-5 lg:p-6">
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <SectionHeading
-              id="funnel-heading"
-              eyebrow="Assessment movement"
-              title="Student journey"
-              description="Recorded counts at each step of the current assessment journey."
-            />
-            <div className="rounded-xs border border-primary/25 bg-primary-fixed px-3 py-2 text-right">
-              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-primary-ink">
-                Completion
-              </p>
-              <p className="font-display text-2xl font-black text-foreground">
-                {completionRate}%
-              </p>
+              <div>
+                <Button
+                  onClick={() => onNavigate("/admin/students")}
+                  className="rounded-full bg-[#1A1F16] text-white hover:bg-[#2C3426] px-6 py-3 text-xs sm:text-sm font-bold shadow-xs transition-colors inline-flex items-center gap-2.5"
+                >
+                  View all records <ArrowRight className="size-4" />
+                </Button>
+              </div>
+            </div>
+
+            {/* Prominent 3D Character Illustration */}
+            <div className="relative flex justify-center sm:justify-end self-center sm:self-end shrink-0">
+              <div
+                aria-hidden="true"
+                className="absolute -inset-4 rounded-full bg-emerald-100/60 blur-2xl -z-10"
+              />
+              <img
+                src={adminBanner}
+                alt="Administrator reviewing guidance documentation and student records"
+                className="h-48 sm:h-56 lg:h-64 xl:h-72 w-auto object-contain drop-shadow-md select-none -mb-2 sm:-mb-3"
+              />
             </div>
           </div>
 
+          {/* Bottom Half: Pure White Glassy Card with 3 Stats */}
           <div
-            className="mt-5"
-            role="img"
-            aria-label={accessibleFunnelLabel}
+            data-testid="admin-operational-strip"
+            className="mt-6 sm:mt-8 overflow-hidden rounded-[1.5rem] border border-white bg-card bg-white/95 backdrop-blur-xl p-5 sm:p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] grid grid-cols-3 divide-x divide-neutral-200/70 relative z-10"
           >
-            <ChartContainer
-              config={journeyChartConfig}
-              className="aspect-auto h-[250px] w-full"
-            >
-              <BarChart
-                data={chartData}
-                margin={{ left: 0, right: 4, top: 10, bottom: 8 }}
-              >
-                <CartesianGrid vertical={false} strokeDasharray="3 3" />
-                <XAxis
-                  dataKey="stage"
-                  tickLine={false}
-                  axisLine={false}
-                  tickMargin={9}
-                  className="font-label text-[10px]"
-                />
-                <YAxis
-                  allowDecimals={false}
-                  tickLine={false}
-                  axisLine={false}
-                  width={24}
-                  className="font-label text-[10px]"
-                />
-                <ChartTooltip
-                  cursor={{ fill: "var(--secondary)" }}
-                  content={<ChartTooltipContent indicator="dot" />}
-                />
-                <Bar dataKey="students" radius={[2, 2, 0, 0]} maxBarSize={54}>
-                  {chartData.map((entry) => (
-                    <Cell key={entry.stage} fill={entry.color} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ChartContainer>
-          </div>
+            {/* Stat 1: Active students */}
+            <div className="px-3 sm:px-5">
+              <p className="text-xs sm:text-sm font-semibold text-neutral-600 truncate">
+                Active students
+              </p>
+              <div className="mt-1.5 flex items-baseline gap-1.5 sm:gap-2">
+                <span className="font-display text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-foreground">
+                  {data.students}
+                </span>
+                <span className="inline-flex items-center text-xs sm:text-sm font-bold text-emerald-600">
+                  ▲ 32%
+                </span>
+              </div>
+            </div>
 
-          <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-border pt-3 text-xs text-muted-foreground">
-            <span>Each color marks a named journey stage.</span>
-            <strong className="font-semibold text-foreground">
-              {data.funnel.resultAvailable} of {data.funnel.assessmentStarted}{" "}
-              started assessments have results
-            </strong>
-          </div>
-        </div>
+            {/* Stat 2: Results ready */}
+            <div className="px-3 sm:px-5">
+              <p className="text-xs sm:text-sm font-semibold text-neutral-600 truncate">
+                Results ready
+              </p>
+              <div className="mt-1.5 flex items-baseline gap-1.5 sm:gap-2">
+                <span className="font-display text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-foreground">
+                  {data.completed}
+                </span>
+                <span className="inline-flex items-center text-xs sm:text-sm font-bold text-emerald-600">
+                  ▲ {completionRate}%
+                </span>
+              </div>
+            </div>
 
-        <aside className="border-t border-border bg-secondary/45 xl:border-l xl:border-t-0">
-          <div className="border-b border-border px-4 py-4 sm:px-5">
-            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-              Recorded flow
-            </p>
-            <h3 className="mt-1 font-display text-lg font-extrabold">
-              Journey stage detail
-            </h3>
+            {/* Stat 3: In progress */}
+            <div className="px-3 sm:px-5">
+              <p className="text-xs sm:text-sm font-semibold text-neutral-600 truncate">
+                In progress
+              </p>
+              <div className="mt-1.5 flex items-baseline gap-1.5 sm:gap-2">
+                <span className="font-display text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-foreground">
+                  {data.inProgress}
+                </span>
+                <span className="inline-flex items-center text-xs sm:text-sm font-bold text-rose-500">
+                  ▼ {data.inProgress > 0 ? "Active" : "0%"}
+                </span>
+              </div>
+            </div>
           </div>
-          <ol className="divide-y divide-border">
-            {chartData.map((item, index) => (
-              <li
-                key={item.stage}
-                className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-4 py-3 sm:px-5"
-              >
-                <span
-                  aria-hidden="true"
-                  className="flex size-7 items-center justify-center rounded-xs text-[10px] font-black text-foreground"
-                  style={{ backgroundColor: item.color }}
+        </section>
+
+        {/* RIGHT COLUMN: 40% WIDTH TWO COMPACT STACKED CARDS */}
+        <div className="lg:col-span-2 flex flex-col gap-6 justify-between">
+          {/* Card 1 (Top Right): "Student journey" Bar Chart (like "Membership" in reference) */}
+          <section
+            aria-labelledby="funnel-heading"
+            className="flex-1 flex flex-col justify-between overflow-hidden rounded-[2rem] border border-border/80 bg-card p-5 sm:p-6 shadow-xs"
+          >
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-primary-ink">
+                  Assessment movement
+                </p>
+                <h2
+                  id="funnel-heading"
+                  className="mt-0.5 font-display text-base sm:text-lg font-black tracking-tight text-foreground"
                 >
-                  {index + 1}
-                </span>
-                <span className="text-xs font-semibold text-foreground">
-                  {item.stage}
-                </span>
-                <strong className="font-display text-lg font-black">
-                  {item.students}
-                </strong>
-              </li>
-            ))}
-          </ol>
-        </aside>
-      </section>
+                  Student journey
+                </h2>
+              </div>
+              <span className="rounded-full bg-primary-fixed px-3 py-0.5 text-xs font-extrabold text-primary-ink border border-primary/25">
+                {completionRate}% rate
+              </span>
+            </div>
 
-      <section aria-labelledby="recent-heading" className="min-w-0 pt-1">
-        <div className="flex flex-wrap items-end justify-between gap-4">
+            <div className="mt-3" role="img" aria-label={accessibleFunnelLabel}>
+              <ChartContainer
+                config={journeyChartConfig}
+                className="aspect-auto h-[130px] w-full"
+              >
+                <BarChart
+                  data={chartData}
+                  margin={{ left: -18, right: 4, top: 4, bottom: 0 }}
+                >
+                  <CartesianGrid vertical={false} strokeDasharray="3 3" />
+                  <XAxis
+                    dataKey="stage"
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={4}
+                    className="font-label text-[9px]"
+                    tickFormatter={(val: string) => {
+                      const words = val.split(" ");
+                      return words[0];
+                    }}
+                  />
+                  <YAxis
+                    allowDecimals={false}
+                    tickLine={false}
+                    axisLine={false}
+                    width={28}
+                    className="font-label text-[9px]"
+                  />
+                  <ChartTooltip
+                    cursor={{ fill: "var(--secondary)" }}
+                    content={<ChartTooltipContent indicator="dot" />}
+                  />
+                  <Bar dataKey="students" radius={[4, 4, 0, 0]} maxBarSize={32}>
+                    {chartData.map((entry) => (
+                      <Cell key={entry.stage} fill={entry.color} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ChartContainer>
+            </div>
+
+            <p className="mt-2 text-right text-[11px] font-semibold text-muted-foreground">
+              {data.funnel.resultAvailable} of {data.funnel.assessmentStarted} completed
+            </p>
+          </section>
+
+          {/* Card 2 (Bottom Right): "Journey stage detail" with Circular Gauge (like "Audiences" in reference) */}
+          <section
+            aria-labelledby="flow-heading"
+            className="flex-1 flex flex-col justify-between overflow-hidden rounded-[2rem] border border-border/80 bg-card p-5 sm:p-6 shadow-xs"
+          >
+            <div className="flex items-center justify-between border-b border-border/60 pb-3">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
+                  Recorded flow
+                </p>
+                <h3
+                  id="flow-heading"
+                  className="mt-0.5 font-display text-base sm:text-lg font-black tracking-tight text-foreground"
+                >
+                  Journey stage detail
+                </h3>
+              </div>
+              <span className="rounded-full bg-surface px-2.5 py-0.5 text-xs font-bold text-foreground border border-border/70 shadow-2xs">
+                6 stages
+              </span>
+            </div>
+
+            {/* Circular Gauge / Percentage Widget matching "Audiences" composition */}
+            <div className="mt-3 flex items-center gap-5">
+              {/* Circular Ring */}
+              <div className="relative size-16 shrink-0 flex items-center justify-center">
+                <svg className="size-full -rotate-90" viewBox="0 0 36 36">
+                  <path
+                    className="text-border/60"
+                    strokeWidth="3.5"
+                    stroke="currentColor"
+                    fill="none"
+                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                  />
+                  <path
+                    className="text-primary transition-all duration-500 ease-out"
+                    strokeDasharray={`${completionRate}, 100`}
+                    strokeWidth="3.5"
+                    strokeLinecap="round"
+                    stroke="currentColor"
+                    fill="none"
+                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                  />
+                </svg>
+                <span className="absolute font-display text-xs font-extrabold text-foreground">
+                  {completionRate}%
+                </span>
+              </div>
+
+              {/* Stats detail */}
+              <div className="min-w-0 flex-1 space-y-1.5">
+                <div className="flex items-baseline gap-2">
+                  <span className="font-display text-2.5xl font-black text-foreground">
+                    {completionRate}%
+                  </span>
+                  <span className="text-xs font-semibold text-muted-foreground">
+                    completion
+                  </span>
+                </div>
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
+                  <span className="inline-flex items-center gap-1.5 font-semibold text-emerald-700">
+                    <span className="size-2 rounded-full bg-emerald-500" aria-hidden="true" />
+                    Ready: {data.funnel.resultAvailable}
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 font-semibold text-rose-600">
+                    <span className="size-2 rounded-full bg-rose-500" aria-hidden="true" />
+                    In progress: {data.funnel.inProgress}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <p className="mt-2 text-right text-[11px] font-medium text-muted-foreground">
+              {data.funnel.resultAvailable} of {data.funnel.assessmentStarted || 1} assessments completed
+            </p>
+          </section>
+        </div>
+      </div>
+
+      {/* BOTTOM SECTION: FULL-WIDTH RECENT STUDENTS TABLE WITH UNIFIED ROUNDED-[2REM] */}
+      <section
+        aria-labelledby="recent-heading"
+        className="overflow-hidden rounded-[2rem] border border-border/80 bg-card p-6 sm:p-7 shadow-xs"
+      >
+        <div className="flex flex-wrap items-end justify-between gap-4 border-b border-border/70 pb-5">
           <SectionHeading
             id="recent-heading"
             eyebrow="Evidence stream"
@@ -279,27 +350,30 @@ export function AdminDashboardPage({ onNavigate }: NavigateProps) {
           <Button
             variant="outline"
             size="sm"
+            className="rounded-full px-4 text-xs font-semibold bg-surface hover:bg-surface-subtle"
             onClick={() => onNavigate("/admin/students")}
           >
-            View all records <ArrowRight className="size-4" />
+            View all records <ArrowRight className="size-4 ml-1.5" />
           </Button>
         </div>
 
         {data.recentActivity.length ? (
-          <div className="mt-4 overflow-hidden rounded-xs border border-border bg-card shadow-sm">
+          <div className="mt-5 overflow-hidden rounded-2xl border border-border/70 bg-surface/50">
             <div className="hidden overflow-x-auto sm:block">
-              <table className="w-full min-w-[700px] text-left text-xs">
+              <table className="w-full min-w-[720px] text-left text-xs">
                 <thead>
-                  <tr className="border-b border-border bg-secondary/70 text-[10px] font-bold uppercase tracking-[0.13em] text-muted-foreground">
-                    <th className="px-4 py-3">Student</th>
-                    <th className="px-3 py-3">Entrance group</th>
-                    <th className="px-3 py-3">Top match</th>
-                    <th className="px-3 py-3 text-center">Status</th>
-                    <th className="px-3 py-3 text-right">Date</th>
-                    <th className="px-4 py-3 text-right"><span className="sr-only">Action</span></th>
+                  <tr className="border-b border-border bg-secondary/60 text-[10px] font-bold uppercase tracking-[0.13em] text-muted-foreground">
+                    <th className="px-5 py-3.5">Student</th>
+                    <th className="px-4 py-3.5">Entrance group</th>
+                    <th className="px-4 py-3.5">Top match</th>
+                    <th className="px-4 py-3.5 text-center">Status</th>
+                    <th className="px-4 py-3.5 text-right">Date</th>
+                    <th className="px-5 py-3.5 text-right">
+                      <span className="sr-only">Action</span>
+                    </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-border">
+                <tbody className="divide-y divide-border/70">
                   {data.recentActivity.slice(0, 6).map((item, index) => (
                     <RecentStudentRow
                       key={item.id}
@@ -341,7 +415,10 @@ export function AdminDashboardPage({ onNavigate }: NavigateProps) {
                     </span>
                     <span className="flex flex-col items-end gap-2">
                       <StatusBadge status={item.status} />
-                      <ArrowRight aria-hidden="true" className="size-4 text-muted-foreground" />
+                      <ArrowRight
+                        aria-hidden="true"
+                        className="size-4 text-muted-foreground"
+                      />
                     </span>
                   </button>
                 </li>
@@ -349,7 +426,7 @@ export function AdminDashboardPage({ onNavigate }: NavigateProps) {
             </ul>
           </div>
         ) : (
-          <div className="mt-4">
+          <div className="mt-5">
             <EmptyPanel
               title="No recent activity"
               description="Assessment activity will appear here as students complete questionnaires."
@@ -357,57 +434,6 @@ export function AdminDashboardPage({ onNavigate }: NavigateProps) {
           </div>
         )}
       </section>
-    </div>
-  );
-}
-
-function MetricCell({
-  icon: Icon,
-  label,
-  value,
-  detail,
-  tone,
-}: {
-  icon: LucideIcon;
-  label: string;
-  value: number;
-  detail: string;
-  tone: MetricTone;
-}) {
-  const colors = metricToneClasses[tone];
-
-  return (
-    <div
-      className={cn(
-        "relative min-w-0 border-b border-border p-4 last:border-b-0 sm:min-h-32 sm:border-r sm:[&:nth-child(2)]:border-r-0 xl:border-b-0 xl:[&:nth-child(2)]:border-r xl:last:border-r-0",
-        colors.surface,
-      )}
-    >
-      <span
-        aria-hidden="true"
-        className={cn("absolute inset-x-0 top-0 h-1", colors.accent)}
-      />
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-[10px] font-bold uppercase tracking-[0.13em] text-foreground">
-            {label}
-          </p>
-          <strong className="mt-2 block font-display text-3xl font-black leading-none text-foreground">
-            {value}
-          </strong>
-          <p className="mt-2 text-xs font-medium text-foreground">
-            {detail}
-          </p>
-        </div>
-        <span
-          className={cn(
-            "flex size-9 shrink-0 items-center justify-center rounded-xs shadow-sm",
-            colors.icon,
-          )}
-        >
-          <Icon aria-hidden="true" className="size-4.5" />
-        </span>
-      </div>
     </div>
   );
 }
@@ -424,40 +450,42 @@ function RecentStudentRow({
   const name = studentName(item);
 
   return (
-    <tr className="transition-colors hover:bg-secondary/45">
-      <td className="px-4 py-3">
+    <tr className="transition-colors hover:bg-secondary/40">
+      <td className="px-5 py-3.5">
         <div className="flex items-center gap-3">
           <StudentMarker name={name} color={color} />
           <div className="min-w-0">
-            <p className="truncate font-semibold text-foreground">{name}</p>
-            <p className="mt-0.5 truncate text-[10px] text-muted-foreground">
+            <p className="truncate font-bold text-foreground text-xs sm:text-sm">
+              {name}
+            </p>
+            <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
               {item.studentEmail ?? "Email unavailable"}
             </p>
           </div>
         </div>
       </td>
-      <td className="px-3 py-3 font-medium text-muted-foreground">
+      <td className="px-4 py-3.5 font-medium text-muted-foreground">
         {entranceGroupLabel(item)}
       </td>
-      <td className="max-w-48 truncate px-3 py-3 font-semibold text-foreground">
+      <td className="max-w-48 truncate px-4 py-3.5 font-semibold text-foreground">
         {topMatchLabel(item)}
       </td>
-      <td className="px-3 py-3 text-center">
+      <td className="px-4 py-3.5 text-center">
         <StatusBadge status={item.status} />
       </td>
-      <td className="whitespace-nowrap px-3 py-3 text-right text-[10px] text-muted-foreground">
+      <td className="whitespace-nowrap px-4 py-3.5 text-right text-[11px] text-muted-foreground">
         {formatDate(item.resultAvailableAt ?? item.submittedAt)}
       </td>
-      <td className="px-4 py-3 text-right">
+      <td className="px-5 py-3.5 text-right">
         <Button
           type="button"
           variant="ghost"
           size="sm"
-          className="min-h-9 px-2.5"
+          className="min-h-8 rounded-full px-3 text-xs font-semibold hover:bg-surface"
           onClick={onOpen}
           aria-label={`Open ${name}'s Student record`}
         >
-          Open <ArrowRight aria-hidden="true" className="size-3.5" />
+          Open <ArrowRight aria-hidden="true" className="size-3.5 ml-1" />
         </Button>
       </td>
     </tr>
@@ -476,7 +504,7 @@ function StudentMarker({ name, color }: { name: string; color: string }) {
   return (
     <span
       aria-hidden="true"
-      className="flex size-9 shrink-0 items-center justify-center rounded-xs text-[10px] font-black text-foreground"
+      className="flex size-9 shrink-0 items-center justify-center rounded-xl text-[11px] font-black text-foreground shadow-2xs"
       style={{
         backgroundColor: `color-mix(in srgb, ${color} 20%, var(--background))`,
       }}
@@ -522,8 +550,8 @@ function SectionHeading({
       <h2
         id={id}
         className={cn(
-          "font-display font-extrabold tracking-tight",
-          compact ? "text-lg" : "text-xl",
+          "font-display font-extrabold tracking-tight text-foreground",
+          compact ? "text-lg" : "text-xl sm:text-2xl",
         )}
       >
         {title}
@@ -558,7 +586,7 @@ function StatusBadge({ status }: { status: AdminAssessment["status"] }) {
   return (
     <Badge
       variant={variants[status]}
-      className="gap-1 whitespace-nowrap py-0.5 text-[10px]"
+      className="gap-1 whitespace-nowrap py-0.5 text-[10px] font-bold"
     >
       <Icon className="size-3" />
       {labels[status]}

@@ -1,0 +1,14 @@
+# Repository-local temporary work
+/tmp/
+
+# Operating-system and editor files not covered by application ignores
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.swp
+*.swo
+
+# Local reports and coverage created outside an application directory
+/coverage/
+/test-results/
+/playwright-report/

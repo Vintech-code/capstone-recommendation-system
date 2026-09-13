@@ -123,8 +123,8 @@ async function defaultFetch(
 
   if (url.startsWith('/api/v1/admin/students?')) {
     return Response.json({ data: { items: [
-      { id: 10, name: 'Ana Santos', email: 'ana@example.test', accountStatus: 'active', attemptCount: 1, latestResultAt: '2026-08-01T08:20:01+08:00', latestTopCode: 'I-C-R', declarationStatus: 'declared', selfDeclaredScore: 2.5, eligibilityGroup: 'board', currentAssessmentStatus: 'result_available', currentAssessmentReference: 'ASMT-000001', recommendationAvailable: true, savedProgrammeCount: 1, lastActivityAt: '2026-08-01T08:20:01+08:00' },
-      { id: 11, name: 'Ben Cruz', email: 'ben@example.test', accountStatus: 'active', attemptCount: 0, latestResultAt: null, latestTopCode: null, declarationStatus: 'required', selfDeclaredScore: null, eligibilityGroup: null, currentAssessmentStatus: 'not_started', currentAssessmentReference: null, recommendationAvailable: false, savedProgrammeCount: 0, lastActivityAt: null },
+      { id: 10, name: 'Ana Santos', email: 'ana@example.test', accountStatus: 'active', attemptCount: 1, completedAssessmentCount: 1, retakeCount: 0, latestResultAt: '2026-08-01T08:20:01+08:00', latestTopCode: 'I-C-R', declarationStatus: 'declared', selfDeclaredScore: 2.5, eligibilityGroup: 'board', currentAssessmentStatus: 'result_available', currentAssessmentReference: 'ASMT-000001', recommendationAvailable: true, savedProgrammeCount: 1, lastActivityAt: '2026-08-01T08:20:01+08:00' },
+      { id: 11, name: 'Ben Cruz', email: 'ben@example.test', accountStatus: 'active', attemptCount: 0, completedAssessmentCount: 0, retakeCount: 0, latestResultAt: null, latestTopCode: null, declarationStatus: 'required', selfDeclaredScore: null, eligibilityGroup: null, currentAssessmentStatus: 'not_started', currentAssessmentReference: null, recommendationAvailable: false, savedProgrammeCount: 0, lastActivityAt: null },
     ], pagination: { currentPage: 1, lastPage: 1, perPage: 20, total: 2, from: 1, to: 2 } } })
   }
 
@@ -132,6 +132,7 @@ async function defaultFetch(
     return Response.json({ data: {
       id: 10, name: 'Ana Santos', email: 'ana@example.test', accountStatus: 'active', savedProgrammeCount: 1,
       profile: { lrn: '128490000011', birthDate: '2007-04-18', age: 19, phone: '+63 917 842 1928', addressLine: 'Zone 2', barangay: 'Poblacion', municipality: 'Tagoloan', province: 'Misamis Oriental', shsSchoolName: 'Tagoloan National High School', shsStrand: 'STEM', shsGraduationYear: 2026 },
+      assessmentSummary: { totalAttempts: 1, completedAttempts: 1, retakeCount: 0, latestAttempt: null },
       attempts: [{ id: 1, reference: 'ASMT-000001', studentId: 10, studentName: 'Ana Santos', studentEmail: 'ana@example.test', attemptNumber: 2, retakeReason: 'I wanted to review my current course interests.', instrumentCode: 'tcc-riasec-30-v1', status: 'result_available', answerCount: 30, questionCount: 30, topCode: 'I-C-R', startedAt: '2026-08-01T08:00:00+08:00', savedAt: '2026-08-01T08:19:00+08:00', submittedAt: '2026-08-01T08:20:00+08:00', resultAvailableAt: '2026-08-01T08:20:01+08:00', processingErrorCode: null, processingFailedAt: null, entranceExamination: { resultId: 4, score: 2.5, eligibilityGroup: 'board', ruleReference: 'SELF-DECLARED-TCC-ENTRANCE-2026-01', source: 'student_self_declared', declaredAt: '2026-08-01T07:30:00+08:00' }, recommendationSnapshot: { catalogueReference: 'TCC-AY-2026-2027-V1', ruleReference: 'PROPOSED-RIASEC-1', methodologyStatus: 'Proposed methodology', generatedAt: '2026-08-01T08:20:01+08:00', totalEligible: 6 }, dimensions: [{ code: 'I', label: 'Investigative', value: 19 }, { code: 'C', label: 'Conventional', value: 18 }, { code: 'R', label: 'Realistic', value: 17 }], recommendations: [{ id: 'bs-information-technology', rank: 1, code: 'BSIT', name: 'BS Information Technology', match: 90 }] }],
     } })
   }
@@ -172,7 +173,7 @@ async function defaultFetch(
   }
 
   if (url.startsWith('/api/v1/admin/reports')) {
-    return Response.json({ data: { generatedAt: '2026-08-08T12:00:00+08:00', from: null, to: null, scope: 'institution', studentCount: 2, eligibilityDistribution: { board: 1, nonBoard: 1 }, completedAssessments: 2, assessmentCompletionRate: 100, assessmentFunnel: { started: 2, inProgress: 0, processing: 0, resultAvailable: 2 }, recommendationRuns: 2, programmeSaves: 1, assessmentCompletionsByMonth: [{ month: '2026-08', count: 2 }] } })
+    return Response.json({ data: { generatedAt: '2026-08-08T12:00:00+08:00', from: null, to: null, scope: 'institution', studentCount: 2, eligibilityDistribution: { board: 1, nonBoard: 1 }, completedAssessments: 2, assessmentCompletionRate: 100, assessmentFunnel: { started: 2, inProgress: 0, processing: 0, resultAvailable: 2 }, recommendationRuns: 2, programmeSaves: 1, assessmentCompletionsByMonth: [{ month: '2026-08', count: 2 }], retakeMetrics: { totalAssessmentAttempts: 3, totalCompletedAttempts: 2, studentsWithRetakes: 1, totalRetakeAttempts: 1 } } })
   }
 
   if (url.startsWith('/api/v1/admin/activity')) {
@@ -336,6 +337,58 @@ async function defaultFetch(
 
   if (url.endsWith('/retry-result') && init?.method === 'POST') {
     return Response.json({ data: { id: 1, status: 'preparing_result', question_count: 6 } }, { status: 202 })
+  }
+
+  if (url.match(/\/sessions\/\d+\/share$/) && init?.method === 'POST') {
+    return Response.json({
+      data: {
+        shareToken: 'test-share-token-64charslong1234567890abcdef1234567890abcdef1234567890',
+        shareUrl: 'http://localhost/results/shared/test-share-token-64charslong1234567890abcdef1234567890abcdef1234567890',
+        sharedAt: '2026-09-14T02:00:00+08:00',
+      },
+    })
+  }
+
+  if (
+    url.match(/\/sessions\/\d+\/card$/) ||
+    url.match(/\/attempts\/\d+\/card$/) ||
+    url.startsWith('/api/v1/shared/results/')
+  ) {
+    return Response.json({
+      data: {
+        id: 1,
+        reference: 'ASMT-000001',
+        studentName: 'Ana Santos',
+        attemptNumber: 1,
+        isCurrent: true,
+        instrumentCode: 'tcc-riasec-30-v1',
+        status: 'result_available',
+        startedAt: '2026-08-01T08:00:00+08:00',
+        submittedAt: '2026-08-01T08:20:00+08:00',
+        resultAvailableAt: '2026-08-01T08:20:01+08:00',
+        topCode: 'I-C-R',
+        formattedTopCode: 'I - C - R',
+        topDimensions: [
+          { code: 'I', label: 'Investigative', value: 24 },
+          { code: 'C', label: 'Conventional', value: 21 },
+          { code: 'R', label: 'Realistic', value: 18 },
+        ],
+        dimensions: [
+          { code: 'R', label: 'Realistic', value: 18 },
+          { code: 'I', label: 'Investigative', value: 24 },
+          { code: 'A', label: 'Artistic', value: 12 },
+          { code: 'S', label: 'Social', value: 15 },
+          { code: 'E', label: 'Enterprising', value: 14 },
+          { code: 'C', label: 'Conventional', value: 21 },
+        ],
+        scoringVersion: 'PROPOSED-RIASEC-1',
+        guidanceVersion: 'TCC-RIASEC-GUIDANCE-V1',
+        disclaimer:
+          'This interest assessment result is advisory and exploratory only. It does not constitute admission clearance or guarantee qualification into any academic programme at Tanauan City College.',
+        shareToken: 'test-share-token-64charslong1234567890abcdef1234567890abcdef1234567890',
+        sharedAt: '2026-09-14T02:00:00+08:00',
+      },
+    })
   }
 
   return Response.json({ message: 'Unauthenticated.' }, { status: 401 })

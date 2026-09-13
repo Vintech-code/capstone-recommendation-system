@@ -56,7 +56,13 @@ function AdminStudentGrid({ students, onOpenStudent }: AdminStudentGridProps) {
     };
   }, [rows]);
 
-  return <div ref={containerRef} className="admin-grid" data-testid="admin-student-grid" />;
+  return (
+    <div
+      ref={containerRef}
+      className="admin-grid"
+      data-testid="admin-student-grid"
+    />
+  );
 }
 
 function toGridRow(student: AdminStudent) {
@@ -66,7 +72,9 @@ function toGridRow(student: AdminStudent) {
     html(renderAssessmentEvidence(student)),
     html(renderRecommendationEvidence(student)),
     formatDate(student.lastActivityAt),
-    html(`<button type="button" class="admin-grid-open" data-open-student="${student.id}">Open<span aria-hidden="true">→</span></button>`),
+    html(
+      `<button type="button" class="admin-grid-open" data-open-student="${student.id}">Open<span aria-hidden="true">→</span></button>`,
+    ),
   ];
 }
 
@@ -81,14 +89,22 @@ function renderStudentIdentity(student: AdminStudent) {
 function renderJourneyState(student: AdminStudent) {
   const label = getStatusLabel(student.currentAssessmentStatus);
   const tone = getStatusTone(student.currentAssessmentStatus);
-  const detail = student.declarationStatus === "declared"
-    ? `${student.selfDeclaredScore} · ${humanize(student.eligibilityGroup ?? "")}`
-    : "Entrance result not declared";
+  const detail =
+    student.declarationStatus === "declared"
+      ? `${student.selfDeclaredScore} · ${humanize(student.eligibilityGroup ?? "")}`
+      : "Entrance result not declared";
   return `<div><span class="admin-grid-badge admin-grid-badge-${tone}">${escapeHtml(label)}</span><span class="admin-grid-detail">${escapeHtml(detail)}</span></div>`;
 }
 
 function renderAssessmentEvidence(student: AdminStudent) {
-  return `<div class="admin-grid-evidence"><span><strong>${student.attemptCount}</strong> attempts</span><span>RIASEC ${escapeHtml(student.latestTopCode ?? "pending")}</span></div>`;
+  const retakeCount =
+    student.retakeCount ??
+    Math.max(0, (student.completedAssessmentCount ?? 0) - 1);
+  const retakeLabel =
+    retakeCount > 0
+      ? ` · ${retakeCount} retake${retakeCount === 1 ? "" : "s"}`
+      : "";
+  return `<div class="admin-grid-evidence"><span><strong>${student.attemptCount}</strong> attempt${student.attemptCount === 1 ? "" : "s"}${escapeHtml(retakeLabel)}</span><span>RIASEC ${escapeHtml(student.latestTopCode ?? "pending")}</span></div>`;
 }
 
 function renderRecommendationEvidence(student: AdminStudent) {
@@ -111,12 +127,18 @@ function getStatusLabel(status: AdminStudent["currentAssessmentStatus"]) {
 function getStatusTone(status: AdminStudent["currentAssessmentStatus"]) {
   if (status === "result_available") return "success";
   if (status === "result_failed") return "danger";
-  if (status === "in_progress" || status === "preparing_result") return "warning";
+  if (status === "in_progress" || status === "preparing_result")
+    return "warning";
   return "neutral";
 }
 
 function getInitials(name: string) {
-  return name.split(" ").map((part) => part[0]).slice(0, 2).join("").toUpperCase();
+  return name
+    .split(" ")
+    .map((part) => part[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
 }
 
 function escapeHtml(value: string) {

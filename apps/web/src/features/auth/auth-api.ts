@@ -1,4 +1,5 @@
 import type { AccessRole } from '@/features/auth/access-types'
+import { apiRequest } from '@/services/api-client'
 
 interface AuthUser {
   id: number
@@ -31,11 +32,6 @@ interface SessionResponse {
   user: AuthUser | null
 }
 
-interface ErrorResponse {
-  message?: string
-  errors?: Record<string, string[]>
-}
-
 class AuthApiError extends Error {
   status: number
   fieldErrors: Record<string, string[]>
@@ -53,59 +49,17 @@ class AuthApiError extends Error {
 }
 
 async function csrfCookie() {
-  const response = await fetch('/sanctum/csrf-cookie', {
-    credentials: 'include',
-    headers: { Accept: 'application/json' },
+  await apiRequest('/sanctum/csrf-cookie', {}, {
+    fallbackMessage: 'The sign-in service is unavailable. Please try again.',
+    networkMessage: 'The sign-in service is unavailable. Please try again.',
+    errorFactory: (message, status) => new AuthApiError(message, status),
   })
-
-  if (!response.ok) {
-    throw new AuthApiError(
-      'The sign-in service is unavailable. Please try again.',
-      response.status,
-    )
-  }
-}
-
-function csrfToken() {
-  const cookie = document.cookie
-    .split('; ')
-    .find((item) => item.startsWith('XSRF-TOKEN='))
-
-  return cookie ? decodeURIComponent(cookie.split('=').slice(1).join('=')) : ''
 }
 
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
-  const headers = new Headers(init.headers)
-  headers.set('Accept', 'application/json')
-
-  const token = csrfToken()
-  if (token) headers.set('X-XSRF-TOKEN', token)
-  if (init.body) headers.set('Content-Type', 'application/json')
-
-  let response: Response
-  try {
-    response = await fetch(path, {
-      ...init,
-      credentials: 'include',
-      headers,
-    })
-  } catch {
-    throw new AuthApiError(
-      'Unable to reach the server. Check your connection and try again.',
-      0,
-    )
-  }
-
-  if (!response.ok) {
-    const payload = (await response.json().catch(() => ({}))) as ErrorResponse
-    throw new AuthApiError(
-      payload.message ?? 'The request could not be completed.',
-      response.status,
-      payload.errors,
-    )
-  }
-
-  return response.json() as Promise<T>
+  return apiRequest<T>(path, init, {
+    errorFactory: (message, status, errors) => new AuthApiError(message, status, errors),
+  })
 }
 
 async function signIn(credentials: SignInCredentials) {

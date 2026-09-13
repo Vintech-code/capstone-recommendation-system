@@ -846,32 +846,6 @@
   }
 }
 
-@keyframes accordion-down {
-  from {
-    height: 0;
-  }
-  to {
-    height: var(--radix-accordion-content-height);
-  }
-}
-
-@keyframes accordion-up {
-  from {
-    height: var(--radix-accordion-content-height);
-  }
-  to {
-    height: 0;
-  }
-}
-
-.animate-accordion-down {
-  animation: accordion-down 240ms ease-out;
-}
-
-.animate-accordion-up {
-  animation: accordion-up 200ms ease-out;
-}
-
 .hero-field {
   background:
     radial-gradient(circle at 50% 0%, var(--secondary) 0, transparent 46%),
@@ -1001,9 +975,7 @@
   .profile-enter,
   .student-page-enter,
   .profile-step-enter,
-  .profile-photo-ring,
-  .animate-accordion-down,
-  .animate-accordion-up {
+  .profile-photo-ring {
     animation: none;
   }
 

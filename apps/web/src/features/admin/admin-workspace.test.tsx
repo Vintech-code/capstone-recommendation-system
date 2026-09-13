@@ -27,8 +27,8 @@ describe("Administration workspace", () => {
     expect(
       screen.queryByRole("button", { name: /Open student directory/i }),
     ).not.toBeInTheDocument();
-    expect(screen.queryByText("Needs attention")).not.toBeInTheDocument();
-    expect(screen.getByText("Recommendation runs")).toBeVisible();
+    expect(screen.getByText("Active students")).toBeVisible();
+    expect(screen.queryByText("Recommendation runs")).not.toBeInTheDocument();
     expect(
       screen.queryByRole("heading", { name: "Current workload" }),
     ).not.toBeInTheDocument();

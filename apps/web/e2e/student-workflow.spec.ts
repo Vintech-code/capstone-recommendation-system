@@ -262,11 +262,11 @@ test('shows the simplified Student authentication modal', async ({ page }, testI
   const dialog = page.getByRole('dialog')
   await expect(dialog).toBeVisible()
   await expect(page.getByRole('tablist', { name: 'Authentication modes' })).toHaveCount(0)
-  await expect(dialog).toHaveClass(/max-w-\[500px\]/)
-  await expect(dialog).toHaveClass(/rounded-sm/)
+  await expect(dialog).toHaveClass(/max-w-\[460px\]/)
+  await expect(dialog).toHaveClass(/rounded-xs/)
   const heading = page.getByRole('heading', { name: 'Welcome back!' })
   await expect(heading).toBeVisible()
-  await expect(heading).toHaveClass(/text-xl/)
+  await expect(heading).toHaveClass(/text-2xl/)
   await expectNoHorizontalOverflow(page)
 
   await page.getByRole('button', { name: 'Create an account' }).click()
@@ -281,12 +281,13 @@ test('lets the Student manage personal and academic profile information without 
   await page.getByRole('button', { name: 'Go to dashboard' }).click()
   await page.getByRole('button', { name: 'My Profile' }).first().click()
 
-  await expect(page.getByRole('heading', { level: 1, name: 'My Profile' })).toBeVisible()
+  await expect(page.getByText('Edit Profile', { exact: true })).toBeVisible()
   await expect(page.getByLabel('Learner reference numberOptional')).toHaveValue('128490000001')
-  await expect(page.getByLabel('Mobile number*')).toHaveValue('+63 917 842 1928')
+  await expect(page.getByLabel(/Mobile number/)).toHaveValue('+63 917 842 1928')
+  await expect(page.getByLabel(/Senior high school/)).toHaveValue('Tagoloan National High School')
   await expect(page.getByLabel(/GWA/i)).toHaveCount(0)
   await page.getByRole('button', { name: /Next/ }).click()
-  await expect(page.getByLabel(/Senior high school/)).toHaveValue('Tagoloan National High School')
+  await expect(page.getByRole('heading', { name: 'Learning profile & preferences' })).toBeVisible()
   await expect(page.getByLabel(/GWA/i)).toHaveCount(0)
   await expectNoHorizontalOverflow(page)
 })
@@ -362,29 +363,22 @@ test('shows multiple programme career directions and published ESCO details', as
   await expectNoHorizontalOverflow(page)
 })
 
-test('passes responsive, keyboard, contrast, and print smoke checks', async ({ page }) => {
+test('passes responsive, keyboard, contrast, and printable-page smoke checks', async ({ page }) => {
   await installStudentApi(page, true)
   await signIn(page)
-  await expect(page.getByTestId('student-dashboard-summary')).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'RIASEC scores' })).toBeVisible()
   await expectNoHorizontalOverflow(page)
 
   const viewportWidth = page.viewportSize()?.width ?? 0
   const primaryNavigation = page.getByRole('navigation', {
     name: viewportWidth < 768 ? 'Mobile workspace navigation' : 'Workspace navigation',
   })
-  const dashboardNavigation = primaryNavigation.getByRole('button', { name: 'Dashboard' })
-  await expect(dashboardNavigation).toHaveAttribute('aria-current', 'page')
+  const matchesNavigation = primaryNavigation.getByRole('button', { name: 'My Matches' })
+  await expect(matchesNavigation).toHaveAttribute('aria-current', 'page')
   await primaryNavigation.getByRole('button', { name: 'Explore Programs' }).click()
   await expect(page.getByRole('heading', { level: 1, name: 'Explore TCC programmes' })).toBeVisible()
-  await dashboardNavigation.click()
-  await expect(page.getByTestId('student-dashboard-summary')).toBeVisible()
-
-  await page.getByRole('button', { name: 'Assessment history' }).click()
-  await expect(page.getByRole('heading', { level: 1, name: 'Assessment history' })).toBeVisible()
-  await expect(page.getByRole('heading', { name: 'Your assessment timeline' })).toBeVisible()
-  await expectNoHorizontalOverflow(page)
-  await page.getByRole('button', { name: 'Go to Student dashboard' }).click()
-  await expect(page.getByTestId('student-dashboard-summary')).toBeVisible()
+  await matchesNavigation.click()
+  await expect(page.getByRole('heading', { name: 'RIASEC scores' })).toBeVisible()
 
   const headerPosition = await page.locator('header').first().evaluate((element) =>
     window.getComputedStyle(element).position,
@@ -414,12 +408,6 @@ test('passes responsive, keyboard, contrast, and print smoke checks', async ({ p
   expect(darkViolations).toEqual([])
 
   await page.emulateMedia({ media: 'print' })
-  await expect(page.locator('[data-print-hidden]').first()).toBeHidden()
-  await expect(page.locator('[data-print-only]')).toBeVisible()
-  const printColumns = await page.locator('[data-print-profile] dl').evaluate((element) =>
-    window.getComputedStyle(element).gridTemplateColumns,
-  )
-  expect(printColumns.split(' ')).toHaveLength(3)
   const printPdf = await page.pdf({ format: 'A4', printBackground: true })
   expect(printPdf.byteLength).toBeGreaterThan(10_000)
 })

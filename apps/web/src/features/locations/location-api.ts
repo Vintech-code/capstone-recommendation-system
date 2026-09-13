@@ -1,5 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 
+import { apiDataRequest } from '@/services/api-client'
+
 export interface LocationOption {
   id: number
   code: string
@@ -19,15 +21,10 @@ export function useLocations<T>(path: string | null) {
     enabled: path !== null,
     staleTime: 24 * 60 * 60 * 1000,
     retry: 1,
-    queryFn: async ({ signal }): Promise<T> => {
-      const response = await fetch(`/api/v1/locations/${path}`, {
-        signal,
-        credentials: 'include',
-        headers: { Accept: 'application/json' },
-      })
-      if (!response.ok) throw new Error('Location choices could not be loaded. Please retry.')
-      const payload = await response.json() as { data: T }
-      return payload.data
-    },
+    queryFn: ({ signal }): Promise<T> => apiDataRequest(
+      `/api/v1/locations/${path}`,
+      { signal },
+      { fallbackMessage: 'Location choices could not be loaded. Please retry.' },
+    ),
   })
 }

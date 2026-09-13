@@ -1,4 +1,4 @@
-import { ChevronDown, LogOut } from "lucide-react";
+import { ChevronDown, History, LogOut, UserRound } from "lucide-react";
 import type { ReactNode } from "react";
 
 import logo from "@/assets/logo/header-logo.png";
@@ -201,6 +201,15 @@ function StudentWorkspaceShell({
                       Student Applicant
                     </span>
                   </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onSelect={() => onSelect("history")}>
+                    <History aria-hidden="true" className="size-4" />
+                    Assessment history
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => onSelect("profile")}>
+                    <UserRound aria-hidden="true" className="size-4" />
+                    My Profile
+                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onSelect={onExit}>
                     <LogOut aria-hidden="true" className="size-4" />
