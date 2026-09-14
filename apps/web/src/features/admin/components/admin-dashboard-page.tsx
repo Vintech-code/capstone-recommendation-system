@@ -83,13 +83,13 @@ export function AdminDashboardPage({ onNavigate }: NavigateProps) {
     .join(", ");
 
   return (
-    <div className="mx-auto w-full min-w-0 max-w-[1500px] space-y-6">
+    <div className="mx-auto w-full min-w-0 max-w-[1500px] space-y-4 sm:space-y-5">
       {/* TOP SECTION: 2-COLUMN SPLIT MATCHING THE REFERENCE COMPOSITION (60% / 40%) */}
-      <div className="grid gap-6 lg:grid-cols-5 items-stretch">
+      <div className="grid gap-4 sm:gap-5 lg:grid-cols-5 items-stretch">
         {/* LEFT COLUMN: 60% WIDTH FEATURE CARD */}
         <section
           aria-label="Welcome and workspace overview"
-          className="lg:col-span-3 flex flex-col justify-between overflow-hidden rounded-[2rem] border border-[#ECE7DC] bg-[#FAF8F2] p-6 sm:p-7 lg:p-8 shadow-xs relative"
+          className="lg:col-span-3 flex flex-col justify-between overflow-hidden rounded-[2rem] border border-[#ECE7DC] bg-[#FAF8F2] p-5 sm:p-6 lg:p-7 shadow-xs relative"
         >
           {/* Subtle Ambient Glow Shapes (No bg-gradient) */}
           <div
@@ -102,17 +102,17 @@ export function AdminDashboardPage({ onNavigate }: NavigateProps) {
           />
 
           {/* Top Half: Title + Button on Left, Prominent 3D Avatar on Right */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 relative z-10">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-6 relative z-10 pb-4 sm:pb-6">
             {/* Title & Action Button */}
-            <div className="space-y-4 sm:space-y-5 max-w-sm sm:max-w-md py-1">
-              <h1 className="font-display text-3xl sm:text-4xl lg:text-[2.75rem] font-black leading-[1.12] tracking-tight text-foreground">
+            <div className="space-y-3 sm:space-y-4 max-w-sm sm:max-w-md py-1">
+              <h1 className="font-display text-3xl sm:text-4xl lg:text-[2.65rem] font-black leading-[1.12] tracking-tight text-foreground">
                 System overview
               </h1>
 
               <div>
                 <Button
                   onClick={() => onNavigate("/admin/students")}
-                  className="rounded-full bg-[#1A1F16] text-white hover:bg-[#2C3426] px-6 py-3 text-xs sm:text-sm font-bold shadow-xs transition-colors inline-flex items-center gap-2.5"
+                  className="rounded-full bg-[#1A1F16] text-white hover:bg-[#2C3426] px-5 py-2.5 text-xs sm:text-sm font-bold shadow-xs transition-colors inline-flex items-center gap-2"
                 >
                   View all records <ArrowRight className="size-4" />
                 </Button>
@@ -128,23 +128,23 @@ export function AdminDashboardPage({ onNavigate }: NavigateProps) {
               <img
                 src={adminBanner}
                 alt="Administrator reviewing guidance documentation and student records"
-                className="h-48 sm:h-56 lg:h-64 xl:h-72 w-auto object-contain drop-shadow-md select-none -mb-2 sm:-mb-3"
+                className="h-44 sm:h-52 lg:h-56 xl:h-64 w-auto object-contain drop-shadow-md select-none"
               />
             </div>
           </div>
 
-          {/* Bottom Half: Pure White Glassy Card with 3 Stats */}
+          {/* Bottom Half: Pure White Glassy Card with 3 Stats - Overlaying the lower portion of the avatar */}
           <div
             data-testid="admin-operational-strip"
-            className="mt-6 sm:mt-8 overflow-hidden rounded-[1.5rem] border border-white bg-card bg-white/95 backdrop-blur-xl p-5 sm:p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] grid grid-cols-3 divide-x divide-neutral-200/70 relative z-10"
+            className="-mt-8 sm:-mt-12 lg:-mt-14 relative z-20 overflow-hidden rounded-[1.5rem] border border-white/90 bg-card bg-white/95 backdrop-blur-xl p-4 sm:p-4.5 lg:p-5 shadow-[0_8px_30px_rgb(0,0,0,0.06)] grid grid-cols-3 divide-x divide-neutral-200/70"
           >
             {/* Stat 1: Active students */}
-            <div className="px-3 sm:px-5">
+            <div className="px-2.5 sm:px-4">
               <p className="text-xs sm:text-sm font-semibold text-neutral-600 truncate">
                 Active students
               </p>
               <div className="mt-1.5 flex items-baseline gap-1.5 sm:gap-2">
-                <span className="font-display text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-foreground">
+                <span className="font-display text-2xl sm:text-3xl font-black tracking-tight text-foreground">
                   {data.students}
                 </span>
                 <span className="inline-flex items-center text-xs sm:text-sm font-bold text-emerald-600">
@@ -154,12 +154,12 @@ export function AdminDashboardPage({ onNavigate }: NavigateProps) {
             </div>
 
             {/* Stat 2: Results ready */}
-            <div className="px-3 sm:px-5">
+            <div className="px-2.5 sm:px-4">
               <p className="text-xs sm:text-sm font-semibold text-neutral-600 truncate">
                 Results ready
               </p>
               <div className="mt-1.5 flex items-baseline gap-1.5 sm:gap-2">
-                <span className="font-display text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-foreground">
+                <span className="font-display text-2xl sm:text-3xl font-black tracking-tight text-foreground">
                   {data.completed}
                 </span>
                 <span className="inline-flex items-center text-xs sm:text-sm font-bold text-emerald-600">
@@ -169,12 +169,12 @@ export function AdminDashboardPage({ onNavigate }: NavigateProps) {
             </div>
 
             {/* Stat 3: In progress */}
-            <div className="px-3 sm:px-5">
+            <div className="px-2.5 sm:px-4">
               <p className="text-xs sm:text-sm font-semibold text-neutral-600 truncate">
                 In progress
               </p>
               <div className="mt-1.5 flex items-baseline gap-1.5 sm:gap-2">
-                <span className="font-display text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-foreground">
+                <span className="font-display text-2xl sm:text-3xl font-black tracking-tight text-foreground">
                   {data.inProgress}
                 </span>
                 <span className="inline-flex items-center text-xs sm:text-sm font-bold text-rose-500">
@@ -186,11 +186,11 @@ export function AdminDashboardPage({ onNavigate }: NavigateProps) {
         </section>
 
         {/* RIGHT COLUMN: 40% WIDTH TWO COMPACT STACKED CARDS */}
-        <div className="lg:col-span-2 flex flex-col gap-6 justify-between">
+        <div className="lg:col-span-2 flex flex-col gap-4 sm:gap-5 justify-between">
           {/* Card 1 (Top Right): "Student journey" Bar Chart (like "Membership" in reference) */}
           <section
             aria-labelledby="funnel-heading"
-            className="flex-1 flex flex-col justify-between overflow-hidden rounded-[2rem] border border-border/80 bg-card p-5 sm:p-6 shadow-xs"
+            className="flex-1 flex flex-col justify-between overflow-hidden rounded-[2rem] border border-border/80 bg-card p-4.5 sm:p-5 shadow-xs"
           >
             <div className="flex items-center justify-between gap-3">
               <div>
@@ -209,10 +209,14 @@ export function AdminDashboardPage({ onNavigate }: NavigateProps) {
               </span>
             </div>
 
-            <div className="mt-3" role="img" aria-label={accessibleFunnelLabel}>
+            <div
+              className="mt-2.5"
+              role="img"
+              aria-label={accessibleFunnelLabel}
+            >
               <ChartContainer
                 config={journeyChartConfig}
-                className="aspect-auto h-[130px] w-full"
+                className="aspect-auto h-[115px] w-full"
               >
                 <BarChart
                   data={chartData}
@@ -251,14 +255,15 @@ export function AdminDashboardPage({ onNavigate }: NavigateProps) {
             </div>
 
             <p className="mt-2 text-right text-[11px] font-semibold text-muted-foreground">
-              {data.funnel.resultAvailable} of {data.funnel.assessmentStarted} completed
+              {data.funnel.resultAvailable} of {data.funnel.assessmentStarted}{" "}
+              completed
             </p>
           </section>
 
           {/* Card 2 (Bottom Right): "Journey stage detail" with Circular Gauge (like "Audiences" in reference) */}
           <section
             aria-labelledby="flow-heading"
-            className="flex-1 flex flex-col justify-between overflow-hidden rounded-[2rem] border border-border/80 bg-card p-5 sm:p-6 shadow-xs"
+            className="flex-1 flex flex-col justify-between overflow-hidden rounded-[2rem] border border-border/80 bg-card p-4.5 sm:p-5 shadow-xs"
           >
             <div className="flex items-center justify-between border-b border-border/60 pb-3">
               <div>
@@ -316,11 +321,17 @@ export function AdminDashboardPage({ onNavigate }: NavigateProps) {
                 </div>
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
                   <span className="inline-flex items-center gap-1.5 font-semibold text-emerald-700">
-                    <span className="size-2 rounded-full bg-emerald-500" aria-hidden="true" />
+                    <span
+                      className="size-2 rounded-full bg-emerald-500"
+                      aria-hidden="true"
+                    />
                     Ready: {data.funnel.resultAvailable}
                   </span>
                   <span className="inline-flex items-center gap-1.5 font-semibold text-rose-600">
-                    <span className="size-2 rounded-full bg-rose-500" aria-hidden="true" />
+                    <span
+                      className="size-2 rounded-full bg-rose-500"
+                      aria-hidden="true"
+                    />
                     In progress: {data.funnel.inProgress}
                   </span>
                 </div>
@@ -328,7 +339,8 @@ export function AdminDashboardPage({ onNavigate }: NavigateProps) {
             </div>
 
             <p className="mt-2 text-right text-[11px] font-medium text-muted-foreground">
-              {data.funnel.resultAvailable} of {data.funnel.assessmentStarted || 1} assessments completed
+              {data.funnel.resultAvailable} of{" "}
+              {data.funnel.assessmentStarted || 1} assessments completed
             </p>
           </section>
         </div>
