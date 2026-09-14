@@ -59,6 +59,7 @@ class LocalAuthUserSeeder extends Seeder
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => $password,
+            'can_manage_administrators' => $role === RoleSlug::Admin,
         ])->save();
         $user->roles()->syncWithoutDetaching([$roleModel->id]);
     }

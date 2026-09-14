@@ -35,6 +35,7 @@ class LocalAuthUserSeederTest extends TestCase
 
             $this->assertTrue($user->hasRole($role));
             $this->assertTrue(Hash::check('local-test-password', $user->password));
+            $this->assertSame($role === RoleSlug::Admin, (bool) $user->can_manage_administrators);
         }
     }
 

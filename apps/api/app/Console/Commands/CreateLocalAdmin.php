@@ -7,6 +7,7 @@ use App\Models\RoleSlug;
 use App\Models\User;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rules\Password;
 
 class CreateLocalAdmin extends Command
 {
@@ -31,7 +32,7 @@ class CreateLocalAdmin extends Command
             [
                 'email' => ['required', 'email'],
                 'name' => ['required', 'string'],
-                'password' => ['required', 'string'],
+                'password' => ['required', Password::defaults()],
             ],
         );
 
@@ -60,6 +61,7 @@ class CreateLocalAdmin extends Command
             'name' => $name,
             'email' => $email,
             'password' => $password,
+            'can_manage_administrators' => true,
         ]);
         $user->roles()->attach($role);
 

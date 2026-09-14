@@ -36,7 +36,7 @@ class PasswordRecoveryController extends Controller
         $validated = $request->validate([
             'token' => ['required', 'string'],
             'email' => ['required', 'email'],
-            'password' => ['required', 'confirmed', PasswordRule::min(8)],
+            'password' => ['required', 'confirmed', PasswordRule::defaults()],
         ]);
 
         if (! User::query()->where('email', $validated['email'])->where('account_status', 'active')->exists()) {

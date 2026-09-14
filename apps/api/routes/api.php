@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AdminConfigurationController;
 use App\Http\Controllers\Admin\AdminEscoOccupationController;
+use App\Http\Controllers\Admin\AdministratorAccountController;
 use App\Http\Controllers\Admin\AdminProgrammeMediaController;
 use App\Http\Controllers\Admin\AdminProgrammeSourceController;
 use App\Http\Controllers\Admin\AdminWorkspaceController;
@@ -9,6 +10,7 @@ use App\Http\Controllers\Assessment\AssessmentSessionController;
 use App\Http\Controllers\Assessment\EntranceExaminationResultController;
 use App\Http\Controllers\Assessment\RiasecQuestionnaireController;
 use App\Http\Controllers\Assessment\SharedResultController;
+use App\Http\Controllers\Auth\AdministratorInvitationController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\PasswordChangeController;
 use App\Http\Controllers\Auth\PasswordRecoveryController;
@@ -35,6 +37,10 @@ Route::prefix('v1/auth')->group(function (): void {
         ->middleware('throttle:6,1');
     Route::get('/session', [AuthenticatedSessionController::class, 'session'])
         ->middleware('throttle:120,1');
+    Route::post('/admin-invitation/preview', [AdministratorInvitationController::class, 'show'])
+        ->middleware('throttle:12,1');
+    Route::post('/admin-invitation/accept', [AdministratorInvitationController::class, 'store'])
+        ->middleware('throttle:6,1');
 
     Route::middleware(['auth:sanctum', 'active'])->group(function (): void {
         Route::get('/me', [AuthenticatedSessionController::class, 'show']);
@@ -136,6 +142,16 @@ Route::prefix('v1/admin')
         Route::post('/configurations/versions/{configurationVersion}/rollback', [AdminConfigurationController::class, 'rollback']);
         Route::get('/programme-sources', [AdminProgrammeSourceController::class, 'index']);
         Route::put('/programme-sources/{sourceReference}', [AdminProgrammeSourceController::class, 'update']);
+
+        Route::prefix('administrators')->middleware(['manages_admins', 'throttle:20,1'])->group(function (): void {
+            Route::get('/', [AdministratorAccountController::class, 'index']);
+            Route::post('/invitations', [AdministratorAccountController::class, 'store']);
+            Route::post('/invitations/{administratorInvitation}/resend', [AdministratorAccountController::class, 'resend']);
+            Route::delete('/invitations/{administratorInvitation}', [AdministratorAccountController::class, 'revoke']);
+            Route::put('/{administrator}/status', [AdministratorAccountController::class, 'status']);
+            Route::put('/{administrator}/permission', [AdministratorAccountController::class, 'permission']);
+            Route::post('/{administrator}/sessions/revoke', [AdministratorAccountController::class, 'revokeSessions']);
+        });
     });
 
 Route::prefix('v1/locations')->middleware(['auth:sanctum', 'active', 'throttle:120,1'])->group(function (): void {

@@ -36,7 +36,8 @@ class AuthenticationTest extends TestCase
         $login
             ->assertOk()
             ->assertJsonPath('user.email', $user->email)
-            ->assertJsonPath('user.roles.0', RoleSlug::Admin->value);
+            ->assertJsonPath('user.roles.0', RoleSlug::Admin->value)
+            ->assertJsonPath('user.canManageAdministrators', true);
 
         $this->getJson('/api/v1/auth/session')
             ->assertOk()
@@ -78,8 +79,8 @@ class AuthenticationTest extends TestCase
         $response = $this->postJson('/api/v1/auth/register', [
             'name' => 'New Student',
             'email' => 'new.student@example.test',
-            'password' => 'student-password',
-            'password_confirmation' => 'student-password',
+            'password' => 'StudentPass!2026',
+            'password_confirmation' => 'StudentPass!2026',
         ]);
 
         $response
@@ -93,7 +94,7 @@ class AuthenticationTest extends TestCase
 
         $this->postJson('/api/v1/auth/login', [
             'email' => 'new.student@example.test',
-            'password' => 'student-password',
+            'password' => 'StudentPass!2026',
             'portal' => RoleSlug::Student->value,
         ])->assertOk();
     }
@@ -123,11 +124,23 @@ class AuthenticationTest extends TestCase
         $this->postJson('/api/v1/auth/register', [
             'name' => 'Duplicate Student',
             'email' => 'existing@example.test',
-            'password' => 'student-password',
-            'password_confirmation' => 'different-password',
+            'password' => 'StudentPass!2026',
+            'password_confirmation' => 'DifferentPass!2026',
         ])
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['email', 'password']);
+    }
+
+    public function test_student_registration_rejects_a_password_below_the_shared_policy(): void
+    {
+        $this->postJson('/api/v1/auth/register', [
+            'name' => 'New Student',
+            'email' => 'new.student@example.test',
+            'password' => 'lowercase-only',
+            'password_confirmation' => 'lowercase-only',
+        ])->assertUnprocessable()->assertJsonValidationErrors('password');
+
+        $this->assertDatabaseMissing('users', ['email' => 'new.student@example.test']);
     }
 
     public function test_incorrect_credentials_are_rejected_without_starting_a_session(): void
@@ -240,6 +253,7 @@ class AuthenticationTest extends TestCase
         Notification::fake();
         $user = $this->adminUser();
         $token = null;
+        $resetUrl = null;
 
         $this->postJson('/api/v1/auth/forgot-password', ['email' => $user->email])
             ->assertOk()
@@ -248,11 +262,15 @@ class AuthenticationTest extends TestCase
             ->assertOk()
             ->assertJsonPath('message', 'If an active account matches that email, a password reset link has been sent.');
 
-        Notification::assertSentTo($user, ResetPassword::class, function (ResetPassword $notification) use (&$token): bool {
+        Notification::assertSentTo($user, ResetPassword::class, function (ResetPassword $notification) use (&$token, &$resetUrl, $user): bool {
             $token = $notification->token;
+            $resetUrl = $notification->toMail($user)->actionUrl;
 
             return true;
         });
+        $this->assertIsString($resetUrl);
+        $this->assertStringContainsString('/reset-password/'.$token.'?', $resetUrl);
+        $this->assertStringContainsString('portal=admin', $resetUrl);
 
         DB::table('sessions')->insert([
             'id' => 'existing-browser-session',
@@ -264,12 +282,32 @@ class AuthenticationTest extends TestCase
         $this->postJson('/api/v1/auth/reset-password', [
             'token' => $token,
             'email' => $user->email,
-            'password' => 'new-secure-password',
-            'password_confirmation' => 'new-secure-password',
+            'password' => 'lowercase-only',
+            'password_confirmation' => 'lowercase-only',
+        ])->assertUnprocessable()->assertJsonValidationErrors('password');
+
+        $this->postJson('/api/v1/auth/reset-password', [
+            'token' => $token,
+            'email' => $user->email,
+            'password' => 'NewSecure!2026',
+            'password_confirmation' => 'NewSecure!2026',
         ])->assertOk();
 
-        $this->assertTrue(Hash::check('new-secure-password', $user->fresh()->password));
+        $this->assertTrue(Hash::check('NewSecure!2026', $user->fresh()->password));
         $this->assertDatabaseMissing('sessions', ['id' => 'existing-browser-session']);
+    }
+
+    public function test_authenticated_password_change_uses_the_shared_policy(): void
+    {
+        $user = $this->adminUser();
+
+        $this->actingAs($user)->putJson('/api/v1/auth/password', [
+            'currentPassword' => 'correct-password',
+            'password' => 'lowercase-only',
+            'password_confirmation' => 'lowercase-only',
+        ])->assertUnprocessable()->assertJsonValidationErrors('password');
+
+        $this->assertTrue(Hash::check('correct-password', $user->fresh()->password));
     }
 
     private function adminUser(): User
@@ -280,6 +318,7 @@ class AuthenticationTest extends TestCase
         ]);
         $user = User::factory()->create([
             'password' => 'correct-password',
+            'can_manage_administrators' => true,
         ]);
         $user->roles()->attach($role);
 

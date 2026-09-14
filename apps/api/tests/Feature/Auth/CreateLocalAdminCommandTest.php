@@ -24,7 +24,7 @@ class CreateLocalAdminCommandTest extends TestCase
             'email' => 'admin@example.test',
         ])
             ->expectsQuestion('Name', 'Local Admin')
-            ->expectsQuestion('Password', 'local-password')
+            ->expectsQuestion('Password', 'LocalAdmin!2026')
             ->expectsOutput('Local Admin account created.')
             ->assertSuccessful();
 
@@ -33,8 +33,9 @@ class CreateLocalAdminCommandTest extends TestCase
             ->with('roles')
             ->firstOrFail();
 
-        $this->assertTrue(Hash::check('local-password', $user->password));
+        $this->assertTrue(Hash::check('LocalAdmin!2026', $user->password));
         $this->assertTrue($user->hasRole(RoleSlug::Admin));
+        $this->assertTrue((bool) $user->can_manage_administrators);
     }
 
     public function test_it_refuses_to_replace_an_existing_account(): void
@@ -45,7 +46,7 @@ class CreateLocalAdminCommandTest extends TestCase
             'email' => 'admin@example.test',
         ])
             ->expectsQuestion('Name', 'Local Admin')
-            ->expectsQuestion('Password', 'replacement-password')
+            ->expectsQuestion('Password', 'Replacement!2026')
             ->expectsOutput('An account with that email address already exists.')
             ->assertFailed();
     }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\AdministratorInvitation;
 use App\Models\Role;
 use App\Models\RoleSlug;
 use App\Models\User;
@@ -87,6 +88,10 @@ class GoogleAuthenticationController extends Controller
                     ])->save();
 
                     return ['user' => $user];
+                }
+
+                if (AdministratorInvitation::query()->where('pending_email', $email)->exists()) {
+                    return ['error' => 'portal_forbidden'];
                 }
 
                 $studentRole = Role::query()->firstOrCreate(

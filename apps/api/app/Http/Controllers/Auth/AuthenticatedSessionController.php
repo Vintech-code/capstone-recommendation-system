@@ -96,7 +96,7 @@ class AuthenticatedSessionController extends Controller
     }
 
     /**
-     * @return array{id: int, name: string, email: string, accountStatus: string, mustChangePassword: bool, photoUrl: string|null, roles: array<int, string>}
+     * @return array{id: int, name: string, email: string, accountStatus: string, mustChangePassword: bool, canManageAdministrators: bool, photoUrl: string|null, roles: array<int, string>}
      */
     private function userPayload(User $user): array
     {
@@ -106,6 +106,7 @@ class AuthenticatedSessionController extends Controller
             'email' => $user->email,
             'accountStatus' => $user->account_status,
             'mustChangePassword' => (bool) $user->must_change_password,
+            'canManageAdministrators' => (bool) $user->can_manage_administrators,
             'photoUrl' => $user->studentProfile?->photo_path
                 ? '/api/v1/profile-photos/'.$user->getKey().'?v='.$user->studentProfile->updated_at?->getTimestamp()
                 : $user->google_avatar_url,

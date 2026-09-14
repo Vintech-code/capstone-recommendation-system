@@ -15,7 +15,7 @@ final class AdminAuditPresenter
             return [];
         }
 
-        $allowed = ['kind', 'version', 'status', 'sourceVersion', 'sourceName', 'lastVerifiedAt', 'format', 'dataClassification', 'from', 'to', 'beforeStatus', 'afterStatus', 'changedSections', 'changedProgrammeCount'];
+        $allowed = ['kind', 'version', 'status', 'sourceVersion', 'sourceName', 'lastVerifiedAt', 'format', 'dataClassification', 'from', 'to', 'beforeStatus', 'afterStatus', 'changedSections', 'changedProgrammeCount', 'reason', 'canManageAdministrators'];
 
         return collect($metadata)
             ->only($allowed)
@@ -44,6 +44,9 @@ final class AdminAuditPresenter
         }
         if (isset($metadata['changedProgrammeCount'])) {
             $parts[] = $metadata['changedProgrammeCount'].' programme records changed';
+        }
+        if (isset($metadata['reason'])) {
+            $parts[] = 'reason: '.$metadata['reason'];
         }
 
         return $parts !== [] ? implode(' · ', $parts) : str_replace(['.', '_'], ' ', $event->action);
