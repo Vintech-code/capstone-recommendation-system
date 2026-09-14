@@ -104,6 +104,14 @@ async function defaultFetch(
     return Response.json({ data: { changed: true } })
   }
 
+  if (url === '/api/v1/auth/admin-invitation/preview' && init?.method === 'POST') {
+    return Response.json({ data: { name: 'Invited Administrator', maskedEmail: 'i••••••@example.test', expiresAt: '2026-09-15T12:00:00Z' } })
+  }
+
+  if (url === '/api/v1/auth/admin-invitation/accept' && init?.method === 'POST') {
+    return Response.json({ data: { accepted: true }, message: 'Your Administrator account is ready. Sign in to continue.' })
+  }
+
   if (url.startsWith('/api/v1/auth/authorize/')) {
     return Response.json({
       authorized: true,
@@ -119,6 +127,23 @@ async function defaultFetch(
       operationalAttention: { processingFailures: 0 },
       recentActivity: [{ id: 1, reference: 'ASMT-000001', studentId: 10, studentName: 'Ana Santos', studentEmail: 'ana@example.test', attemptNumber: 1, instrumentCode: 'tcc-riasec-30-v1', status: 'result_available', answerCount: 30, questionCount: 30, topCode: 'I-C-R', startedAt: '2026-08-01T08:00:00+08:00', savedAt: '2026-08-01T08:19:00+08:00', submittedAt: '2026-08-01T08:20:00+08:00', resultAvailableAt: '2026-08-01T08:20:01+08:00', processingErrorCode: null, processingFailedAt: null, entranceExamination: null, recommendationSnapshot: null }],
     } })
+  }
+
+  if (url === '/api/v1/admin/administrators' && (!init?.method || init.method === 'GET')) {
+    return Response.json({ data: {
+      administrators: [
+        { id: 2, name: 'Admin User', email: 'admin@example.test', accountStatus: 'active', canManageAdministrators: true, lastActiveAt: '2026-09-14T08:00:00Z', createdAt: '2026-09-01T08:00:00Z' },
+        { id: 3, name: 'Records Administrator', email: 'records@example.test', accountStatus: 'active', canManageAdministrators: false, lastActiveAt: null, createdAt: '2026-09-02T08:00:00Z' },
+      ],
+      invitations: [
+        { id: 7, name: 'Pending Administrator', email: 'pending@example.test', status: 'pending', canManageAdministrators: false, invitedBy: 'Admin User', expiresAt: '2026-09-15T08:00:00Z', sentAt: '2026-09-14T08:00:00Z', createdAt: '2026-09-14T08:00:00Z' },
+      ],
+    } })
+  }
+
+  if (url === '/api/v1/admin/administrators/invitations' && init?.method === 'POST') {
+    const body = JSON.parse(String(init.body)) as { name: string; email: string }
+    return Response.json({ data: { id: 8, name: body.name, email: body.email, status: 'pending' } }, { status: 201 })
   }
 
   if (url.startsWith('/api/v1/admin/students?')) {

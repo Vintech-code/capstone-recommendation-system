@@ -113,9 +113,6 @@ function AdminStudentsPage({ onNavigate }: NavigateProps) {
         </form>
         <div className="mt-3 flex items-end justify-between gap-3">
           <div>
-            <p className="font-label text-xs font-bold uppercase tracking-[0.14em] text-primary-ink">
-              Authoritative ledger
-            </p>
             <h2 className="mt-0.5 font-display text-lg font-bold">
               {data.pagination.total} profiles in view
             </h2>

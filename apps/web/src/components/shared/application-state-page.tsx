@@ -4,59 +4,59 @@ import {
   FileQuestion,
   ShieldX,
   type LucideIcon,
-} from 'lucide-react'
-import { lazy, Suspense, useEffect, useRef } from 'react'
+} from "lucide-react";
+import { lazy, Suspense, useEffect, useRef } from "react";
 
-import { Button } from '@/components/ui/button'
+import { Button } from "@/components/ui/button";
 
 const NotFoundAnimation = lazy(() =>
-  import('@/components/shared/not-found-animation').then((module) => ({
+  import("@/components/shared/not-found-animation").then((module) => ({
     default: module.NotFoundAnimation,
   })),
-)
+);
 
-type ApplicationStateKind = 'forbidden' | 'session-expired' | 'not-found'
+type ApplicationStateKind = "forbidden" | "session-expired" | "not-found";
 
 const stateContent: Record<
   ApplicationStateKind,
   {
-    eyebrow: string
-    title: string
-    description: string
-    actionLabel: string
-    icon: LucideIcon
+    eyebrow: string;
+    title: string;
+    description: string;
+    actionLabel: string;
+    icon: LucideIcon;
   }
 > = {
   forbidden: {
-    eyebrow: 'Access restricted',
-    title: 'You cannot open this page',
+    eyebrow: "Access restricted",
+    title: "You cannot open this page",
     description:
-      'Your account does not have access to this workspace. Return to your portal and choose an available area.',
-    actionLabel: 'Return to portal',
+      "Your account does not have access to this workspace. Return to your portal and choose an available area.",
+    actionLabel: "Return to portal",
     icon: ShieldX,
   },
-  'session-expired': {
-    eyebrow: 'Session ended',
-    title: 'Sign in to continue',
+  "session-expired": {
+    eyebrow: "Session ended",
+    title: "Sign in to continue",
     description:
-      'Your session is no longer active. Sign in again to return to your authorized workspace.',
-    actionLabel: 'Go to sign in',
+      "Your session is no longer active. Sign in again to return to your authorized workspace.",
+    actionLabel: "Go to sign in",
     icon: ClockAlert,
   },
-  'not-found': {
-    eyebrow: 'Page not found',
-    title: 'This page is unavailable',
+  "not-found": {
+    eyebrow: "Page not found",
+    title: "This page is unavailable",
     description:
-      'The address may be incorrect or the page may have moved. Return to the application entry point.',
-    actionLabel: 'Return to application',
+      "The address may be incorrect or the page may have moved. Return to the application entry point.",
+    actionLabel: "Return to application",
     icon: FileQuestion,
   },
-}
+};
 
 interface ApplicationStatePageProps {
-  kind: ApplicationStateKind
-  onPrimaryAction: () => void
-  onBack?: () => void
+  kind: ApplicationStateKind;
+  onPrimaryAction: () => void;
+  onBack?: () => void;
 }
 
 function ApplicationStatePage({
@@ -64,24 +64,27 @@ function ApplicationStatePage({
   onPrimaryAction,
   onBack,
 }: ApplicationStatePageProps) {
-  const headingRef = useRef<HTMLHeadingElement>(null)
-  const content = stateContent[kind]
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const content = stateContent[kind];
 
   useEffect(() => {
-    headingRef.current?.focus()
-  }, [])
+    headingRef.current?.focus();
+  }, []);
 
   return (
     <main className="relative flex min-h-svh items-center justify-center bg-background px-4 py-12">
-      <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-gradient-to-b from-primary-fixed/70 to-transparent" />
-      <section className="relative w-full max-w-xl rounded-[1.75rem] border border-border bg-card p-7 text-center shadow-sm sm:p-10">
-        {kind === 'not-found' ? (
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-gradient-to-b from-primary-fixed/70 to-transparent"
+      />
+      <section className="relative w-full max-w-xl px-2 text-center sm:px-6">
+        {kind === "not-found" ? (
           <Suspense
-            fallback={(
+            fallback={
               <div className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-primary/8 text-primary-ink">
                 <content.icon aria-hidden="true" className="size-6" />
               </div>
-            )}
+            }
           >
             <NotFoundAnimation />
           </Suspense>
@@ -90,7 +93,13 @@ function ApplicationStatePage({
             <content.icon aria-hidden="true" className="size-6" />
           </div>
         )}
-        <p className={kind === 'not-found' ? 'mt-2 text-xs font-bold uppercase tracking-[0.14em] text-primary-ink' : 'mt-7 text-xs font-bold uppercase tracking-[0.14em] text-primary-ink'}>
+        <p
+          className={
+            kind === "not-found"
+              ? "mt-2 text-xs font-bold uppercase tracking-[0.14em] text-primary-ink"
+              : "mt-7 text-xs font-bold uppercase tracking-[0.14em] text-primary-ink"
+          }
+        >
           {content.eyebrow}
         </p>
         <h1
@@ -116,8 +125,8 @@ function ApplicationStatePage({
         </div>
       </section>
     </main>
-  )
+  );
 }
 
-export { ApplicationStatePage }
-export type { ApplicationStateKind }
+export { ApplicationStatePage };
+export type { ApplicationStateKind };

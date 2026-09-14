@@ -8,6 +8,7 @@ interface AuthUser {
   roles: AccessRole[]
   accountStatus?: 'active' | 'pending' | 'suspended' | 'archived'
   mustChangePassword?: boolean
+  canManageAdministrators?: boolean
   photoUrl?: string | null
 }
 
@@ -135,7 +136,34 @@ async function changePassword(fields: { currentPassword: string; password: strin
   })
 }
 
+interface AdministratorInvitationPreview {
+  name: string
+  maskedEmail: string
+  expiresAt: string
+}
+
+async function getAdministratorInvitation(token: string) {
+  await csrfCookie()
+  return request<{ data: AdministratorInvitationPreview }>('/api/v1/auth/admin-invitation/preview', {
+    method: 'POST',
+    body: JSON.stringify({ token }),
+  })
+}
+
+async function acceptAdministratorInvitation(fields: { token: string; password: string; passwordConfirmation: string }) {
+  await csrfCookie()
+  return request<{ data: { accepted: true }; message: string }>('/api/v1/auth/admin-invitation/accept', {
+    method: 'POST',
+    body: JSON.stringify({
+      token: fields.token,
+      password: fields.password,
+      password_confirmation: fields.passwordConfirmation,
+    }),
+  })
+}
+
 export {
+  acceptAdministratorInvitation,
   AuthApiError,
   authorizePortal,
   currentUser,
@@ -146,5 +174,6 @@ export {
   requestPasswordReset,
   resetPassword,
   changePassword,
+  getAdministratorInvitation,
 }
-export type { AuthUser, SignInCredentials, StudentRegistrationFields }
+export type { AdministratorInvitationPreview, AuthUser, SignInCredentials, StudentRegistrationFields }

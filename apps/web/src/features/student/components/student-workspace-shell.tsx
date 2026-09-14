@@ -161,7 +161,7 @@ function StudentWorkspaceShell({
           )}
 
           {showNavigation ? (
-            <>
+            <div className="flex items-center gap-2">
               <NotificationCenter
                 workspaceLabel="Student"
                 onNavigate={onSelect}
@@ -172,7 +172,7 @@ function StudentWorkspaceShell({
                   <button
                     type="button"
                     aria-label="Open user menu"
-                    className="flex min-h-11 shrink-0 items-center gap-2 rounded px-0.5 text-left transition-colors hover:bg-secondary focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30 md:px-1"
+                    className="flex h-10 shrink-0 items-center gap-1.5 rounded-full p-1 text-left transition-colors hover:bg-secondary focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
                   >
                     <span className="flex size-9 items-center justify-center overflow-hidden rounded-full bg-primary-fixed text-xs font-bold text-on-primary-fixed">
                       {studentPhotoUrl ? (
@@ -185,39 +185,47 @@ function StudentWorkspaceShell({
                         initials
                       )}
                     </span>
-                    <span className="hidden text-xs font-bold xl:block">
-                      {studentName}
-                    </span>
                     <ChevronDown
                       aria-hidden="true"
-                      className="hidden size-3.5 text-muted-foreground sm:block"
+                      className="size-4 text-muted-foreground"
                     />
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
+                <DropdownMenuContent align="end" className="w-56">
                   <DropdownMenuLabel>
-                    <span className="block">{studentName}</span>
-                    <span className="mt-1 block font-normal text-muted-foreground">
+                    <span className="block font-bold text-foreground">
+                      {studentName}
+                    </span>
+                    <span className="mt-0.5 block text-xs font-normal text-muted-foreground">
                       Student Applicant
                     </span>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onSelect={() => onSelect("history")}>
+                  <DropdownMenuItem
+                    onSelect={() => onSelect("history")}
+                    className="cursor-pointer"
+                  >
                     <History aria-hidden="true" className="size-4" />
                     Assessment history
                   </DropdownMenuItem>
-                  <DropdownMenuItem onSelect={() => onSelect("profile")}>
+                  <DropdownMenuItem
+                    onSelect={() => onSelect("profile")}
+                    className="cursor-pointer"
+                  >
                     <UserRound aria-hidden="true" className="size-4" />
                     My Profile
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onSelect={onExit}>
+                  <DropdownMenuItem
+                    onSelect={onExit}
+                    className="cursor-pointer"
+                  >
                     <LogOut aria-hidden="true" className="size-4" />
                     Sign out
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-            </>
+            </div>
           ) : null}
         </div>
       </header>

@@ -288,6 +288,33 @@ interface AdminActivityResponse {
   }
 }
 
+interface ManagedAdministrator {
+  id: number
+  name: string
+  email: string
+  accountStatus: 'active' | 'suspended' | 'archived'
+  canManageAdministrators: boolean
+  lastActiveAt: string | null
+  createdAt: string
+}
+
+interface AdministratorInvitation {
+  id: number
+  name: string
+  email: string
+  status: 'pending' | 'expired' | 'accepted' | 'revoked'
+  canManageAdministrators: boolean
+  invitedBy: string | null
+  expiresAt: string
+  sentAt: string | null
+  createdAt: string
+}
+
+interface AdministratorManagement {
+  administrators: ManagedAdministrator[]
+  invitations: AdministratorInvitation[]
+}
+
 class AdminApiError extends Error {}
 
 async function requestAdmin<T>(path: string, signal?: AbortSignal): Promise<T> {
@@ -297,7 +324,7 @@ async function requestAdmin<T>(path: string, signal?: AbortSignal): Promise<T> {
   })
 }
 
-async function mutateAdmin<T>(path: string, method: 'POST' | 'PUT', body?: unknown): Promise<T> {
+async function mutateAdmin<T>(path: string, method: 'POST' | 'PUT' | 'DELETE', body?: unknown): Promise<T> {
   const result = await apiDataRequest<T>(`/api/v1/admin${path}`, {
     method,
     body: body === undefined ? undefined : JSON.stringify(body),
@@ -431,10 +458,13 @@ export type {
   AdminStudentRecord,
   AdminPagination,
   AdminActivityResponse,
+  AdministratorInvitation,
+  AdministratorManagement,
   ConfigurationVersion,
   ConfigurationPreview,
   ConfigurationWorkspace,
   ProgrammeSourceRegistryEntry,
   RiasecDimension,
   EscoOccupationSearchResult,
+  ManagedAdministrator,
 }

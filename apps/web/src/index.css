@@ -5,6 +5,18 @@
 @import "@fontsource/montserrat-alternates/latin-700.css";
 @import "@fontsource/montserrat-alternates/latin-800.css";
 @import "@fontsource/montserrat-alternates/latin-900.css";
+@import "@fontsource/poppins/latin-400.css";
+@import "@fontsource/poppins/latin-500.css";
+@import "@fontsource/poppins/latin-600.css";
+@import "@fontsource/poppins/latin-700.css";
+@import "@fontsource/poppins/latin-800.css";
+@import "@fontsource/poppins/latin-900.css";
+@import "@fontsource/montserrat/latin-400.css";
+@import "@fontsource/montserrat/latin-500.css";
+@import "@fontsource/montserrat/latin-600.css";
+@import "@fontsource/montserrat/latin-700.css";
+@import "@fontsource/montserrat/latin-800.css";
+@import "@fontsource/montserrat/latin-900.css";
 @import "tailwindcss";
 
 :root {
@@ -133,8 +145,16 @@
   --access-panel-shadow: rgba(52, 64, 45, 0.12);
 }
 
-.staff-workspace-theme {
+.staff-workspace-theme,
+.admin-workspace-body {
   color-scheme: light;
+  font-family:
+    "Montserrat", "Montserrat Alternates", ui-sans-serif, system-ui, sans-serif;
+  --font-sans:
+    "Montserrat", "Montserrat Alternates", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Poppins", ui-sans-serif, system-ui, sans-serif;
+  --font-label:
+    "Montserrat", "Montserrat Alternates", ui-sans-serif, system-ui, sans-serif;
   --background: #ffffff;
   --foreground: #34402d;
   --card: #fbfff7;
@@ -175,6 +195,23 @@
   --chart-teal: #9add5b;
   --chart-yellow: #e2b34f;
   --chart-slate: #9aabb2;
+}
+
+.staff-workspace-theme h1,
+.staff-workspace-theme h2,
+.staff-workspace-theme h3,
+.staff-workspace-theme h4,
+.staff-workspace-theme h5,
+.staff-workspace-theme h6,
+.staff-workspace-theme .font-display,
+.admin-workspace-body h1,
+.admin-workspace-body h2,
+.admin-workspace-body h3,
+.admin-workspace-body h4,
+.admin-workspace-body h5,
+.admin-workspace-body h6,
+.admin-workspace-body .font-display {
+  font-family: "Poppins", ui-sans-serif, system-ui, sans-serif;
 }
 
 .staff-workspace-theme [data-slot="button"],

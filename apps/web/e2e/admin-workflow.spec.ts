@@ -6,6 +6,7 @@ const adminUser = {
   name: 'Admin User',
   email: 'admin@example.test',
   roles: ['admin'],
+  canManageAdministrators: true,
 }
 
 function json(route: Route, body: unknown, status = 200) {
@@ -21,6 +22,8 @@ async function installAdminApi(page: Page, initiallyAuthenticated = false) {
     if (path === '/api/v1/auth/session') return json(route, { user: authenticated ? adminUser : null })
     if (path === '/api/v1/auth/login') { authenticated = true; return json(route, { user: adminUser }) }
     if (path === '/api/v1/auth/authorize/admin') return json(route, { authorized: true, portal: 'admin' })
+    if (path === '/api/v1/auth/admin-invitation/preview') return json(route, { data: { name: 'Invited Administrator', maskedEmail: 'i••••••@example.test', expiresAt: '2026-09-15T12:00:00Z' } })
+    if (path === '/api/v1/auth/admin-invitation/accept') return json(route, { data: { accepted: true }, message: 'Your Administrator account is ready.' })
     if (path === '/api/v1/admin/overview') return json(route, { data: { students: 1, assessments: 1, completed: 1, inProgress: 0, needsAttention: 0, recommendations: 1, funnel: { registered: 1, entranceDeclared: 1, assessmentStarted: 1, inProgress: 0, processing: 0, resultAvailable: 1 }, operationalAttention: { processingFailures: 0 }, recentActivity: [assessment] } })
     if (path === '/api/v1/admin/students') return json(route, { data: { items: [student], pagination: { currentPage: 1, lastPage: 1, perPage: 20, total: 1, from: 1, to: 1 } } })
     if (path === '/api/v1/admin/students/10') return json(route, { data: { id: 10, name: 'Ana Santos', email: 'ana@example.test', accountStatus: 'active', savedProgrammeCount: 1, profile: { lrn: '128490000011', birthDate: '2007-04-18', age: 19, phone: '+63 917 842 1928', addressLine: 'Zone 2', barangay: 'Poblacion', municipality: 'Tagoloan', province: 'Misamis Oriental', shsSchoolName: 'Tagoloan National High School', shsStrand: 'STEM', shsGraduationYear: 2026 }, attempts: [{ ...assessment, dimensions: [{ code: 'R', label: 'Realistic', value: 16 }, { code: 'I', label: 'Investigative', value: 23 }, { code: 'A', label: 'Artistic', value: 14 }, { code: 'S', label: 'Social', value: 12 }, { code: 'E', label: 'Enterprising', value: 10 }, { code: 'C', label: 'Conventional', value: 21 }], recommendations: [{ id: 'bs-information-technology', rank: 1, code: 'BSIT', name: 'BS Information Technology', match: 90 }, { id: 'bs-business-administration', rank: 2, code: 'BSBA', name: 'BS Business Administration', match: 82 }, { id: 'bachelor-library-information-science', rank: 3, code: 'BLIS', name: 'Bachelor of Library and Information Science', match: 76 }] }] } })
@@ -29,6 +32,7 @@ async function installAdminApi(page: Page, initiallyAuthenticated = false) {
     if (path === '/api/v1/admin/configurations/catalogue') return json(route, { data: { kind: 'catalogue', runtime: { programmes: [catalogueProgramme] }, versions: [{ id: 7, kind: 'catalogue', version: 3, status: 'draft', academicYear: '2026-2027', payload: { programmes: [catalogueProgramme] }, createdBy: 'Admin User', publishedBy: null, createdAt: '2026-09-12T12:00:00+08:00', publishedAt: null }] } })
     if (path === '/api/v1/admin/reports') return json(route, { data: { generatedAt: '2026-08-08T12:00:00+08:00', from: null, to: null, scope: 'institution', studentCount: 1, eligibilityDistribution: { board: 1, nonBoard: 0 }, completedAssessments: 1, assessmentCompletionRate: 100, assessmentFunnel: { started: 1, inProgress: 0, processing: 0, resultAvailable: 1 }, recommendationRuns: 1, programmeSaves: 0, assessmentCompletionsByMonth: [{ month: '2026-08', count: 1 }] } })
     if (path === '/api/v1/admin/activity') return json(route, { data: { items: [{ id: 1, actorId: 2, actor: 'Admin User', action: 'configuration.published', createdAt: '2026-08-08T12:00:00+08:00' }], pagination: { currentPage: 1, lastPage: 1, perPage: 25, total: 1, from: 1, to: 1 }, filters: { actors: [{ id: 2, name: 'Admin User' }], actions: ['configuration.published'] } } })
+    if (path === '/api/v1/admin/administrators') return json(route, { data: { administrators: [{ id: 2, name: 'Admin User', email: 'admin@example.test', accountStatus: 'active', canManageAdministrators: true, lastActiveAt: '2026-09-14T08:00:00Z', createdAt: '2026-09-01T08:00:00Z' }, { id: 3, name: 'Records Administrator', email: 'records@example.test', accountStatus: 'suspended', canManageAdministrators: false, lastActiveAt: null, createdAt: '2026-09-02T08:00:00Z' }], invitations: [{ id: 7, name: 'Pending Administrator', email: 'pending@example.test', status: 'pending', canManageAdministrators: false, invitedBy: 'Admin User', expiresAt: '2026-09-15T08:00:00Z', sentAt: '2026-09-14T08:00:00Z', createdAt: '2026-09-14T08:00:00Z' }] } })
     return json(route, { data: [] })
   })
 }
@@ -80,6 +84,7 @@ test('Admin dashboard uses the semantic multicolor palette without overflow', as
 
   await expect(page.getByRole('heading', { name: 'System overview' })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Journey stage detail' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Assessment Milestones' })).toBeVisible()
   await expect(page.getByRole('button', { name: 'View all records' })).toBeVisible()
 
   const metricColors = await page.getByTestId('admin-operational-strip').locator(':scope > div').evaluateAll((cells) =>
@@ -116,8 +121,9 @@ test('Admin workspace is responsive, accessible, and navigable', async ({ page }
   await expect(page.getByRole('heading', { name: 'System overview' })).toBeVisible()
   await expect(page.getByRole('contentinfo')).toHaveCount(0)
   consoleErrors.length = 0
-  await expect(page.getByText('Latest recorded assessment activity and available evidence.')).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Recent Students' })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Journey stage detail' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Assessment Milestones' })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Open student directory' })).toHaveCount(0)
   await expect(page.getByText('Needs attention', { exact: true })).toHaveCount(0)
   await expect(page.getByText('Recommendation runs', { exact: true })).toBeVisible()
@@ -260,5 +266,43 @@ test('Admin Student detail follows the evidence dossier layout', async ({ page }
   }, axe.source)
   const seriousViolations = accessibility.violations.filter((violation) => ['serious', 'critical'].includes(violation.impact ?? ''))
   expect(seriousViolations, JSON.stringify(seriousViolations, null, 2)).toEqual([])
+  expect(consoleErrors).toEqual([])
+})
+
+test('Administrator invitation and account governance render securely without overflow', async ({ page }, testInfo) => {
+  const consoleErrors: string[] = []
+  page.on('console', (message) => { if (message.type() === 'error') consoleErrors.push(message.text()) })
+  await installAdminApi(page, true)
+  await page.goto('/admin/administrators')
+
+  await expect(page.getByRole('heading', { name: 'Administrators', exact: true })).toBeVisible()
+  await expect(page.getByText('Pending Administrator')).toBeVisible()
+  await expect(page.getByText('Suspended', { exact: true }).filter({ visible: true })).toBeVisible()
+  await page.getByRole('button', { name: 'Invite administrator' }).click()
+  await expect(page.getByRole('dialog')).toBeVisible()
+  await expect(page.getByLabel('Confirm with your password')).toBeVisible()
+  await expect(page.getByLabel(/temporary password/i)).toHaveCount(0)
+  await page.keyboard.press('Tab')
+  expect(await page.evaluate(() => Boolean(document.querySelector('[role="dialog"]')?.contains(document.activeElement)))).toBe(true)
+
+  const overflow = await page.evaluate(() => ({ clientWidth: document.documentElement.clientWidth, scrollWidth: document.documentElement.scrollWidth }))
+  expect(overflow.scrollWidth).toBeLessThanOrEqual(overflow.clientWidth)
+  const accessibility = await page.evaluate(async (source) => {
+    eval(source)
+    return window.axe.run(document, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa'] } })
+  }, axe.source)
+  expect(accessibility.violations.filter((violation) => ['serious', 'critical'].includes(violation.impact ?? ''))).toEqual([])
+  await page.screenshot({ path: testInfo.outputPath('administrator-management.png'), fullPage: true })
+
+  await page.goto(`/admin/setup#token=${'a'.repeat(64)}`)
+  await expect(page.getByRole('heading', { name: 'Set up your Administrator account' })).toBeVisible()
+  await expect(page.getByText('Invited Administrator')).toBeVisible()
+  await expect(page).toHaveURL('/admin/setup')
+  await page.getByLabel('Password', { exact: true }).fill('a-secure-password')
+  await page.getByLabel('Confirm password').fill('a-secure-password')
+  await page.getByRole('button', { name: 'Activate Administrator account' }).click()
+  await expect(page.getByText(/Administrator account is active/i)).toBeVisible()
+  const setupOverflow = await page.evaluate(() => ({ clientWidth: document.documentElement.clientWidth, scrollWidth: document.documentElement.scrollWidth }))
+  expect(setupOverflow.scrollWidth).toBeLessThanOrEqual(setupOverflow.clientWidth)
   expect(consoleErrors).toEqual([])
 })

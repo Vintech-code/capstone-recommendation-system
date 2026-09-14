@@ -1,0 +1,319 @@
+import {
+  CalendarDays,
+  Clock3,
+  FileText,
+  Sparkles,
+  UserCheck,
+} from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import type {
+  AssessmentLifecycle,
+  ResultCardData,
+} from "@/features/student/assessment/assessment-api";
+import {
+  formatAssessmentDate,
+  mapAssessmentResult,
+} from "@/features/student/assessment/assessment-result-mapper";
+import type { StudentRecommendationState } from "@/features/student/recommendations/recommendation-types";
+
+export function toResultCardData(
+  attempt: AssessmentLifecycle,
+  studentName = "Student Applicant",
+): ResultCardData | null {
+  const result = mapAssessmentResult(attempt);
+  if (!result || !attempt.id) return null;
+
+  const dimensions = result.dimensions.map((d) => ({
+    code: d.code,
+    label: d.label,
+    value: d.value,
+  }));
+
+  const sorted = [...dimensions].sort((a, b) => b.value - a.value);
+  const topCodes = sorted.slice(0, 3).map((d) => d.code);
+
+  return {
+    id: attempt.id,
+    reference:
+      attempt.reference ?? `ASMT-${String(attempt.id).padStart(6, "0")}`,
+    studentName,
+    attemptNumber: attempt.attempt_number ?? 1,
+    isCurrent: Boolean(attempt.is_current),
+    instrumentCode: attempt.instrument_code ?? "tcc-uhcc-riasec-42-v1",
+    status: attempt.status,
+    startedAt: attempt.started_at,
+    submittedAt: attempt.submitted_at,
+    resultAvailableAt: attempt.result_available_at,
+    topCode: topCodes.join(""),
+    formattedTopCode: topCodes.join("-"),
+    topDimensions: sorted.slice(0, 3),
+    dimensions,
+    scoringVersion:
+      attempt.result?.scoring_source ??
+      attempt.result?.instrument_code ??
+      "RIASEC-OQ42-2026-01",
+    guidanceVersion:
+      attempt.result?.guidance?.version ?? "METHODOLOGY-PROPOSED-2026-01",
+    disclaimer:
+      "This assessment result reflects your self-reported vocational interest profile.",
+    shareToken: attempt.share_token,
+    sharedAt: attempt.shared_at,
+  };
+}
+
+export function assessmentStatusLabel(status: AssessmentLifecycle["status"]) {
+  return {
+    not_started: "Not started",
+    in_progress: "In progress",
+    preparing_result: "Finalizing submission",
+    result_failed: "Result unavailable",
+    result_available: "Result available",
+  }[status];
+}
+
+interface HistoricalAttemptDetailsProps {
+  attempt: AssessmentLifecycle;
+  previousAttempt: AssessmentLifecycle | null;
+  recommendation: StudentRecommendationState | null;
+  recommendationState: "idle" | "loading" | "error";
+  onViewResultCard: () => void;
+  onExploreMatches?: () => void;
+}
+
+export function HistoricalAttemptDetails({
+  attempt,
+  previousAttempt,
+  recommendation,
+  recommendationState,
+  onViewResultCard,
+  onExploreMatches,
+}: HistoricalAttemptDetailsProps) {
+  const result = mapAssessmentResult(attempt);
+  const previousResult = previousAttempt
+    ? mapAssessmentResult(previousAttempt)
+    : null;
+  const previousScoresByCode = new Map(
+    previousResult?.dimensions.map((d) => [d.code, d.value]) ?? [],
+  );
+  const courses =
+    recommendation?.status === "available"
+      ? (recommendation.recommendation?.courses ?? [])
+      : [];
+
+  return (
+    <div
+      data-testid="historical-attempt-details"
+      className="space-y-4 rounded-2xl border border-border/70 bg-card p-5 shadow-sm sm:p-6"
+    >
+      {/* Inspector Hero Header */}
+      <div className="flex flex-col justify-between gap-3 border-b border-border/50 pb-4 sm:flex-row sm:items-center">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="flex size-7 items-center justify-center rounded-lg bg-primary/10 text-primary-ink">
+              <Sparkles className="size-4" aria-hidden="true" />
+            </span>
+            <span className="text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground">
+              Inspection Details
+            </span>
+          </div>
+          <h4 className="mt-1 font-display text-xl font-bold tracking-tight text-foreground">
+            Attempt {attempt.attempt_number ?? 1} result
+          </h4>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            Assessment version:{" "}
+            {result?.assessmentVersion ??
+              attempt.instrument_code ??
+              "tcc-uhcc-riasec-42-v1"}
+            {attempt.is_current ? (
+              <span className="ml-2 inline-flex items-center font-bold text-success-ink">
+                Current result
+              </span>
+            ) : null}
+          </p>
+        </div>
+
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="h-8 gap-1.5 border-primary/30 text-xs font-bold text-primary-ink shadow-2xs hover:bg-primary/10"
+          onClick={onViewResultCard}
+        >
+          <FileText className="size-3.5" aria-hidden="true" />
+          View Result Card
+        </Button>
+      </div>
+
+      {/* Snapshot Metadata Grid */}
+      <div className="grid grid-cols-2 gap-2 text-xs">
+        <div className="rounded-xl border border-border/50 bg-secondary/30 p-3">
+          <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+            <Clock3 className="size-3.5" aria-hidden="true" /> Status
+          </p>
+          <p className="mt-1 font-bold text-foreground capitalize">
+            {assessmentStatusLabel(attempt.status)}
+          </p>
+        </div>
+        <div className="rounded-xl border border-border/50 bg-secondary/30 p-3">
+          <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+            <CalendarDays className="size-3.5" aria-hidden="true" /> Submitted
+          </p>
+          <p className="mt-1 font-bold text-foreground">
+            {formatAssessmentDate(attempt.submitted_at ?? attempt.started_at)}
+          </p>
+        </div>
+      </div>
+
+      {/* Entrance Exam Self-Declaration Snapshot */}
+      {attempt.entrance_examination ? (
+        <div className="rounded-xl border border-border/60 bg-muted/20 p-3.5 text-xs">
+          <div className="flex items-center justify-between">
+            <span className="flex items-center gap-1.5 font-bold text-foreground">
+              <UserCheck
+                className="size-3.5 text-primary-ink"
+                aria-hidden="true"
+              />
+              Self-declared Entrance Exam
+            </span>
+            <span className="font-display font-black text-sm text-foreground">
+              {Number(attempt.entrance_examination.score).toFixed(2)}
+            </span>
+          </div>
+          <p className="mt-1 text-[11px] text-muted-foreground">
+            Classification:{" "}
+            <span className="font-semibold text-foreground">
+              {attempt.entrance_examination.eligibility_group === "board"
+                ? "Board Programme Eligible (1.0 - 2.5)"
+                : "Non-Board Programme Pathway (2.6 - 5.0)"}
+            </span>
+          </p>
+        </div>
+      ) : null}
+
+      {/* Comparison against previous attempt */}
+      {previousAttempt && (
+        <div className="rounded-xl border border-dashed border-border/80 bg-muted/10 p-3.5 text-xs">
+          <h5 className="font-bold text-foreground">
+            Compared with Attempt {previousAttempt.attempt_number ?? 1}
+          </h5>
+          <p className="mt-0.5 text-[11px] text-muted-foreground">
+            Recorded score change only
+          </p>
+        </div>
+      )}
+
+      {/* All 6 Holland Dimensions Scores */}
+      {result?.dimensions && result.dimensions.length > 0 ? (
+        <div className="rounded-xl border border-border/50 bg-secondary/15 p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h5 className="text-xs font-black uppercase tracking-wider text-muted-foreground">
+              Recorded dimension scores
+            </h5>
+            <span className="font-display text-sm font-black text-primary-ink">
+              {result.topCode}
+            </span>
+          </div>
+          <dl className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+            {result.dimensions.map((dimension) => {
+              const prev = previousScoresByCode.get(dimension.code);
+              const scoreDiff =
+                prev !== undefined ? dimension.value - prev : null;
+              return (
+                <div
+                  key={dimension.code}
+                  className="rounded-lg border border-border/50 bg-card p-2 text-center shadow-2xs"
+                >
+                  <dt className="text-[10px] font-bold text-muted-foreground truncate">
+                    {dimension.code}
+                  </dt>
+                  <dd className="mt-0.5 font-display text-base font-black text-foreground">
+                    {dimension.value}
+                  </dd>
+                  <dd
+                    className={`mt-0.5 text-[10px] font-black ${
+                      scoreDiff === null || scoreDiff === 0
+                        ? "text-muted-foreground"
+                        : scoreDiff > 0
+                          ? "text-success-ink"
+                          : "text-destructive-ink"
+                    }`}
+                  >
+                    {scoreDiff === null
+                      ? "recorded"
+                      : scoreDiff > 0
+                        ? `+${scoreDiff}`
+                        : String(scoreDiff)}
+                  </dd>
+                </div>
+              );
+            })}
+          </dl>
+        </div>
+      ) : null}
+
+      {/* Recommended Courses Breakdown */}
+      <div className="border-t border-border/50 pt-4">
+        <div className="flex items-center justify-between">
+          <h5 className="text-xs font-black uppercase tracking-wider text-muted-foreground">
+            Programme matches from this attempt
+          </h5>
+          {onExploreMatches && courses.length > 0 ? (
+            <Button
+              type="button"
+              variant="link"
+              size="sm"
+              className="h-auto p-0 text-xs font-bold text-primary-ink"
+              onClick={onExploreMatches}
+            >
+              Explore all
+            </Button>
+          ) : null}
+        </div>
+
+        {recommendationState === "loading" ? (
+          <p className="mt-3 text-xs text-muted-foreground animate-pulse">
+            Loading generated recommendations for this attempt...
+          </p>
+        ) : null}
+
+        {recommendationState === "error" ? (
+          <p className="mt-3 text-xs text-destructive-ink">
+            Could not load recommendations for this attempt.
+          </p>
+        ) : null}
+
+        {recommendationState === "idle" && courses.length > 0 ? (
+          <ol className="mt-3 grid gap-2.5">
+            {courses.map((course) => (
+              <li
+                key={course.id}
+                className="flex items-center justify-between gap-3 rounded-xl border border-border/70 bg-card p-3 shadow-2xs"
+              >
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] font-black text-primary-ink">
+                      #{course.rank} · {course.code}
+                    </span>
+                  </div>
+                  <p className="mt-0.5 truncate font-bold text-xs text-foreground">
+                    {course.name}
+                  </p>
+                </div>
+                <span className="shrink-0 rounded-full bg-secondary/80 px-2.5 py-1 text-xs font-black text-foreground">
+                  {course.match}%
+                </span>
+              </li>
+            ))}
+          </ol>
+        ) : null}
+
+        {recommendationState === "idle" && courses.length === 0 ? (
+          <p className="mt-3 text-xs text-muted-foreground">
+            No saved programme matches are available for this attempt.
+          </p>
+        ) : null}
+      </div>
+    </div>
+  );
+}

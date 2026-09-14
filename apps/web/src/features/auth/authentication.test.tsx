@@ -60,13 +60,13 @@ describe("server-backed authentication", () => {
   it("resets a password from a tokenized recovery link", async () => {
     const user = userEvent.setup();
     await renderAppAt(
-      "/reset-password/test-token?email=student%40example.test",
+      "/reset-password/test-token?email=student%40example.test&portal=admin",
     );
 
-    await user.type(screen.getByLabelText("New password"), "new-password");
+    await user.type(screen.getByLabelText("New password"), "NewSecure!2026");
     await user.type(
       screen.getByLabelText("Confirm new password"),
-      "new-password",
+      "NewSecure!2026",
     );
     await user.click(screen.getByRole("button", { name: "Reset password" }));
 
@@ -79,10 +79,14 @@ describe("server-backed authentication", () => {
         body: JSON.stringify({
           token: "test-token",
           email: "student@example.test",
-          password: "new-password",
-          password_confirmation: "new-password",
+          password: "NewSecure!2026",
+          password_confirmation: "NewSecure!2026",
         }),
       }),
+    );
+    expect(screen.getByRole("link", { name: "Continue to Administrator sign in" })).toHaveAttribute(
+      "href",
+      "/admin/login",
     );
   });
 
@@ -98,10 +102,10 @@ describe("server-backed authentication", () => {
       screen.getByRole("textbox", { name: "Email address" }),
       "new.student@example.test",
     );
-    await user.type(screen.getByLabelText("Password"), "student-password");
+    await user.type(screen.getByLabelText("Password"), "StudentPass!2026");
     await user.type(
       screen.getByLabelText("Confirm password"),
-      "student-password",
+      "StudentPass!2026",
     );
     await user.click(
       screen.getByRole("button", { name: "Create student account" }),
@@ -114,8 +118,8 @@ describe("server-backed authentication", () => {
         body: JSON.stringify({
           name: "New Student",
           email: "new.student@example.test",
-          password: "student-password",
-          password_confirmation: "student-password",
+          password: "StudentPass!2026",
+          password_confirmation: "StudentPass!2026",
         }),
       }),
     );

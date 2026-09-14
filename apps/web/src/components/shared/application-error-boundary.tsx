@@ -63,29 +63,29 @@ class ApplicationErrorBoundary extends Component<
     const dashboardPath = recoveryPath(window.location.pathname);
 
     return (
-      <main className="flex min-h-svh items-center justify-center px-4 py-12">
+      <main className="flex min-h-svh items-center justify-center bg-background px-4 py-12">
         <section
           aria-labelledby="application-error-title"
-          className="w-full max-w-2xl text-center"
+          className="w-full max-w-2xl rounded-[1.75rem] border border-border bg-card px-6 py-8 text-center shadow-sm sm:px-10 sm:py-10"
         >
           <ErrorAnimation />
 
-          <p className="mt-6 font-label text-xs font-bold uppercase tracking-[0.16em] text-destructive-ink">
-            Application recovery
+          <p className="mt-6 font-label text-xs font-bold uppercase tracking-[0.16em] text-primary-ink">
+            Page recovery
           </p>
           <h1
             id="application-error-title"
             ref={this.headingRef}
             tabIndex={-1}
-            className="mt-2 font-display text-3xl sm:text-4xl font-black tracking-tight text-foreground outline-none"
+            className="mt-2 font-display text-3xl font-black tracking-tight text-foreground outline-none sm:text-4xl"
           >
-            Something went wrong
+            Let&apos;s get you back on track
           </h1>
           <p className="mx-auto mt-3 max-w-md text-sm sm:text-base leading-6 text-muted-foreground">
-            The page encountered an unexpected problem. Try the page again, or
-            return to your dashboard.
+            This page needs a fresh start. Try loading it again, or return to
+            your dashboard to continue.
           </p>
-          <p className="mt-4 font-label text-xs text-muted-foreground">
+          <p className="mt-5 font-label text-xs text-muted-foreground">
             Error reference: <strong>{this.state.errorReference}</strong>
           </p>
           <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">

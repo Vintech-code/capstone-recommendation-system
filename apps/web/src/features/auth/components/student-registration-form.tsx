@@ -9,6 +9,11 @@ import {
   type StudentRegistrationFields,
 } from "@/features/auth/auth-api";
 import { FloatingInputField } from "@/features/auth/components/floating-input-field";
+import {
+  PASSWORD_MIN_LENGTH,
+  PASSWORD_POLICY_MESSAGE,
+  passwordMeetsPolicy,
+} from "@/features/auth/password-policy";
 
 const registrationSchema = z
   .object({
@@ -18,7 +23,10 @@ const registrationSchema = z
       .trim()
       .min(1, "Enter your email address.")
       .email("Enter a valid email address."),
-    password: z.string().min(1, "Enter a password."),
+    password: z
+      .string()
+      .min(1, "Enter a password.")
+      .refine(passwordMeetsPolicy, PASSWORD_POLICY_MESSAGE),
     passwordConfirmation: z.string().min(1, "Confirm your password."),
   })
   .refine((fields) => fields.password === fields.passwordConfirmation, {
@@ -100,15 +108,20 @@ function StudentRegistrationForm({ onRegister }: StudentRegistrationFormProps) {
         icon={LockKeyhole}
         type="password"
         autoComplete="new-password"
+        minLength={PASSWORD_MIN_LENGTH}
         error={errors.password?.message}
         {...register("password")}
       />
+      <p className="text-[11px] leading-4 text-muted-foreground">
+        {PASSWORD_POLICY_MESSAGE}
+      </p>
       <FloatingInputField
         id="registration-password-confirmation"
         label="Confirm password"
         icon={LockKeyhole}
         type="password"
         autoComplete="new-password"
+        minLength={PASSWORD_MIN_LENGTH}
         error={errors.passwordConfirmation?.message}
         {...register("passwordConfirmation")}
       />

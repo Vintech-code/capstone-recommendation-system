@@ -1,77 +1,47 @@
-import {
-  ChevronDown,
-  LogOut,
-  Menu,
-  Search,
-} from 'lucide-react'
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { ChevronDown, LogOut, Menu, Search } from "lucide-react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 
-import { Button } from '@/components/ui/button'
-import logo from '@/assets/logo/header-logo.png'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { Input } from '@/components/ui/input'
-import {
-  Sheet,
-  SheetClose,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
-import type { AccessRole } from '@/features/auth/access-types'
-import { useAuth } from '@/features/auth/auth-context'
-import { roleOptions } from '@/features/auth/access-types'
-import {
-  DashboardOverview,
-  ModuleView,
-} from '@/features/auth/components/dashboard-overview'
-import {
-  WorkspaceBreadcrumb,
-  WorkspaceBreadcrumbProvider,
-} from '@/features/auth/components/workspace-breadcrumb'
-import { WorkspaceNavigation } from '@/features/auth/components/workspace-navigation'
+import { Button } from "@/components/ui/button";
+import logo from "@/assets/logo/header-logo.png";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { Input } from "@/components/ui/input";
+import { Sheet, SheetClose, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import type { AccessRole } from "@/features/auth/access-types";
+import { useAuth } from "@/features/auth/auth-context";
+import { roleOptions } from "@/features/auth/access-types";
+import { DashboardOverview, ModuleView } from '@/features/auth/components/dashboard-overview'
+import { WorkspaceBreadcrumb, WorkspaceBreadcrumbProvider } from '@/features/auth/components/workspace-breadcrumb'
+import { WorkspaceNavigation } from "@/features/auth/components/workspace-navigation";
 import {
   dashboards,
   type DashboardModule,
-} from '@/features/auth/workspace-definitions'
-import { StudentWorkspaceShell } from '@/features/student/components/student-workspace-shell'
-import { prefetchStudentWorkspace } from '@/features/student/student-workspace-prefetch'
-import { NotificationCenter } from '@/features/notifications/components/notification-center'
-import { cn } from '@/lib/utils'
+} from "@/features/auth/workspace-definitions";
+import { StudentWorkspaceShell } from "@/features/student/components/student-workspace-shell";
+import { prefetchStudentWorkspace } from "@/features/student/student-workspace-prefetch";
+import { NotificationCenter } from "@/features/notifications/components/notification-center";
+import { cn } from "@/lib/utils";
 
 interface WorkspacePreviewProps {
-  role: AccessRole
-  onExit: () => void
-  activeModuleId?: string
-  onSelectModule?: (id: string) => void
-  pageLabel?: string
-  children?: ReactNode
-  embedBreadcrumbInPageHeader?: boolean
-  moduleSearchPlacement?: 'topbar' | 'overview'
+  role: AccessRole;
+  onExit: () => void;
+  activeModuleId?: string;
+  onSelectModule?: (id: string) => void;
+  pageLabel?: string;
+  children?: ReactNode;
+  embedBreadcrumbInPageHeader?: boolean;
+  moduleSearchPlacement?: "topbar" | "overview";
   renderOverview?: (context: {
-    modules: DashboardModule[]
-    query: string
-    onQueryChange: (query: string) => void
-    onSelect: (id: string) => void
-  }) => ReactNode
+    modules: DashboardModule[];
+    query: string;
+    onQueryChange: (query: string) => void;
+    onSelect: (id: string) => void;
+  }) => ReactNode;
   renderModule?: (context: {
-    module: DashboardModule
-    onBack: () => void
-    onSelect: (id: string) => void
-  }) => ReactNode
+    module: DashboardModule;
+    onBack: () => void;
+    onSelect: (id: string) => void;
+  }) => ReactNode;
 }
 
 function WorkspacePreview({
@@ -82,81 +52,94 @@ function WorkspacePreview({
   pageLabel,
   children,
   embedBreadcrumbInPageHeader = false,
-  moduleSearchPlacement = 'topbar',
+  moduleSearchPlacement = "topbar",
   renderOverview,
   renderModule,
 }: WorkspacePreviewProps) {
-  const definition = dashboards[role]
-  const { user } = useAuth()
-  const currentRole = roleOptions.find((option) => option.value === role)!
-  const isStaff = role === 'admin'
-  const [internalActiveId, setInternalActiveId] = useState(role === 'student' ? 'assessment' : 'overview')
-  const [query, setQuery] = useState('')
-  const [desktopNavigationExpanded, setDesktopNavigationExpanded] = useState(true)
-  const [mobileNavigationOpen, setMobileNavigationOpen] = useState(false)
-  const activeId = activeModuleId ?? internalActiveId
+  const definition = dashboards[role];
+  const { user } = useAuth();
+  const currentRole = roleOptions.find((option) => option.value === role)!;
+  const isStaff = role === "admin";
+  const [internalActiveId, setInternalActiveId] = useState(
+    role === "student" ? "assessment" : "overview",
+  );
+  const [query, setQuery] = useState("");
+  const [desktopNavigationExpanded, setDesktopNavigationExpanded] =
+    useState(true);
+  const [mobileNavigationOpen, setMobileNavigationOpen] = useState(false);
+  const activeId = activeModuleId ?? internalActiveId;
+
+  const availableModules = useMemo(
+    () =>
+      definition.modules.filter(
+        (module) =>
+          module.id !== "administrators" || user?.canManageAdministrators,
+      ),
+    [definition.modules, user?.canManageAdministrators],
+  );
 
   useEffect(() => {
-    if (role !== 'student') return
-    void prefetchStudentWorkspace()
-  }, [role])
+    if (role !== "student") return;
+    void prefetchStudentWorkspace();
+  }, [role]);
 
-  const activeModule = definition.modules.find(
+  const activeModule = availableModules.find(
     (module) => module.id === activeId,
-  )
-  const filteredModules = useMemo(() => {
-    const normalizedQuery = query.trim().toLowerCase()
-    if (!normalizedQuery) return definition.modules
+  );
 
-    return definition.modules.filter((module) =>
+  const filteredModules = useMemo(() => {
+    const normalizedQuery = query.trim().toLowerCase();
+    if (!normalizedQuery) return availableModules;
+    return availableModules.filter((module) =>
       `${module.title} ${module.description}`
         .toLowerCase()
         .includes(normalizedQuery),
-    )
-  }, [definition.modules, query])
+    );
+  }, [availableModules, query]);
 
   const selectModule = (id: string) => {
     if (onSelectModule) {
-      onSelectModule(id)
+      onSelectModule(id);
     } else {
-      setInternalActiveId(id)
+      setInternalActiveId(id);
     }
-    setQuery('')
-  }
+    setQuery("");
+  };
+
   const customModuleView =
     activeModule && renderModule
       ? renderModule({
           module: activeModule,
-          onBack: () => selectModule('overview'),
+          onBack: () => selectModule("overview"),
           onSelect: selectModule,
         })
-      : undefined
+      : undefined;
+
   const breadcrumbIsEmbedded =
     embedBreadcrumbInPageHeader &&
-    (activeId === 'overview' || Boolean(children ?? customModuleView))
-  const showWorkspaceBreadcrumb = role === 'student'
+    (activeId === "overview" || Boolean(children ?? customModuleView));
+  const showWorkspaceBreadcrumb = role === "student";
 
   const changeQuery = (nextQuery: string) => {
-    setQuery(nextQuery)
-    if (activeId !== 'overview') {
-      if (onSelectModule) {
-        onSelectModule('overview')
-      } else {
-        setInternalActiveId('overview')
-      }
+    setQuery(nextQuery);
+    if (activeId !== "overview") {
+      if (onSelectModule) onSelectModule("overview");
+      else setInternalActiveId("overview");
     }
-  }
+  };
 
   const workspaceContent = (
     <WorkspaceBreadcrumbProvider
       breadcrumb={
-        showWorkspaceBreadcrumb ? <WorkspaceBreadcrumb
-          activeModule={activeModule}
-          activeId={activeId}
-          className={breadcrumbIsEmbedded ? 'mt-2' : 'mx-auto mb-3'}
-          pageLabel={pageLabel}
-          onSelect={selectModule}
-        /> : null
+        showWorkspaceBreadcrumb ? (
+          <WorkspaceBreadcrumb
+            activeModule={activeModule}
+            activeId={activeId}
+            className={breadcrumbIsEmbedded ? "mt-2" : "mx-auto mb-3"}
+            pageLabel={pageLabel}
+            onSelect={selectModule}
+          />
+        ) : null
       }
     >
       {showWorkspaceBreadcrumb && !breadcrumbIsEmbedded ? (
@@ -168,35 +151,36 @@ function WorkspacePreview({
           onSelect={selectModule}
         />
       ) : null}
-      {children ?? (activeModule ? (
-        customModuleView ?? (
-          <ModuleView
-            module={activeModule}
-            onBack={() => selectModule('overview')}
+      {children ??
+        (activeModule ? (
+          (customModuleView ?? (
+            <ModuleView
+              module={activeModule}
+              onBack={() => selectModule("overview")}
+            />
+          ))
+        ) : renderOverview ? (
+          renderOverview({
+            modules: filteredModules,
+            query,
+            onQueryChange: setQuery,
+            onSelect: selectModule,
+          })
+        ) : (
+          <DashboardOverview
+            definition={definition}
+            modules={filteredModules}
+            query={query}
+            onSelect={selectModule}
           />
-        )
-      ) : renderOverview ? (
-        renderOverview({
-          modules: filteredModules,
-          query,
-          onQueryChange: setQuery,
-          onSelect: selectModule,
-        })
-      ) : (
-        <DashboardOverview
-          definition={definition}
-          modules={filteredModules}
-          query={query}
-          onSelect={selectModule}
-        />
-      ))}
+        ))}
     </WorkspaceBreadcrumbProvider>
-  )
+  );
 
-  if (role === 'student') {
+  if (role === "student") {
     return (
       <StudentWorkspaceShell
-        modules={definition.modules}
+        modules={availableModules}
         activeId={activeId}
         onSelect={selectModule}
         onExit={onExit}
@@ -207,28 +191,36 @@ function WorkspacePreview({
           {workspaceContent}
         </div>
       </StudentWorkspaceShell>
-    )
+    );
   }
 
   return (
     <div
       className={cn(
-        'min-h-svh lg:grid lg:transition-[grid-template-columns] lg:duration-300',
-        isStaff ? 'staff-workspace-theme bg-background text-foreground' : 'bg-secondary/70',
+        "min-h-svh lg:grid lg:transition-[grid-template-columns] lg:duration-300",
+        isStaff
+          ? "staff-workspace-theme bg-background text-foreground"
+          : "bg-secondary/70",
         desktopNavigationExpanded
-          ? 'lg:grid-cols-[15rem_minmax(0,1fr)]'
-          : 'lg:grid-cols-[5rem_minmax(0,1fr)]',
+          ? "lg:grid-cols-[15rem_minmax(0,1fr)]"
+          : "lg:grid-cols-[5rem_minmax(0,1fr)]",
       )}
     >
       <aside
         aria-label="Workspace sidebar"
         data-collapsed={!desktopNavigationExpanded}
         className={cn(
-          'relative hidden h-svh overflow-hidden bg-card lg:sticky lg:top-0 lg:flex lg:flex-col lg:border-r lg:border-border lg:transition-[padding] lg:duration-300',
-          desktopNavigationExpanded ? 'p-3' : 'p-2.5',
+          "relative hidden h-svh overflow-hidden lg:sticky lg:top-0 lg:flex lg:flex-col lg:transition-[padding] lg:duration-300",
+          isStaff
+            ? "border-r border-[#262f21] bg-[#34402d] text-white"
+            : "border-r border-border bg-card",
+          desktopNavigationExpanded ? "p-3" : "p-2.5",
         )}
       >
-        <div aria-hidden="true" className="absolute inset-x-0 top-0 grid h-1 grid-cols-4">
+        <div
+          aria-hidden="true"
+          className="absolute inset-x-0 top-0 grid h-1 grid-cols-4"
+        >
           <span className="bg-primary" />
           <span className="bg-[var(--riasec-i)]" />
           <span className="bg-warning" />
@@ -236,34 +228,110 @@ function WorkspacePreview({
         </div>
         <div
           className={cn(
-            'flex h-12 items-center gap-2.5',
-            desktopNavigationExpanded ? 'px-2' : 'justify-center',
+            "flex h-12 items-center gap-2.5",
+            desktopNavigationExpanded ? "px-2" : "justify-center",
           )}
         >
-          <img src={logo} alt="Academic guidance system" className={cn('h-8 object-contain', desktopNavigationExpanded ? 'w-auto max-w-32' : 'w-11')} />
-          {desktopNavigationExpanded ? <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-muted-foreground">{currentRole.shortLabel} portal</p> : null}
+          <img
+            src={logo}
+            alt="Academic guidance system"
+            className={cn(
+              "h-8 object-contain",
+              desktopNavigationExpanded ? "w-auto max-w-32" : "w-11",
+            )}
+          />
+          {desktopNavigationExpanded ? (
+            <p
+              className={cn(
+                "text-[9px] font-bold uppercase tracking-[0.14em]",
+                isStaff ? "text-emerald-100/70" : "text-muted-foreground",
+              )}
+            >
+              {currentRole.shortLabel} portal
+            </p>
+          ) : null}
         </div>
 
         <div className="mt-4">
           <WorkspaceNavigation
-            modules={definition.modules}
+            modules={availableModules}
             activeId={activeId}
             onSelect={selectModule}
             collapsed={!desktopNavigationExpanded}
-            tone={isStaff ? 'staff' : 'default'}
+            tone={isStaff ? "staff" : "default"}
           />
         </div>
 
-        <div className="mt-auto border-t border-border pt-4">
-          {desktopNavigationExpanded ? <div className="mb-3 px-3 py-2"><p className="text-xs font-bold">{user?.name ?? currentRole.shortLabel}</p><p className="mt-1 truncate text-xs text-muted-foreground">Authorized account</p></div> : null}
-          {desktopNavigationExpanded ? <Button type="button" variant="ghost" onClick={onExit} className="w-full justify-start text-muted-foreground"><LogOut aria-hidden="true" />Sign out</Button> : <Tooltip><TooltipTrigger asChild><Button type="button" variant="ghost" size="icon" onClick={onExit} aria-label="Sign out" className="mx-auto text-muted-foreground"><LogOut aria-hidden="true" /></Button></TooltipTrigger><TooltipContent side="right" sideOffset={12}>Sign out</TooltipContent></Tooltip>}
+        <div className={cn("mt-auto border-t pt-4", isStaff ? "border-white/10" : "border-border")}>
+          {desktopNavigationExpanded ? (
+            <div className="mb-3 px-3 py-2">
+              <p className={cn("text-xs font-bold", isStaff ? "text-white" : "text-foreground")}>
+                {user?.name ?? currentRole.shortLabel}
+              </p>
+              <p className={cn("mt-1 truncate text-xs", isStaff ? "text-emerald-100/60" : "text-muted-foreground")}>
+                Authorized account
+              </p>
+            </div>
+          ) : null}
+          {desktopNavigationExpanded ? (
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={onExit}
+              className={cn("w-full justify-start", isStaff ? "text-white/70 hover:bg-white/10 hover:text-white" : "text-muted-foreground")}
+            >
+              <LogOut aria-hidden="true" />
+              Sign out
+            </Button>
+          ) : (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={onExit}
+                  aria-label="Sign out"
+                  className={cn("mx-auto", isStaff ? "text-white/70 hover:bg-white/10 hover:text-white" : "text-muted-foreground")}
+                >
+                  <LogOut aria-hidden="true" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="right" sideOffset={12}>
+                Sign out
+              </TooltipContent>
+            </Tooltip>
+          )}
         </div>
       </aside>
 
       <div className="min-w-0">
-        <header className={cn('sticky top-0 z-30 border-b bg-background/95 backdrop-blur-xl', isStaff ? 'border-border bg-card/95' : 'border-transparent shadow-sm')}>
+        <header
+          className={cn(
+            "sticky top-0 z-30 border-b bg-background/95 backdrop-blur-xl",
+            isStaff
+              ? "border-border bg-card/95"
+              : "border-transparent shadow-sm",
+          )}
+        >
           <div className="flex h-14 items-center gap-2.5 px-4 sm:px-5 lg:px-6">
-            <Button type="button" variant="ghost" size="icon" aria-label={desktopNavigationExpanded ? 'Collapse workspace navigation' : 'Expand workspace navigation'} aria-expanded={desktopNavigationExpanded} onClick={() => setDesktopNavigationExpanded((isExpanded) => !isExpanded)} className="hidden rounded-xs lg:inline-flex"><Menu aria-hidden="true" /></Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              aria-label={
+                desktopNavigationExpanded
+                  ? "Collapse workspace navigation"
+                  : "Expand workspace navigation"
+              }
+              aria-expanded={desktopNavigationExpanded}
+              onClick={() =>
+                setDesktopNavigationExpanded((isExpanded) => !isExpanded)
+              }
+              className="hidden rounded-xs lg:inline-flex"
+            >
+              <Menu aria-hidden="true" />
+            </Button>
             <Sheet
               open={mobileNavigationOpen}
               onOpenChange={setMobileNavigationOpen}
@@ -279,29 +347,35 @@ function WorkspacePreview({
                   <Menu aria-hidden="true" />
                 </Button>
               </SheetTrigger>
-              <SheetContent className="left-0 right-auto w-72 border-l-0 border-r data-[state=closed]:-translate-x-full data-[state=open]:translate-x-0">
+              <SheetContent className={cn("left-0 right-auto w-72 border-l-0 data-[state=closed]:-translate-x-full data-[state=open]:translate-x-0", isStaff ? "border-r border-[#262f21] bg-[#34402d] text-white" : "border-r")}>
                 <SheetHeader>
-                  <SheetTitle><img src={logo} alt="Academic guidance system" className="h-9 w-auto object-contain" /></SheetTitle>
-                  <SheetDescription>{currentRole.label}</SheetDescription>
+                  <SheetTitle>
+                    <img
+                      src={logo}
+                      alt="Academic guidance system"
+                      className="h-9 w-auto object-contain"
+                    />
+                  </SheetTitle>
+                  <SheetDescription className={isStaff ? "text-emerald-100/70" : undefined}>{currentRole.label}</SheetDescription>
                 </SheetHeader>
                 <div className="mt-7">
                   <WorkspaceNavigation
-                    modules={definition.modules}
+                    modules={availableModules}
                     activeId={activeId}
                     onSelect={(id) => {
-                      selectModule(id)
-                      setMobileNavigationOpen(false)
+                      selectModule(id);
+                      setMobileNavigationOpen(false);
                     }}
-                    tone={isStaff ? 'staff' : 'default'}
+                    tone={isStaff ? "staff" : "default"}
                   />
                 </div>
-                <div className="mt-auto border-t pt-4">
+                <div className={cn("mt-auto border-t pt-4", isStaff ? "border-white/10" : "border-border")}>
                   <SheetClose asChild>
                     <Button
                       type="button"
                       variant="ghost"
                       onClick={onExit}
-                      className="w-full justify-start"
+                      className={cn("w-full justify-start", isStaff ? "text-white/70 hover:bg-white/10 hover:text-white" : "")}
                     >
                       <LogOut aria-hidden="true" />
                       Sign out
@@ -311,8 +385,13 @@ function WorkspacePreview({
               </SheetContent>
             </Sheet>
 
-            {moduleSearchPlacement === 'topbar' ? (
-              <div className={cn('relative flex-1', isStaff ? 'mx-auto max-w-md' : 'max-w-sm')}>
+            {moduleSearchPlacement === "topbar" ? (
+              <div
+                className={cn(
+                  "relative flex-1",
+                  isStaff ? "mx-auto max-w-md" : "max-w-sm",
+                )}
+              >
                 <label htmlFor="workspace-search" className="sr-only">
                   Search modules
                 </label>
@@ -325,61 +404,88 @@ function WorkspacePreview({
                   type="search"
                   value={query}
                   onChange={(event) => changeQuery(event.target.value)}
-                  onKeyDown={(event) => { if (event.key === 'Enter' && filteredModules[0]) selectModule(filteredModules[0].id) }}
-                  placeholder={isStaff ? 'Search students, assessments, programmes…' : 'Search modules'}
-                  className={cn('h-11 pl-9 text-xs shadow-none', isStaff ? 'rounded-xs border-border bg-secondary text-foreground placeholder:text-muted-foreground focus-visible:bg-background' : 'rounded-xl border-transparent bg-secondary focus-visible:bg-background')}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" && filteredModules[0]) {
+                      selectModule(filteredModules[0].id);
+                    }
+                  }}
+                  placeholder={
+                    isStaff
+                      ? "Search students, assessments, programmes…"
+                      : "Search modules"
+                  }
+                  className={cn(
+                    "h-11 pl-9 text-xs shadow-none",
+                    isStaff
+                      ? "rounded-xs border-border bg-secondary text-foreground placeholder:text-muted-foreground focus-visible:bg-background"
+                      : "rounded-xl border-transparent bg-secondary focus-visible:bg-background",
+                  )}
                 />
               </div>
             ) : null}
 
-            {isStaff ? <NotificationCenter workspaceLabel="Administrator" className="rounded-xs" onNavigate={selectModule} /> : null}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button
-                  type="button"
-                  aria-label="Open user menu"
-                  className="ml-auto flex min-h-11 items-center gap-2.5 rounded-xs px-2 text-left transition-colors hover:bg-secondary focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/40"
-                >
-                  <span className="hidden text-right sm:block">
-                    <span className="block text-xs font-bold">
+            <div className="ml-auto flex items-center gap-2">
+              {isStaff ? (
+                <NotificationCenter
+                  workspaceLabel="Administrator"
+                  onNavigate={selectModule}
+                />
+              ) : null}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    type="button"
+                    aria-label="Open user menu"
+                    className="flex h-10 shrink-0 items-center gap-1.5 rounded-full p-1 text-left transition-colors hover:bg-secondary focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/40"
+                  >
+                    <span className="flex size-9 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+                      {(user?.name ?? currentRole.shortLabel)
+                        .slice(0, 2)
+                        .toUpperCase()}
+                    </span>
+                    <ChevronDown
+                      aria-hidden="true"
+                      className="size-4 text-muted-foreground"
+                    />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel>
+                    <span className="block font-bold text-foreground">
                       {user?.name ?? currentRole.shortLabel}
                     </span>
-                    <span className="block text-xs font-semibold text-foreground">
-                      Authorized account
+                    <span className="mt-0.5 block text-xs font-normal text-muted-foreground">
+                      {user?.email ?? "Authorized account"}
                     </span>
-                  </span>
-                  <span className="flex size-9 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
-                    {(user?.name ?? currentRole.shortLabel).slice(0, 2).toUpperCase()}
-                  </span>
-                  <ChevronDown
-                    aria-hidden="true"
-                    className="hidden size-3.5 text-muted-foreground sm:block"
-                  />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel>
-                  <span className="block">{user?.name ?? currentRole.shortLabel}</span>
-                  <span className="mt-1 block font-normal text-muted-foreground">
-                    {currentRole.label}
-                  </span>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onSelect={onExit}>
-                  <LogOut aria-hidden="true" className="size-4" />
-                  Sign out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                    <span className="mt-1 inline-block rounded-xs bg-muted px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground">
+                      {currentRole.label}
+                    </span>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onSelect={onExit}
+                    className="cursor-pointer"
+                  >
+                    <LogOut aria-hidden="true" className="size-4" />
+                    Sign out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
         </header>
 
-        <main className={cn('px-4 py-4 sm:px-5 lg:px-6 lg:py-5', isStaff && 'staff-dashboard-canvas')}>
+        <main
+          className={cn(
+            "px-4 py-4 sm:px-5 lg:px-6 lg:py-5",
+            isStaff && "staff-dashboard-canvas",
+          )}
+        >
           {workspaceContent}
         </main>
       </div>
     </div>
-  )
+  );
 }
 
-export { WorkspacePreview }
+export { WorkspacePreview };

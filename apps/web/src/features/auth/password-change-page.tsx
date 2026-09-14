@@ -9,6 +9,11 @@ import { Label } from "@/components/ui/label";
 import { changePassword } from "@/features/auth/auth-api";
 import { useAuth } from "@/features/auth/auth-context";
 import type { AccessRole } from "@/features/auth/access-types";
+import {
+  PASSWORD_MIN_LENGTH,
+  PASSWORD_POLICY_MESSAGE,
+  passwordMeetsPolicy,
+} from "@/features/auth/password-policy";
 
 function PasswordChangePage() {
   const { user } = useAuth();
@@ -26,6 +31,14 @@ function PasswordChangePage() {
   if (!user.mustChangePassword) return <Navigate to={`/${role}`} replace />;
 
   async function submit() {
+    if (!passwordMeetsPolicy(password)) {
+      setError(PASSWORD_POLICY_MESSAGE);
+      return;
+    }
+    if (password !== confirmation) {
+      setError("Passwords must match.");
+      return;
+    }
     setBusy(true);
     setError(null);
     try {
@@ -67,8 +80,8 @@ function PasswordChangePage() {
           Create your private password
         </h1>
         <p className="mt-2 text-sm leading-6 text-muted-foreground">
-          Your temporary password can only be used to reach this step. Choose at
-          least 12 characters with uppercase, lowercase, number, and symbol.
+          Your temporary password can only be used to reach this step.{' '}
+          {PASSWORD_POLICY_MESSAGE}
         </p>
         <div className="mt-6 space-y-4">
           <div>
@@ -76,6 +89,8 @@ function PasswordChangePage() {
             <Input
               id="current-password"
               type="password"
+              required
+              autoComplete="current-password"
               value={currentPassword}
               onChange={(event) => setCurrentPassword(event.target.value)}
               className="mt-2"
@@ -86,6 +101,9 @@ function PasswordChangePage() {
             <Input
               id="new-password"
               type="password"
+              required
+              minLength={PASSWORD_MIN_LENGTH}
+              autoComplete="new-password"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               className="mt-2"
@@ -96,6 +114,9 @@ function PasswordChangePage() {
             <Input
               id="confirm-password"
               type="password"
+              required
+              minLength={PASSWORD_MIN_LENGTH}
+              autoComplete="new-password"
               value={confirmation}
               onChange={(event) => setConfirmation(event.target.value)}
               className="mt-2"

@@ -15,14 +15,17 @@ describe("Administration workspace", () => {
       screen.getByRole("heading", { name: "Student journey" }),
     ).toBeVisible();
     expect(
-      screen.getByRole("heading", { name: "Journey stage detail" }),
+      screen.getByRole("heading", { name: "Assessment Milestones" }),
     ).toBeVisible();
     expect(screen.getByRole("img", { name: /Registered: 2/ })).toBeVisible();
     expect(
-      screen.getByText("Latest recorded assessment activity and available evidence."),
+      screen.getByRole("heading", { name: "Recent Students" }),
     ).toBeVisible();
     expect(screen.getByTestId("admin-operational-strip")).toHaveClass("bg-card");
-    expect(screen.getAllByText("Not available").length).toBeGreaterThan(0);
+    expect(screen.getByTestId("admin-operational-strip")).toHaveClass(
+      "bg-card",
+    );
+    expect(screen.getAllByText("I-C-R").length).toBeGreaterThan(0);
     expect(document.querySelector('[class*="bg-gradient"]')).toBeNull();
     expect(
       screen.queryByRole("button", { name: /Open student directory/i }),
@@ -43,9 +46,9 @@ describe("Administration workspace", () => {
     await renderAppAt("/admin/students");
 
     const studentGrid = await screen.findByTestId("admin-student-grid");
-    const row = (await within(studentGrid).findByText("ana@example.test")).closest(
-      "tr",
-    );
+    const row = (
+      await within(studentGrid).findByText("ana@example.test")
+    ).closest("tr");
     expect(row).toBeDefined();
     await user.click(
       within(row as HTMLTableRowElement).getByRole("button", { name: "Open" }),

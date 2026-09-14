@@ -11,6 +11,7 @@ import { PortalSignInPage } from "@/features/auth/portal-sign-in-page";
 import { PasswordRecoveryPage } from "@/features/auth/password-recovery-page";
 import { PasswordResetPage } from "@/features/auth/password-reset-page";
 import { PasswordChangePage } from "@/features/auth/password-change-page";
+import { AdministratorSetupPage } from "@/features/auth/administrator-setup-page";
 import { StudentAssessmentSessionPage } from "@/features/student/assessment/components/student-assessment-session-page";
 import { StudentAssessmentHistoryPage } from "@/features/student/assessment/components/student-assessment-history-page";
 import { StudentRecommendationResultsPage } from "@/features/student/recommendations/components/student-recommendation-results-page";
@@ -157,6 +158,7 @@ function AccessRoutes() {
         <Route path="/forgot-password" element={<PasswordRecoveryPage />} />
         <Route path="/reset-password/:token?" element={<PasswordResetPage />} />
         <Route path="/change-password" element={<PasswordChangePage />} />
+        <Route path="/admin/setup" element={<AdministratorSetupPage />} />
         <Route
           path="/results/shared/:shareToken"
           element={<SharedResultPage />}
@@ -183,6 +185,7 @@ function AccessRoutes() {
         />
         <Route path="/admin/reports" element={<AdminWorkspaceRoute />} />
         <Route path="/admin/activity" element={<AdminWorkspaceRoute />} />
+        <Route path="/admin/administrators" element={<AdminWorkspaceRoute />} />
         <Route
           path="/admin/applicants/*"
           element={<Navigate to="/admin/students" replace />}

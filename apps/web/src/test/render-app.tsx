@@ -22,11 +22,12 @@ const testUsers: Record<AccessRole, AuthUser> = {
     name: "Admin User",
     email: "admin@example.test",
     roles: ["admin"],
+    canManageAdministrators: true,
   },
 };
 
 function defaultUserForPath(path: string) {
-  if (path.startsWith("/admin") && !path.startsWith("/admin/login")) {
+  if (path.startsWith("/admin") && !path.startsWith("/admin/login") && !path.startsWith("/admin/setup")) {
     return testUsers.admin;
   }
   if (
@@ -60,6 +61,7 @@ async function renderAppAt(path: string, options: RenderAppOptions = {}) {
   if (
     (path === "/admin" || path.startsWith("/admin/")) &&
     !path.startsWith("/admin/login") &&
+    !path.startsWith("/admin/setup") &&
     initialAuthUser?.roles.includes("admin")
   ) {
     await screen.findByLabelText("Workspace sidebar", {}, { timeout: 8_000 });
