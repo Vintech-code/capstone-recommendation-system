@@ -318,7 +318,7 @@ function LandingPage({ initialAuth }: LandingPageProps = {}) {
       {/* HEADER NAVIGATION WITH SCROLL TRANSITION */}
       <header
         className={cn(
-          "sticky top-0 z-50 w-full transition-all duration-300 ease-in-out",
+          "fixed top-0 inset-x-0 z-50 w-full transition-all duration-300 ease-in-out",
           isScrolled
             ? "pointer-events-none px-4 pt-3 sm:px-6 sm:pt-4 lg:px-8"
             : "pointer-events-auto px-0 pt-0",
@@ -450,7 +450,7 @@ function LandingPage({ initialAuth }: LandingPageProps = {}) {
           id="landing-hero"
           aria-labelledby="landing-title"
           data-testid="landing-hero"
-          className="relative isolate overflow-hidden -mt-16 sm:-mt-20 px-4 pb-10 pt-20 sm:px-6 sm:pb-12 sm:pt-24 lg:px-8 lg:pb-14 lg:pt-28"
+          className="relative isolate overflow-hidden px-4 pb-10 pt-24 sm:px-6 sm:pb-12 sm:pt-28 lg:px-8 lg:pb-14 lg:pt-32"
         >
           <div
             aria-hidden="true"
