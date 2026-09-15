@@ -65,11 +65,24 @@ describe("AssessmentQuestionCard", () => {
       />,
     );
 
-    const image = screen.getByRole("img", { name: "Student working on a car" });
+    const image = screen.getByRole("img", { name: "Illustration for question 1" });
     const interestPrompt = screen.getByText("Does this activity interest you?");
 
     expect(image.compareDocumentPosition(interestPrompt)).toBe(
       Node.DOCUMENT_POSITION_FOLLOWING,
     );
+  });
+
+  it("renders the matching numbered illustration for every question", () => {
+    render(
+      <AssessmentQuestionCard
+        question={question}
+        questionNumber={42}
+        options={options}
+        onChange={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByRole("img", { name: "Illustration for question 42" })).toBeInTheDocument();
   });
 });

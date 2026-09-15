@@ -475,11 +475,11 @@ function StudentAssessmentSessionPage({
   const saveStatus = getSaveStatus(saveState);
 
   return (
-    <main className="flex min-h-[calc(100svh-4rem)] flex-col">
+    <main className="flex min-h-[calc(100svh-4rem)] flex-col bg-white">
       <h1 className="sr-only">Interest assessment</h1>
 
       {view === "questions" ? (
-        <div className="sticky top-0 z-20 border-b border-border/70 bg-background sm:top-[4.5rem]">
+        <div className="sticky top-0 z-20 border-b border-border/70 bg-white sm:top-[4.5rem]">
           <div className="student-page w-full max-w-4xl px-4 sm:px-6">
             <AssessmentProgressPanel
               answeredCount={answeredCount}
@@ -491,7 +491,7 @@ function StudentAssessmentSessionPage({
       ) : null}
 
       {connectionState === "offline" ? (
-        <Alert className="student-page mt-6 border-warning/30 bg-warning/8">
+        <Alert className="student-page mt-6 border-warning/30 bg-white">
           <CloudOff aria-hidden="true" className="text-warning-ink" />
           <AlertTitle>You are working offline</AlertTitle>
           <AlertDescription>
@@ -503,7 +503,7 @@ function StudentAssessmentSessionPage({
               type="button"
               variant="outline"
               size="sm"
-              className="mt-2 bg-background"
+              className="mt-2 bg-white"
               onClick={retryConnection}
             >
               <RotateCcw aria-hidden="true" />
@@ -533,7 +533,7 @@ function StudentAssessmentSessionPage({
       {view === "questions" ? (
         <nav
           aria-label="Question navigation"
-          className="sticky bottom-0 z-20 mt-auto border-t border-border/70 bg-background"
+          className="sticky bottom-0 z-20 mt-auto border-t border-border/70 bg-white"
         >
           <div className="student-page flex w-full max-w-4xl items-center justify-between py-3">
             <Button

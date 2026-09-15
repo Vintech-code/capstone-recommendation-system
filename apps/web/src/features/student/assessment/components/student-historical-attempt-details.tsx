@@ -121,10 +121,7 @@ export function HistoricalAttemptDetails({
             Attempt {attempt.attempt_number ?? 1} result
           </h4>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            Assessment version:{" "}
-            {result?.assessmentVersion ??
-              attempt.instrument_code ??
-              "tcc-uhcc-riasec-42-v1"}
+            Assessment version: {result?.assessmentVersion ?? attempt.instrument_code ?? "tcc-uhcc-riasec-42-v1"}
             {attempt.is_current ? (
               <span className="ml-2 inline-flex items-center font-bold text-success-ink">
                 Current result
@@ -170,10 +167,7 @@ export function HistoricalAttemptDetails({
         <div className="rounded-xl border border-border/60 bg-muted/20 p-3.5 text-xs">
           <div className="flex items-center justify-between">
             <span className="flex items-center gap-1.5 font-bold text-foreground">
-              <UserCheck
-                className="size-3.5 text-primary-ink"
-                aria-hidden="true"
-              />
+              <UserCheck className="size-3.5 text-primary-ink" aria-hidden="true" />
               Self-declared Entrance Exam
             </span>
             <span className="font-display font-black text-sm text-foreground">
@@ -217,8 +211,7 @@ export function HistoricalAttemptDetails({
           <dl className="grid grid-cols-3 sm:grid-cols-6 gap-2">
             {result.dimensions.map((dimension) => {
               const prev = previousScoresByCode.get(dimension.code);
-              const scoreDiff =
-                prev !== undefined ? dimension.value - prev : null;
+              const scoreDiff = prev !== undefined ? dimension.value - prev : null;
               return (
                 <div
                   key={dimension.code}

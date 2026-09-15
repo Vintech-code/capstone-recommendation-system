@@ -160,8 +160,7 @@ export function AssessmentHistorySummary({
               Your assessment timeline
             </h3>
             <p className="mt-1 text-xs text-muted-foreground">
-              Choose a completed attempt to open its interest profile and saved
-              programme matches.
+              Choose a completed attempt to open its interest profile and saved programme matches.
             </p>
           </div>
         </div>
@@ -184,18 +183,12 @@ export function AssessmentHistorySummary({
         Boolean(lifecycle.retake_available_at) &&
         new Date() < new Date(lifecycle.retake_available_at!) ? (
           <Alert className="mb-5 border-warning/40 bg-warning/10 text-foreground">
-            <AlertCircle
-              className="size-4 text-warning-ink"
-              aria-hidden="true"
-            />
+            <AlertCircle className="size-4 text-warning-ink" aria-hidden="true" />
             <AlertTitle className="font-bold text-warning-ink">
               Retake policy waiting period
             </AlertTitle>
             <AlertDescription className="text-xs text-muted-foreground">
-              Under policy rule{" "}
-              {history?.policy?.version ?? "RETAKE-PROPOSED-2026-01"}, retaking
-              requires a waiting period. Next attempt available on{" "}
-              {availableDate}.
+              Under policy rule {history?.policy?.version ?? "RETAKE-PROPOSED-2026-01"}, retaking requires a waiting period. Next attempt available on {availableDate}.
             </AlertDescription>
           </Alert>
         ) : null}
@@ -205,8 +198,7 @@ export function AssessmentHistorySummary({
             <AlertCircle aria-hidden="true" />
             <AlertTitle>Retake could not be started</AlertTitle>
             <AlertDescription>
-              Your previous result is unchanged. Check your connection and try
-              again.
+              Your previous result is unchanged. Check your connection and try again.
             </AlertDescription>
           </Alert>
         ) : null}
@@ -264,23 +256,17 @@ export function AssessmentHistorySummary({
                             className={`size-4 transition-transform ${isSelected ? "text-primary translate-x-0.5" : "text-muted-foreground"}`}
                           />
                         ) : (
-                          <Clock3
-                            aria-hidden="true"
-                            className="size-4 text-muted-foreground"
-                          />
+                          <Clock3 aria-hidden="true" className="size-4 text-muted-foreground" />
                         )}
                       </div>
 
                       <div className="mt-2.5 flex items-baseline justify-between gap-2">
                         <span className="font-display text-xl font-black tracking-tight text-foreground">
-                          {result?.topCode ??
-                            assessmentStatusLabel(item.status)}
+                          {result?.topCode ?? assessmentStatusLabel(item.status)}
                         </span>
                         <span className="text-[11px] text-muted-foreground flex items-center gap-1">
                           <CalendarDays className="size-3" />
-                          {formatAssessmentDate(
-                            item.result_available_at ?? item.started_at,
-                          )}
+                          {formatAssessmentDate(item.result_available_at ?? item.started_at)}
                         </span>
                       </div>
 
@@ -301,8 +287,7 @@ export function AssessmentHistorySummary({
                             Latest completed
                           </span>
                         ) : null}
-                        {!isCurrentResult &&
-                        item.status === "result_available" ? (
+                        {!isCurrentResult && item.status === "result_available" ? (
                           <span className="rounded-full bg-secondary px-2.5 py-0.5 text-[10px] font-semibold text-muted-foreground">
                             Previous result
                           </span>
@@ -409,14 +394,11 @@ export function AssessmentHistorySummary({
                 previousAttempt={previousCompletedAttempt}
                 recommendation={selectedRecommendation}
                 recommendationState={selectedRecommendationState}
-                onViewResultCard={() =>
-                  void handleOpenResultCard(selectedAttempt)
-                }
+                onViewResultCard={() => void handleOpenResultCard(selectedAttempt)}
                 onExploreMatches={
                   onExploreMatches
                     ? () => {
-                        if (selectedAttempt.id)
-                          void onSelectAttempt(selectedAttempt.id);
+                        if (selectedAttempt.id) void onSelectAttempt(selectedAttempt.id);
                         onExploreMatches();
                       }
                     : undefined
@@ -435,15 +417,11 @@ export function AssessmentHistorySummary({
                     Select a completed attempt
                   </h4>
                   <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-                    Click any completed attempt from the list to examine its
-                    Holland dimensions, entrance exam snapshot, and generated
-                    degree recommendations.
+                    Click any completed attempt from the list to examine its Holland dimensions, entrance exam snapshot, and generated degree recommendations.
                   </p>
                   {history ? (
                     <p className="mt-4 text-xs font-bold text-foreground">
-                      {history.attempts.length} recorded{" "}
-                      {history.attempts.length === 1 ? "attempt" : "attempts"}{" "}
-                      available
+                      {history.attempts.length} recorded {history.attempts.length === 1 ? "attempt" : "attempts"} available
                     </p>
                   ) : null}
                 </div>
@@ -475,8 +453,7 @@ export function AssessmentHistorySummary({
             RIASEC Assessment Result Card
           </DialogTitle>
           <DialogDescription className="sr-only">
-            Official Holland interest alignment record for Attempt{" "}
-            {activeResultCard?.attemptNumber}
+            Official Holland interest alignment record for Attempt {activeResultCard?.attemptNumber}
           </DialogDescription>
           {activeResultCard ? (
             <StudentResultCard
@@ -490,4 +467,7 @@ export function AssessmentHistorySummary({
   );
 }
 
-export { HistoricalAttemptDetails, assessmentStatusLabel };
+export {
+  HistoricalAttemptDetails,
+  assessmentStatusLabel,
+};
