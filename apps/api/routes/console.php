@@ -4,14 +4,9 @@ use App\Models\User;
 use App\Services\Notifications\NotificationPolicyScheduler;
 use App\Services\Privacy\StudentRetentionService;
 use App\Services\Reliability\EncryptedDatabaseBackup;
-use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
 use Symfony\Component\Console\Command\Command;
-
-Artisan::command('inspire', function () {
-    $this->comment(Inspiring::quote());
-})->purpose('Display an inspiring quote');
 
 Artisan::command('notifications:dispatch-due', function (NotificationPolicyScheduler $notificationPolicies): void {
     $count = $notificationPolicies->dispatchDue();
@@ -42,7 +37,7 @@ Artisan::command('system:backup', function (EncryptedDatabaseBackup $backups): i
     $this->info('Encrypted backup created: '.$backups->create());
 
     return Command::SUCCESS;
-})->purpose('Create an encrypted backup of the current SQLite database');
+})->purpose('Create an encrypted backup of the configured database');
 
 Artisan::command('system:verify-backup', function (EncryptedDatabaseBackup $backups): int {
     $this->info('Backup restored and verified: '.$backups->verifyLatest());

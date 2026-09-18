@@ -44,7 +44,6 @@ final class StudentRetentionService
 
             DB::table('notifications')->where('notifiable_type', User::class)->where('notifiable_id', $student->getKey())->delete();
             DB::table('sessions')->where('user_id', $student->getKey())->delete();
-            $student->tokens()->delete();
 
             $student->forceFill([
                 'name' => 'Archived Student '.$student->getKey(),

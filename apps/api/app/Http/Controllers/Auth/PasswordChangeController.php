@@ -22,7 +22,7 @@ final class PasswordChangeController extends Controller
         if (! Hash::check($validated['currentPassword'], $user->password)) {
             throw ValidationException::withMessages(['currentPassword' => ['The current password is incorrect.']]);
         }
-        $user->update(['password' => $validated['password'], 'must_change_password' => false]);
+        $user->update(['password' => $validated['password']]);
         $sessions->revoke($user, $request->hasSession() ? $request->session()->getId() : null);
 
         return response()->json(['data' => ['changed' => true]]);

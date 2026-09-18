@@ -12,14 +12,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens;
 
-#[Fillable(['name', 'email', 'password', 'account_status', 'status_changed_at', 'must_change_password', 'can_manage_administrators', 'privacy_anonymized_at'])]
+#[Fillable(['name', 'email', 'password', 'account_status', 'status_changed_at', 'can_manage_administrators', 'privacy_anonymized_at'])]
 #[Hidden(['password', 'remember_token', 'google_id'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasFactory, Notifiable;
 
     /** @var array<string, mixed> */
     protected $attributes = [
@@ -94,7 +93,6 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'status_changed_at' => 'datetime',
-            'must_change_password' => 'boolean',
             'can_manage_administrators' => 'boolean',
             'privacy_anonymized_at' => 'datetime',
         ];

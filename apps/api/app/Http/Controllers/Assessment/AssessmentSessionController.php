@@ -17,9 +17,7 @@ use Throwable;
 
 class AssessmentSessionController extends Controller
 {
-    public function __construct(private ProposedGuidanceContentRepository $guidance)
-    {
-    }
+    public function __construct(private ProposedGuidanceContentRepository $guidance) {}
 
     public function current(Request $request, RiasecQuestionnaire $questionnaire): JsonResponse
     {
@@ -38,7 +36,7 @@ class AssessmentSessionController extends Controller
             'data' => $session ? $this->resource($session) : [
                 'status' => 'not_started',
                 'question_count' => RiasecQuestionnaire::QUESTION_COUNT,
-            ]
+            ],
         ]);
     }
 
@@ -198,7 +196,7 @@ class AssessmentSessionController extends Controller
             ->orderByDesc('attempt_number')
             ->orderByDesc('id')
             ->get()
-            ->map(fn(AssessmentSession $session): array => $this->resource($session));
+            ->map(fn (AssessmentSession $session): array => $this->resource($session));
 
         return response()->json([
             'data' => $sessions,
@@ -302,7 +300,7 @@ class AssessmentSessionController extends Controller
             $resultPayload['result'] = RiasecQuestionnaire::normalizeResultEntries(
                 $resultPayload['result'],
             );
-            if (!is_array($resultPayload['guidance'] ?? null)) {
+            if (! is_array($resultPayload['guidance'] ?? null)) {
                 $content = $this->guidance->current();
                 $resultPayload['guidance'] = [
                     'status' => $content['policy_status'],
@@ -315,7 +313,7 @@ class AssessmentSessionController extends Controller
 
         return [
             'id' => $session->getKey(),
-            'reference' => 'ASMT-' . str_pad((string) $session->getKey(), 6, '0', STR_PAD_LEFT),
+            'reference' => 'ASMT-'.str_pad((string) $session->getKey(), 6, '0', STR_PAD_LEFT),
             'instrument_code' => $session->instrument_code,
             'entrance_examination_result_id' => $session->entrance_examination_result_id,
             'attempt_number' => $session->attempt_number,

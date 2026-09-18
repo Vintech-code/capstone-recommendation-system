@@ -10,8 +10,6 @@ final class UserSessionRevoker
 {
     public function revoke(User $user, ?string $exceptSessionId = null): void
     {
-        $user->tokens()->delete();
-
         $table = (string) config('session.table', 'sessions');
         if (! Schema::hasTable($table)) {
             return;

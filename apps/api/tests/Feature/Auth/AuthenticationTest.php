@@ -43,13 +43,9 @@ class AuthenticationTest extends TestCase
             ->assertOk()
             ->assertJsonPath('user.email', $user->email);
 
-        $this->getJson('/api/v1/auth/me')
-            ->assertOk()
-            ->assertJsonPath('user.email', $user->email);
-
         $this->postJson('/api/v1/auth/logout')->assertOk();
         $this->assertGuest();
-        $this->getJson('/api/v1/auth/me')->assertUnauthorized();
+        $this->getJson('/api/v1/auth/session')->assertOk()->assertJsonPath('user', null);
     }
 
     public function test_guest_session_bootstrap_returns_an_empty_success_response(): void
@@ -58,7 +54,6 @@ class AuthenticationTest extends TestCase
             ->assertOk()
             ->assertJsonPath('user', null);
 
-        $this->getJson('/api/v1/auth/me')->assertUnauthorized();
     }
 
     public function test_session_bootstrap_clears_an_inactive_account_without_exposing_it(): void
@@ -109,7 +104,7 @@ class AuthenticationTest extends TestCase
             'learning_preferences' => [],
         ]);
 
-        $response = $this->actingAs($user)->getJson('/api/v1/auth/me')->assertOk();
+        $response = $this->actingAs($user)->getJson('/api/v1/auth/session')->assertOk();
 
         $this->assertStringStartsWith(
             '/api/v1/profile-photos/'.$user->getKey().'?v=',
@@ -183,15 +178,15 @@ class AuthenticationTest extends TestCase
             ->assertJsonValidationErrors(['email', 'password', 'portal']);
     }
 
-    public function test_protected_session_endpoint_rejects_guests(): void
+    public function test_protected_auth_endpoints_reject_guests(): void
     {
-        $this->getJson('/api/v1/auth/me')->assertUnauthorized();
+        $this->getJson('/api/v1/auth/authorize/admin')->assertUnauthorized();
         $this->postJson('/api/v1/auth/logout')->assertUnauthorized();
     }
 
     public function test_protected_api_endpoint_returns_json_for_browser_guest_without_accept_header(): void
     {
-        $this->get('/api/v1/auth/me')
+        $this->get('/api/v1/auth/authorize/admin')
             ->assertUnauthorized()
             ->assertJsonPath('error.code', 'AUTHENTICATION_REQUIRED');
     }
@@ -222,12 +217,12 @@ class AuthenticationTest extends TestCase
 
         $user->update(['account_status' => 'suspended', 'status_changed_at' => now()]);
 
-        $this->getJson('/api/v1/auth/me')
+        $this->getJson('/api/v1/auth/authorize/admin')
             ->assertForbidden()
             ->assertJsonPath('error.code', 'ACCOUNT_NOT_ACTIVE');
 
         $this->assertGuest();
-        $this->getJson('/api/v1/auth/me')->assertUnauthorized();
+        $this->getJson('/api/v1/auth/authorize/admin')->assertUnauthorized();
     }
 
     public function test_login_is_rate_limited_after_repeated_failed_attempts(): void

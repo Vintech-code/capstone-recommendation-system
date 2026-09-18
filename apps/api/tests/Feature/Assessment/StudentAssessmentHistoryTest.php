@@ -2,7 +2,6 @@
 
 namespace Tests\Feature\Assessment;
 
-use App\Jobs\ProcessAssessmentResult;
 use App\Models\AssessmentSession;
 use App\Models\EntranceExaminationResult;
 use App\Models\RecommendationRun;
@@ -114,7 +113,7 @@ class StudentAssessmentHistoryTest extends TestCase
         $this->actingAs($student)
             ->postJson('/api/v1/student/assessments/riasec/sessions')
             ->assertStatus(422)
-            ->assertJsonPath('message', fn(string $msg): bool => str_contains($msg, 'waiting period of 14 day(s) is required'));
+            ->assertJsonPath('message', fn (string $msg): bool => str_contains($msg, 'waiting period of 14 day(s) is required'));
     }
 
     public function test_student_can_generate_and_share_result_token(): void
@@ -156,7 +155,7 @@ class StudentAssessmentHistoryTest extends TestCase
         // Public shared endpoint access without auth
         $this->getJson("/api/v1/shared/results/{$shareResponse['shareToken']}")
             ->assertOk()
-            ->assertJsonPath('data.reference', 'ASMT-' . str_pad((string) $session->getKey(), 6, '0', STR_PAD_LEFT))
+            ->assertJsonPath('data.reference', 'ASMT-'.str_pad((string) $session->getKey(), 6, '0', STR_PAD_LEFT))
             ->assertJsonPath('data.studentName', $student->name)
             ->assertJsonPath('data.attemptNumber', 1)
             ->assertJsonPath('data.topCode', 'RIA')
@@ -257,7 +256,7 @@ class StudentAssessmentHistoryTest extends TestCase
         $this->actingAs($admin)
             ->getJson("/api/v1/admin/students/{$student->getKey()}/attempts/{$session->getKey()}/card")
             ->assertOk()
-            ->assertJsonPath('data.reference', 'ASMT-' . str_pad((string) $session->getKey(), 6, '0', STR_PAD_LEFT))
+            ->assertJsonPath('data.reference', 'ASMT-'.str_pad((string) $session->getKey(), 6, '0', STR_PAD_LEFT))
             ->assertJsonPath('data.topCode', 'RIA');
     }
 
@@ -292,4 +291,3 @@ class StudentAssessmentHistoryTest extends TestCase
         return $admin;
     }
 }
-

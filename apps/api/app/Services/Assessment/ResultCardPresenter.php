@@ -25,7 +25,7 @@ final class ResultCardPresenter
 
         return [
             'id' => $session->getKey(),
-            'reference' => 'ASMT-' . str_pad((string) $session->getKey(), 6, '0', STR_PAD_LEFT),
+            'reference' => 'ASMT-'.str_pad((string) $session->getKey(), 6, '0', STR_PAD_LEFT),
             'studentName' => $session->user?->name ?? 'Student Applicant',
             'attemptNumber' => $session->attempt_number,
             'isCurrent' => (bool) $session->is_current,
@@ -72,13 +72,13 @@ final class ResultCardPresenter
             'Conventional' => 'C',
         ];
         $entries = $session->result_payload['result'] ?? [];
-        if (!is_array($entries)) {
+        if (! is_array($entries)) {
             return [];
         }
 
         $dimensions = [];
         foreach ($entries as $key => $entry) {
-            if (!is_array($entry)) {
+            if (! is_array($entry)) {
                 $entry = ['area' => is_string($key) ? $key : '', 'score' => $entry];
             }
             $areaKey = strtolower(trim((string) ($entry['area'] ?? $entry['title'] ?? $entry['code'] ?? '')));
@@ -97,7 +97,7 @@ final class ResultCardPresenter
     }
 
     /**
-     * @param array<int, array{code: string, label: string, value: int}> $dimensions
+     * @param  array<int, array{code: string, label: string, value: int}>  $dimensions
      * @return array<int, array{code: string, label: string, value: int}>
      */
     public function sortDimensions(array $dimensions): array
@@ -113,7 +113,7 @@ final class ResultCardPresenter
         unset($entry);
         usort(
             $sorted,
-            static fn(array $left, array $right): int => ($right['value'] <=> $left['value'])
+            static fn (array $left, array $right): int => ($right['value'] <=> $left['value'])
                 ?: ($left['_order'] <=> $right['_order']),
         );
 
@@ -126,7 +126,7 @@ final class ResultCardPresenter
     }
 
     /**
-     * @param array<int, array{code: string, label: string, value: int}> $dimensions
+     * @param  array<int, array{code: string, label: string, value: int}>  $dimensions
      * @return array{code: string, formatted: string}
      */
     public function topCode(array $dimensions): array
@@ -145,4 +145,3 @@ final class ResultCardPresenter
         ];
     }
 }
-

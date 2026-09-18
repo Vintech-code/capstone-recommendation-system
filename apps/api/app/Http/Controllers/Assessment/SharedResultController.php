@@ -9,9 +9,7 @@ use Illuminate\Http\JsonResponse;
 
 final class SharedResultController extends Controller
 {
-    public function __construct(private readonly ResultCardPresenter $presenter)
-    {
-    }
+    public function __construct(private readonly ResultCardPresenter $presenter) {}
 
     public function show(string $shareToken): JsonResponse
     {
@@ -28,4 +26,3 @@ final class SharedResultController extends Controller
         ]);
     }
 }
-

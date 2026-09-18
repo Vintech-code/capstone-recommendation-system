@@ -92,16 +92,6 @@ final class StudentProfileController extends Controller
         return $value === '' ? null : $value;
     }
 
-    public function riasec(Request $request, StudentProfilePresenter $presenter): JsonResponse
-    {
-        $result = $presenter->currentRiasec($request->user());
-
-        return response()->json(['data' => [
-            'status' => $result ? 'available' : 'not_available',
-            'result' => $result,
-        ]]);
-    }
-
     public function storePhoto(Request $request, StudentProfilePresenter $presenter): JsonResponse
     {
         $validated = $request->validate([

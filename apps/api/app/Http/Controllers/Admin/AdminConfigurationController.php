@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\AdminAuditEvent;
 use App\Models\ConfigurationVersion;
 use App\Services\Notifications\NotificationPolicyScheduler;
-use App\Services\Recommendation\ProgrammeSourceRegistry;
 use App\Services\Recommendation\TccProgrammeCatalogueRepository;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -18,7 +17,6 @@ final class AdminConfigurationController extends Controller
     public function index(
         string $kind,
         TccProgrammeCatalogueRepository $catalogues,
-        ProgrammeSourceRegistry $sources,
     ): JsonResponse {
         $this->ensureKind($kind);
         $current = $catalogues->current();
@@ -34,9 +32,6 @@ final class AdminConfigurationController extends Controller
             'runtime' => $kind === 'catalogue' ? $current : $current['matching_policy'],
             'versions' => $versions,
         ];
-        if ($kind === 'catalogue') {
-            $workspace['sourceRegistry'] = $sources->entries($current);
-        }
 
         return response()->json(['data' => $workspace]);
     }
@@ -150,36 +145,9 @@ final class AdminConfigurationController extends Controller
         )]);
     }
 
-    public function rollback(Request $request, ConfigurationVersion $configurationVersion): JsonResponse
-    {
-        abort_unless(in_array($configurationVersion->status, ['published', 'archived'], true), 409, 'Only a published or archived version can be restored.');
-        abort_if(
-            ConfigurationVersion::query()->where('kind', $configurationVersion->kind)->where('status', 'draft')->exists(),
-            409,
-            'Resolve the existing draft before restoring a historical version.',
-        );
-        $currentPublished = ConfigurationVersion::query()
-            ->where('kind', $configurationVersion->kind)
-            ->where('status', 'published')
-            ->value('id');
-        abort_if($currentPublished === $configurationVersion->getKey(), 409, 'This version is already published.');
-
-        $draft = ConfigurationVersion::query()->create([
-            'kind' => $configurationVersion->kind,
-            'version' => ((int) ConfigurationVersion::query()->where('kind', $configurationVersion->kind)->max('version')) + 1,
-            'status' => 'draft',
-            'academic_year' => $configurationVersion->academic_year,
-            'payload' => $configurationVersion->payload,
-            'created_by' => $request->user()->getKey(),
-        ]);
-        $this->audit($request, 'configuration.rollback_draft_created', $draft, $configurationVersion->version);
-
-        return response()->json(['data' => $this->payload($draft->load('creator:id,name'))], 201);
-    }
-
     private function ensureKind(string $kind): void
     {
-        abort_unless(in_array($kind, ['catalogue', 'methodology'], true), 404);
+        abort_unless($kind === 'catalogue', 404);
     }
 
     /** @param array<string, mixed> $payload @param array<string, mixed> $runtime @return array<string, mixed> */
@@ -239,61 +207,57 @@ final class AdminConfigurationController extends Controller
     /** @param array<string, mixed> $payload */
     private function validatePayload(string $kind, array $payload): void
     {
-        if ($kind === 'catalogue') {
-            $programmes = $payload['programmes'] ?? null;
-            if (! is_array($programmes) || count($programmes) !== 11) {
-                throw ValidationException::withMessages(['payload.programmes' => 'The catalogue must contain all 11 configured programmes.']);
+        $programmes = $payload['programmes'] ?? null;
+        if (! is_array($programmes) || count($programmes) !== 11) {
+            throw ValidationException::withMessages(['payload.programmes' => 'The catalogue must contain all 11 configured programmes.']);
+        }
+        foreach ($programmes as $programme) {
+            $profile = $programme['riasec_profile'] ?? [];
+            $profileStatus = $programme['riasec_profile_status'] ?? null;
+            $isPending = $profileStatus === 'pending_authoritative_psg_basis';
+            $hasValidThreeCodeProfile = is_array($profile)
+                && count($profile) === 3
+                && count(array_unique($profile)) === 3
+                && array_diff($profile, ['R', 'I', 'A', 'S', 'E', 'C']) === [];
+            if (($isPending && $profile !== []) || (! $isPending && ! $hasValidThreeCodeProfile)) {
+                throw ValidationException::withMessages(['payload.programmes' => 'Each classified programme requires three unique RIASEC codes; a programme pending authoritative PSG basis must remain unclassified.']);
             }
-            foreach ($programmes as $programme) {
-                $profile = $programme['riasec_profile'] ?? [];
-                $profileStatus = $programme['riasec_profile_status'] ?? null;
-                $isPending = $profileStatus === 'pending_authoritative_psg_basis';
-                $hasValidThreeCodeProfile = is_array($profile)
-                    && count($profile) === 3
-                    && count(array_unique($profile)) === 3
-                    && array_diff($profile, ['R', 'I', 'A', 'S', 'E', 'C']) === [];
-                if (($isPending && $profile !== []) || (! $isPending && ! $hasValidThreeCodeProfile)) {
-                    throw ValidationException::withMessages(['payload.programmes' => 'Each classified programme requires three unique RIASEC codes; a programme pending authoritative PSG basis must remain unclassified.']);
-                }
-                $opportunities = $programme['career_opportunities'] ?? [];
-                if (! is_array($opportunities)) {
-                    throw ValidationException::withMessages(['payload.programmes' => 'Career opportunities must be a list.']);
-                }
-                if (count($opportunities) > 8) {
-                    throw ValidationException::withMessages(['payload.programmes' => 'Each programme can publish up to eight ESCO career opportunities.']);
-                }
-                foreach ($opportunities as $opportunity) {
-                    $skills = is_array($opportunity) && is_array($opportunity['skills'] ?? null) ? $opportunity['skills'] : null;
-                    if (! is_array($opportunity)
-                        || ! is_string($opportunity['label'] ?? null)
-                        || trim($opportunity['label']) === ''
-                        || mb_strlen($opportunity['label']) > 160
-                        || ! is_string($opportunity['description'] ?? null)
-                        || mb_strlen($opportunity['description']) > 2000
-                        || ! is_string($opportunity['escoUri'] ?? null)
-                        || ! str_starts_with($opportunity['escoUri'], 'http://data.europa.eu/esco/occupation/')
-                        || $skills === null
-                        || count($skills) > 6
-                        || collect($skills)->contains(fn (mixed $skill): bool => ! is_string($skill) || trim($skill) === '' || mb_strlen($skill) > 160)
-                        || ($opportunity['source'] ?? null) !== 'esco'
-                        || ! is_string($opportunity['sourceLanguage'] ?? null)
-                        || ! preg_match('/^[a-z]{2}(?:-[a-z]{2})?$/', $opportunity['sourceLanguage'])
-                        || ! is_string($opportunity['sourceVersion'] ?? null)
-                        || ! preg_match('/^v[0-9]+\.[0-9]+\.[0-9]+$/', $opportunity['sourceVersion'])
-                        || ! is_string($opportunity['retrievedAt'] ?? null)
-                        || strtotime($opportunity['retrievedAt']) === false
-                        || ($opportunity['reviewStatus'] ?? null) !== 'proposed') {
-                        throw ValidationException::withMessages(['payload.programmes' => 'Every ESCO career opportunity requires bounded source fields, a valid occupation URI and taxonomy version, and proposed review status.']);
-                    }
-                }
-                foreach (['cover_image_position', 'logo_image_position'] as $field) {
-                    if (isset($programme[$field]) && ! $this->validMediaPosition($programme[$field])) {
-                        throw ValidationException::withMessages(["payload.programmes.{$field}" => 'Image framing requires x and y values from 0 to 100 and zoom from 1 to 2.5.']);
-                    }
+            $opportunities = $programme['career_opportunities'] ?? [];
+            if (! is_array($opportunities)) {
+                throw ValidationException::withMessages(['payload.programmes' => 'Career opportunities must be a list.']);
+            }
+            if (count($opportunities) > 8) {
+                throw ValidationException::withMessages(['payload.programmes' => 'Each programme can publish up to eight ESCO career opportunities.']);
+            }
+            foreach ($opportunities as $opportunity) {
+                $skills = is_array($opportunity) && is_array($opportunity['skills'] ?? null) ? $opportunity['skills'] : null;
+                if (! is_array($opportunity)
+                    || ! is_string($opportunity['label'] ?? null)
+                    || trim($opportunity['label']) === ''
+                    || mb_strlen($opportunity['label']) > 160
+                    || ! is_string($opportunity['description'] ?? null)
+                    || mb_strlen($opportunity['description']) > 2000
+                    || ! is_string($opportunity['escoUri'] ?? null)
+                    || ! str_starts_with($opportunity['escoUri'], 'http://data.europa.eu/esco/occupation/')
+                    || $skills === null
+                    || count($skills) > 6
+                    || collect($skills)->contains(fn (mixed $skill): bool => ! is_string($skill) || trim($skill) === '' || mb_strlen($skill) > 160)
+                    || ($opportunity['source'] ?? null) !== 'esco'
+                    || ! is_string($opportunity['sourceLanguage'] ?? null)
+                    || ! preg_match('/^[a-z]{2}(?:-[a-z]{2})?$/', $opportunity['sourceLanguage'])
+                    || ! is_string($opportunity['sourceVersion'] ?? null)
+                    || ! preg_match('/^v[0-9]+\.[0-9]+\.[0-9]+$/', $opportunity['sourceVersion'])
+                    || ! is_string($opportunity['retrievedAt'] ?? null)
+                    || strtotime($opportunity['retrievedAt']) === false
+                    || ($opportunity['reviewStatus'] ?? null) !== 'proposed') {
+                    throw ValidationException::withMessages(['payload.programmes' => 'Every ESCO career opportunity requires bounded source fields, a valid occupation URI and taxonomy version, and proposed review status.']);
                 }
             }
-        } elseif (! isset($payload['method'], $payload['normalization'], $payload['tie_break'], $payload['display'])) {
-            throw ValidationException::withMessages(['payload' => 'The methodology payload is incomplete.']);
+            foreach (['cover_image_position', 'logo_image_position'] as $field) {
+                if (isset($programme[$field]) && ! $this->validMediaPosition($programme[$field])) {
+                    throw ValidationException::withMessages(["payload.programmes.{$field}" => 'Image framing requires x and y values from 0 to 100 and zoom from 1 to 2.5.']);
+                }
+            }
         }
     }
 

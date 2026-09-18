@@ -104,7 +104,6 @@ class GoogleAuthenticationController extends Controller
                     'email' => $email,
                     'password' => Str::random(64),
                     'account_status' => 'active',
-                    'must_change_password' => false,
                 ]);
                 $user->forceFill([
                     'google_id' => $googleId,

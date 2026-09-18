@@ -53,7 +53,7 @@ final class AdminAssessmentPresenter
 
     public function reference(AssessmentSession $session): string
     {
-        return 'ASMT-' . str_pad((string) $session->getKey(), 6, '0', STR_PAD_LEFT);
+        return 'ASMT-'.str_pad((string) $session->getKey(), 6, '0', STR_PAD_LEFT);
     }
 
     /** @return array<int, array{code: string, label: string, value: int}> */
@@ -75,13 +75,13 @@ final class AdminAssessmentPresenter
         ];
         $codes = ['Realistic' => 'R', 'Investigative' => 'I', 'Artistic' => 'A', 'Social' => 'S', 'Enterprising' => 'E', 'Conventional' => 'C'];
         $entries = $session->result_payload['result'] ?? [];
-        if (!is_array($entries)) {
+        if (! is_array($entries)) {
             return [];
         }
 
         $dimensions = [];
         foreach ($entries as $key => $entry) {
-            if (!is_array($entry)) {
+            if (! is_array($entry)) {
                 $entry = ['area' => is_string($key) ? $key : '', 'score' => $entry];
             }
             $areaKey = strtolower(trim((string) ($entry['area'] ?? $entry['title'] ?? $entry['code'] ?? '')));
@@ -112,7 +112,7 @@ final class AdminAssessmentPresenter
         unset($entry);
         usort(
             $dimensions,
-            static fn(array $left, array $right): int => ($right['value'] <=> $left['value'])
+            static fn (array $left, array $right): int => ($right['value'] <=> $left['value'])
                 ?: ($left['_order'] <=> $right['_order']),
         );
 

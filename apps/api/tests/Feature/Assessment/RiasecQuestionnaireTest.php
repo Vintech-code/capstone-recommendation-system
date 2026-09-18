@@ -41,53 +41,6 @@ class RiasecQuestionnaireTest extends TestCase
         Http::assertNothingSent();
     }
 
-    public function test_results_use_the_database_category_mapping_and_binary_count_rule(): void
-    {
-        $answers = array_fill(0, 42, 2);
-        $answers[0] = 1; // source item 1, Realistic
-        $answers[1] = 1; // source item 2, Investigative
-        $answers[21] = 1; // source item 22, Realistic
-
-        $this->actingAs($this->userWithRole(RoleSlug::Student))
-            ->postJson('/api/v1/student/assessments/riasec/results', ['answers' => $answers])
-            ->assertOk()
-            ->assertJsonPath('data.instrument_code', 'tcc-uhcc-riasec-42-v1')
-            ->assertJsonPath('data.scoring_source', 'riasec-assessment-asset-v1')
-            ->assertJsonPath('data.scoring.maximum_per_area', 7)
-            ->assertJsonPath('data.result.0.area', 'Realistic')
-            ->assertJsonPath('data.result.0.score', 2)
-            ->assertJsonPath('data.result.1.score', 1);
-    }
-
-    public function test_each_riasec_area_has_seven_items_and_all_agree_scores_seven(): void
-    {
-        $response = $this->actingAs($this->userWithRole(RoleSlug::Student))
-            ->postJson('/api/v1/student/assessments/riasec/results', [
-                'answers' => array_fill(0, 42, 1),
-            ])
-            ->assertOk()
-            ->assertJsonPath('data.scoring.formula', 'area_score = count(mapped answers equal to Agree)');
-
-        $this->assertSame(
-            [7, 7, 7, 7, 7, 7],
-            array_column($response->json('data.result'), 'score'),
-        );
-    }
-
-    public function test_results_require_all_forty_two_binary_answers(): void
-    {
-        $this->actingAs($this->userWithRole(RoleSlug::Student))
-            ->postJson('/api/v1/student/assessments/riasec/results', ['answers' => array_fill(0, 41, 1)])
-            ->assertUnprocessable()
-            ->assertJsonValidationErrors('answers');
-
-        $answers = array_fill(0, 42, 1);
-        $answers[10] = 3;
-        $this->postJson('/api/v1/student/assessments/riasec/results', ['answers' => $answers])
-            ->assertUnprocessable()
-            ->assertJsonValidationErrors('answers.10');
-    }
-
     public function test_questionnaire_endpoints_enforce_student_access(): void
     {
         $this->getJson('/api/v1/student/assessments/riasec/questions')->assertUnauthorized();

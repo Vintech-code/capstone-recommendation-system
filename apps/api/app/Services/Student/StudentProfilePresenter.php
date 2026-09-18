@@ -90,14 +90,6 @@ final class StudentProfilePresenter
         ];
     }
 
-    /** @return array<string, mixed>|null */
-    public function currentRiasec(User $student): ?array
-    {
-        $assessment = $this->latestAssessment($student);
-
-        return $assessment ? $this->riasec($assessment) : null;
-    }
-
     private function latestAssessment(User $student): ?AssessmentSession
     {
         return $student->assessmentSessions()

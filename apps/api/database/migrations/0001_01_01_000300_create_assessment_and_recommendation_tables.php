@@ -34,17 +34,80 @@ return new class extends Migration
             $table->char('riasec_code', 1);
             $table->text('prompt');
             $table->timestamps();
-
-            $table->unique(
-                ['assessment_instrument_id', 'position'],
-                'assessment_questions_instrument_position_unique',
-            );
-            $table->unique(
-                ['assessment_instrument_id', 'source_number'],
-                'assessment_questions_instrument_source_unique',
-            );
+            $table->unique(['assessment_instrument_id', 'position'], 'assessment_questions_instrument_position_unique');
+            $table->unique(['assessment_instrument_id', 'source_number'], 'assessment_questions_instrument_source_unique');
         });
 
+        Schema::create('entrance_examination_results', function (Blueprint $table): void {
+            $table->id();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->decimal('score', 2, 1);
+            $table->string('eligibility_group', 16);
+            $table->string('rule_reference', 96);
+            $table->timestamp('declared_at');
+            $table->timestamp('superseded_at')->nullable();
+            $table->timestamps();
+            $table->index(['user_id', 'superseded_at']);
+        });
+
+        Schema::create('assessment_sessions', function (Blueprint $table): void {
+            $table->id();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('entrance_examination_result_id')->nullable()->constrained()->restrictOnDelete();
+            $table->foreignId('previous_session_id')->nullable()->constrained('assessment_sessions')->nullOnDelete();
+            $table->text('retake_reason')->nullable();
+            $table->string('share_token', 64)->nullable()->unique();
+            $table->timestamp('shared_at')->nullable();
+            $table->string('instrument_code', 64);
+            $table->unsignedSmallInteger('attempt_number')->default(1);
+            $table->string('status', 32)->default('in_progress');
+            $table->boolean('is_current')->default(true);
+            $table->json('answers')->nullable();
+            $table->unsignedSmallInteger('current_question')->default(1);
+            $table->json('result_payload')->nullable();
+            $table->timestamp('started_at');
+            $table->timestamp('saved_at')->nullable();
+            $table->timestamp('submitted_at')->nullable();
+            $table->timestamp('result_available_at')->nullable();
+            $table->timestamp('retake_available_at')->nullable();
+            $table->string('processing_error_code', 64)->nullable();
+            $table->timestamp('processing_failed_at')->nullable();
+            $table->timestamps();
+            $table->unique(['user_id', 'instrument_code', 'attempt_number'], 'assessment_attempt_unique');
+            $table->index(['user_id', 'instrument_code', 'is_current'], 'assessment_current_index');
+        });
+
+        Schema::create('recommendation_runs', function (Blueprint $table): void {
+            $table->id();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('assessment_session_id')->unique()->constrained()->cascadeOnDelete();
+            $table->string('catalogue_reference', 96);
+            $table->string('rule_reference', 96);
+            $table->json('entrance_examination_snapshot')->nullable();
+            $table->string('methodology_status', 64);
+            $table->unsignedSmallInteger('default_count')->default(3);
+            $table->unsignedSmallInteger('total_eligible');
+            $table->json('ranked_courses');
+            $table->json('unranked_programmes')->nullable();
+            $table->timestamp('generated_at');
+            $table->timestamps();
+            $table->index(['user_id', 'generated_at']);
+        });
+
+        $this->seedInstrument();
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('recommendation_runs');
+        Schema::dropIfExists('assessment_sessions');
+        Schema::dropIfExists('entrance_examination_results');
+        Schema::dropIfExists('assessment_questions');
+        Schema::dropIfExists('assessment_instruments');
+    }
+
+    private function seedInstrument(): void
+    {
         $now = now();
         $instrumentId = DB::table('assessment_instruments')->insertGetId([
             'code' => 'tcc-uhcc-riasec-42-v1',
@@ -127,11 +190,5 @@ return new class extends Migration
             $questions,
             array_keys($questions),
         ));
-    }
-
-    public function down(): void
-    {
-        Schema::dropIfExists('assessment_questions');
-        Schema::dropIfExists('assessment_instruments');
     }
 };

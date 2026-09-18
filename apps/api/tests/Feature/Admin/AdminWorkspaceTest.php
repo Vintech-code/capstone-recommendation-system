@@ -46,7 +46,7 @@ class AdminWorkspaceTest extends TestCase
             ->assertJsonPath('data.students', 1)
             ->assertJsonPath('data.completed', 1)
             ->assertJsonPath('data.funnel.entranceDeclared', 1)
-            ->assertJsonCount(3, 'data.operationalAttention');
+            ->assertJsonCount(1, 'data.operationalAttention');
 
         $this->getJson('/api/v1/admin/students?search=ASMT-000001&status=result_available&eligibility=board')
             ->assertOk()
@@ -63,8 +63,7 @@ class AdminWorkspaceTest extends TestCase
             ->assertJsonPath('data.attempts.0.recommendations.0.code', 'BSIT')
             ->assertJsonPath('data.profile.lrn', '128490000011')
             ->assertJsonPath('data.profile.shsStrand', 'STEM')
-            ->assertJsonMissingPath('data.profile.shsGwa')
-            ->assertJsonMissingPath('data.guidanceCase');
+            ->assertJsonMissingPath('data.profile.shsGwa');
 
         $this->getJson('/api/v1/admin/programmes')
             ->assertOk()
@@ -76,11 +75,10 @@ class AdminWorkspaceTest extends TestCase
             ->assertOk()
             ->assertJsonPath('data.scope', 'institution')
             ->assertJsonPath('data.completedAssessments', 1)
-            ->assertJsonPath('data.entranceDeclarations', 1)
             ->assertJsonPath('data.eligibilityDistribution.board', 1)
-            ->assertJsonPath('data.recommendationsByEligibility.board', 1)
-            ->assertJsonPath('data.programmeSavesByEligibility.board', 1)
-            ->assertJsonStructure(['data' => ['assessmentFunnel', 'catalogueGovernance']]);
+            ->assertJsonPath('data.recommendationRuns', 1)
+            ->assertJsonPath('data.programmeSaves', 1)
+            ->assertJsonStructure(['data' => ['assessmentFunnel', 'retakeMetrics']]);
     }
 
     public function test_student_and_guest_cannot_access_admin_data(): void

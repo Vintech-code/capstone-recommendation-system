@@ -5,6 +5,7 @@ namespace Tests\Feature\Auth;
 use App\Models\Role;
 use App\Models\RoleSlug;
 use App\Models\User;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -47,24 +48,15 @@ class PortalAuthorizationTest extends TestCase
         }
     }
 
-    public function test_an_account_can_hold_multiple_explicit_role_assignments(): void
+    public function test_an_account_cannot_hold_multiple_role_assignments(): void
     {
         $user = User::factory()->create();
+        $student = Role::query()->create(['slug' => RoleSlug::Student->value, 'name' => RoleSlug::Student->name]);
+        $admin = Role::query()->create(['slug' => RoleSlug::Admin->value, 'name' => RoleSlug::Admin->name]);
+        $user->roles()->attach($student);
 
-        foreach ([RoleSlug::Student, RoleSlug::Admin] as $role) {
-            $user->roles()->attach(Role::query()->updateOrCreate([
-                'slug' => $role->value,
-                'name' => $role->name,
-            ]));
-        }
-
-        $this->actingAs($user)
-            ->getJson('/api/v1/auth/authorize/student')
-            ->assertOk();
-
-        $this->actingAs($user)
-            ->getJson('/api/v1/auth/authorize/admin')
-            ->assertOk();
+        $this->expectException(UniqueConstraintViolationException::class);
+        $user->roles()->attach($admin);
     }
 
     private function userWithRole(RoleSlug $role): User

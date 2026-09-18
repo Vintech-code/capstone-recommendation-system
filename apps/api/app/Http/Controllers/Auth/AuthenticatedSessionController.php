@@ -77,14 +77,6 @@ class AuthenticatedSessionController extends Controller
         return response()->json(['user' => $this->userPayload($user)]);
     }
 
-    public function show(Request $request): JsonResponse
-    {
-        /** @var User $user */
-        $user = $request->user()->load(['roles', 'studentProfile']);
-
-        return response()->json(['user' => $this->userPayload($user)]);
-    }
-
     public function destroy(Request $request): JsonResponse
     {
         Auth::guard('web')->logout();
@@ -96,7 +88,7 @@ class AuthenticatedSessionController extends Controller
     }
 
     /**
-     * @return array{id: int, name: string, email: string, accountStatus: string, mustChangePassword: bool, canManageAdministrators: bool, photoUrl: string|null, roles: array<int, string>}
+     * @return array{id: int, name: string, email: string, accountStatus: string, canManageAdministrators: bool, photoUrl: string|null, roles: array<int, string>}
      */
     private function userPayload(User $user): array
     {
@@ -105,7 +97,6 @@ class AuthenticatedSessionController extends Controller
             'name' => $user->name,
             'email' => $user->email,
             'accountStatus' => $user->account_status,
-            'mustChangePassword' => (bool) $user->must_change_password,
             'canManageAdministrators' => (bool) $user->can_manage_administrators,
             'photoUrl' => $user->studentProfile?->photo_path
                 ? '/api/v1/profile-photos/'.$user->getKey().'?v='.$user->studentProfile->updated_at?->getTimestamp()

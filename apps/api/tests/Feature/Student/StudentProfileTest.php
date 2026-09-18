@@ -71,7 +71,7 @@ class StudentProfileTest extends TestCase
         ];
 
         $this->actingAs($student)
-            ->postJson('/api/v1/student/profile', $payload)
+            ->putJson('/api/v1/student/profile', $payload)
             ->assertOk()
             ->assertJsonPath('data.questionnaire.complete', true)
             ->assertJsonPath('data.questionnaire.strengths.0', 'Problem-solving')
@@ -136,7 +136,7 @@ class StudentProfileTest extends TestCase
         $this->assertDatabaseCount('student_profiles', 0);
     }
 
-    public function test_profile_empty_state_and_current_riasec_result_are_truthful(): void
+    public function test_profile_empty_state_is_truthful(): void
     {
         $student = $this->userWithRole(RoleSlug::Student);
 
@@ -147,21 +147,6 @@ class StudentProfileTest extends TestCase
             ->assertJsonPath('data.questionnaire.strengths', [])
             ->assertJsonPath('data.riasec', null);
 
-        $this->getJson('/api/v1/student/profile/riasec-result')
-            ->assertOk()
-            ->assertJsonPath('data.status', 'not_available')
-            ->assertJsonPath('data.result', null);
-
-        $session = $this->completedAssessment($student);
-
-        $this->getJson('/api/v1/student/profile/riasec-result')
-            ->assertOk()
-            ->assertJsonPath('data.status', 'available')
-            ->assertJsonPath('data.result.sessionReference', 'ASMT-'.str_pad((string) $session->getKey(), 6, '0', STR_PAD_LEFT))
-            ->assertJsonPath('data.result.primary.label', 'Investigative')
-            ->assertJsonPath('data.result.secondary.label', 'Social')
-            ->assertJsonPath('data.result.tertiary.label', 'Artistic')
-            ->assertJsonPath('data.result.code', 'I-S-A');
     }
 
     public function test_career_interests_come_from_recorded_matches_and_configured_programmes(): void
@@ -197,7 +182,6 @@ class StudentProfileTest extends TestCase
     {
         $this->getJson('/api/v1/student/profile')->assertUnauthorized();
         $this->putJson('/api/v1/student/profile', [])->assertUnauthorized();
-        $this->getJson('/api/v1/student/profile/riasec-result')->assertUnauthorized();
     }
 
     public function test_student_can_upload_and_replace_only_their_own_valid_profile_photo(): void

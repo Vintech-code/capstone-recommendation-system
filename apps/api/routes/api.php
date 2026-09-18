@@ -4,7 +4,6 @@ use App\Http\Controllers\Admin\AdminConfigurationController;
 use App\Http\Controllers\Admin\AdminEscoOccupationController;
 use App\Http\Controllers\Admin\AdministratorAccountController;
 use App\Http\Controllers\Admin\AdminProgrammeMediaController;
-use App\Http\Controllers\Admin\AdminProgrammeSourceController;
 use App\Http\Controllers\Admin\AdminWorkspaceController;
 use App\Http\Controllers\Assessment\AssessmentSessionController;
 use App\Http\Controllers\Assessment\EntranceExaminationResultController;
@@ -43,7 +42,6 @@ Route::prefix('v1/auth')->group(function (): void {
         ->middleware('throttle:6,1');
 
     Route::middleware(['auth:sanctum', 'active'])->group(function (): void {
-        Route::get('/me', [AuthenticatedSessionController::class, 'show']);
         Route::post('/logout', [AuthenticatedSessionController::class, 'destroy']);
         Route::put('/password', PasswordChangeController::class);
 
@@ -59,7 +57,6 @@ Route::prefix('v1/student/assessments/riasec')
     ->middleware(['auth:sanctum', 'active', 'role:student'])
     ->group(function (): void {
         Route::get('/questions', [RiasecQuestionnaireController::class, 'questions']);
-        Route::post('/results', [RiasecQuestionnaireController::class, 'results']);
         Route::get('/session', [AssessmentSessionController::class, 'current']);
         Route::post('/sessions', [AssessmentSessionController::class, 'store']);
         Route::patch('/sessions/{assessmentSession}', [AssessmentSessionController::class, 'update']);
@@ -106,9 +103,8 @@ Route::prefix('v1/student/profile')
     ->middleware(['auth:sanctum', 'active', 'role:student'])
     ->group(function (): void {
         Route::get('/', [StudentProfileController::class, 'show']);
-        Route::match(['post', 'put'], '/', [StudentProfileController::class, 'store']);
+        Route::put('/', [StudentProfileController::class, 'store']);
         Route::post('/photo', [StudentProfileController::class, 'storePhoto']);
-        Route::get('/riasec-result', [StudentProfileController::class, 'riasec']);
     });
 
 Route::get('v1/profile-photos/{student}', [StudentProfileController::class, 'showPhoto'])
@@ -139,9 +135,6 @@ Route::prefix('v1/admin')
         Route::put('/configurations/versions/{configurationVersion}', [AdminConfigurationController::class, 'update']);
         Route::post('/configurations/versions/{configurationVersion}/preview', [AdminConfigurationController::class, 'preview']);
         Route::post('/configurations/versions/{configurationVersion}/publish', [AdminConfigurationController::class, 'publish']);
-        Route::post('/configurations/versions/{configurationVersion}/rollback', [AdminConfigurationController::class, 'rollback']);
-        Route::get('/programme-sources', [AdminProgrammeSourceController::class, 'index']);
-        Route::put('/programme-sources/{sourceReference}', [AdminProgrammeSourceController::class, 'update']);
 
         Route::prefix('administrators')->middleware(['manages_admins', 'throttle:20,1'])->group(function (): void {
             Route::get('/', [AdministratorAccountController::class, 'index']);

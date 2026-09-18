@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Auth;
 
+use App\Models\Role;
 use App\Models\RoleSlug;
 use App\Models\User;
 use Database\Seeders\DatabaseSeeder;
@@ -106,6 +107,10 @@ class LocalAuthUserSeederTest extends TestCase
 
         $this->assertDatabaseCount('roles', count(RoleSlug::cases()));
         $this->assertDatabaseCount('users', 0);
+        $this->assertSame(
+            [RoleSlug::Admin->value, RoleSlug::Student->value],
+            Role::query()->orderBy('slug')->pluck('slug')->all(),
+        );
     }
 
     public function test_the_main_database_seeder_creates_local_accounts_when_enabled(): void

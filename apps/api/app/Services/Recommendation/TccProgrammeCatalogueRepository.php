@@ -29,14 +29,6 @@ class TccProgrammeCatalogueRepository
         if (is_array($publishedCatalogue)) {
             $catalogue = $this->applyPublishedEnrichment($bundledCatalogue, $publishedCatalogue);
         }
-        $publishedMethodology = Schema::hasTable('configuration_versions') ? ConfigurationVersion::query()
-            ->where('kind', 'methodology')
-            ->where('status', 'published')
-            ->latest('version')
-            ->value('payload') : null;
-        if (is_array($publishedMethodology)) {
-            $catalogue['matching_policy'] = $publishedMethodology;
-        }
         $content = $this->guidance->current();
         $outlook = $this->outlook->current();
         $programmeContent = $content['programmes'] ?? [];

@@ -56,7 +56,7 @@ class GoogleAuthenticationTest extends TestCase
             [RoleSlug::Student->value],
             $user->roles()->pluck('slug')->all(),
         );
-        $this->getJson('/api/v1/auth/me')
+        $this->getJson('/api/v1/auth/session')
             ->assertOk()
             ->assertJsonPath('user.photoUrl', 'https://example.test/student-avatar.png');
     }
