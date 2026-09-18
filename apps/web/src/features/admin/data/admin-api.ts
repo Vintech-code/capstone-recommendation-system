@@ -221,7 +221,7 @@ interface AdminReport {
 
 interface ConfigurationVersion {
   id: number
-  kind: 'catalogue' | 'methodology'
+  kind: 'catalogue'
   version: number
   status: 'draft' | 'published' | 'archived'
   academicYear: string | null
@@ -250,25 +250,10 @@ interface ConfigurationPreview {
   }>
 }
 
-interface ProgrammeSourceRegistryEntry {
-  reference: string
-  sourceName: string
-  sourceUrl: string
-  programmeIds: string[]
-  fields: Array<'duration' | 'salary' | 'job_growth'>
-  recordedStatuses: string[]
-  lastVerifiedAt: string | null
-  verifiedBy: string | null
-  reviewIntervalDays: number
-  nextReviewAt: string | null
-  reviewStatus: 'not_verified' | 'review_due' | 'current'
-}
-
 interface ConfigurationWorkspace {
-  kind: 'catalogue' | 'methodology'
+  kind: 'catalogue'
   runtime: Record<string, unknown>
   versions: ConfigurationVersion[]
-  sourceRegistry?: ProgrammeSourceRegistryEntry[]
 }
 
 interface AdminActivity {
@@ -463,7 +448,6 @@ export type {
   ConfigurationVersion,
   ConfigurationPreview,
   ConfigurationWorkspace,
-  ProgrammeSourceRegistryEntry,
   RiasecDimension,
   EscoOccupationSearchResult,
   ManagedAdministrator,

@@ -43,7 +43,7 @@ describe('Administrator ESCO mapping workflow', () => {
     })
 
     const user = userEvent.setup()
-    render(<ConfigurationWorkflow kind="catalogue" programmeId="bs-information-technology" />)
+    render(<ConfigurationWorkflow programmeId="bs-information-technology" />)
 
     expect(await screen.findByRole('heading', { name: 'BS Information Technology' })).toBeVisible()
     expect(screen.getByText('Protected source-controlled facts')).toBeVisible()

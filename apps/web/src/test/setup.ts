@@ -146,6 +146,10 @@ async function defaultFetch(
     return Response.json({ data: { id: 8, name: body.name, email: body.email, status: 'pending' } }, { status: 201 })
   }
 
+  if (url === '/api/v1/admin/administrators/3/sessions/revoke' && init?.method === 'POST') {
+    return Response.json({ data: { revoked: true } })
+  }
+
   if (url.startsWith('/api/v1/admin/students?')) {
     return Response.json({ data: { items: [
       { id: 10, name: 'Ana Santos', email: 'ana@example.test', accountStatus: 'active', attemptCount: 1, completedAssessmentCount: 1, retakeCount: 0, latestResultAt: '2026-08-01T08:20:01+08:00', latestTopCode: 'I-C-R', declarationStatus: 'declared', selfDeclaredScore: 2.5, eligibilityGroup: 'board', currentAssessmentStatus: 'result_available', currentAssessmentReference: 'ASMT-000001', recommendationAvailable: true, savedProgrammeCount: 1, lastActivityAt: '2026-08-01T08:20:01+08:00' },
@@ -170,22 +174,13 @@ async function defaultFetch(
     return Response.json({ data: { kind: 'cover', url: '/storage/programme-media/bs-information-technology/cover/new-cover.webp' } }, { status: 201 })
   }
 
-  if (url === '/api/v1/admin/programme-sources' && (!init?.method || init.method === 'GET')) {
-    return Response.json({ data: [{ reference: 'source-reference', sourceName: 'CHED CMO No. 25, series of 2015', sourceUrl: 'https://legacy.ched.gov.ph/2015-ched-memorandum-orders/', programmeIds: ['bs-information-technology'], fields: ['duration'], recordedStatuses: ['ched_psg'], lastVerifiedAt: null, verifiedBy: null, reviewIntervalDays: 180, nextReviewAt: null, reviewStatus: 'not_verified' }] })
-  }
-
-  if (url === '/api/v1/admin/programme-sources/source-reference' && init?.method === 'PUT') {
-    const body = JSON.parse(String(init.body)) as { lastVerifiedAt: string }
-    return Response.json({ data: { reference: 'source-reference', sourceName: 'CHED CMO No. 25, series of 2015', sourceUrl: 'https://legacy.ched.gov.ph/2015-ched-memorandum-orders/', programmeIds: ['bs-information-technology'], fields: ['duration'], recordedStatuses: ['ched_psg'], lastVerifiedAt: body.lastVerifiedAt, verifiedBy: 'Authenticated User', reviewIntervalDays: 180, nextReviewAt: '2027-02-08', reviewStatus: 'current' } })
-  }
-
   if (url === '/api/v1/admin/configurations/catalogue' && (!init?.method || init.method === 'GET')) {
     const programme = { id: 'bs-information-technology', short_label: 'BSIT', display_name: 'BS Information Technology', description: 'Applies computing technologies to organisational needs.', majors: [], riasec_profile: ['I', 'R', 'C'], learning_areas: ['Software development'], learning_area_descriptions: { 'Software development': 'Design, build, test, and maintain applications.' }, learning_area_topics: { 'Software development': ['Programming fundamentals'] }, career_directions: ['Software and application development'], recommended_strands: ['STEM', 'TVL-ICT'], strand_guidance: 'STEM and TVL-ICT may be helpful preparation.', requirements: ['Meet published admission requirements.'], readiness_prompt: 'Discuss your interest in technology.', degree_type: "Bachelor's degree", duration: { display: '4 years' }, salary: { display: 'Not published' }, job_growth: { display: 'Not published' } }
     return Response.json({ data: { kind: 'catalogue', runtime: { programmes: [programme] }, versions: [{ id: 7, kind: 'catalogue', version: 2, status: 'draft', academicYear: '2026-2027', payload: { programmes: [programme] }, createdBy: 'Authenticated User', publishedBy: null, createdAt: '2026-08-08T12:00:00+08:00', publishedAt: null }] } })
   }
 
-  if (url.match(/\/api\/v1\/admin\/configurations\/(catalogue|methodology)$/) && init?.method === 'POST') {
-    const kind = url.endsWith('catalogue') ? 'catalogue' : 'methodology'
+  if (url === '/api/v1/admin/configurations/catalogue' && init?.method === 'POST') {
+    const kind = 'catalogue'
     return Response.json({ data: { id: 1, kind, version: 2, status: 'draft', academicYear: '2026-2027', payload: {}, createdBy: 'Authenticated User', publishedBy: null, createdAt: '2026-08-08T12:00:00+08:00', publishedAt: null } }, { status: 201 })
   }
 
@@ -194,7 +189,7 @@ async function defaultFetch(
   }
 
   if (url.match(/\/api\/v1\/admin\/configurations\/versions\/\d+(\/publish)?$/) && ['PUT', 'POST'].includes(init?.method ?? '')) {
-    return Response.json({ data: { id: 1, kind: 'methodology', version: 2, status: url.endsWith('/publish') ? 'published' : 'draft', academicYear: null, payload: {}, createdBy: 'Authenticated User', publishedBy: url.endsWith('/publish') ? 'Authenticated User' : null, createdAt: '2026-08-08T12:00:00+08:00', publishedAt: url.endsWith('/publish') ? '2026-08-08T12:05:00+08:00' : null } })
+    return Response.json({ data: { id: 1, kind: 'catalogue', version: 2, status: url.endsWith('/publish') ? 'published' : 'draft', academicYear: null, payload: {}, createdBy: 'Authenticated User', publishedBy: url.endsWith('/publish') ? 'Authenticated User' : null, createdAt: '2026-08-08T12:00:00+08:00', publishedAt: url.endsWith('/publish') ? '2026-08-08T12:05:00+08:00' : null } })
   }
 
   if (url.startsWith('/api/v1/admin/reports')) {

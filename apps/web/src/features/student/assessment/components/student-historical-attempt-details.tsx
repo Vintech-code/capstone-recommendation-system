@@ -9,68 +9,13 @@ import {
 import { Button } from "@/components/ui/button";
 import type {
   AssessmentLifecycle,
-  ResultCardData,
 } from "@/features/student/assessment/assessment-api";
+import { assessmentStatusLabel } from "@/features/student/assessment/components/student-assessment-history-helpers";
 import {
   formatAssessmentDate,
   mapAssessmentResult,
 } from "@/features/student/assessment/assessment-result-mapper";
 import type { StudentRecommendationState } from "@/features/student/recommendations/recommendation-types";
-
-export function toResultCardData(
-  attempt: AssessmentLifecycle,
-  studentName = "Student Applicant",
-): ResultCardData | null {
-  const result = mapAssessmentResult(attempt);
-  if (!result || !attempt.id) return null;
-
-  const dimensions = result.dimensions.map((d) => ({
-    code: d.code,
-    label: d.label,
-    value: d.value,
-  }));
-
-  const sorted = [...dimensions].sort((a, b) => b.value - a.value);
-  const topCodes = sorted.slice(0, 3).map((d) => d.code);
-
-  return {
-    id: attempt.id,
-    reference:
-      attempt.reference ?? `ASMT-${String(attempt.id).padStart(6, "0")}`,
-    studentName,
-    attemptNumber: attempt.attempt_number ?? 1,
-    isCurrent: Boolean(attempt.is_current),
-    instrumentCode: attempt.instrument_code ?? "tcc-uhcc-riasec-42-v1",
-    status: attempt.status,
-    startedAt: attempt.started_at,
-    submittedAt: attempt.submitted_at,
-    resultAvailableAt: attempt.result_available_at,
-    topCode: topCodes.join(""),
-    formattedTopCode: topCodes.join("-"),
-    topDimensions: sorted.slice(0, 3),
-    dimensions,
-    scoringVersion:
-      attempt.result?.scoring_source ??
-      attempt.result?.instrument_code ??
-      "RIASEC-OQ42-2026-01",
-    guidanceVersion:
-      attempt.result?.guidance?.version ?? "METHODOLOGY-PROPOSED-2026-01",
-    disclaimer:
-      "This assessment result reflects your self-reported vocational interest profile.",
-    shareToken: attempt.share_token,
-    sharedAt: attempt.shared_at,
-  };
-}
-
-export function assessmentStatusLabel(status: AssessmentLifecycle["status"]) {
-  return {
-    not_started: "Not started",
-    in_progress: "In progress",
-    preparing_result: "Finalizing submission",
-    result_failed: "Result unavailable",
-    result_available: "Result available",
-  }[status];
-}
 
 interface HistoricalAttemptDetailsProps {
   attempt: AssessmentLifecycle;
@@ -121,7 +66,10 @@ export function HistoricalAttemptDetails({
             Attempt {attempt.attempt_number ?? 1} result
           </h4>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            Assessment version: {result?.assessmentVersion ?? attempt.instrument_code ?? "tcc-uhcc-riasec-42-v1"}
+            Assessment version:{" "}
+            {result?.assessmentVersion ??
+              attempt.instrument_code ??
+              "tcc-uhcc-riasec-42-v1"}
             {attempt.is_current ? (
               <span className="ml-2 inline-flex items-center font-bold text-success-ink">
                 Current result
@@ -167,7 +115,10 @@ export function HistoricalAttemptDetails({
         <div className="rounded-xl border border-border/60 bg-muted/20 p-3.5 text-xs">
           <div className="flex items-center justify-between">
             <span className="flex items-center gap-1.5 font-bold text-foreground">
-              <UserCheck className="size-3.5 text-primary-ink" aria-hidden="true" />
+              <UserCheck
+                className="size-3.5 text-primary-ink"
+                aria-hidden="true"
+              />
               Self-declared Entrance Exam
             </span>
             <span className="font-display font-black text-sm text-foreground">
@@ -211,7 +162,8 @@ export function HistoricalAttemptDetails({
           <dl className="grid grid-cols-3 sm:grid-cols-6 gap-2">
             {result.dimensions.map((dimension) => {
               const prev = previousScoresByCode.get(dimension.code);
-              const scoreDiff = prev !== undefined ? dimension.value - prev : null;
+              const scoreDiff =
+                prev !== undefined ? dimension.value - prev : null;
               return (
                 <div
                   key={dimension.code}

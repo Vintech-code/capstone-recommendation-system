@@ -12,7 +12,6 @@ interface AuthContextValue {
   status: SessionStatus
   signIn: (credentials: SignInCredentials) => Promise<AuthUser>
   signOut: () => Promise<void>
-  refreshUser: () => Promise<AuthUser>
   retrySession: () => void
 }
 

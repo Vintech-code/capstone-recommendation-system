@@ -23,10 +23,12 @@ import {
 import {
   RecentStudentRow,
   StudentMarker,
-  studentName,
-  entranceGroupLabel,
   StatusBadge,
 } from "@/features/admin/components/admin-dashboard-widgets";
+import {
+  entranceGroupLabel,
+  studentName,
+} from "@/features/admin/components/admin-dashboard-helpers";
 import {
   useAdminResource,
   type AdminOverview,

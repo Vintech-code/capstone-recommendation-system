@@ -28,8 +28,6 @@ function PasswordChangePage() {
   const [error, setError] = useState<string | null>(null);
 
   if (!user) return <Navigate to={`/${role}/login`} replace />;
-  if (!user.mustChangePassword) return <Navigate to={`/${role}`} replace />;
-
   async function submit() {
     if (!passwordMeetsPolicy(password)) {
       setError(PASSWORD_POLICY_MESSAGE);

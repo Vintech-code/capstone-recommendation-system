@@ -9,7 +9,7 @@ import {
   type AssessmentLifecycle,
 } from "@/features/student/assessment/assessment-api";
 import { StudentPageHeader } from "@/features/student/components/student-page-header";
-import { AssessmentHistorySummary } from "@/features/student/dashboard/components/student-dashboard-page";
+import { AssessmentHistorySummary } from "@/features/student/assessment/components/student-assessment-history-summary";
 import { getRecommendationForAttempt } from "@/features/student/recommendations/recommendation-api";
 import type { StudentRecommendationState } from "@/features/student/recommendations/recommendation-types";
 

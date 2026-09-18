@@ -20,16 +20,26 @@ function AuthSplitLayout({ children }: AuthSplitLayoutProps) {
         className="absolute inset-0 bg-background/45 sm:bg-background/20"
       />
 
-      <section className="relative z-10 flex min-h-svh w-full items-center justify-center px-4 py-8 sm:px-8 lg:ml-auto lg:w-[46%] lg:min-w-[34rem] lg:px-12">
-        <div className="w-full max-w-[34rem] rounded-t-none rounded-b-[1.75rem] border border-border bg-card px-6 py-7 shadow-sm sm:px-9 sm:py-9 lg:px-10">
-          <div className="-mb-2 flex justify-center">
+      <section className="relative z-10 flex min-h-svh w-full items-center justify-center px-4 py-8 sm:px-8 lg:justify-end lg:pr-16 xl:pr-24">
+        {/* Soft Glass modal card matching the student authentication card design */}
+        <div className="relative w-full max-w-[460px] overflow-hidden rounded-3xl border border-white/80 bg-white/80 p-7 shadow-[0_16px_40px_-12px_rgba(0,0,0,0.16),0_0_0_1px_rgba(255,255,255,0.7)_inset] backdrop-blur-md transition-all duration-200 dark:border-white/20 dark:bg-card/85 sm:p-9">
+          {/* Subtle specular gloss top reflection */}
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-x-0 top-0 h-18 rounded-t-3xl bg-gradient-to-b from-white/50 via-white/10 to-transparent"
+          />
+
+          <div className="relative mx-auto flex justify-center pb-3">
             <img
               src={logo}
               alt="TCCence"
               className="size-24 object-contain sm:size-28"
             />
           </div>
-          {children}
+
+          <div className="relative">
+            {children}
+          </div>
         </div>
       </section>
     </main>

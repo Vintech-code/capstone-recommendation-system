@@ -177,7 +177,7 @@ const questions = [
     question:
       "Can I save my results and present them during TCC enrolment advising?",
     answer:
-      "Yes. Your completed assessment and ranked TCC programme recommendations are preserved in your student profile. You can log in anytime to review your match scores, inspect rule explanations, or discuss them with TCC guidance counselors and faculty advisors.",
+      "Yes. Your completed assessment and ranked TCC programme recommendations are preserved in your student profile. You can log in anytime to review your match scores, inspect rule explanations, or discuss them with people you trust.",
   },
 ];
 

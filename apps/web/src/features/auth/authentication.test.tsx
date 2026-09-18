@@ -29,10 +29,6 @@ describe("server-backed authentication", () => {
       "/api/v1/auth/session",
       expect.objectContaining({ credentials: "include" }),
     );
-    expect(fetch).not.toHaveBeenCalledWith(
-      "/api/v1/auth/me",
-      expect.anything(),
-    );
     expect(fetch).toHaveBeenCalledTimes(1);
   });
 

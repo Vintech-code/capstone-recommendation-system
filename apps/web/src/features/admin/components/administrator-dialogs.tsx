@@ -163,7 +163,7 @@ export function InviteAdministratorDialog({
             <Button
               type="submit"
               disabled={submitting}
-              className="rounded-full bg-primary px-6 font-bold text-white hover:bg-[#70c21d]"
+              className="rounded-full bg-primary px-6 font-bold text-foreground hover:bg-[#70c21d]"
             >
               {submitting ? 'Sending invitation…' : 'Send invitation'}
             </Button>
@@ -232,7 +232,7 @@ export function AdministratorActionDialog({
           reason,
         })
       } else if (selectedAction.kind === 'sessions') {
-        await mutateAdmin(`/administrators/${selectedAction.administrator.id}/revoke-tokens`, 'POST', {
+        await mutateAdmin(`/administrators/${selectedAction.administrator.id}/sessions/revoke`, 'POST', {
           currentPassword,
           reason,
         })
@@ -321,7 +321,7 @@ export function AdministratorActionDialog({
               type="submit"
               disabled={saving}
               variant={isDestructive ? 'destructive' : 'default'}
-              className={`rounded-full px-5 font-bold ${!isDestructive ? 'bg-primary hover:bg-[#70c21d] text-white' : ''}`}
+              className={`rounded-full px-5 font-bold ${!isDestructive ? 'bg-primary text-foreground hover:bg-[#70c21d]' : ''}`}
             >
               {saving ? 'Saving…' : title}
             </Button>
@@ -331,4 +331,3 @@ export function AdministratorActionDialog({
     </Dialog>
   )
 }
-

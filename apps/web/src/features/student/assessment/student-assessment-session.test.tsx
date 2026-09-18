@@ -78,7 +78,7 @@ describe("Student assessment session", () => {
     expect(screen.getByText("This sounds like me")).toBeVisible();
     expect(screen.getByText("This does not sound like me")).toBeVisible();
     expect(
-      screen.getByRole("img", { name: "Student working on a car" }),
+      screen.getByRole("img", { name: "Illustration for question 1" }),
     ).toBeVisible();
     expect(screen.getAllByRole("radio")).toHaveLength(2);
     expect(
@@ -119,8 +119,11 @@ describe("Student assessment session", () => {
       ).toBeVisible();
     });
     expect(
-      screen.queryByRole("img", { name: "Student working on a car" }),
+      screen.queryByRole("img", { name: "Illustration for question 1" }),
     ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("img", { name: "Illustration for question 2" }),
+    ).toBeVisible();
 
     await user.click(screen.getByRole("button", { name: "Previous" }));
     expect(

@@ -418,7 +418,6 @@ function ProgrammeEditorSheet({
         </div>
         <div className="p-5">
           <ConfigurationWorkflow
-            kind="catalogue"
             programmeId={programme.id}
             onPublished={onPublished}
           />

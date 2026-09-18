@@ -2,6 +2,10 @@ import { ArrowRight, CheckCircle2, CircleAlert, History } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  entranceGroupLabel,
+  studentName,
+} from "@/features/admin/components/admin-dashboard-helpers";
 import { formatDate } from "@/features/admin/data/admin-formatters";
 import type { AdminAssessment } from "@/features/admin/data/admin-api";
 
@@ -87,17 +91,6 @@ export function StudentMarker({ name, color }: { name: string; color: string }) 
   );
 }
 
-export function studentName(item: AdminAssessment) {
-  return item.studentName ?? "Student record";
-}
-
-export function entranceGroupLabel(item: AdminAssessment) {
-  if (!item.entranceExamination) return "Not declared";
-  return item.entranceExamination.eligibilityGroup === "board"
-    ? "Board programme group"
-    : "Non-board programme group";
-}
-
 export function StatusBadge({ status }: { status: AdminAssessment["status"] }) {
   const variants = {
     in_progress: "secondary",
@@ -128,4 +121,3 @@ export function StatusBadge({ status }: { status: AdminAssessment["status"] }) {
     </Badge>
   );
 }
-

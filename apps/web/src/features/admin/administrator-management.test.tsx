@@ -30,3 +30,18 @@ it('hides Administrator management navigation from a standard Administrator', as
   expect(await screen.findByRole('heading', { name: 'System overview' })).toBeVisible()
   expect(screen.queryByText('Administrators')).not.toBeInTheDocument()
 })
+
+it('revokes sessions through the active Administrator endpoint', async () => {
+  const user = userEvent.setup()
+  await renderAppAt('/admin/administrators')
+
+  await user.click(await screen.findByRole('button', { name: 'Open menu for Records Administrator' }))
+  await user.click(screen.getByRole('menuitem', { name: 'Revoke active sessions' }))
+  await user.type(screen.getByLabelText('Confirm with your password'), 'password')
+  await user.click(screen.getByRole('button', { name: 'Revoke active sessions' }))
+
+  await waitFor(() => expect(vi.mocked(fetch)).toHaveBeenCalledWith(
+    '/api/v1/admin/administrators/3/sessions/revoke',
+    expect.objectContaining({ method: 'POST' }),
+  ))
+})

@@ -18,7 +18,6 @@ async function installAdminApi(page: Page, initiallyAuthenticated = false) {
   await page.route('**/sanctum/csrf-cookie', (route) => route.fulfill({ status: 204 }))
   await page.route('**/api/v1/**', (route) => {
     const path = new URL(route.request().url()).pathname
-    if (path === '/api/v1/auth/me') return authenticated ? json(route, { user: adminUser }) : json(route, { message: 'Unauthenticated.' }, 401)
     if (path === '/api/v1/auth/session') return json(route, { user: authenticated ? adminUser : null })
     if (path === '/api/v1/auth/login') { authenticated = true; return json(route, { user: adminUser }) }
     if (path === '/api/v1/auth/authorize/admin') return json(route, { authorized: true, portal: 'admin' })
@@ -27,7 +26,6 @@ async function installAdminApi(page: Page, initiallyAuthenticated = false) {
     if (path === '/api/v1/admin/overview') return json(route, { data: { students: 1, assessments: 1, completed: 1, inProgress: 0, needsAttention: 0, recommendations: 1, funnel: { registered: 1, entranceDeclared: 1, assessmentStarted: 1, inProgress: 0, processing: 0, resultAvailable: 1 }, operationalAttention: { processingFailures: 0 }, recentActivity: [assessment] } })
     if (path === '/api/v1/admin/students') return json(route, { data: { items: [student], pagination: { currentPage: 1, lastPage: 1, perPage: 20, total: 1, from: 1, to: 1 } } })
     if (path === '/api/v1/admin/students/10') return json(route, { data: { id: 10, name: 'Ana Santos', email: 'ana@example.test', accountStatus: 'active', savedProgrammeCount: 1, profile: { lrn: '128490000011', birthDate: '2007-04-18', age: 19, phone: '+63 917 842 1928', addressLine: 'Zone 2', barangay: 'Poblacion', municipality: 'Tagoloan', province: 'Misamis Oriental', shsSchoolName: 'Tagoloan National High School', shsStrand: 'STEM', shsGraduationYear: 2026 }, attempts: [{ ...assessment, dimensions: [{ code: 'R', label: 'Realistic', value: 16 }, { code: 'I', label: 'Investigative', value: 23 }, { code: 'A', label: 'Artistic', value: 14 }, { code: 'S', label: 'Social', value: 12 }, { code: 'E', label: 'Enterprising', value: 10 }, { code: 'C', label: 'Conventional', value: 21 }], recommendations: [{ id: 'bs-information-technology', rank: 1, code: 'BSIT', name: 'BS Information Technology', match: 90 }, { id: 'bs-business-administration', rank: 2, code: 'BSBA', name: 'BS Business Administration', match: 82 }, { id: 'bachelor-library-information-science', rank: 3, code: 'BLIS', name: 'Bachelor of Library and Information Science', match: 76 }] }] } })
-    if (path === '/api/v1/admin/appointments') return json(route, { data: [] })
     if (path === '/api/v1/admin/programmes') return json(route, { data: { academicYear: '2026-2027', catalogueVersion: 2, catalogueStatus: 'approved_current_scope', programmes: [{ id: 'bs-information-technology', code: 'BSIT', name: 'BS Information Technology', profile: ['I', 'R', 'C'], profileStatus: 'psg_informed_analytical_classification', profileVersion: 'PSG-MATRIX-2026-09-10', eligibilityGroup: 'board', majors: [], recommendedStrands: ['STEM', 'TVL-ICT'], description: 'Applies computing technologies to organisational needs.', learningAreas: ['Software development'], learningAreaDescriptions: { 'Software development': 'Design and maintain applications.' }, learningAreaTopics: { 'Software development': ['Programming'] }, careerDirections: ['Software development'], strandGuidance: 'STEM and TVL-ICT may be helpful preparation.', requirements: ['Meet published admission requirements.'], readinessPrompt: 'Discuss your interest in technology.', contentVersion: 'GUIDANCE-1', degreeType: "Bachelor's degree", duration: { status: 'ched_psg', display: '4 years', source_name: 'CHED source', source_url: 'https://ched.gov.ph/' }, salary: { status: 'not_published', display: 'Not published' }, jobGrowth: { status: 'not_published', display: 'Not published' }, outlookVersion: 'PH-1', coverImageUrl: null, logoImageUrl: null, monitoring: { savedByStudents: 1 } }] } })
     if (path === '/api/v1/admin/configurations/catalogue') return json(route, { data: { kind: 'catalogue', runtime: { programmes: [catalogueProgramme] }, versions: [{ id: 7, kind: 'catalogue', version: 3, status: 'draft', academicYear: '2026-2027', payload: { programmes: [catalogueProgramme] }, createdBy: 'Admin User', publishedBy: null, createdAt: '2026-09-12T12:00:00+08:00', publishedAt: null }] } })
     if (path === '/api/v1/admin/reports') return json(route, { data: { generatedAt: '2026-08-08T12:00:00+08:00', from: null, to: null, scope: 'institution', studentCount: 1, eligibilityDistribution: { board: 1, nonBoard: 0 }, completedAssessments: 1, assessmentCompletionRate: 100, assessmentFunnel: { started: 1, inProgress: 0, processing: 0, resultAvailable: 1 }, recommendationRuns: 1, programmeSaves: 0, assessmentCompletionsByMonth: [{ month: '2026-08', count: 1 }] } })
@@ -276,7 +274,9 @@ test('Administrator invitation and account governance render securely without ov
   await page.goto('/admin/administrators')
 
   await expect(page.getByRole('heading', { name: 'Administrators', exact: true })).toBeVisible()
+  await page.getByRole('tab', { name: /invitation history/i }).click()
   await expect(page.getByText('Pending Administrator')).toBeVisible()
+  await page.getByRole('tab', { name: /all administrators/i }).click()
   await expect(page.getByText('Suspended', { exact: true }).filter({ visible: true })).toBeVisible()
   await page.getByRole('button', { name: 'Invite administrator' }).click()
   await expect(page.getByRole('dialog')).toBeVisible()
@@ -298,8 +298,8 @@ test('Administrator invitation and account governance render securely without ov
   await expect(page.getByRole('heading', { name: 'Set up your Administrator account' })).toBeVisible()
   await expect(page.getByText('Invited Administrator')).toBeVisible()
   await expect(page).toHaveURL('/admin/setup')
-  await page.getByLabel('Password', { exact: true }).fill('a-secure-password')
-  await page.getByLabel('Confirm password').fill('a-secure-password')
+  await page.getByLabel('Password', { exact: true }).fill('SecureAdmin!2026')
+  await page.getByLabel('Confirm password').fill('SecureAdmin!2026')
   await page.getByRole('button', { name: 'Activate Administrator account' }).click()
   await expect(page.getByText(/Administrator account is active/i)).toBeVisible()
   const setupOverflow = await page.evaluate(() => ({ clientWidth: document.documentElement.clientWidth, scrollWidth: document.documentElement.scrollWidth }))

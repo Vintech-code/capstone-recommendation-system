@@ -9,7 +9,6 @@ import {
 
 import {
   AuthApiError,
-  currentUser,
   restoreSession,
   signIn as requestSignIn,
   signOut as requestSignOut,
@@ -82,27 +81,19 @@ function AuthProvider({ children, initialUser }: AuthProviderProps) {
     }
   }, [])
 
-  const refreshUser = useCallback(async () => {
-    const response = await currentUser()
-    setUser(response.user)
-    setStatus('ready')
-    return response.user
-  }, [])
-
   const value = useMemo<AuthContextValue>(
     () => ({
       user,
       status,
       signIn,
       signOut,
-      refreshUser,
       retrySession: () => {
         sessionRequest.current = null
         setStatus('loading')
         setSessionAttempt((attempt) => attempt + 1)
       },
     }),
-    [refreshUser, signIn, signOut, status, user],
+    [signIn, signOut, status, user],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

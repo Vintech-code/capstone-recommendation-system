@@ -65,7 +65,9 @@ describe("AssessmentQuestionCard", () => {
       />,
     );
 
-    const image = screen.getByRole("img", { name: "Illustration for question 1" });
+    const image = screen.getByRole("img", {
+      name: "Illustration for question 1",
+    });
     const interestPrompt = screen.getByText("Does this activity interest you?");
 
     expect(image.compareDocumentPosition(interestPrompt)).toBe(
@@ -83,6 +85,8 @@ describe("AssessmentQuestionCard", () => {
       />,
     );
 
-    expect(screen.getByRole("img", { name: "Illustration for question 42" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("img", { name: "Illustration for question 42" }),
+    ).toBeInTheDocument();
   });
 });

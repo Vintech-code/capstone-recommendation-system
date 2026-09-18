@@ -9,20 +9,14 @@ interface PortalSignInPageProps {
   role: AccessRole
 }
 
-const googleErrorMessages: Record<string, string> = {
-  account_conflict:
-    'This Student account is already connected to another Google account.',
-  account_inactive:
-    'This account is not active. Contact an authorized administrator.',
-  email_unverified:
-    'Google could not confirm a verified email address for this account.',
-  not_configured:
-    'Google sign-in is temporarily unavailable. Please use email and password.',
-  oauth_failed:
-    'Google sign-in could not be completed. Please try again.',
-  portal_forbidden:
-    'This Google account cannot access the Student portal.',
-}
+const googleErrorMessages = {
+  account_conflict: 'This account is already connected to another Google account.',
+  account_inactive: 'This account is not active. Contact an authorized administrator.',
+  email_unverified: 'Google could not confirm a verified email address for this account.',
+  not_configured: 'Google sign-in is temporarily unavailable. Please use email and password.',
+  oauth_failed: 'Google sign-in could not be completed. Please try again.',
+  portal_forbidden: 'This Google account cannot access this portal.',
+} as const
 
 function GmailIcon() {
   return (
@@ -43,7 +37,7 @@ function PortalSignInPage({ role }: PortalSignInPageProps) {
   const googleAuthOrigin = (import.meta.env.VITE_API_ORIGIN ?? '').replace(/\/$/, '')
 
   function continueWithGoogle() {
-    window.location.assign(`${googleAuthOrigin}/auth/google/redirect`)
+    window.location.assign(`${googleAuthOrigin}/auth/google/redirect?portal=${role}`)
   }
 
   return (
@@ -51,16 +45,18 @@ function PortalSignInPage({ role }: PortalSignInPageProps) {
       <div className="text-center">
         <h1
           id="sign-in-title"
-          className="text-3xl font-bold tracking-[-0.04em] sm:text-4xl"
+          className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl"
         >
           Welcome back!
         </h1>
-        <p className="mt-3 text-sm leading-6 text-muted-foreground sm:text-base">
-          Sign in to continue your learning journey.
+        <p className="mt-2 text-sm text-muted-foreground sm:text-base">
+          {role === 'admin'
+            ? 'Sign in to access your administrator portal.'
+            : 'Sign in to continue your learning journey.'}
         </p>
       </div>
 
-      <div className="mt-9">
+      <div className="mt-6 sm:mt-7">
         <SignInForm
           onSignIn={async (credentials) => {
             await signIn({ ...credentials, portal: role })
@@ -69,42 +65,39 @@ function PortalSignInPage({ role }: PortalSignInPageProps) {
         />
       </div>
 
-      <p className="mt-4 text-right text-sm">
+      <p className="mt-3 text-right text-xs sm:text-sm">
         <Link
           to={`/forgot-password?portal=${role}`}
-          className="font-bold text-primary-ink underline-offset-4 hover:underline"
+          className="font-semibold text-primary-ink underline-offset-4 hover:underline"
         >
           Forgot password?
         </Link>
       </p>
 
-      {role === 'student' ? (
-        <>
-          {googleError ? (
-            <p
-              role="alert"
-              className="mt-5 rounded-xl bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive-ink"
-            >
-              {googleErrorMessages[googleError] ?? googleErrorMessages.oauth_failed}
-            </p>
-          ) : null}
-
-          <div className="my-7 flex items-center gap-4" aria-hidden="true">
-            <span className="h-px flex-1 bg-border" />
-            <span className="text-xs font-medium text-muted-foreground">Or continue with</span>
-            <span className="h-px flex-1 bg-border" />
-          </div>
-
-          <button
-            type="button"
-            onClick={continueWithGoogle}
-            className="flex min-h-12 w-full items-center justify-center gap-3 rounded-xl border border-input bg-background px-4 text-sm font-semibold text-foreground shadow-sm transition-colors hover:border-primary/30 hover:bg-accent focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/25"
-          >
-            <GmailIcon />
-            Continue with Google
-          </button>
-        </>
+      {googleError ? (
+        <p
+          role="alert"
+          className="mt-5 rounded-xl bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive-ink"
+        >
+          {googleErrorMessages[googleError as keyof typeof googleErrorMessages] ??
+            googleErrorMessages.oauth_failed}
+        </p>
       ) : null}
+
+      <div className="my-7 flex items-center gap-4" aria-hidden="true">
+        <span className="h-px flex-1 bg-border" />
+        <span className="text-xs font-medium text-muted-foreground">Or continue with</span>
+        <span className="h-px flex-1 bg-border" />
+      </div>
+
+      <button
+        type="button"
+        onClick={continueWithGoogle}
+        className="flex min-h-12 w-full items-center justify-center gap-3 rounded-xl border border-input bg-background px-4 text-sm font-semibold text-foreground shadow-sm transition-colors hover:border-primary/30 hover:bg-accent focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/25"
+      >
+        <GmailIcon />
+        Continue with Google
+      </button>
 
       {role === 'student' ? (
         <p className="mt-7 text-center text-sm text-muted-foreground">

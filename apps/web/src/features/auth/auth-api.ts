@@ -7,7 +7,6 @@ interface AuthUser {
   email: string
   roles: AccessRole[]
   accountStatus?: 'active' | 'pending' | 'suspended' | 'archived'
-  mustChangePassword?: boolean
   canManageAdministrators?: boolean
   photoUrl?: string | null
 }
@@ -86,10 +85,6 @@ async function registerStudent(fields: StudentRegistrationFields) {
   })
 }
 
-async function currentUser() {
-  return request<AuthResponse>('/api/v1/auth/me')
-}
-
 async function restoreSession() {
   return request<SessionResponse>('/api/v1/auth/session')
 }
@@ -166,7 +161,6 @@ export {
   acceptAdministratorInvitation,
   AuthApiError,
   authorizePortal,
-  currentUser,
   restoreSession,
   registerStudent,
   signIn,
