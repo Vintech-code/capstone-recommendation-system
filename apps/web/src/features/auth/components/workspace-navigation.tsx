@@ -64,10 +64,10 @@ function WorkspaceNavigation({
             {section.title && !collapsed ? (
               <p
                 className={cn(
-                  "px-3 pb-1 pt-1.5 text-[10px] font-bold uppercase tracking-wider",
+                  "pb-1 pt-1.5 text-[10px] font-bold uppercase tracking-wider",
                   tone === "staff"
-                    ? "text-emerald-100/60"
-                    : "text-muted-foreground/70",
+                    ? "px-4 text-emerald-100/60"
+                    : "px-3 text-muted-foreground/70",
                 )}
               >
                 {section.title}
@@ -82,7 +82,7 @@ function WorkspaceNavigation({
               />
             ) : null}
 
-            <ul className="space-y-1">
+            <ul className={tone === "staff" ? "space-y-0.5" : "space-y-1"}>
               {section.items.map((item) => {
                 const isActive = activeId === item.id;
                 return (
@@ -94,15 +94,22 @@ function WorkspaceNavigation({
                           onClick={() => onSelect(item.id)}
                           aria-current={isActive ? "page" : undefined}
                           className={cn(
-                            "group flex min-h-10 w-full items-center gap-3 rounded-lg px-3 text-left text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30",
-                            collapsed && "justify-center px-0",
+                            "group flex min-h-10 w-full items-center gap-3 text-left text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30",
                             tone === "staff"
-                              ? isActive
-                                ? "bg-white/15 font-bold text-white shadow-2xs"
-                                : "text-white/70 hover:bg-white/10 hover:text-white"
-                              : isActive
-                                ? "bg-muted font-bold text-foreground shadow-2xs"
-                                : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
+                              ? cn(
+                                  "rounded-none px-4",
+                                  collapsed && "justify-center px-0",
+                                  isActive
+                                    ? "bg-white/15 font-bold text-white shadow-2xs"
+                                    : "text-white/70 hover:bg-white/10 hover:text-white",
+                                )
+                              : cn(
+                                  "rounded-lg px-3",
+                                  collapsed && "justify-center px-0",
+                                  isActive
+                                    ? "bg-muted font-bold text-foreground shadow-2xs"
+                                    : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
+                                ),
                           )}
                         >
                           <item.icon

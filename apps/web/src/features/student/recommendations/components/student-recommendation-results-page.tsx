@@ -3,6 +3,7 @@ import {
   BookOpenCheck,
   CalendarDays,
   Compass,
+  History,
   RefreshCw,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -23,7 +24,10 @@ import {
 import { RecommendationMatchCard } from "@/features/student/recommendations/components/recommendation-match-card";
 import { RecommendationProfilePanel } from "@/features/student/recommendations/components/recommendation-profile-panel";
 import { StudentRecommendationDetailPage } from "@/features/student/recommendations/components/student-recommendation-detail-page";
-import { getLatestRecommendation } from "@/features/student/recommendations/recommendation-api";
+import {
+  getLatestRecommendation,
+  getRecommendationForAttempt,
+} from "@/features/student/recommendations/recommendation-api";
 import type {
   StudentRecommendedCourse,
   StudentRecommendationSnapshot,
@@ -49,6 +53,8 @@ interface StudentRecommendationResultsPageProps {
   initialLoadState?: RecommendationLoadState;
   initialSnapshot?: StudentRecommendationSnapshot | null;
   initialAssessment?: AssessmentLifecycle | null;
+  assessmentSessionId?: number | null;
+  onViewLatest?: () => void;
 }
 
 function StudentRecommendationResultsPage({
@@ -58,6 +64,8 @@ function StudentRecommendationResultsPage({
   initialLoadState = "ready",
   initialSnapshot,
   initialAssessment,
+  assessmentSessionId,
+  onViewLatest,
 }: StudentRecommendationResultsPageProps) {
   const [loadState, setLoadState] = useState<RecommendationLoadState>(
     initialLoadState === "ready" && initialSnapshot === undefined
@@ -78,8 +86,13 @@ function StudentRecommendationResultsPage({
   useEffect(() => {
     if (initialSnapshot !== undefined || initialLoadState !== "ready") return;
     let active = true;
+    setLoadState("loading");
 
-    getLatestRecommendation()
+    const fetcher = assessmentSessionId
+      ? getRecommendationForAttempt(assessmentSessionId)
+      : getLatestRecommendation();
+
+    fetcher
       .then((state) => {
         if (!active) return;
         setSnapshot(state.recommendation);
@@ -96,11 +109,15 @@ function StudentRecommendationResultsPage({
     return () => {
       active = false;
     };
-  }, [attempt, initialLoadState, initialSnapshot]);
+  }, [attempt, initialLoadState, initialSnapshot, assessmentSessionId]);
 
   useEffect(() => {
     if (initialAssessment !== undefined || initialSnapshot !== undefined)
       return;
+    if (assessmentSessionId) {
+      setAssessment(null);
+      return;
+    }
     let active = true;
 
     getCurrentAssessment()
@@ -110,7 +127,7 @@ function StudentRecommendationResultsPage({
     return () => {
       active = false;
     };
-  }, [initialAssessment, initialSnapshot]);
+  }, [initialAssessment, initialSnapshot, assessmentSessionId]);
 
   const assessmentResult = useMemo(
     () => (assessment ? mapAssessmentResult(assessment) : null),
@@ -197,6 +214,52 @@ function StudentRecommendationResultsPage({
         data-report-print
         className="mx-auto w-full max-w-7xl px-4 pb-12 pt-6 sm:px-6 sm:pt-10 md:px-8 lg:px-10"
       >
+        {assessmentSessionId && snapshot ? (
+          <aside
+            aria-label="Historical attempt notification"
+            className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-primary/25 bg-primary/5 p-4 sm:px-5"
+          >
+            <div className="flex items-center gap-3">
+              <span className="flex size-9 shrink-0 items-center justify-center rounded-xl border border-primary/20 bg-background text-primary-ink shadow-2xs">
+                <History className="size-4" aria-hidden="true" />
+              </span>
+              <div>
+                <p className="text-xs font-bold text-foreground">
+                  Viewing recorded matches for{" "}
+                  {snapshot.assessmentResultReference ??
+                    `Attempt ${assessmentSessionId}`}
+                </p>
+                <p className="text-[11px] text-muted-foreground">
+                  Generated {formatAssessmentDate(snapshot.generatedAt)}. These
+                  programme matches reflect this past attempt.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={onBack}
+                className="h-8 text-xs font-semibold text-muted-foreground hover:text-foreground"
+              >
+                Back to timeline
+              </Button>
+              {onViewLatest ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={onViewLatest}
+                  className="h-8 rounded-full border-primary/30 text-xs font-bold text-primary-ink hover:bg-primary/10"
+                >
+                  View latest result
+                </Button>
+              ) : null}
+            </div>
+          </aside>
+        ) : null}
+
         <div
           style={{ alignItems: "start" }}
           className="grid items-start gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(28rem,34rem)] lg:gap-12 xl:gap-14"

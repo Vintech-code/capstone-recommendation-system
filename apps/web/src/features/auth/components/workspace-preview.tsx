@@ -3,15 +3,40 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
 import logo from "@/assets/logo/header-logo.png";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import { Sheet, SheetClose, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import type { AccessRole } from "@/features/auth/access-types";
 import { useAuth } from "@/features/auth/auth-context";
 import { roleOptions } from "@/features/auth/access-types";
-import { DashboardOverview, ModuleView } from '@/features/auth/components/dashboard-overview'
-import { WorkspaceBreadcrumb, WorkspaceBreadcrumbProvider } from '@/features/auth/components/workspace-breadcrumb'
+import {
+  DashboardOverview,
+  ModuleView,
+} from "@/features/auth/components/dashboard-overview";
+import {
+  WorkspaceBreadcrumb,
+  WorkspaceBreadcrumbProvider,
+} from "@/features/auth/components/workspace-breadcrumb";
 import { WorkspaceNavigation } from "@/features/auth/components/workspace-navigation";
 import {
   dashboards,
@@ -214,7 +239,13 @@ function WorkspacePreview({
           isStaff
             ? "border-r border-[#262f21] bg-[#34402d] text-white"
             : "border-r border-border bg-card",
-          desktopNavigationExpanded ? "p-3" : "p-2.5",
+          desktopNavigationExpanded
+            ? isStaff
+              ? "py-3 px-0"
+              : "p-3"
+            : isStaff
+              ? "py-2.5 px-0"
+              : "p-2.5",
         )}
       >
         <div
@@ -229,7 +260,11 @@ function WorkspacePreview({
         <div
           className={cn(
             "flex h-12 items-center gap-2.5",
-            desktopNavigationExpanded ? "px-2" : "justify-center",
+            desktopNavigationExpanded
+              ? isStaff
+                ? "px-4"
+                : "px-2"
+              : "justify-center",
           )}
         >
           <img
@@ -262,13 +297,28 @@ function WorkspacePreview({
           />
         </div>
 
-        <div className={cn("mt-auto border-t pt-4", isStaff ? "border-white/10" : "border-border")}>
+        <div
+          className={cn(
+            "mt-auto border-t pt-4",
+            isStaff ? "border-white/10" : "border-border",
+          )}
+        >
           {desktopNavigationExpanded ? (
-            <div className="mb-3 px-3 py-2">
-              <p className={cn("text-xs font-bold", isStaff ? "text-white" : "text-foreground")}>
+            <div className={cn("mb-3", isStaff ? "px-4 py-2" : "px-3 py-2")}>
+              <p
+                className={cn(
+                  "text-xs font-bold",
+                  isStaff ? "text-white" : "text-foreground",
+                )}
+              >
                 {user?.name ?? currentRole.shortLabel}
               </p>
-              <p className={cn("mt-1 truncate text-xs", isStaff ? "text-emerald-100/60" : "text-muted-foreground")}>
+              <p
+                className={cn(
+                  "mt-1 truncate text-xs",
+                  isStaff ? "text-emerald-100/60" : "text-muted-foreground",
+                )}
+              >
                 Authorized account
               </p>
             </div>
@@ -278,7 +328,12 @@ function WorkspacePreview({
               type="button"
               variant="ghost"
               onClick={onExit}
-              className={cn("w-full justify-start", isStaff ? "text-white/70 hover:bg-white/10 hover:text-white" : "text-muted-foreground")}
+              className={cn(
+                "w-full justify-start",
+                isStaff
+                  ? "rounded-none px-4 text-white/70 hover:bg-white/10 hover:text-white"
+                  : "text-muted-foreground",
+              )}
             >
               <LogOut aria-hidden="true" />
               Sign out
@@ -292,7 +347,12 @@ function WorkspacePreview({
                   size="icon"
                   onClick={onExit}
                   aria-label="Sign out"
-                  className={cn("mx-auto", isStaff ? "text-white/70 hover:bg-white/10 hover:text-white" : "text-muted-foreground")}
+                  className={cn(
+                    "mx-auto",
+                    isStaff
+                      ? "text-white/70 hover:bg-white/10 hover:text-white"
+                      : "text-muted-foreground",
+                  )}
                 >
                   <LogOut aria-hidden="true" />
                 </Button>
@@ -347,8 +407,15 @@ function WorkspacePreview({
                   <Menu aria-hidden="true" />
                 </Button>
               </SheetTrigger>
-              <SheetContent className={cn("left-0 right-auto w-72 border-l-0 data-[state=closed]:-translate-x-full data-[state=open]:translate-x-0", isStaff ? "border-r border-[#262f21] bg-[#34402d] text-white" : "border-r")}>
-                <SheetHeader>
+              <SheetContent
+                className={cn(
+                  "left-0 right-auto w-72 border-l-0 data-[state=closed]:-translate-x-full data-[state=open]:translate-x-0",
+                  isStaff
+                    ? "border-r border-[#262f21] bg-[#34402d] text-white px-0 py-6"
+                    : "border-r",
+                )}
+              >
+                <SheetHeader className={isStaff ? "px-4" : undefined}>
                   <SheetTitle>
                     <img
                       src={logo}
@@ -356,7 +423,11 @@ function WorkspacePreview({
                       className="h-9 w-auto object-contain"
                     />
                   </SheetTitle>
-                  <SheetDescription className={isStaff ? "text-emerald-100/70" : undefined}>{currentRole.label}</SheetDescription>
+                  <SheetDescription
+                    className={isStaff ? "text-emerald-100/70" : undefined}
+                  >
+                    {currentRole.label}
+                  </SheetDescription>
                 </SheetHeader>
                 <div className="mt-7">
                   <WorkspaceNavigation
@@ -369,13 +440,23 @@ function WorkspacePreview({
                     tone={isStaff ? "staff" : "default"}
                   />
                 </div>
-                <div className={cn("mt-auto border-t pt-4", isStaff ? "border-white/10" : "border-border")}>
+                <div
+                  className={cn(
+                    "mt-auto border-t pt-4",
+                    isStaff ? "border-white/10" : "border-border",
+                  )}
+                >
                   <SheetClose asChild>
                     <Button
                       type="button"
                       variant="ghost"
                       onClick={onExit}
-                      className={cn("w-full justify-start", isStaff ? "text-white/70 hover:bg-white/10 hover:text-white" : "")}
+                      className={cn(
+                        "w-full justify-start",
+                        isStaff
+                          ? "rounded-none px-4 text-white/70 hover:bg-white/10 hover:text-white"
+                          : "",
+                      )}
                     >
                       <LogOut aria-hidden="true" />
                       Sign out

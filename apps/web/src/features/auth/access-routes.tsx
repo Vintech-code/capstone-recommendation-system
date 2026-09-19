@@ -28,14 +28,28 @@ const AdminWorkspaceRoute = lazy(() =>
 function WorkspaceRoute({ role }: { role: AccessRole }) {
   const navigate = useNavigate();
   const { signOut } = useAuth();
+  const [activeModuleId, setActiveModuleId] = useState(
+    role === "student" ? "assessment" : "overview",
+  );
   const [programmeMatchContext, setProgrammeMatchContext] = useState<
     StudentProgrammeMatchContext[]
   >([]);
+  const [selectedAttemptIdForMatches, setSelectedAttemptIdForMatches] =
+    useState<number | null>(null);
+
+  const handleSelectModule = (id: string) => {
+    if (id !== "recommendations") {
+      setSelectedAttemptIdForMatches(null);
+    }
+    setActiveModuleId(id);
+  };
 
   return (
     <ProtectedRoute role={role}>
       <WorkspacePreview
         role={role}
+        activeModuleId={activeModuleId}
+        onSelectModule={handleSelectModule}
         onExit={() => {
           void signOut().finally(() => navigate(`/${role}/login`));
         }}
@@ -43,6 +57,8 @@ function WorkspaceRoute({ role }: { role: AccessRole }) {
           role === "student"
             ? ({ onSelect }) => (
                 <StudentRecommendationResultsPage
+                  assessmentSessionId={selectedAttemptIdForMatches}
+                  onViewLatest={() => setSelectedAttemptIdForMatches(null)}
                   onBack={() => onSelect("recommendations")}
                   onOpenAssessment={() => onSelect("assessment")}
                   onExploreProgrammes={(courses) => {
@@ -68,7 +84,10 @@ function WorkspaceRoute({ role }: { role: AccessRole }) {
                       onExit={onBack}
                       onReturnToIntroduction={onBack}
                       onViewResult={() => onSelect("history")}
-                      onViewMatches={() => onSelect("recommendations")}
+                      onViewMatches={() => {
+                        setSelectedAttemptIdForMatches(null);
+                        onSelect("recommendations");
+                      }}
                       remotePersistence
                     />
                   );
@@ -76,8 +95,20 @@ function WorkspaceRoute({ role }: { role: AccessRole }) {
                 if (module.id === "recommendations") {
                   return (
                     <StudentRecommendationResultsPage
-                      onBack={onBack}
-                      onOpenAssessment={() => onSelect("assessment")}
+                      assessmentSessionId={selectedAttemptIdForMatches}
+                      onViewLatest={() => setSelectedAttemptIdForMatches(null)}
+                      onBack={() => {
+                        if (selectedAttemptIdForMatches) {
+                          setSelectedAttemptIdForMatches(null);
+                          onSelect("history");
+                        } else {
+                          onBack();
+                        }
+                      }}
+                      onOpenAssessment={() => {
+                        setSelectedAttemptIdForMatches(null);
+                        onSelect("assessment");
+                      }}
                       onExploreProgrammes={(courses) => {
                         setProgrammeMatchContext(
                           courses.map((course) => ({
@@ -96,7 +127,10 @@ function WorkspaceRoute({ role }: { role: AccessRole }) {
                     <StudentAssessmentHistoryPage
                       onBack={onBack}
                       onOpenAssessment={() => onSelect("assessment")}
-                      onExploreMatches={() => onSelect("recommendations")}
+                      onExploreMatches={(attemptId) => {
+                        setSelectedAttemptIdForMatches(attemptId ?? null);
+                        onSelect("recommendations");
+                      }}
                     />
                   );
                 }

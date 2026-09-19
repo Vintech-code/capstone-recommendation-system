@@ -7,9 +7,7 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import type {
-  AssessmentLifecycle,
-} from "@/features/student/assessment/assessment-api";
+import type { AssessmentLifecycle } from "@/features/student/assessment/assessment-api";
 import { assessmentStatusLabel } from "@/features/student/assessment/components/student-assessment-history-helpers";
 import {
   formatAssessmentDate,
@@ -23,7 +21,7 @@ interface HistoricalAttemptDetailsProps {
   recommendation: StudentRecommendationState | null;
   recommendationState: "idle" | "loading" | "error";
   onViewResultCard: () => void;
-  onExploreMatches?: () => void;
+  onExploreMatches?: (attemptId?: number) => void;
 }
 
 export function HistoricalAttemptDetails({
@@ -209,7 +207,7 @@ export function HistoricalAttemptDetails({
               variant="link"
               size="sm"
               className="h-auto p-0 text-xs font-bold text-primary-ink"
-              onClick={onExploreMatches}
+              onClick={() => onExploreMatches(attempt.id)}
             >
               Explore all
             </Button>

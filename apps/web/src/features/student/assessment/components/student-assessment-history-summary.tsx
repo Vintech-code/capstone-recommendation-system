@@ -29,9 +29,7 @@ import {
 } from "@/features/student/assessment/assessment-api";
 import { StudentResultCard } from "@/features/student/assessment/components/student-result-card";
 import { RetakeAssessmentDialog } from "@/features/student/assessment/components/retake-assessment-dialog";
-import {
-  HistoricalAttemptDetails,
-} from "@/features/student/assessment/components/student-historical-attempt-details";
+import { HistoricalAttemptDetails } from "@/features/student/assessment/components/student-historical-attempt-details";
 import {
   assessmentStatusLabel,
   toResultCardData,
@@ -53,7 +51,7 @@ export interface AssessmentHistorySummaryProps {
   onRetryHistory: () => void;
   onStartRetake: (reason?: string) => Promise<void>;
   onResumeAssessment?: () => void;
-  onExploreMatches?: () => void;
+  onExploreMatches?: (attemptId?: number) => void;
 }
 
 export function AssessmentHistorySummary({
@@ -348,7 +346,7 @@ export function AssessmentHistorySummary({
                               onClick={(e) => {
                                 e.stopPropagation();
                                 if (item.id) void onSelectAttempt(item.id);
-                                onExploreMatches();
+                                onExploreMatches(item.id);
                               }}
                             >
                               Explore Matches
@@ -416,10 +414,10 @@ export function AssessmentHistorySummary({
                 }
                 onExploreMatches={
                   onExploreMatches
-                    ? () => {
-                        if (selectedAttempt.id)
-                          void onSelectAttempt(selectedAttempt.id);
-                        onExploreMatches();
+                    ? (attemptId) => {
+                        const targetId = attemptId ?? selectedAttempt.id;
+                        if (targetId) void onSelectAttempt(targetId);
+                        onExploreMatches(targetId);
                       }
                     : undefined
                 }

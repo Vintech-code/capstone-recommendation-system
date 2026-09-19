@@ -1,15 +1,11 @@
 import {
-  Bookmark,
   BookmarkCheck,
   BookOpen,
   BriefcaseBusiness,
-  Building2,
   CalendarDays,
   ChevronDown,
-  Clock3,
   ExternalLink,
   GraduationCap,
-  GitCompareArrows,
   HeartHandshake,
   Laptop,
   LibraryBig,
@@ -26,6 +22,8 @@ import { ErrorState, LoadingState } from '@/components/shared'
 import { Button } from '@/components/ui/button'
 import tccBanner from '@/assets/tccbanner.jpg'
 import { ProgrammeComparisonSheet } from '@/features/student/programmes/components/programme-comparison-sheet'
+import { ProgrammeComparisonDock } from '@/features/student/programmes/components/programme-comparison-dock'
+import { ProgrammeCard } from '@/features/student/programmes/components/programme-card'
 import { getProgrammeCatalogue, getSavedProgrammeIds, updateSavedProgramme } from '@/features/student/programmes/programme-api'
 import { getSyncStudentResource } from '@/features/student/student-resource-cache'
 import { getProgrammeImages } from '@/features/student/programmes/programme-images'
@@ -56,6 +54,7 @@ const riasecDefinitions = [
   { code: 'E', label: 'Enterprising' },
   { code: 'C', label: 'Conventional' },
 ]
+
 
 type FilterSectionId = 'field' | 'riasec' | 'duration' | 'strand'
 
@@ -424,125 +423,16 @@ function StudentProgrammeCataloguePage({ initialCatalogue, matchContext = [] }: 
         </main>
       </div>
 
-      {comparisonIds.size > 0 ? (
-        <div className="fixed inset-x-4 bottom-4 z-40 mx-auto flex max-w-xl items-center justify-between gap-4 rounded-xl bg-primary px-5 py-4 text-primary-foreground shadow-sm" data-print-hidden>
-          <div>
-            <p className="font-semibold">{comparisonIds.size} of 3 selected</p>
-            <p className="text-xs text-primary-foreground/75">{comparisonIds.size < 2 ? 'Select one more programme to compare.' : 'Ready for side-by-side comparison.'}</p>
-          </div>
-          <div className="flex gap-2">
-            <Button type="button" variant="ghost" className="text-primary-foreground hover:bg-white/10 hover:text-primary-foreground" onClick={() => setComparisonIds(new Set())}>Clear</Button>
-            <Button type="button" className="bg-secondary-container text-on-secondary-container hover:bg-secondary-fixed-dim" disabled={comparisonIds.size < 2} onClick={() => setComparisonOpen(true)}>
-              Compare now
-            </Button>
-          </div>
-        </div>
-      ) : null}
+      <ProgrammeComparisonDock
+        comparisonIds={comparisonIds}
+        comparisonProgrammes={comparisonProgrammes}
+        onClear={() => setComparisonIds(new Set())}
+        onToggleComparison={toggleComparison}
+        onCompareNow={() => setComparisonOpen(true)}
+      />
 
       <ProgrammeComparisonSheet open={comparisonOpen} onOpenChange={setComparisonOpen} programmes={comparisonProgrammes} />
     </div>
-  )
-}
-
-function ProgrammeCard({
-  programme,
-  matchContext,
-  saved,
-  saving,
-  selectedForComparison,
-  comparisonDisabled,
-  priority,
-  onSelect,
-  onToggleSaved,
-  onToggleComparison,
-}: {
-  programme: StudentProgramme
-  matchContext?: StudentProgrammeMatchContext
-  saved: boolean
-  saving: boolean
-  selectedForComparison: boolean
-  comparisonDisabled: boolean
-  priority: boolean
-  onSelect: () => void
-  onToggleSaved: () => void
-  onToggleComparison: () => void
-}) {
-  const fallback = getProgrammeImages(programme.id)
-  const cover = programme.coverImageUrl || fallback.cover
-  const coverStyle = programme.coverImageUrl ? programmeMediaStyle(programme.coverImagePosition) : undefined
-  const category = categoryDefinitions.find((definition) => definition.ids.includes(programme.id))
-
-  return (
-    <article className="group relative flex min-h-[27rem] w-full flex-col overflow-hidden rounded-3xl border border-border bg-card text-left shadow-sm transition-colors duration-200 hover:border-primary/35">
-      <button type="button" onClick={onSelect} aria-label={`View programme details: ${programme.name}`} className="absolute inset-0 z-10 rounded-xl focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-inset focus-visible:ring-ring/40" />
-      <div className="relative flex h-40 items-center justify-center overflow-hidden bg-secondary">
-        {cover ? (
-          <img src={cover} alt={`${programme.name} programme`} loading={priority ? 'eager' : 'lazy'} fetchPriority={priority ? 'high' : 'auto'} decoding="async" style={coverStyle} className={`absolute inset-0 size-full object-cover transition-transform duration-300 ${coverStyle ? '' : 'group-hover:scale-105'}`} />
-        ) : (
-          <>
-            <span className="programme-monogram">{programme.code.slice(0, 4)}</span>
-            <Building2 className="size-16 opacity-25" />
-          </>
-        )}
-        <span className="absolute left-4 top-4 rounded-full bg-primary px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-primary-foreground shadow-sm">
-          {category?.title ?? 'Degree programme'}
-        </span>
-        <button
-          type="button"
-          disabled={saving}
-          aria-pressed={saved}
-          aria-label={saved ? `Remove ${programme.name} from saved programmes` : `Save ${programme.name}`}
-          onClick={onToggleSaved}
-          className="absolute right-4 top-4 z-20 flex size-11 items-center justify-center rounded-full bg-card/95 text-primary-ink shadow-sm focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/40"
-        >
-          {saved ? <BookmarkCheck aria-hidden="true" className="size-5" /> : <Bookmark aria-hidden="true" className="size-5" />}
-        </button>
-        <span className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/55 to-transparent" />
-      </div>
-      <div className="flex min-w-0 flex-1 flex-col p-5">
-        <h3 className="font-display text-xl font-bold leading-7 transition-colors group-hover:text-primary-ink">
-          {programme.name}
-        </h3>
-        <p className="mt-2 line-clamp-2 text-sm leading-6 text-muted-foreground">{programme.description}</p>
-
-        {matchContext ? (
-          <div className="mt-3 rounded-lg bg-primary-fixed/65 px-3 py-2 text-xs text-on-primary-fixed">
-            <strong>{matchContext.match}% match</strong>
-            <span className="ml-2">Why this matches me: {matchContext.factors[0] || 'Aligned with your recorded RIASEC profile.'}</span>
-          </div>
-        ) : null}
-
-        <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 text-xs">
-          <div className="min-w-0">
-            <dt className="flex items-center gap-1.5 text-muted-foreground"><ShieldCheck aria-hidden="true" className="size-4 text-primary-ink" />Programme type</dt>
-            <dd className="mt-1 truncate font-semibold">{programme.eligibilityGroup === 'non_board' ? 'Non-board programme' : 'Board programme'}</dd>
-          </div>
-          <div className="min-w-0">
-            <dt className="flex items-center gap-1.5 text-muted-foreground"><BriefcaseBusiness aria-hidden="true" className="size-4 text-primary-ink" />Career directions</dt>
-            <dd className="mt-1 truncate font-semibold">{programme.careerDirections.length > 0 ? `${programme.careerDirections.length} to explore` : 'Not configured'}</dd>
-          </div>
-        </dl>
-
-        <div className="mt-auto grid grid-cols-2 gap-3 border-t border-outline-variant/45 pt-4 text-xs">
-          <span className="font-semibold">
-            <span className="flex items-center gap-1.5" title={programme.duration?.source_name}><Clock3 aria-hidden="true" className="size-4 text-primary-ink" />{programme.duration?.display || 'Not published'}</span>
-            {programme.duration?.source_url ? <a href={programme.duration.source_url} target="_blank" rel="noreferrer" className="relative z-20 mt-1 inline-block text-[11px] text-primary-ink underline underline-offset-4">CHED source</a> : null}
-          </span>
-          <span className="flex items-center justify-end gap-1.5 truncate text-right text-muted-foreground"><GraduationCap aria-hidden="true" className="size-4 shrink-0 text-primary-ink" />{programme.degreeType || 'Not published'}</span>
-        </div>
-        <Button
-          type="button"
-          variant={selectedForComparison ? 'secondary' : 'outline'}
-          disabled={comparisonDisabled}
-          aria-pressed={selectedForComparison}
-          onClick={onToggleComparison}
-          className="relative z-20 mt-4 w-full"
-        >
-          <GitCompareArrows aria-hidden="true" />
-          {selectedForComparison ? 'Selected to compare' : 'Add to comparison'}
-        </Button>
-      </div>
-    </article>
   )
 }
 

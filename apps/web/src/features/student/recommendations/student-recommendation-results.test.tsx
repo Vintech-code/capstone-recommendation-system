@@ -267,7 +267,8 @@ describe("Student recommendation results", () => {
               reason: "PROFILE_UNAVAILABLE",
               profileStatus: "pending_authoritative_psg_basis",
               profileVersion: "PSG-MATRIX-2026-09-10",
-              notice: "No RIASEC code is assigned while the source is being processed.",
+              notice:
+                "No RIASEC code is assigned while the source is being processed.",
             },
           ],
         }}
@@ -528,6 +529,49 @@ describe("Student recommendation results", () => {
       }),
     );
     expect(onOpenAssessment).toHaveBeenCalledOnce();
+  });
+
+  it("loads recommendation for a specific historical attempt and displays the notification banner", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: {
+          status: "available",
+          recommendation: {
+            ...testRecommendationSnapshot,
+            assessmentResultReference: "ASMT-000003",
+          },
+        },
+      }),
+    } as Response);
+    vi.stubGlobal("fetch", fetchMock);
+
+    const onBack = vi.fn();
+    const onViewLatest = vi.fn();
+
+    render(
+      <StudentRecommendationResultsPage
+        assessmentSessionId={3}
+        onBack={onBack}
+        onViewLatest={onViewLatest}
+      />,
+    );
+
+    expect(
+      await screen.findByRole("complementary", {
+        name: "Historical attempt notification",
+      }),
+    ).toBeVisible();
+    expect(
+      screen.getByText(/Viewing recorded matches for ASMT-000003/),
+    ).toBeVisible();
+
+    const switchBtn = screen.getByRole("button", {
+      name: "View latest result",
+    });
+    expect(switchBtn).toBeVisible();
+    await userEvent.click(switchBtn);
+    expect(onViewLatest).toHaveBeenCalledOnce();
   });
 
   it("has no automatically detectable accessibility violations", async () => {
