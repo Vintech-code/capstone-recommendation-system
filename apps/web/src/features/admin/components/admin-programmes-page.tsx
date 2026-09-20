@@ -46,7 +46,9 @@ const programmeGroups = [
     label: "Education",
     ids: [
       "bachelor-elementary-education",
-      "bachelor-secondary-education",
+      "bachelor-secondary-education-english",
+      "bachelor-secondary-education-filipino",
+      "bachelor-secondary-education-social-studies",
       "bachelor-physical-education",
     ],
   },
@@ -367,7 +369,7 @@ function AdminProgrammeCard({
           <div className="flex items-center gap-1.5 ml-auto">
             <Button
               type="button"
-              variant="ghost"
+              variant="outline"
               size="sm"
               className="h-8 rounded-xs px-2.5 text-xs"
               onClick={onInspect}

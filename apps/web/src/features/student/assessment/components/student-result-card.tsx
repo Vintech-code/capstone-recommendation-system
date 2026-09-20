@@ -219,7 +219,8 @@ function StudentResultCard({
               RIASEC Interest Profile
             </h2>
             <p className="mt-1 text-xs text-muted-foreground">
-              Official vocational preference and career interest assessment record
+              Official vocational preference and career interest assessment
+              record
             </p>
           </div>
 
@@ -396,29 +397,6 @@ function StudentResultCard({
                 </div>
               );
             })}
-          </div>
-        </div>
-
-        {/* Guidance Footnote */}
-        <div className="mt-6 rounded-2xl border border-border/70 bg-muted/20 p-4 sm:p-5">
-          <div className="flex items-start gap-3">
-            <ShieldCheck
-              className="mt-0.5 size-4 shrink-0 text-primary-ink"
-              aria-hidden="true"
-            />
-            <div className="space-y-1 text-xs leading-relaxed text-muted-foreground">
-              <p className="font-bold text-foreground">
-                Assessment Guidance Note
-              </p>
-              <p>{card.disclaimer}</p>
-              <div className="pt-2 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-muted-foreground/85 border-t border-border/60">
-                <span>Instrument: {card.scoringVersion}</span>
-                <span>Guidance Snapshot: {card.guidanceVersion}</span>
-                {card.sharedAt ? (
-                  <span>Shared: {formatAssessmentDate(card.sharedAt)}</span>
-                ) : null}
-              </div>
-            </div>
           </div>
         </div>
       </div>

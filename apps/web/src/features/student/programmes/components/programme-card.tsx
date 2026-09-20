@@ -9,92 +9,98 @@ import {
   GitCompareArrows,
   GraduationCap,
   ShieldCheck,
-} from 'lucide-react'
+} from "lucide-react";
 
-import { Button } from '@/components/ui/button'
-import { getProgrammeImages } from '@/features/student/programmes/programme-images'
-import { programmeMediaStyle } from '@/features/student/programmes/programme-media-position'
+import { Button } from "@/components/ui/button";
+import { getProgrammeImages } from "@/features/student/programmes/programme-images";
+import { programmeMediaStyle } from "@/features/student/programmes/programme-media-position";
 import type {
   StudentProgramme,
   StudentProgrammeMatchContext,
-} from '@/features/student/programmes/programme-types'
-import { cn } from '@/lib/utils'
+} from "@/features/student/programmes/programme-types";
+import { cn } from "@/lib/utils";
 
 const RIASEC_META: Record<
   string,
   { label: string; bg: string; text: string; border: string }
 > = {
   R: {
-    label: 'Realistic',
-    bg: 'bg-[var(--riasec-r)]/15',
-    text: 'text-[var(--riasec-r)]',
-    border: 'border-[var(--riasec-r)]/30',
+    label: "Realistic",
+    bg: "bg-[var(--riasec-r)]/15",
+    text: "text-[var(--riasec-r)]",
+    border: "border-[var(--riasec-r)]/30",
   },
   I: {
-    label: 'Investigative',
-    bg: 'bg-[var(--riasec-i)]/15',
-    text: 'text-[var(--riasec-i)]',
-    border: 'border-[var(--riasec-i)]/30',
+    label: "Investigative",
+    bg: "bg-[var(--riasec-i)]/15",
+    text: "text-[var(--riasec-i)]",
+    border: "border-[var(--riasec-i)]/30",
   },
   A: {
-    label: 'Artistic',
-    bg: 'bg-[var(--riasec-a)]/15',
-    text: 'text-[var(--riasec-a)]',
-    border: 'border-[var(--riasec-a)]/30',
+    label: "Artistic",
+    bg: "bg-[var(--riasec-a)]/15",
+    text: "text-[var(--riasec-a)]",
+    border: "border-[var(--riasec-a)]/30",
   },
   S: {
-    label: 'Social',
-    bg: 'bg-[var(--riasec-s)]/15',
-    text: 'text-[var(--riasec-s)]',
-    border: 'border-[var(--riasec-s)]/30',
+    label: "Social",
+    bg: "bg-[var(--riasec-s)]/15",
+    text: "text-[var(--riasec-s)]",
+    border: "border-[var(--riasec-s)]/30",
   },
   E: {
-    label: 'Enterprising',
-    bg: 'bg-[var(--riasec-e)]/15',
-    text: 'text-[var(--riasec-e)]',
-    border: 'border-[var(--riasec-e)]/30',
+    label: "Enterprising",
+    bg: "bg-[var(--riasec-e)]/15",
+    text: "text-[var(--riasec-e)]",
+    border: "border-[var(--riasec-e)]/30",
   },
   C: {
-    label: 'Conventional',
-    bg: 'bg-[var(--riasec-c)]/15',
-    text: 'text-[var(--riasec-c)]',
-    border: 'border-[var(--riasec-c)]/30',
+    label: "Conventional",
+    bg: "bg-[var(--riasec-c)]/15",
+    text: "text-[var(--riasec-c)]",
+    border: "border-[var(--riasec-c)]/30",
   },
-}
+};
 
 function CardDatum({
   icon: Icon,
   label,
   value,
 }: {
-  icon: typeof Clock3
-  label: string
-  value: string
+  icon: typeof Clock3;
+  label: string;
+  value: string;
 }) {
   return (
     <div className="min-w-0">
       <dt className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-        <Icon aria-hidden="true" className="size-3.5 shrink-0 text-primary-ink" />
+        <Icon
+          aria-hidden="true"
+          className="size-3.5 shrink-0 text-primary-ink"
+        />
         <span className="truncate">{label}</span>
       </dt>
-      <dd className="mt-0.5 truncate font-semibold text-foreground" title={value}>
+      <dd
+        className="mt-0.5 truncate font-semibold text-foreground"
+        title={value}
+      >
         {value}
       </dd>
     </div>
-  )
+  );
 }
 
 interface ProgrammeCardProps {
-  programme: StudentProgramme
-  matchContext?: StudentProgrammeMatchContext
-  saved: boolean
-  saving: boolean
-  selectedForComparison: boolean
-  comparisonDisabled: boolean
-  priority: boolean
-  onSelect: () => void
-  onToggleSaved: () => void
-  onToggleComparison: () => void
+  programme: StudentProgramme;
+  matchContext?: StudentProgrammeMatchContext;
+  saved: boolean;
+  saving: boolean;
+  selectedForComparison: boolean;
+  comparisonDisabled: boolean;
+  priority: boolean;
+  onSelect: () => void;
+  onToggleSaved: () => void;
+  onToggleComparison: () => void;
 }
 
 function ProgrammeCard({
@@ -109,36 +115,39 @@ function ProgrammeCard({
   onToggleSaved,
   onToggleComparison,
 }: ProgrammeCardProps) {
-  const fallback = getProgrammeImages(programme.id)
-  const cover = programme.coverImageUrl || fallback.cover
+  const fallback = getProgrammeImages(programme.id);
+  const cover = programme.coverImageUrl || fallback.cover;
   const coverStyle = programme.coverImageUrl
     ? programmeMediaStyle(programme.coverImagePosition)
-    : undefined
-  const primaryCareer = programme.careerDirections[0] || 'Various pathways'
+    : undefined;
+  const primaryCareer = programme.careerDirections[0] || "Various pathways";
   const programmeType =
-    programme.eligibilityGroup === 'non_board'
-      ? 'Non-board programme'
-      : 'Board programme'
+    programme.eligibilityGroup === "non_board"
+      ? "Non-board programme"
+      : "Board programme";
 
   return (
-    <article className="group flex flex-col overflow-hidden rounded-xs border border-border bg-card text-left shadow-xs transition-colors hover:border-primary/40">
+    <article className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card text-left shadow-xs transition-colors hover:border-primary/40">
       <div className="relative h-44 w-full overflow-hidden bg-surface-subtle sm:h-48">
         {cover ? (
           <img
             src={cover}
             alt={`${programme.name} programme`}
-            loading={priority ? 'eager' : 'lazy'}
-            fetchPriority={priority ? 'high' : 'auto'}
+            loading={priority ? "eager" : "lazy"}
+            fetchPriority={priority ? "high" : "auto"}
             decoding="async"
             style={coverStyle}
             className={cn(
-              'size-full object-cover transition-transform duration-300',
-              coverStyle ? '' : 'object-top group-hover:scale-105',
+              "size-full object-cover transition-transform duration-300",
+              coverStyle ? "" : "object-top group-hover:scale-105",
             )}
           />
         ) : (
           <div className="flex size-full items-center justify-center bg-primary/10">
-            <BookOpen aria-hidden="true" className="size-12 text-primary-ink/25" />
+            <BookOpen
+              aria-hidden="true"
+              className="size-12 text-primary-ink/25"
+            />
           </div>
         )}
         <button
@@ -168,21 +177,21 @@ function ProgrammeCard({
           </span>
           <div
             className="flex shrink-0 items-center gap-1"
-            aria-label={`RIASEC profile ${programme.riasecProfile.slice(0, 3).join(', ')}`}
+            aria-label={`RIASEC profile ${programme.riasecProfile.slice(0, 3).join(", ")}`}
           >
             {programme.riasecProfile.slice(0, 3).map((code) => {
               const meta = RIASEC_META[code] ?? {
                 label: code,
-                bg: 'bg-primary-fixed',
-                text: 'text-on-primary-fixed',
-                border: 'border-primary/20',
-              }
+                bg: "bg-primary-fixed",
+                text: "text-on-primary-fixed",
+                border: "border-primary/20",
+              };
               return (
                 <span
                   key={code}
                   title={`${code} · ${meta.label}`}
                   className={cn(
-                    'flex size-6 items-center justify-center rounded-xs text-[11px] font-bold border',
+                    "flex size-6 items-center justify-center rounded-xs text-[11px] font-bold border",
                     meta.bg,
                     meta.text,
                     meta.border,
@@ -190,7 +199,7 @@ function ProgrammeCard({
                 >
                   {code}
                 </span>
-              )
+              );
             })}
           </div>
         </div>
@@ -210,7 +219,9 @@ function ProgrammeCard({
           <div className="mt-2.5 rounded-xs bg-primary-fixed/65 px-2.5 py-1.5 text-xs text-on-primary-fixed">
             <strong>{matchContext.match}% match</strong>
             <span className="ml-1.5">
-              Why this matches me: {matchContext.factors[0] || 'Aligned with your recorded RIASEC profile.'}
+              Why this matches me:{" "}
+              {matchContext.factors[0] ||
+                "Aligned with your recorded RIASEC profile."}
             </span>
           </div>
         ) : null}
@@ -219,12 +230,12 @@ function ProgrammeCard({
           <CardDatum
             icon={Clock3}
             label="Duration"
-            value={programme.duration?.display || 'Not published'}
+            value={programme.duration?.display || "Not published"}
           />
           <CardDatum
             icon={GraduationCap}
             label="Degree type"
-            value={programme.degreeType || 'Not published'}
+            value={programme.degreeType || "Not published"}
           />
           <CardDatum
             icon={ShieldCheck}
@@ -249,7 +260,7 @@ function ProgrammeCard({
                 className="inline-flex items-center gap-1 text-xs font-semibold text-primary-ink underline underline-offset-4 hover:text-primary"
               >
                 <span className="truncate max-w-[110px]">
-                  {programme.duration.source_name || 'CHED source'}
+                  {programme.duration.source_name || "CHED source"}
                 </span>
                 <ExternalLink aria-hidden="true" className="size-3 shrink-0" />
               </a>
@@ -261,7 +272,7 @@ function ProgrammeCard({
             <div className="flex items-center gap-1.5 ml-auto">
               <Button
                 type="button"
-                variant="ghost"
+                variant="outline"
                 size="sm"
                 className="h-8 rounded-xs px-2.5 text-xs"
                 onClick={onSelect}
@@ -273,29 +284,28 @@ function ProgrammeCard({
               <Button
                 type="button"
                 size="sm"
-                variant={selectedForComparison ? 'secondary' : 'default'}
+                variant={selectedForComparison ? "secondary" : "default"}
                 disabled={comparisonDisabled}
                 aria-pressed={selectedForComparison}
                 onClick={onToggleComparison}
                 className={cn(
-                  'h-8 rounded-xs px-2.5 text-xs font-semibold shadow-xs',
+                  "h-8 rounded-xs px-2.5 text-xs font-semibold shadow-xs",
                   !selectedForComparison &&
-                    'bg-primary text-primary-foreground hover:bg-primary/90',
+                    "bg-primary text-primary-foreground hover:bg-primary/90",
                 )}
               >
                 <GitCompareArrows aria-hidden="true" className="size-3.5" />
                 {selectedForComparison
-                  ? 'Selected to compare'
-                  : 'Add to comparison'}
+                  ? "Selected to compare"
+                  : "Add to comparison"}
               </Button>
             </div>
           </div>
         </div>
       </div>
     </article>
-  )
+  );
 }
 
-export { ProgrammeCard }
-export type { ProgrammeCardProps }
-
+export { ProgrammeCard };
+export type { ProgrammeCardProps };

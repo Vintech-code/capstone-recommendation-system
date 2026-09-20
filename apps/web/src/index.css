@@ -1,4 +1,7 @@
-@import "@fontsource-variable/nunito-sans";
+@import "@fontsource/open-runde/400.css";
+@import "@fontsource/open-runde/500.css";
+@import "@fontsource/open-runde/600.css";
+@import "@fontsource/open-runde/700.css";
 @import "@fontsource/montserrat-alternates/latin-400.css";
 @import "@fontsource/montserrat-alternates/latin-500.css";
 @import "@fontsource/montserrat-alternates/latin-600.css";
@@ -617,8 +620,7 @@
   --color-outline-variant: var(--outline-variant);
   --color-surface-container: var(--surface-container);
   --color-surface-container-high: var(--surface-container-high);
-  --font-display:
-    "Nunito Sans Variable", "Nunito Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Open Runde", ui-sans-serif, system-ui, sans-serif;
   --font-label: "Montserrat Alternates", ui-sans-serif, system-ui, sans-serif;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);

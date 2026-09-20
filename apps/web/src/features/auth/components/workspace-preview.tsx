@@ -1,4 +1,4 @@
-import { ChevronDown, LogOut, Menu, Search } from "lucide-react";
+import { ChevronDown, LogOut, Menu, Search, X } from "lucide-react";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -89,6 +89,7 @@ function WorkspacePreview({
     role === "student" ? "assessment" : "overview",
   );
   const [query, setQuery] = useState("");
+  const [workspaceSearchOpen, setWorkspaceSearchOpen] = useState(false);
   const [desktopNavigationExpanded, setDesktopNavigationExpanded] =
     useState(true);
   const [mobileNavigationOpen, setMobileNavigationOpen] = useState(false);
@@ -236,6 +237,8 @@ function WorkspacePreview({
         data-collapsed={!desktopNavigationExpanded}
         className={cn(
           "relative hidden h-svh overflow-hidden lg:sticky lg:top-0 lg:flex lg:flex-col lg:transition-[padding] lg:duration-300",
+          isStaff ? "border-r border-[#262f21] bg-[#34402d] text-white" : "border-r border-border bg-card",
+          desktopNavigationExpanded ? (isStaff ? "py-3 px-0" : "p-3") : (isStaff ? "py-2.5 px-0" : "p-2.5"),
           isStaff
             ? "border-r border-[#262f21] bg-[#34402d] text-white"
             : "border-r border-border bg-card",
@@ -248,6 +251,7 @@ function WorkspacePreview({
               : "p-2.5",
         )}
       >
+        <div aria-hidden="true" className="absolute inset-x-0 top-0 grid h-1 grid-cols-4">
         <div
           aria-hidden="true"
           className="absolute inset-x-0 top-0 grid h-1 grid-cols-4"
@@ -257,6 +261,8 @@ function WorkspacePreview({
           <span className="bg-warning" />
           <span className="bg-info" />
         </div>
+        <div className={cn("flex h-12 items-center gap-2.5", desktopNavigationExpanded ? (isStaff ? "px-4" : "px-2") : "justify-center")}>
+          <img src={logo} alt="Academic guidance system" className={cn("h-8 object-contain", desktopNavigationExpanded ? "w-auto max-w-32" : "w-11")} />
         <div
           className={cn(
             "flex h-12 items-center gap-2.5",
@@ -276,6 +282,7 @@ function WorkspacePreview({
             )}
           />
           {desktopNavigationExpanded ? (
+            <p className={cn("text-[9px] font-bold uppercase tracking-[0.14em]", isStaff ? "text-emerald-100/70" : "text-muted-foreground")}>
             <p
               className={cn(
                 "text-[9px] font-bold uppercase tracking-[0.14em]",
@@ -297,6 +304,7 @@ function WorkspacePreview({
           />
         </div>
 
+        <div className={cn("mt-auto border-t pt-4", isStaff ? "border-white/10" : "border-border")}>
         <div
           className={cn(
             "mt-auto border-t pt-4",
@@ -305,6 +313,8 @@ function WorkspacePreview({
         >
           {desktopNavigationExpanded ? (
             <div className={cn("mb-3", isStaff ? "px-4 py-2" : "px-3 py-2")}>
+              <p className={cn("text-xs font-bold", isStaff ? "text-white" : "text-foreground")}>{user?.name ?? currentRole.shortLabel}</p>
+              <p className={cn("mt-1 truncate text-xs", isStaff ? "text-emerald-100/60" : "text-muted-foreground")}>Authorized account</p>
               <p
                 className={cn(
                   "text-xs font-bold",
@@ -328,6 +338,7 @@ function WorkspacePreview({
               type="button"
               variant="ghost"
               onClick={onExit}
+              className={cn("w-full justify-start", isStaff ? "rounded-none px-4 text-white/70 hover:bg-white/10 hover:text-white" : "text-muted-foreground")}
               className={cn(
                 "w-full justify-start",
                 isStaff
@@ -347,6 +358,7 @@ function WorkspacePreview({
                   size="icon"
                   onClick={onExit}
                   aria-label="Sign out"
+                  className={cn("mx-auto", isStaff ? "text-white/70 hover:bg-white/10 hover:text-white" : "text-muted-foreground")}
                   className={cn(
                     "mx-auto",
                     isStaff
@@ -379,12 +391,14 @@ function WorkspacePreview({
               type="button"
               variant="ghost"
               size="icon"
+              aria-label={desktopNavigationExpanded ? "Collapse workspace navigation" : "Expand workspace navigation"}
               aria-label={
                 desktopNavigationExpanded
                   ? "Collapse workspace navigation"
                   : "Expand workspace navigation"
               }
               aria-expanded={desktopNavigationExpanded}
+              onClick={() => setDesktopNavigationExpanded((isExpanded) => !isExpanded)}
               onClick={() =>
                 setDesktopNavigationExpanded((isExpanded) => !isExpanded)
               }
@@ -392,11 +406,13 @@ function WorkspacePreview({
             >
               <Menu aria-hidden="true" />
             </Button>
+            <Sheet open={mobileNavigationOpen} onOpenChange={setMobileNavigationOpen}>
             <Sheet
               open={mobileNavigationOpen}
               onOpenChange={setMobileNavigationOpen}
             >
               <SheetTrigger asChild>
+                <Button type="button" variant="outline" size="icon" className="lg:hidden" aria-label="Open workspace navigation">
                 <Button
                   type="button"
                   variant="outline"
@@ -417,12 +433,14 @@ function WorkspacePreview({
               >
                 <SheetHeader className={isStaff ? "px-4" : undefined}>
                   <SheetTitle>
+                    <img src={logo} alt="Academic guidance system" className="h-9 w-auto object-contain" />
                     <img
                       src={logo}
                       alt="Academic guidance system"
                       className="h-9 w-auto object-contain"
                     />
                   </SheetTitle>
+                  <SheetDescription className={isStaff ? "text-emerald-100/70" : undefined}>
                   <SheetDescription
                     className={isStaff ? "text-emerald-100/70" : undefined}
                   >
@@ -440,6 +458,7 @@ function WorkspacePreview({
                     tone={isStaff ? "staff" : "default"}
                   />
                 </div>
+                <div className={cn("mt-auto border-t pt-4", isStaff ? "border-white/10" : "border-border")}>
                 <div
                   className={cn(
                     "mt-auto border-t pt-4",
@@ -451,6 +470,7 @@ function WorkspacePreview({
                       type="button"
                       variant="ghost"
                       onClick={onExit}
+                      className={cn("w-full justify-start", isStaff ? "rounded-none px-4 text-white/70 hover:bg-white/10 hover:text-white" : "")}
                       className={cn(
                         "w-full justify-start",
                         isStaff
@@ -467,42 +487,85 @@ function WorkspacePreview({
             </Sheet>
 
             {moduleSearchPlacement === "topbar" ? (
-              <div
-                className={cn(
-                  "relative flex-1",
-                  isStaff ? "mx-auto max-w-md" : "max-w-sm",
-                )}
-              >
-                <label htmlFor="workspace-search" className="sr-only">
-                  Search modules
-                </label>
-                <Search
-                  aria-hidden="true"
-                  className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
-                />
-                <Input
-                  id="workspace-search"
-                  type="search"
-                  value={query}
-                  onChange={(event) => changeQuery(event.target.value)}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter" && filteredModules[0]) {
-                      selectModule(filteredModules[0].id);
-                    }
-                  }}
-                  placeholder={
-                    isStaff
-                      ? "Search students, assessments, programmes…"
-                      : "Search modules"
-                  }
-                  className={cn(
-                    "h-11 pl-9 text-xs shadow-none",
-                    isStaff
-                      ? "rounded-xs border-border bg-secondary text-foreground placeholder:text-muted-foreground focus-visible:bg-background"
-                      : "rounded-xl border-transparent bg-secondary focus-visible:bg-background",
-                  )}
-                />
-              </div>
+              isStaff ? (
+                workspaceSearchOpen ? (
+                  <div className="relative flex min-w-0 flex-1 items-center justify-center gap-2">
+                    <div className="relative w-full max-w-md">
+                      <label htmlFor="workspace-search" className="sr-only">Search modules</label>
+                      <Search aria-hidden="true" className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                      <label htmlFor="workspace-search" className="sr-only">
+                        Search modules
+                      </label>
+                      <Search
+                        aria-hidden="true"
+                        className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+                      />
+                      <Input
+                        id="workspace-search"
+                        type="search"
+                        value={query}
+                        onChange={(event) => changeQuery(event.target.value)}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter" && filteredModules[0]) {
+                            selectModule(filteredModules[0].id);
+                          }
+                        }}
+                        placeholder="Search students, assessments, programmes…"
+                        className="h-11 w-full rounded-xs border-border bg-white pl-9 text-xs text-foreground shadow-none placeholder:text-muted-foreground focus-visible:bg-white"
+                      />
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      aria-label="Close workspace search"
+                      onClick={() => {
+                        setQuery("");
+                        setWorkspaceSearchOpen(false);
+                      }}
+                      className="shrink-0 rounded-xs text-muted-foreground hover:text-foreground"
+                    >
+                      <X aria-hidden="true" />
+                    </Button>
+                  </div>
+                ) : (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    aria-label="Open workspace search"
+                    onClick={() => setWorkspaceSearchOpen(true)}
+                    className="rounded-xs text-muted-foreground hover:text-foreground"
+                  >
+                    <Search aria-hidden="true" />
+                  </Button>
+                )
+              ) : (
+                <div className="relative max-w-sm flex-1">
+                  <label htmlFor="workspace-search" className="sr-only">Search modules</label>
+                  <Search aria-hidden="true" className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                  <label htmlFor="workspace-search" className="sr-only">
+                    Search modules
+                  </label>
+                  <Search
+                    aria-hidden="true"
+                    className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+                  />
+                  <Input
+                    id="workspace-search"
+                    type="search"
+                    value={query}
+                    onChange={(event) => changeQuery(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" && filteredModules[0]) {
+                        selectModule(filteredModules[0].id);
+                      }
+                    }}
+                    placeholder="Search modules"
+                    className="h-11 rounded-xl border-transparent bg-secondary pl-9 text-xs shadow-none focus-visible:bg-background"
+                  />
+                </div>
+              )
             ) : null}
 
             <div className="ml-auto flex items-center gap-2">

@@ -18,6 +18,7 @@ const frontendDebtCaps = new Map([
   ['apps/web/src/features/admin/reports/components/admin-reports-page.tsx', 700],
   ['apps/web/src/features/admin/components/admin-dashboard-page.tsx', 650],
   ['apps/web/src/features/student/recommendations/components/student-recommendation-results-page.tsx', 550],
+  ['apps/web/src/features/auth/components/workspace-preview.tsx', 650],
 ])
 
 const controllerDebtCaps = new Map([

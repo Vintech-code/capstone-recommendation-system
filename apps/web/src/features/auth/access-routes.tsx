@@ -28,18 +28,18 @@ const AdminWorkspaceRoute = lazy(() =>
 function WorkspaceRoute({ role }: { role: AccessRole }) {
   const navigate = useNavigate();
   const { signOut } = useAuth();
-  const [activeModuleId, setActiveModuleId] = useState(
+  const [activeModuleId, setActiveModuleId] = useState<string>(
     role === "student" ? "assessment" : "overview",
   );
   const [programmeMatchContext, setProgrammeMatchContext] = useState<
     StudentProgrammeMatchContext[]
   >([]);
-  const [selectedAttemptIdForMatches, setSelectedAttemptIdForMatches] =
+  const [selectedRecommendationSessionId, setSelectedRecommendationSessionId] =
     useState<number | null>(null);
 
   const handleSelectModule = (id: string) => {
-    if (id !== "recommendations") {
-      setSelectedAttemptIdForMatches(null);
+    if (id === "recommendations") {
+      setSelectedRecommendationSessionId(null);
     }
     setActiveModuleId(id);
   };
@@ -48,19 +48,26 @@ function WorkspaceRoute({ role }: { role: AccessRole }) {
     <ProtectedRoute role={role}>
       <WorkspacePreview
         role={role}
-        activeModuleId={activeModuleId}
-        onSelectModule={handleSelectModule}
+        activeModuleId={role === "student" ? activeModuleId : undefined}
+        onSelectModule={role === "student" ? handleSelectModule : undefined}
         onExit={() => {
           void signOut().finally(() => navigate(`/${role}/login`));
         }}
         renderOverview={
           role === "student"
-            ? ({ onSelect }) => (
+            ? () => (
                 <StudentRecommendationResultsPage
-                  assessmentSessionId={selectedAttemptIdForMatches}
-                  onViewLatest={() => setSelectedAttemptIdForMatches(null)}
-                  onBack={() => onSelect("recommendations")}
-                  onOpenAssessment={() => onSelect("assessment")}
+                  assessmentSessionId={selectedRecommendationSessionId}
+                  onBack={() => {
+                    if (selectedRecommendationSessionId) {
+                      setSelectedRecommendationSessionId(null);
+                      handleSelectModule("history");
+                    } else {
+                      handleSelectModule("recommendations");
+                    }
+                  }}
+                  onViewLatest={() => setSelectedRecommendationSessionId(null)}
+                  onOpenAssessment={() => handleSelectModule("assessment")}
                   onExploreProgrammes={(courses) => {
                     setProgrammeMatchContext(
                       courses.map((course) => ({
@@ -69,7 +76,7 @@ function WorkspaceRoute({ role }: { role: AccessRole }) {
                         factors: course.factors,
                       })),
                     );
-                    onSelect("programmes");
+                    handleSelectModule("programmes");
                   }}
                 />
               )
@@ -77,16 +84,16 @@ function WorkspaceRoute({ role }: { role: AccessRole }) {
         }
         renderModule={
           role === "student"
-            ? ({ module, onBack, onSelect }) => {
+            ? ({ module, onBack }) => {
                 if (module.id === "assessment") {
                   return (
                     <StudentAssessmentSessionPage
                       onExit={onBack}
                       onReturnToIntroduction={onBack}
-                      onViewResult={() => onSelect("history")}
+                      onViewResult={() => handleSelectModule("history")}
                       onViewMatches={() => {
-                        setSelectedAttemptIdForMatches(null);
-                        onSelect("recommendations");
+                        setSelectedRecommendationSessionId(null);
+                        handleSelectModule("recommendations");
                       }}
                       remotePersistence
                     />
@@ -95,20 +102,17 @@ function WorkspaceRoute({ role }: { role: AccessRole }) {
                 if (module.id === "recommendations") {
                   return (
                     <StudentRecommendationResultsPage
-                      assessmentSessionId={selectedAttemptIdForMatches}
-                      onViewLatest={() => setSelectedAttemptIdForMatches(null)}
+                      assessmentSessionId={selectedRecommendationSessionId}
                       onBack={() => {
-                        if (selectedAttemptIdForMatches) {
-                          setSelectedAttemptIdForMatches(null);
-                          onSelect("history");
+                        if (selectedRecommendationSessionId) {
+                          setSelectedRecommendationSessionId(null);
+                          handleSelectModule("history");
                         } else {
                           onBack();
                         }
                       }}
-                      onOpenAssessment={() => {
-                        setSelectedAttemptIdForMatches(null);
-                        onSelect("assessment");
-                      }}
+                      onViewLatest={() => setSelectedRecommendationSessionId(null)}
+                      onOpenAssessment={() => handleSelectModule("assessment")}
                       onExploreProgrammes={(courses) => {
                         setProgrammeMatchContext(
                           courses.map((course) => ({
@@ -117,7 +121,7 @@ function WorkspaceRoute({ role }: { role: AccessRole }) {
                             factors: course.factors,
                           })),
                         );
-                        onSelect("programmes");
+                        handleSelectModule("programmes");
                       }}
                     />
                   );
@@ -126,10 +130,10 @@ function WorkspaceRoute({ role }: { role: AccessRole }) {
                   return (
                     <StudentAssessmentHistoryPage
                       onBack={onBack}
-                      onOpenAssessment={() => onSelect("assessment")}
-                      onExploreMatches={(attemptId) => {
-                        setSelectedAttemptIdForMatches(attemptId ?? null);
-                        onSelect("recommendations");
+                      onOpenAssessment={() => handleSelectModule("assessment")}
+                      onExploreMatches={(sessionId) => {
+                        setSelectedRecommendationSessionId(sessionId ?? null);
+                        setActiveModuleId("recommendations");
                       }}
                     />
                   );

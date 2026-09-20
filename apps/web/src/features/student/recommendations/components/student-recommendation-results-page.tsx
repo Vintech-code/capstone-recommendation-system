@@ -5,6 +5,7 @@ import {
   Compass,
   History,
   RefreshCw,
+  Share2,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
@@ -12,11 +13,20 @@ import resultIllustration from "@/assets/student-interest-result-v1.webp";
 import { EmptyState, ErrorState, LoadingState } from "@/components/shared";
 import { Button } from "@/components/ui/button";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  getAssessmentResultCard,
   getCurrentAssessment,
   startAssessment,
   type AssessmentLifecycle,
+  type ResultCardData,
 } from "@/features/student/assessment/assessment-api";
 import { RetakeAssessmentDialog } from "@/features/student/assessment/components/retake-assessment-dialog";
+import { StudentResultCard } from "@/features/student/assessment/components/student-result-card";
 import {
   formatAssessmentDate,
   mapAssessmentResult,
@@ -82,6 +92,9 @@ function StudentRecommendationResultsPage({
   const [retakeError, setRetakeError] = useState("");
   const [selectedCourse, setSelectedCourse] =
     useState<StudentRecommendedCourse | null>(null);
+  const [resultCard, setResultCard] = useState<ResultCardData | null>(null);
+  const [resultCardLoading, setResultCardLoading] = useState(false);
+  const [resultCardError, setResultCardError] = useState("");
 
   useEffect(() => {
     if (initialSnapshot !== undefined || initialLoadState !== "ready") return;
@@ -207,6 +220,21 @@ function StudentRecommendationResultsPage({
         ),
       ).slice(0, 4)
     : [];
+
+  async function handleShareResult() {
+    const sessionId = assessment?.id ?? assessmentSessionId;
+    if (!sessionId) return;
+
+    setResultCardError("");
+    setResultCardLoading(true);
+    try {
+      setResultCard(await getAssessmentResultCard(sessionId));
+    } catch {
+      setResultCardError("The assessment result card could not be loaded.");
+    } finally {
+      setResultCardLoading(false);
+    }
+  }
 
   return (
     <div className="student-grid-page student-dashboard-canvas animate-matches-enter">
@@ -361,6 +389,8 @@ function StudentRecommendationResultsPage({
                 >
                   <RefreshCw aria-hidden="true" className="size-4" />
                   Retake assessment
+                  <RefreshCw aria-hidden="true" className="size-4" /> Retake
+                  assessment
                 </Button>
               ) : null}
               <Button
@@ -372,9 +402,30 @@ function StudentRecommendationResultsPage({
                 className="gap-2"
               >
                 Explore all programmes
+                Explore all programmes{" "}
                 <ArrowRight aria-hidden="true" className="size-4" />
               </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleShareResult}
+                disabled={
+                  resultCardLoading || !(assessment?.id ?? assessmentSessionId)
+                }
+                className="gap-2"
+              >
+                <Share2 aria-hidden="true" className="size-4" />
+                {resultCardLoading ? "Loading result" : "Share result"}
+              </Button>
             </div>
+            {resultCardError ? (
+              <p
+                role="alert"
+                className="mt-3 text-sm font-medium text-destructive-ink"
+              >
+                {resultCardError}
+              </p>
+            ) : null}
           </section>
 
           {profile ? <RecommendationProfilePanel result={profile} /> : null}
@@ -457,48 +508,6 @@ function StudentRecommendationResultsPage({
               </li>
             ))}
           </ol>
-
-          {snapshot.pendingProgrammes?.length ? (
-            <section
-              aria-labelledby="pending-programme-classification-title"
-              className="mt-8 border-t border-border pt-6"
-            >
-              <div className="flex items-start gap-3">
-                <BookOpenCheck
-                  aria-hidden="true"
-                  className="mt-0.5 size-5 shrink-0 text-primary-ink"
-                />
-                <div>
-                  <h2
-                    id="pending-programme-classification-title"
-                    className="font-display text-xl font-bold text-foreground sm:text-2xl"
-                  >
-                    Classification in progress
-                  </h2>
-                  <p className="mt-1 max-w-3xl text-sm font-medium leading-6 text-muted-foreground sm:text-base">
-                    These catalogue programmes remain available to explore, but
-                    no RIASEC match is shown until their source-based
-                    classification is complete.
-                  </p>
-                </div>
-              </div>
-              <ul className="mt-4 divide-y divide-border border-y border-border">
-                {snapshot.pendingProgrammes.map((programme) => (
-                  <li
-                    key={programme.id}
-                    className="flex flex-col gap-1 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
-                  >
-                    <span className="font-display text-base font-bold text-foreground sm:text-lg">
-                      {programme.name}
-                    </span>
-                    <span className="font-label text-sm font-semibold text-muted-foreground">
-                      RIASEC classification pending
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          ) : null}
         </div>
 
         {retakeError ? (
@@ -530,6 +539,31 @@ function StudentRecommendationResultsPage({
             }
           }}
         />
+
+        <Dialog
+          open={Boolean(resultCard)}
+          onOpenChange={(open) => {
+            if (!open) setResultCard(null);
+          }}
+        >
+          <DialogContent
+            className="max-h-[92vh] max-w-3xl overflow-y-auto border-none bg-transparent p-0 shadow-2xl"
+            closeLabel="Close result card"
+          >
+            <DialogTitle className="sr-only">
+              RIASEC Assessment Result Card
+            </DialogTitle>
+            <DialogDescription className="sr-only">
+              Your assessment result card
+            </DialogDescription>
+            {resultCard ? (
+              <StudentResultCard
+                card={resultCard}
+                onClose={() => setResultCard(null)}
+              />
+            ) : null}
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

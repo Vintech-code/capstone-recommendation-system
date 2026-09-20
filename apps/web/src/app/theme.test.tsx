@@ -9,7 +9,7 @@ function relativeLuminance(hex: string) {
     .replace('#', '')
     .match(/.{2}/g)
     ?.map((channel) => Number.parseInt(channel, 16) / 255)
-    .map((channel) =>
+    ?.map((channel) =>
       channel <= 0.04045
         ? channel / 12.92
         : ((channel + 0.055) / 1.055) ** 2.4,
@@ -54,15 +54,16 @@ describe('application visual system', () => {
     expect(normalizedRootTheme).not.toContain('#9a6700')
   })
 
-  it('uses Nunito Sans headings and locally bundled Montserrat Alternates body type', () => {
+  it('uses Open Runde headings and locally bundled Montserrat Alternates body type', () => {
+    expect(stylesheet).toContain('@import "@fontsource/open-runde/400.css"')
+    expect(stylesheet).toContain('@import "@fontsource/open-runde/700.css"')
     expect(stylesheet).toContain('@import "@fontsource/montserrat-alternates/latin-400.css"')
     expect(stylesheet).toContain('@import "@fontsource/montserrat-alternates/latin-700.css"')
     expect(stylesheet).toContain('--font-sans: "Montserrat Alternates"')
-    expect(stylesheet).toMatch(
-      /--font-display:\s*"Nunito Sans Variable", "Nunito Sans"/,
-    )
+    expect(stylesheet).toMatch(/--font-display:\s*"Open Runde"/)
     expect(stylesheet).toContain('--font-label: "Montserrat Alternates"')
     expect(stylesheet).not.toContain('"Montserrat Variable"')
+    expect(stylesheet).not.toContain('"Nunito Sans Variable"')
   })
 
   it('keeps core text and solid semantic controls at WCAG AA contrast', () => {

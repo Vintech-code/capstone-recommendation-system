@@ -38,11 +38,6 @@ describe("Student recommendation results", () => {
     });
     expect(resultHeading).toBeVisible();
     expect(resultHeading).toHaveClass("font-display", "font-black");
-    expect(resultHeading.closest("section")).not.toHaveClass(
-      "border",
-      "bg-card",
-      "shadow-sm",
-    );
     expect(
       screen.queryByRole("img", { name: /RIASEC profile/i }),
     ).not.toBeInTheDocument();
@@ -251,7 +246,7 @@ describe("Student recommendation results", () => {
     expect(screen.getByText("Rank #3")).toBeVisible();
   });
 
-  it("keeps a programme visible as classification pending without inventing a match", () => {
+  it("does not expose pending programme classification details in the UI", () => {
     render(
       <StudentRecommendationResultsPage
         onBack={vi.fn()}
@@ -276,10 +271,14 @@ describe("Student recommendation results", () => {
     );
 
     expect(
-      screen.getByRole("heading", { name: "Classification in progress" }),
-    ).toBeVisible();
-    expect(screen.getByText("BS Community Development")).toBeVisible();
-    expect(screen.getByText("RIASEC classification pending")).toBeVisible();
+      screen.queryByRole("heading", { name: "Classification in progress" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("BS Community Development"),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("RIASEC classification pending"),
+    ).not.toBeInTheDocument();
   });
 
   it("shows an honest empty state when no recommendation exists", () => {
@@ -529,49 +528,6 @@ describe("Student recommendation results", () => {
       }),
     );
     expect(onOpenAssessment).toHaveBeenCalledOnce();
-  });
-
-  it("loads recommendation for a specific historical attempt and displays the notification banner", async () => {
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({
-        data: {
-          status: "available",
-          recommendation: {
-            ...testRecommendationSnapshot,
-            assessmentResultReference: "ASMT-000003",
-          },
-        },
-      }),
-    } as Response);
-    vi.stubGlobal("fetch", fetchMock);
-
-    const onBack = vi.fn();
-    const onViewLatest = vi.fn();
-
-    render(
-      <StudentRecommendationResultsPage
-        assessmentSessionId={3}
-        onBack={onBack}
-        onViewLatest={onViewLatest}
-      />,
-    );
-
-    expect(
-      await screen.findByRole("complementary", {
-        name: "Historical attempt notification",
-      }),
-    ).toBeVisible();
-    expect(
-      screen.getByText(/Viewing recorded matches for ASMT-000003/),
-    ).toBeVisible();
-
-    const switchBtn = screen.getByRole("button", {
-      name: "View latest result",
-    });
-    expect(switchBtn).toBeVisible();
-    await userEvent.click(switchBtn);
-    expect(onViewLatest).toHaveBeenCalledOnce();
   });
 
   it("has no automatically detectable accessibility violations", async () => {

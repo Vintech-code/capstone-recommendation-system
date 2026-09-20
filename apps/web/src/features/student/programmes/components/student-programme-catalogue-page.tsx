@@ -39,7 +39,7 @@ interface StudentProgrammeCataloguePageProps {
 const categoryDefinitions = [
   { id: 'technology', title: 'Technology', icon: Laptop, ids: ['bs-information-technology'] },
   { id: 'business', title: 'Business & Hospitality', icon: BriefcaseBusiness, ids: ['bs-business-administration', 'bs-hospitality-management'] },
-  { id: 'education', title: 'Education', icon: GraduationCap, ids: ['bachelor-elementary-education', 'bachelor-secondary-education', 'bachelor-physical-education'] },
+  { id: 'education', title: 'Education', icon: GraduationCap, ids: ['bachelor-elementary-education', 'bachelor-secondary-education-english', 'bachelor-secondary-education-filipino', 'bachelor-secondary-education-social-studies', 'bachelor-physical-education'] },
   { id: 'safety', title: 'Criminology & Public Safety', icon: Scale, ids: ['bs-criminology'] },
   { id: 'allied', title: 'Community, Health & Information', icon: HeartHandshake, ids: ['bs-midwifery', 'bachelor-library-information-science', 'bs-sociology', 'bs-community-development'] },
 ]

@@ -16,7 +16,7 @@ import type { StudentRecommendationState } from "@/features/student/recommendati
 interface StudentAssessmentHistoryPageProps {
   onBack: () => void;
   onOpenAssessment: () => void;
-  onExploreMatches?: (attemptId?: number) => void;
+  onExploreMatches?: (assessmentSessionId?: number) => void;
 }
 
 function StudentAssessmentHistoryPage({

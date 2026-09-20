@@ -2,7 +2,6 @@ import {
   CalendarDays,
   Clock3,
   FileText,
-  Sparkles,
   UserCheck,
 } from "lucide-react";
 
@@ -47,20 +46,18 @@ export function HistoricalAttemptDetails({
   return (
     <div
       data-testid="historical-attempt-details"
-      className="space-y-4 rounded-2xl border border-border/70 bg-card p-5 shadow-sm sm:p-6"
+      className="space-y-4 rounded-2xl border border-border/80 bg-card p-5 shadow-sm sm:p-6"
     >
       {/* Inspector Hero Header */}
-      <div className="flex flex-col justify-between gap-3 border-b border-border/50 pb-4 sm:flex-row sm:items-center">
+      <div className="flex flex-col justify-between gap-3 border-b border-border/60 pb-4 sm:flex-row sm:items-center">
         <div>
           <div className="flex items-center gap-2">
-            <span className="flex size-7 items-center justify-center rounded-lg bg-primary/10 text-primary-ink">
-              <Sparkles className="size-4" aria-hidden="true" />
-            </span>
-            <span className="text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary-ink">
+              <Clock3 className="size-3" aria-hidden="true" />
               Inspection Details
             </span>
           </div>
-          <h4 className="mt-1 font-display text-xl font-bold tracking-tight text-foreground">
+          <h4 className="mt-1 font-display text-xl sm:text-2xl font-black tracking-tight text-foreground">
             Attempt {attempt.attempt_number ?? 1} result
           </h4>
           <p className="mt-0.5 text-xs text-muted-foreground">
@@ -89,18 +86,18 @@ export function HistoricalAttemptDetails({
       </div>
 
       {/* Snapshot Metadata Grid */}
-      <div className="grid grid-cols-2 gap-2 text-xs">
-        <div className="rounded-xl border border-border/50 bg-secondary/30 p-3">
+      <div className="grid grid-cols-2 gap-2.5 text-xs">
+        <div className="rounded-xl border border-border/60 bg-muted/20 p-3">
           <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-            <Clock3 className="size-3.5" aria-hidden="true" /> Status
+            <Clock3 className="size-3.5 text-primary-ink" aria-hidden="true" /> Status
           </p>
           <p className="mt-1 font-bold text-foreground capitalize">
             {assessmentStatusLabel(attempt.status)}
           </p>
         </div>
-        <div className="rounded-xl border border-border/50 bg-secondary/30 p-3">
+        <div className="rounded-xl border border-border/60 bg-muted/20 p-3">
           <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-            <CalendarDays className="size-3.5" aria-hidden="true" /> Submitted
+            <CalendarDays className="size-3.5 text-primary-ink" aria-hidden="true" /> Submitted
           </p>
           <p className="mt-1 font-bold text-foreground">
             {formatAssessmentDate(attempt.submitted_at ?? attempt.started_at)}
@@ -136,7 +133,7 @@ export function HistoricalAttemptDetails({
 
       {/* Comparison against previous attempt */}
       {previousAttempt && (
-        <div className="rounded-xl border border-dashed border-border/80 bg-muted/10 p-3.5 text-xs">
+        <div className="rounded-xl border border-border/60 bg-muted/20 p-3.5 text-xs">
           <h5 className="font-bold text-foreground">
             Compared with Attempt {previousAttempt.attempt_number ?? 1}
           </h5>
@@ -148,7 +145,7 @@ export function HistoricalAttemptDetails({
 
       {/* All 6 Holland Dimensions Scores */}
       {result?.dimensions && result.dimensions.length > 0 ? (
-        <div className="rounded-xl border border-border/50 bg-secondary/15 p-4">
+        <div className="rounded-xl border border-border/60 bg-muted/15 p-4">
           <div className="flex items-center justify-between mb-3">
             <h5 className="text-xs font-black uppercase tracking-wider text-muted-foreground">
               Recorded dimension scores
@@ -165,7 +162,7 @@ export function HistoricalAttemptDetails({
               return (
                 <div
                   key={dimension.code}
-                  className="rounded-lg border border-border/50 bg-card p-2 text-center shadow-2xs"
+                  className="rounded-xl border border-border/60 bg-card p-2.5 text-center shadow-2xs"
                 >
                   <dt className="text-[10px] font-bold text-muted-foreground truncate">
                     {dimension.code}
@@ -196,7 +193,7 @@ export function HistoricalAttemptDetails({
       ) : null}
 
       {/* Recommended Courses Breakdown */}
-      <div className="border-t border-border/50 pt-4">
+      <div className="border-t border-border/60 pt-4">
         <div className="flex items-center justify-between">
           <h5 className="text-xs font-black uppercase tracking-wider text-muted-foreground">
             Programme matches from this attempt
@@ -206,7 +203,7 @@ export function HistoricalAttemptDetails({
               type="button"
               variant="link"
               size="sm"
-              className="h-auto p-0 text-xs font-bold text-primary-ink"
+              className="h-auto p-0 text-xs font-bold text-primary-ink hover:underline"
               onClick={() => onExploreMatches(attempt.id)}
             >
               Explore all
@@ -227,11 +224,11 @@ export function HistoricalAttemptDetails({
         ) : null}
 
         {recommendationState === "idle" && courses.length > 0 ? (
-          <ol className="mt-3 grid gap-2.5">
+          <ol className="mt-3 grid gap-2">
             {courses.map((course) => (
               <li
                 key={course.id}
-                className="flex items-center justify-between gap-3 rounded-xl border border-border/70 bg-card p-3 shadow-2xs"
+                className="flex items-center justify-between gap-3 rounded-xl border border-border/70 bg-card p-3 shadow-2xs hover:bg-muted/15 transition-colors"
               >
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">

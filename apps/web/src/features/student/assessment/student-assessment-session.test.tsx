@@ -55,6 +55,18 @@ describe("Student assessment session", () => {
   it("uses a simple single-question layout with truthful session data", () => {
     renderSession();
 
+    const assessment = screen.getByRole("main");
+    const progressRegion = screen
+      .getByRole("progressbar", { name: "Assessment completion" })
+      .closest(".sticky");
+    const navigation = screen.getByRole("navigation", {
+      name: "Question navigation",
+    });
+
+    expect(assessment).toHaveClass("bg-background");
+    expect(assessment).not.toHaveClass("bg-white");
+    expect(progressRegion).toHaveClass("bg-background");
+    expect(navigation).toHaveClass("bg-background");
     expect(
       screen.getByRole("heading", { name: "Interest assessment" }),
     ).toBeInTheDocument();
@@ -70,9 +82,7 @@ describe("Student assessment session", () => {
         name: "University of Hawai‘i Community Colleges Career Explorer",
       }),
     ).not.toBeInTheDocument();
-    expect(
-      screen.getByRole("navigation", { name: "Question navigation" }),
-    ).toBeVisible();
+    expect(navigation).toBeVisible();
     expect(screen.getByText("👍")).toBeVisible();
     expect(screen.getByText("👎")).toBeVisible();
     expect(screen.getByText("This sounds like me")).toBeVisible();

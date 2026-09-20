@@ -342,6 +342,32 @@ test('completes the student assessment and opens a recommendation detail', async
   expect(consoleErrors).toEqual([])
 })
 
+test('uses the Student header canvas across the assessment', async ({ page }, testInfo) => {
+  await installStudentApi(page)
+  await signIn(page)
+
+  const heading = page.getByRole('heading', { name: 'Interest assessment' })
+  await expect(heading).toBeVisible()
+
+  const assessmentCanvas = heading.locator('xpath=ancestor::main[1]')
+  const progressRegion = page
+    .getByRole('progressbar', { name: 'Assessment completion' })
+    .locator('xpath=ancestor::div[contains(@class, "sticky")][1]')
+  const navigation = page.getByRole('navigation', { name: 'Question navigation' })
+  const header = page.locator('header').first()
+  const backgrounds = await Promise.all(
+    [header, assessmentCanvas, progressRegion, navigation].map((locator) =>
+      locator.evaluate((element) => window.getComputedStyle(element).backgroundColor),
+    ),
+  )
+
+  await expect(header).toHaveClass(/bg-background/)
+  await expect(assessmentCanvas).toHaveClass(/bg-background/)
+  expect(new Set(backgrounds.slice(1)).size).toBe(1)
+  await expectNoHorizontalOverflow(page)
+  await page.screenshot({ path: testInfo.outputPath('assessment-matched-canvas.png') })
+})
+
 test('shows multiple programme career directions and published ESCO details', async ({ page }) => {
   await installStudentApi(page, true)
   await signIn(page)

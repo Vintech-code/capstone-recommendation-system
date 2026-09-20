@@ -427,7 +427,7 @@ export function AdminStudentDetailPage({
                     };
 
                     const score = dimension.value;
-                    const max = 30;
+                    const max = 7;
                     const pct = Math.min(100, Math.round((score / max) * 100));
 
                     return (
@@ -484,7 +484,7 @@ export function AdminStudentDetailPage({
                       </p>
                     </div>
                     <span className="shrink-0 text-[11px] font-semibold text-primary-ink bg-primary/10 px-2 py-0.5 rounded-full">
-                      Max: 30 pts
+                      Max: 7 pts
                     </span>
                   </div>
 
@@ -500,7 +500,7 @@ export function AdminStudentDetailPage({
                   <div className="flex items-center justify-center gap-2 py-1.5 text-xs text-muted-foreground w-full">
                     <span className="inline-block size-2.5 rounded-full bg-primary" />
                     <span className="font-medium">
-                      Recorded Assessment Profile (Scale: 0–30)
+                      Recorded Assessment Profile (Scale: 0–7)
                     </span>
                   </div>
 
@@ -535,7 +535,7 @@ export function AdminStudentDetailPage({
                         </span>
                         <span className="font-bold text-foreground truncate block mt-0.5">
                           {primaryCodes[0]
-                            ? `${dimensionMeta[primaryCodes[0]]?.name ?? primaryCodes[0]} (${Math.round((((latestAttempt.dimensions ?? []).find((d) => d.code === primaryCodes[0])?.value ?? 0) / 30) * 100)}%)`
+                            ? `${dimensionMeta[primaryCodes[0]]?.name ?? primaryCodes[0]} (${Math.round((((latestAttempt.dimensions ?? []).find((d) => d.code === primaryCodes[0])?.value ?? 0) / 7) * 100)}%)`
                             : "Investigative"}
                         </span>
                       </div>
@@ -643,11 +643,11 @@ export function AdminStudentDetailPage({
                           Alignment Rationale: Strong convergence with
                           Investigative (
                           {latestAttempt.dimensions?.find((d) => d.code === "I")
-                            ?.value ?? 24}
-                          /30) and Conventional (
+                            ?.value ?? 6}
+                          /7) and Conventional (
                           {latestAttempt.dimensions?.find((d) => d.code === "C")
-                            ?.value ?? 21}
-                          /30) aptitude profile.
+                            ?.value ?? 5}
+                          /7) aptitude profile.
                         </p>
                       </div>
 
@@ -876,7 +876,7 @@ function RiasecRadarSvg({
 
   const getRatio = (code: string) => {
     const val = scoreMap.get(code) ?? 0;
-    return Math.max(0.06, Math.min(1.0, val / 30));
+    return Math.max(0.06, Math.min(1.0, val / 7));
   };
 
   // Student Score Coordinates (R, I, A, S, E, C)

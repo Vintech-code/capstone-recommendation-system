@@ -8,7 +8,6 @@ import {
   FileText,
   History,
   RotateCcw,
-  Sparkles,
 } from "lucide-react";
 
 import { ErrorState, LoadingState } from "@/components/shared";
@@ -138,7 +137,7 @@ export function AssessmentHistorySummary({
       aria-labelledby="assessment-history-title"
       className="overflow-hidden rounded-2xl border border-border/80 bg-card shadow-xs"
     >
-      {/* Redesigned Header Bar */}
+      {/* Header Bar */}
       <div className="flex flex-col gap-4 border-b border-border/70 bg-muted/20 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
         <div className="flex items-start gap-3.5">
           <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-background border border-border/70 text-primary-ink shadow-2xs">
@@ -233,10 +232,10 @@ export function AssessmentHistorySummary({
                 return (
                   <div
                     key={item.id}
-                    className={`overflow-hidden rounded-xl border transition-all duration-200 ${
+                    className={`overflow-hidden rounded-2xl border transition-all duration-200 ${
                       isSelected
-                        ? "border-primary bg-primary/5 shadow-xs ring-2 ring-primary/20"
-                        : "border-border/70 bg-card hover:border-border hover:bg-muted/20"
+                        ? "border-primary bg-primary/[0.04] shadow-xs ring-2 ring-primary/25"
+                        : "border-border/80 bg-card hover:border-primary/40 hover:bg-muted/15"
                     }`}
                   >
                     <button
@@ -252,7 +251,7 @@ export function AssessmentHistorySummary({
                             Attempt {item.attempt_number}
                           </span>
                           {itemReference ? (
-                            <span className="font-mono text-[10px] text-muted-foreground">
+                            <span className="font-mono text-[10px] font-semibold text-muted-foreground">
                               {itemReference}
                             </span>
                           ) : null}
@@ -276,8 +275,8 @@ export function AssessmentHistorySummary({
                           {result?.topCode ??
                             assessmentStatusLabel(item.status)}
                         </span>
-                        <span className="text-[11px] text-muted-foreground flex items-center gap-1">
-                          <CalendarDays className="size-3" />
+                        <span className="text-[11px] text-muted-foreground flex items-center gap-1 font-medium">
+                          <CalendarDays className="size-3 text-muted-foreground/80" />
                           {formatAssessmentDate(
                             item.result_available_at ?? item.started_at,
                           )}
@@ -285,9 +284,9 @@ export function AssessmentHistorySummary({
                       </div>
 
                       {item.retake_reason ? (
-                        <p className="mt-2 text-xs text-muted-foreground line-clamp-2">
-                          <strong>Reason:</strong> {item.retake_reason}
-                        </p>
+                        <div className="mt-2.5 rounded-lg border border-border/50 bg-muted/30 px-2.5 py-1.5 text-xs text-muted-foreground">
+                          <strong className="font-semibold text-foreground">Reason:</strong> {item.retake_reason}
+                        </div>
                       ) : null}
 
                       <div className="mt-3 flex flex-wrap items-center gap-1.5">
@@ -297,7 +296,7 @@ export function AssessmentHistorySummary({
                           </span>
                         ) : null}
                         {isCurrentResult ? (
-                          <span className="rounded-full bg-emerald-500/15 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700 dark:text-emerald-300">
+                          <span className="rounded-full bg-primary/15 px-2.5 py-0.5 text-[10px] font-bold text-primary-ink">
                             Latest completed
                           </span>
                         ) : null}
@@ -321,7 +320,7 @@ export function AssessmentHistorySummary({
                     </button>
 
                     {/* Interactive Item Action Bar */}
-                    <div className="flex flex-wrap items-center gap-2 border-t border-border/60 bg-muted/10 px-4 py-2.5">
+                    <div className="flex flex-wrap items-center gap-2 border-t border-border/60 bg-muted/15 px-4 py-2.5">
                       {item.status === "result_available" ? (
                         <>
                           <Button
@@ -423,9 +422,9 @@ export function AssessmentHistorySummary({
                 }
               />
             ) : (
-              <div className="flex min-h-80 flex-col justify-between rounded-2xl border border-dashed border-border/80 bg-muted/10 p-6 sm:p-8">
+              <div className="flex min-h-80 flex-col justify-between rounded-2xl border border-border/80 bg-card p-6 sm:p-8 shadow-xs">
                 <span className="flex size-12 items-center justify-center rounded-xl bg-primary/10 text-primary-ink">
-                  <Sparkles className="size-6" aria-hidden="true" />
+                  <History className="size-6" aria-hidden="true" />
                 </span>
                 <div className="mt-8">
                   <p className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-primary-ink">
