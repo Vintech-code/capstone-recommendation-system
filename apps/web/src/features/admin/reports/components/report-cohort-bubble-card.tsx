@@ -1,11 +1,18 @@
 import { ChevronDown } from "lucide-react";
+import { useState } from "react";
+
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface ReportCohortBubbleCardProps {
   board: number;
   nonBoard: number;
   retakes: number;
   totalAttempts: number;
-  completed: number;
   saveToRunRatio: number;
 }
 
@@ -14,16 +21,20 @@ export function ReportCohortBubbleCard({
   nonBoard,
   retakes,
   totalAttempts,
-  completed,
   saveToRunRatio,
 }: ReportCohortBubbleCardProps) {
+  const [viewMode, setViewMode] = useState<"summary" | "percentage">("summary");
+
   const totalDeclared = Math.max(1, board + nonBoard);
   const boardPct = Math.round((board / totalDeclared) * 100);
   const nonBoardPct = Math.round((nonBoard / totalDeclared) * 100);
-  const retakePct = Math.min(100, Math.round((retakes / Math.max(1, totalAttempts)) * 100));
+  const retakePct = Math.min(
+    100,
+    Math.round((retakes / Math.max(1, totalAttempts)) * 100),
+  );
 
   return (
-    <div className="rounded-3xl border border-border/80 bg-card p-6 shadow-xs sm:p-7">
+    <div className="rounded-xl border border-border/80 bg-card p-6 shadow-xs sm:p-7">
       <div className="flex items-center justify-between gap-3 border-b border-border/60 pb-4">
         <div>
           <h2 className="font-display text-lg font-extrabold text-foreground sm:text-xl">
@@ -33,35 +44,52 @@ export function ReportCohortBubbleCard({
             Track declared eligibility & retakes
           </p>
         </div>
-        <span className="flex items-center gap-1 rounded-full border border-border/80 bg-secondary/70 px-3 py-1 text-xs font-bold text-foreground">
-          <span>Summary</span>
-          <ChevronDown className="size-3 text-muted-foreground" />
-        </span>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              type="button"
+              className="flex cursor-pointer items-center gap-1 rounded-full border border-border/80 bg-secondary/70 px-3 py-1 text-xs font-bold text-foreground transition-colors hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+            >
+              <span>{viewMode === "summary" ? "Summary" : "Percentage"}</span>
+              <ChevronDown className="size-3 text-muted-foreground" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-40">
+            <DropdownMenuItem
+              onClick={() => setViewMode("summary")}
+              className="cursor-pointer text-xs font-bold"
+            >
+              Summary
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => setViewMode("percentage")}
+              className="cursor-pointer text-xs font-bold"
+            >
+              Percentage
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {/* Bubble Cluster + Stats Side-by-Side using System Palette */}
       <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-12 sm:items-center">
-        {/* Left: Overlapping Circle Bubble Cluster */}
+        {/* Left: Overlapping Circle Bubble Cluster (3 breakdown categories) */}
         <div className="flex items-center justify-center sm:col-span-5">
           <div className="relative flex h-36 w-36 items-center justify-center">
-            {/* Bubble 1: Main primary green bubble */}
+            {/* Bubble 1: Main primary green bubble (Board-eligible) */}
             <div className="absolute top-2 left-2 flex size-18 items-center justify-center rounded-full bg-primary font-display text-lg font-black text-primary-foreground shadow-md shadow-primary/25">
-              {board}
+              {viewMode === "summary" ? board : `${boardPct}%`}
             </div>
 
-            {/* Bubble 2: Warm sun/warning bubble overlapping */}
+            {/* Bubble 2: Warm warning bubble (Non-board) */}
             <div className="absolute bottom-2 right-2 flex size-16 items-center justify-center rounded-full bg-warning font-display text-base font-black text-warning-foreground shadow-md shadow-warning/25">
-              {nonBoard}
+              {viewMode === "summary" ? nonBoard : `${nonBoardPct}%`}
             </div>
 
-            {/* Bubble 3: Soft mauve/info bubble */}
-            <div className="absolute top-1 right-3 flex size-12 items-center justify-center rounded-full bg-info font-display text-xs font-black text-info-foreground shadow-sm shadow-info/25">
-              {retakes || 1}
-            </div>
-
-            {/* Bubble 4: Conventional olive bubble */}
-            <div className="absolute bottom-3 left-3 flex size-10 items-center justify-center rounded-full bg-[#8e9a73] font-display text-[11px] font-bold text-white shadow-sm">
-              {completed}
+            {/* Bubble 3: Soft mauve/info bubble (Retakes) */}
+            <div className="absolute top-1 right-2 flex size-13 items-center justify-center rounded-full bg-info font-display text-xs font-black text-info-foreground shadow-sm shadow-info/25">
+              {viewMode === "summary" ? retakes : `${retakePct}%`}
             </div>
           </div>
         </div>
@@ -74,7 +102,9 @@ export function ReportCohortBubbleCard({
                 <span className="size-2 rounded-full bg-primary" />
                 Board-eligible group
               </span>
-              <span className="text-foreground tabular-nums">{board}</span>
+              <span className="text-foreground tabular-nums">
+                {viewMode === "summary" ? board : `${boardPct}% (${board})`}
+              </span>
             </div>
             <div className="h-1.5 w-full overflow-hidden rounded-full bg-secondary">
               <div
@@ -90,7 +120,9 @@ export function ReportCohortBubbleCard({
                 <span className="size-2 rounded-full bg-warning" />
                 Non-board group
               </span>
-              <span className="text-foreground tabular-nums">{nonBoard}</span>
+              <span className="text-foreground tabular-nums">
+                {viewMode === "summary" ? nonBoard : `${nonBoardPct}% (${nonBoard})`}
+              </span>
             </div>
             <div className="h-1.5 w-full overflow-hidden rounded-full bg-secondary">
               <div
@@ -106,7 +138,9 @@ export function ReportCohortBubbleCard({
                 <span className="size-2 rounded-full bg-info" />
                 Retake sessions
               </span>
-              <span className="text-foreground tabular-nums">{retakes}</span>
+              <span className="text-foreground tabular-nums">
+                {viewMode === "summary" ? retakes : `${retakePct}% (${retakes})`}
+              </span>
             </div>
             <div className="h-1.5 w-full overflow-hidden rounded-full bg-secondary">
               <div

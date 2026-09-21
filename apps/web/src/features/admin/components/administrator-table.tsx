@@ -13,30 +13,20 @@ import {
   AccessBadges,
   StatusBadge,
 } from '@/features/admin/components/administrator-table-parts'
-import {
-  getAvatarColor,
-  getInitials,
-} from '@/features/admin/data/administrator-helpers'
+import { getAvatarColor } from '@/features/admin/data/administrator-helpers'
 import { formatDate } from '@/features/admin/data/admin-formatters'
 import type { ManagedAdministrator } from '@/features/admin/data/admin-api'
+import { WorkspaceAvatar } from '@/components/shared/workspace-avatar'
 
 interface AdministratorsTableProps {
   administrators: ManagedAdministrator[]
-  allSelected: boolean
-  selectedIds: number[]
   currentUserId?: number
-  onToggleSelectAll: () => void
-  onToggleSelect: (id: number) => void
   onAction: (action: AccountAction) => void
 }
 
 export function AdministratorsTable({
   administrators,
-  allSelected,
-  selectedIds,
   currentUserId,
-  onToggleSelectAll,
-  onToggleSelect,
   onAction,
 }: AdministratorsTableProps) {
   return (
@@ -45,15 +35,6 @@ export function AdministratorsTable({
         <table className="w-full text-left text-sm">
           <thead className="border-b border-border/70 bg-muted/40 text-xs font-medium text-muted-foreground">
             <tr>
-              <th scope="col" className="w-12 px-4 py-3">
-                <input
-                  type="checkbox"
-                  checked={allSelected}
-                  onChange={onToggleSelectAll}
-                  aria-label="Select all administrators"
-                  className="size-4 cursor-pointer rounded border-border text-primary focus:ring-primary"
-                />
-              </th>
               <th scope="col" className="px-4 py-3 font-semibold">
                 User name
               </th>
@@ -78,7 +59,7 @@ export function AdministratorsTable({
             {administrators.length === 0 ? (
               <tr>
                 <td
-                  colSpan={7}
+                  colSpan={6}
                   className="px-4 py-12 text-center text-xs text-muted-foreground"
                 >
                   No administrators found matching your criteria.
@@ -87,31 +68,21 @@ export function AdministratorsTable({
             ) : (
               administrators.map((administrator) => {
                 const isSelf = administrator.id === currentUserId
-                const isSelected = selectedIds.includes(administrator.id)
-                const initials = getInitials(administrator.name)
                 const avatarColor = getAvatarColor(administrator.name)
 
                 return (
                   <tr
                     key={administrator.id}
-                    className={`transition-colors hover:bg-muted/20 ${isSelected ? 'bg-muted/30' : ''}`}
+                    className="transition-colors hover:bg-muted/20"
                   >
                     <td className="px-4 py-3.5">
-                      <input
-                        type="checkbox"
-                        checked={isSelected}
-                        onChange={() => onToggleSelect(administrator.id)}
-                        aria-label={`Select ${administrator.name}`}
-                        className="size-4 cursor-pointer rounded border-border text-primary focus:ring-primary"
-                      />
-                    </td>
-                    <td className="px-4 py-3.5">
                       <div className="flex items-center gap-3 min-w-0">
-                        <div
-                          className={`flex size-10 shrink-0 items-center justify-center rounded-full text-xs font-bold border ${avatarColor}`}
-                        >
-                          {initials}
-                        </div>
+                        <WorkspaceAvatar
+                          photoUrl={administrator.photoUrl}
+                          name={administrator.name}
+                          className="size-10 shrink-0"
+                          fallbackClassName={`flex size-10 shrink-0 items-center justify-center rounded-full text-xs font-bold border ${avatarColor}`}
+                        />
                         <div className="min-w-0">
                           <p className="truncate text-sm font-semibold text-foreground">
                             {administrator.name}
@@ -208,4 +179,3 @@ function AdministratorRowMenu({
     </DropdownMenu>
   )
 }
-

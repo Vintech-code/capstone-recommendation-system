@@ -10,9 +10,11 @@ import {
 import { AdminProgrammesPage } from "@/features/admin/components/admin-programmes-page";
 import { AdminStudentDetailPage } from "@/features/admin/components/admin-student-detail-page";
 import { AdminAdministratorsPage } from "@/features/admin/components/admin-administrators-page";
+import { AdminProfilePage } from "@/features/admin/components/admin-profile-page";
 import { useAuth } from "@/features/auth/auth-context";
 import { ProtectedRoute } from "@/features/auth/components/protected-route";
 import { WorkspacePreview } from "@/features/auth/components/workspace-preview";
+import { AdminThemeProvider } from "@/features/admin/theme/admin-theme-context";
 
 const sections = [
   "students",
@@ -20,6 +22,7 @@ const sections = [
   "reports",
   "activity",
   "administrators",
+  "profile",
 ] as const;
 type AdminSection = (typeof sections)[number];
 
@@ -51,7 +54,8 @@ function AdminWorkspaceRoute() {
 
   return (
     <ProtectedRoute role="admin">
-      <WorkspacePreview
+      <AdminThemeProvider>
+        <WorkspacePreview
         role="admin"
         activeModuleId={activeModuleId}
         pageLabel={recordId}
@@ -62,7 +66,8 @@ function AdminWorkspaceRoute() {
         onExit={() => void signOut().finally(() => navigate("/admin/login"))}
       >
         {content}
-      </WorkspacePreview>
+        </WorkspacePreview>
+      </AdminThemeProvider>
     </ProtectedRoute>
   );
 }
@@ -83,6 +88,7 @@ function resolveContent(
   if (activeId === "reports") return <AdminReportsPage />;
   if (activeId === "activity") return <AdminActivityPage />;
   if (activeId === "administrators") return <AdminAdministratorsPage />;
+  if (activeId === "profile") return <AdminProfilePage />;
   return <AdminDashboardPage onNavigate={navigate} />;
 }
 

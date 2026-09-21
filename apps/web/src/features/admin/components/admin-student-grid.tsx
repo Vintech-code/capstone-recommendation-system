@@ -81,7 +81,7 @@ function toGridRow(student: AdminStudent) {
 function renderStudentIdentity(student: AdminStudent) {
   const name = escapeHtml(student.name);
   const avatar = student.photoUrl
-    ? `<img src="${escapeHtml(student.photoUrl)}" alt="${name}" class="admin-grid-avatar" />`
+    ? `<img src="${escapeHtml(student.photoUrl)}" alt="${name}" referrerpolicy="no-referrer" class="admin-grid-avatar" />`
     : `<span class="admin-grid-initials">${escapeHtml(getInitials(student.name))}</span>`;
   return `<div class="admin-grid-student">${avatar}<span class="admin-grid-student-copy"><strong>${name}</strong><span>${escapeHtml(student.email)}</span></span></div>`;
 }

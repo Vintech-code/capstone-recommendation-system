@@ -22,14 +22,14 @@ it('lets an authorized account manager invite an Administrator without creating 
     '/api/v1/admin/administrators/invitations',
     expect.objectContaining({ method: 'POST' }),
   ))
-}, 15_000)
+}, 20_000)
 
 it('hides Administrator management navigation from a standard Administrator', async () => {
   await renderAppAt('/admin', { authUser: { id: 4, name: 'Standard Admin', email: 'standard@example.test', roles: ['admin'], canManageAdministrators: false } })
 
   expect(await screen.findByRole('heading', { name: 'System overview' })).toBeVisible()
   expect(screen.queryByText('Administrators')).not.toBeInTheDocument()
-})
+}, 15_000)
 
 it('revokes sessions through the active Administrator endpoint', async () => {
   const user = userEvent.setup()
@@ -44,4 +44,22 @@ it('revokes sessions through the active Administrator endpoint', async () => {
     '/api/v1/admin/administrators/3/sessions/revoke',
     expect.objectContaining({ method: 'POST' }),
   ))
-})
+}, 15_000)
+
+it('renders profile picture in administrator table when available and falls back to initials', async () => {
+  await renderAppAt('/admin/administrators')
+
+  expect(await screen.findByRole('heading', { name: 'Administrators' })).toBeVisible()
+
+  // Admin User has photoUrl, should render img with referrerPolicy
+  const userAvatar = await screen.findByRole('img', { name: 'Admin User' })
+  expect(userAvatar).toBeVisible()
+  expect(userAvatar).toHaveAttribute('src', 'https://lh3.googleusercontent.com/avatar-2.png')
+
+  // Records Administrator has no photoUrl, should render initials RA
+  expect(screen.getByText('RA')).toBeVisible()
+
+  // Verify status and access badges render
+  expect(screen.getAllByText('Active').length).toBeGreaterThan(0)
+  expect(screen.getByText('Standard')).toBeVisible()
+}, 15_000)

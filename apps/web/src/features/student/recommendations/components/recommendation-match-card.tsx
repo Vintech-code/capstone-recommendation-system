@@ -32,10 +32,7 @@ function RecommendationMatchCard({
   return (
     <article
       className={cn(
-        "group relative overflow-hidden bg-card transition-shadow",
-        highlightStyle
-          ? "rounded-3xl border border-border shadow-sm"
-          : "border-b border-border",
+        "group relative overflow-hidden rounded-3xl border border-border bg-card shadow-sm transition-shadow",
       )}
     >
       {highlightStyle ? (

@@ -5,6 +5,7 @@ import {
   FileText,
   History,
   LibraryBig,
+  Settings,
   ShieldCheck,
   Target,
   UserRound,
@@ -33,7 +34,7 @@ interface DashboardDefinition {
 
 const dashboards: Record<AccessRole, DashboardDefinition> = {
   student: {
-    title: 'Pathways',
+    title: 'TCC Course Guide',
     subtitle: 'Your interest assessment and TCC course-guidance workspace.',
     workflowTitle: 'Student flow',
     workflow: [
@@ -126,6 +127,12 @@ const dashboards: Record<AccessRole, DashboardDefinition> = {
         title: 'Administrators',
         description: 'Invite individual accounts and govern Administrator access.',
         icon: ShieldCheck,
+      },
+      {
+        id: 'profile',
+        title: 'Profile settings',
+        description: 'Manage your administrator profile picture and account password.',
+        icon: Settings,
       },
     ],
   },

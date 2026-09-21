@@ -59,7 +59,7 @@ test('public landing is compact, responsive, and uses transition-only motion', a
   await expect(page.getByRole('link', { name: 'Student sign in' })).toHaveCount(0)
   await expect(page.getByText('Guidance principles')).toBeVisible()
   await expect(page.getByText('Access Portals')).toHaveCount(0)
-  await expect(page.getByText(/Pathways Capstone Project/i)).toHaveCount(0)
+  await expect(page.getByText(/Capstone Project/i)).toHaveCount(0)
   await expect(page.getByText(/Exclusively built for TCC applicants/i)).toHaveCount(0)
   await expect(page.getByTestId('footer-logo-watermark')).toBeVisible()
 

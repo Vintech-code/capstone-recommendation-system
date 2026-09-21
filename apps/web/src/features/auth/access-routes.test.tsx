@@ -175,6 +175,30 @@ describe("access portals and workspace shell", () => {
     expect(screen.queryByText("Official results")).not.toBeInTheDocument();
     expect(screen.queryByRole("contentinfo")).not.toBeInTheDocument();
 
+    expect(
+      screen.queryByRole("searchbox", { name: "Search modules" }),
+    ).not.toBeInTheDocument();
+    await user.click(
+      screen.getByRole("button", { name: "Open workspace search" }),
+    );
+    const workspaceActions = screen.getByLabelText("Workspace actions");
+    expect(
+      within(workspaceActions).getByRole("searchbox", {
+        name: "Search modules",
+      }),
+    ).toBeVisible();
+    expect(
+      within(workspaceActions).getByRole("button", {
+        name: /Open administrator notifications/i,
+      }),
+    ).toBeVisible();
+    await user.click(
+      screen.getByRole("button", { name: "Close workspace search" }),
+    );
+    expect(
+      screen.queryByRole("searchbox", { name: "Search modules" }),
+    ).not.toBeInTheDocument();
+
     const navigationToggle = screen.getByRole("button", {
       name: "Collapse workspace navigation",
     });

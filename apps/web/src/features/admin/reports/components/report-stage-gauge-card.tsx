@@ -6,6 +6,14 @@ import {
   Users,
   type LucideIcon,
 } from "lucide-react";
+import { useState } from "react";
+
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface LifecycleStageItem {
   label: string;
@@ -26,12 +34,20 @@ export function ReportStageGaugeCard({
   completedCount,
   stages,
 }: ReportStageGaugeCardProps) {
+  const [stageFilter, setStageFilter] = useState<"all" | "active" | "completed">("all");
+
   const outerRatio = Math.min(1, Math.max(0.08, completionRate / 100));
   const midRatio = Math.min(1, Math.max(0.12, (completionRate * 0.75) / 100));
   const innerRatio = Math.min(1, Math.max(0.16, (completionRate * 0.5) / 100));
 
+  const displayedStages = stages.filter((stage) => {
+    if (stageFilter === "all") return true;
+    if (stageFilter === "completed") return stage.label === "Results available";
+    return stage.label !== "Results available";
+  });
+
   return (
-    <div className="rounded-3xl border border-border/80 bg-card p-6 shadow-xs sm:p-7">
+    <div className="rounded-xl border border-border/80 bg-card p-6 shadow-xs sm:p-7">
       <div className="flex items-center justify-between gap-3 border-b border-border/60 pb-4">
         <div>
           <h2 className="font-display text-lg font-extrabold text-foreground sm:text-xl">
@@ -41,10 +57,44 @@ export function ReportStageGaugeCard({
             Distribution across assessment stages
           </p>
         </div>
-        <span className="flex items-center gap-1 rounded-full border border-border/80 bg-secondary/70 px-3 py-1 text-xs font-bold text-foreground">
-          <span>Active</span>
-          <ChevronDown className="size-3 text-muted-foreground" />
-        </span>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              type="button"
+              className="flex cursor-pointer items-center gap-1 rounded-full border border-border/80 bg-secondary/70 px-3 py-1 text-xs font-bold text-foreground transition-colors hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+            >
+              <span>
+                {stageFilter === "all"
+                  ? "All stages"
+                  : stageFilter === "active"
+                    ? "Active stages"
+                    : "Completed"}
+              </span>
+              <ChevronDown className="size-3 text-muted-foreground" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-40">
+            <DropdownMenuItem
+              onClick={() => setStageFilter("all")}
+              className="cursor-pointer text-xs font-bold"
+            >
+              All stages
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => setStageFilter("active")}
+              className="cursor-pointer text-xs font-bold"
+            >
+              Active stages
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => setStageFilter("completed")}
+              className="cursor-pointer text-xs font-bold"
+            >
+              Completed
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {/* Radial Gauge Arc using System Colors */}
@@ -123,16 +173,16 @@ export function ReportStageGaugeCard({
             />
           </svg>
 
-          {/* Center Statistic */}
+          {/* Center Statistic Display */}
           <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-            <strong className="font-display text-2xl font-black text-foreground sm:text-3xl">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+              Rate
+            </span>
+            <strong className="font-display text-2xl font-black tracking-tight text-foreground sm:text-3xl">
               {completionRate}%
             </strong>
             <span className="text-[11px] font-bold text-muted-foreground">
               {completedCount} Completed
-            </span>
-            <span className="mt-1 rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-black text-primary-ink">
-              +5.34%
             </span>
           </div>
         </div>
@@ -140,7 +190,7 @@ export function ReportStageGaugeCard({
 
       {/* Stage Categories Breakdown List */}
       <div className="space-y-3 divide-y divide-border/50 pt-2">
-        {stages.map((stage) => {
+        {displayedStages.map((stage) => {
           const Icon = stage.icon;
           return (
             <div
@@ -162,15 +212,6 @@ export function ReportStageGaugeCard({
               <div className="flex items-center gap-3">
                 <span className="font-display text-sm font-black tabular-nums text-foreground">
                   {stage.value}
-                </span>
-                <span
-                  className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${
-                    stage.change.startsWith("+")
-                      ? "bg-primary/15 text-primary-ink"
-                      : "bg-destructive/15 text-destructive-ink"
-                  }`}
-                >
-                  {stage.change}
                 </span>
               </div>
             </div>

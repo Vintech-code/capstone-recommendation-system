@@ -131,6 +131,21 @@ async function changePassword(fields: { currentPassword: string; password: strin
   })
 }
 
+async function uploadAdminProfilePhoto(file: File) {
+  const body = new FormData()
+  body.append('photo', file)
+  return request<{ data: { photoUrl: string } }>('/api/v1/admin/profile/photo', {
+    method: 'POST',
+    body,
+  })
+}
+
+async function removeAdminProfilePhoto() {
+  return request<{ data: { photoUrl: string | null } }>('/api/v1/admin/profile/photo', {
+    method: 'DELETE',
+  })
+}
+
 interface AdministratorInvitationPreview {
   name: string
   maskedEmail: string
@@ -168,6 +183,8 @@ export {
   requestPasswordReset,
   resetPassword,
   changePassword,
+  uploadAdminProfilePhoto,
+  removeAdminProfilePhoto,
   getAdministratorInvitation,
 }
 export type { AdministratorInvitationPreview, AuthUser, SignInCredentials, StudentRegistrationFields }

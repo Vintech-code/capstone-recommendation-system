@@ -81,8 +81,12 @@ function ApplicationStatePage({
         {kind === "not-found" ? (
           <Suspense
             fallback={
-              <div className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-primary/8 text-primary-ink">
-                <content.icon aria-hidden="true" className="size-6" />
+              <div
+                aria-hidden="true"
+                className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-primary/8 text-primary-ink"
+                data-testid="not-found-animation"
+              >
+                <content.icon className="size-6" />
               </div>
             }
           >

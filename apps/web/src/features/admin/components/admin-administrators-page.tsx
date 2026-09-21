@@ -51,7 +51,6 @@ function AdminAdministratorsPage() {
   const [filterRole, setFilterRole] = useState<
     "all" | "managers" | "active" | "suspended"
   >("all");
-  const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [page, setPage] = useState(1);
 
   const administrators = useMemo(
@@ -98,24 +97,6 @@ function AdminAdministratorsPage() {
     const start = (page - 1) * PAGE_SIZE;
     return filteredAdministrators.slice(start, start + PAGE_SIZE);
   }, [filteredAdministrators, page]);
-
-  const allSelected =
-    paginatedAdministrators.length > 0 &&
-    paginatedAdministrators.every((admin) => selectedIds.includes(admin.id));
-
-  function toggleSelectAll() {
-    if (allSelected) {
-      setSelectedIds([]);
-    } else {
-      setSelectedIds(paginatedAdministrators.map((admin) => admin.id));
-    }
-  }
-
-  function toggleSelect(id: number) {
-    setSelectedIds((prev) =>
-      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
-    );
-  }
 
   if (loading && !data) return <AdminPageSkeleton />;
   if (error || !data) {
@@ -269,11 +250,7 @@ function AdminAdministratorsPage() {
       {activeTab === "administrators" ? (
         <AdministratorsTable
           administrators={paginatedAdministrators}
-          allSelected={allSelected}
-          selectedIds={selectedIds}
           currentUserId={user?.id}
-          onToggleSelectAll={toggleSelectAll}
-          onToggleSelect={toggleSelect}
           onAction={setAction}
         />
       ) : (

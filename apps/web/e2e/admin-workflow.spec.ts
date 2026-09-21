@@ -178,7 +178,7 @@ test('Admin workspace is responsive, accessible, and navigable', async ({ page }
   }
   await expect(page.getByRole('heading', { name: 'Ana Santos', exact: true })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Psychometric dimension matrix' })).toBeVisible()
-  await expect(page.getByRole('heading', { name: 'Academic programme pathways' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Academic programme recommendations' })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Assessment history and evidence' })).toHaveCount(0)
   await expect(page.getByRole('heading', { name: 'Assessment context' })).toHaveCount(0)
   await expect(page.getByTestId('student-resume-card')).toHaveCount(1)
@@ -241,7 +241,7 @@ test('Admin Student detail follows the evidence dossier layout', async ({ page }
 
   await expect(page.getByRole('heading', { name: 'Ana Santos', exact: true })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Psychometric dimension matrix' })).toBeVisible()
-  await expect(page.getByRole('heading', { name: 'Academic programme pathways' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Academic programme recommendations' })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Assessment history and evidence' })).toHaveCount(0)
   await expect(page.getByRole('heading', { name: 'Assessment context' })).toHaveCount(0)
   await expect(page.getByTestId('student-resume-card')).toHaveCount(1)

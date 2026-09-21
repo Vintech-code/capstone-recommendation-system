@@ -11,7 +11,7 @@ import {
   type AdministratorInvitationPreview,
 } from '@/features/auth/auth-api'
 import { PASSWORD_MIN_LENGTH, PASSWORD_POLICY_MESSAGE, passwordMeetsPolicy } from '@/features/auth/password-policy'
-import { AuthRecoveryFrame } from '@/features/auth/password-recovery-page'
+import { AuthRecoveryFrame } from '@/features/auth/components/auth-recovery-frame'
 
 function AdministratorSetupPage() {
   const [token] = useState(() => new URLSearchParams(window.location.hash.slice(1)).get('token') ?? '')

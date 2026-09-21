@@ -1,7 +1,8 @@
-import { AlertCircle, Loader2, RotateCcw } from "lucide-react";
+import { AlertCircle, RotateCcw } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 
 function AdminPageHeader({
   eyebrow,
@@ -48,17 +49,54 @@ function AdminPageSkeleton() {
   return (
     <div
       role="status"
-      aria-label="Loading guidance workspace"
-      className="flex min-h-[360px] flex-col items-center justify-center py-16 text-center"
+      aria-label="Loading workspace"
+      className="space-y-6 animate-pulse"
     >
-      <Loader2
-        className="size-8 animate-spin text-primary"
-        aria-hidden="true"
-      />
-      <p className="mt-3 font-display text-sm font-semibold text-foreground">
-        Loading workspace...
-      </p>
-      <span className="sr-only">Loading guidance workspace</span>
+      {/* Header skeleton */}
+      <div className="space-y-2">
+        <Skeleton className="h-4 w-28 rounded-full" />
+        <Skeleton className="h-8 w-64 rounded-lg" />
+        <Skeleton className="h-4 w-96 max-w-full rounded-md" />
+      </div>
+
+      {/* Metric / Stat cards grid skeleton */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div
+            key={i}
+            className="rounded-xl border border-border/70 bg-card p-5 space-y-3"
+          >
+            <div className="flex items-center justify-between">
+              <Skeleton className="h-3 w-20 rounded-md" />
+              <Skeleton className="size-7 rounded-lg" />
+            </div>
+            <Skeleton className="h-7 w-24 rounded-md" />
+            <Skeleton className="h-2.5 w-32 rounded-md" />
+          </div>
+        ))}
+      </div>
+
+      {/* Content panel / table skeleton */}
+      <div className="rounded-xl border border-border/70 bg-card p-6 space-y-4">
+        <div className="flex items-center justify-between pb-3 border-b border-border/60">
+          <Skeleton className="h-5 w-44 rounded-md" />
+          <Skeleton className="h-9 w-28 rounded-md" />
+        </div>
+        <div className="space-y-3">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="flex items-center gap-4 py-2">
+              <Skeleton className="size-9 shrink-0 rounded-full" />
+              <div className="flex-1 space-y-1.5">
+                <Skeleton className="h-4 w-1/3 rounded-md" />
+                <Skeleton className="h-3 w-1/4 rounded-md" />
+              </div>
+              <Skeleton className="h-6 w-20 rounded-full" />
+              <Skeleton className="h-8 w-16 rounded-md" />
+            </div>
+          ))}
+        </div>
+      </div>
+      <span className="sr-only">Loading workspace</span>
     </div>
   );
 }

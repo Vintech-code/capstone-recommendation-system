@@ -1,4 +1,4 @@
-interface PathwaysNotification {
+interface ApplicationNotification {
   id: string
   eventType: string
   title: string
@@ -8,7 +8,7 @@ interface PathwaysNotification {
   createdAt: string
 }
 
-async function getNotifications(signal?: AbortSignal): Promise<PathwaysNotification[]> {
+async function getNotifications(signal?: AbortSignal): Promise<ApplicationNotification[]> {
   return apiDataRequest('/api/v1/notifications', { signal }, {
     fallbackMessage: 'Notifications could not be loaded.',
   })
@@ -23,5 +23,5 @@ async function markNotificationRead(notificationId: string): Promise<{ id: strin
 }
 
 export { getNotifications, markNotificationRead }
-export type { PathwaysNotification }
+export type { ApplicationNotification }
 import { apiDataRequest } from '@/services/api-client'

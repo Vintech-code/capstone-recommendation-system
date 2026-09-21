@@ -16,5 +16,5 @@ it('omits the removed history section while retaining the student result', async
   expect(screen.getByText('LRN: 128490000011')).toBeVisible()
   expect(screen.getByText('Tagoloan National High School')).toBeVisible()
   expect(screen.queryByText(/GWA/i)).not.toBeInTheDocument()
-  expect(screen.getByRole('heading', { name: 'Academic programme pathways' })).toBeVisible()
+  expect(screen.getByRole('heading', { name: 'Academic programme recommendations' })).toBeVisible()
 })

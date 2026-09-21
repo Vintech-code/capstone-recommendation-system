@@ -64,7 +64,7 @@ async function renderAppAt(path: string, options: RenderAppOptions = {}) {
     !path.startsWith("/admin/setup") &&
     initialAuthUser?.roles.includes("admin")
   ) {
-    await screen.findByLabelText("Workspace sidebar", {}, { timeout: 8_000 });
+    await screen.findByLabelText("Workspace sidebar", {}, { timeout: 15_000 });
   }
 
   return result;

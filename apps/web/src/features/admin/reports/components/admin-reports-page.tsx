@@ -12,12 +12,12 @@ import {
 import { useState, type ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   AdminPageError,
   AdminPageHeader,
   AdminPageSkeleton,
 } from "@/features/admin/components/admin-shared";
+import { AdminDateRangePicker } from "@/features/admin/components/admin-date-range-picker";
 import { formatDate } from "@/features/admin/data/admin-formatters";
 import {
   useAdminResource,
@@ -139,9 +139,9 @@ export function AdminReportsPage() {
           {/* 4 KPI Cards (2x2 grid) */}
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
             {/* Card 1: Top Left - Solid Vibrant Featured Card in System Primary Green */}
-            <div className="relative overflow-hidden rounded-3xl bg-primary p-6 text-primary-foreground shadow-md shadow-primary/20 transition-all hover:shadow-lg">
+            <div className="relative overflow-hidden rounded-xl bg-primary p-6 text-primary-foreground shadow-md shadow-primary/20 transition-all hover:shadow-lg">
               <div className="flex items-center justify-between">
-                <div className="flex size-12 items-center justify-center rounded-2xl bg-primary-foreground/15 backdrop-blur-md">
+                <div className="flex size-12 items-center justify-center rounded-xl bg-primary-foreground/15 backdrop-blur-md">
                   <Users className="size-6 text-primary-foreground" />
                 </div>
                 <span className="flex items-center gap-1 rounded-full bg-primary-foreground/15 px-3 py-1 text-xs font-extrabold text-primary-foreground backdrop-blur-md">
@@ -222,7 +222,6 @@ export function AdminReportsPage() {
             totalAttempts={
               data.retakeMetrics?.totalAssessmentAttempts ?? startedTotal
             }
-            completed={data.completedAssessments}
             saveToRunRatio={saveToRunRatio}
           />
         </div>
@@ -254,10 +253,10 @@ function KpiMetricCard({
   detail: string;
 }) {
   return (
-    <div className="rounded-3xl border border-border/80 bg-card p-6 shadow-xs transition-all hover:shadow-sm">
+    <div className="rounded-xl border border-border/80 bg-card p-6 shadow-xs transition-all hover:shadow-sm">
       <div className="flex items-center justify-between">
         <div
-          className={`flex size-12 items-center justify-center rounded-2xl ${iconBg}`}
+          className={`flex size-12 items-center justify-center rounded-xl ${iconBg}`}
         >
           {icon}
         </div>
@@ -301,7 +300,7 @@ function ReportFilterBar({
   onClear: () => void;
 }) {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border/80 bg-card p-3.5 shadow-2xs">
+    <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border/80 bg-card p-3.5 shadow-2xs">
       <form
         className="flex flex-wrap items-center gap-3"
         onSubmit={(event) => {
@@ -309,25 +308,14 @@ function ReportFilterBar({
           if (!invalid) onApply();
         }}
       >
-        <div className="flex flex-wrap items-center gap-2 text-xs font-bold text-muted-foreground">
-          <span>From:</span>
-          <Input
-            className="h-8 w-36 rounded-lg bg-background text-xs"
-            type="date"
-            value={from}
-            onChange={(event) => onFromChange(event.target.value)}
-          />
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2 text-xs font-bold text-muted-foreground">
-          <span>To:</span>
-          <Input
-            className="h-8 w-36 rounded-lg bg-background text-xs"
-            type="date"
-            value={to}
-            onChange={(event) => onToChange(event.target.value)}
-          />
-        </div>
+        <AdminDateRangePicker
+          from={from}
+          to={to}
+          onChange={({ from: nextFrom, to: nextTo }) => {
+            onFromChange(nextFrom);
+            onToChange(nextTo);
+          }}
+        />
 
         <Button
           type="submit"

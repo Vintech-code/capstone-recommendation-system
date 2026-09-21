@@ -21,7 +21,9 @@ describe("Administration workspace", () => {
     expect(
       screen.getByRole("heading", { name: "Recent Students" }),
     ).toBeVisible();
-    expect(screen.getByTestId("admin-operational-strip")).toHaveClass("bg-card");
+    expect(screen.getByTestId("admin-operational-strip")).toHaveClass(
+      "bg-card",
+    );
     expect(screen.getByTestId("admin-operational-strip")).toHaveClass(
       "bg-card",
     );
@@ -62,7 +64,9 @@ describe("Administration workspace", () => {
       screen.getByRole("heading", { name: "Psychometric dimension matrix" }),
     ).toBeVisible();
     expect(
-      screen.getByRole("heading", { name: "Academic programme pathways" }),
+      screen.getByRole("heading", {
+        name: "Academic programme recommendations",
+      }),
     ).toBeVisible();
     expect(screen.getByTestId("student-resume-card")).toBeVisible();
     expect(screen.getByText("LRN: 128490000011")).toBeVisible();
@@ -134,6 +138,7 @@ describe("Administration workspace", () => {
     expect(
       screen.getByRole("img", { name: /Board eligible: 1/ }),
     ).toBeVisible();
+    expect(screen.getByRole("button", { name: "Date range" })).toBeVisible();
     expect(screen.getByText("Saves per 100 recommendation runs")).toBeVisible();
   });
 
@@ -146,6 +151,7 @@ describe("Administration workspace", () => {
     expect(screen.getByText("Configuration Published")).toBeVisible();
     expect(screen.queryByText(/catalogue-v2/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/Before Status/i)).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Date range" })).toBeVisible();
   });
 
   it("combines students and assessments in one searchable ledger", async () => {
@@ -165,9 +171,12 @@ describe("Administration workspace", () => {
     await user.click(screen.getByRole("button", { name: "Search" }));
     await waitFor(() => {
       expect(
-        within(screen.getByTestId("admin-student-grid")).getAllByRole("button", {
-          name: "Open",
-        }).length,
+        within(screen.getByTestId("admin-student-grid")).getAllByRole(
+          "button",
+          {
+            name: "Open",
+          },
+        ).length,
       ).toBeGreaterThan(0);
     });
   });

@@ -3,6 +3,7 @@ import { useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { AdminDateRangePicker } from "@/features/admin/components/admin-date-range-picker";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -135,11 +136,18 @@ function AdminStudentsPage({ onNavigate }: NavigateProps) {
                       />
                     ) : (
                       <span className="flex size-10 items-center justify-center rounded-full bg-primary/10 font-bold text-xs text-primary-ink shrink-0">
-                        {student.name.split(" ").map((n) => n[0]).slice(0, 2).join("").toUpperCase()}
+                        {student.name
+                          .split(" ")
+                          .map((n) => n[0])
+                          .slice(0, 2)
+                          .join("")
+                          .toUpperCase()}
                       </span>
                     )}
                     <div>
-                      <strong className="block text-base">{student.name}</strong>
+                      <strong className="block text-base">
+                        {student.name}
+                      </strong>
                       <span className="font-label text-xs text-muted-foreground">
                         {student.email}
                       </span>
@@ -239,7 +247,6 @@ const sortOptions: Array<[string, string]> = [
 ];
 import { AdminStudentDetailPage } from "@/features/admin/components/admin-student-detail-page";
 
-
 // AdminReportsPage is implemented in the dedicated reports module.
 // Re-exported at the bottom of this file from '@/features/admin/reports/components/admin-reports-page'.
 
@@ -301,21 +308,12 @@ function AdminActivityPage() {
             ),
           ]}
         />
-        <Input
-          aria-label="Activity from date"
-          type="date"
-          value={from}
-          onChange={(event) => {
-            setFrom(event.target.value);
-            setPage(1);
-          }}
-        />
-        <Input
-          aria-label="Activity to date"
-          type="date"
-          value={to}
-          onChange={(event) => {
-            setTo(event.target.value);
+        <AdminDateRangePicker
+          from={from}
+          to={to}
+          onChange={({ from: nextFrom, to: nextTo }) => {
+            setFrom(nextFrom);
+            setTo(nextTo);
             setPage(1);
           }}
         />
@@ -336,7 +334,7 @@ function AdminActivityPage() {
             {data.items.map((event) => (
               <li
                 key={event.id}
-              className="relative grid gap-2 border-b border-border py-4 pl-12 sm:grid-cols-[minmax(0,1fr)_auto]"
+                className="relative grid gap-2 border-b border-border py-4 pl-12 sm:grid-cols-[minmax(0,1fr)_auto]"
               >
                 <span className="absolute left-0 top-4 z-10 flex size-9 items-center justify-center rounded-full border border-border bg-background">
                   <History className="size-4" />

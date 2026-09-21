@@ -34,7 +34,7 @@ describe("Student recommendation results", () => {
     ).toBeVisible();
     const resultHeading = screen.getByRole("heading", {
       level: 1,
-      name: "Investigative, Conventional, and Social",
+      name: "Helpful Investigator",
     });
     expect(resultHeading).toBeVisible();
     expect(resultHeading).toHaveClass("font-display", "font-black");
@@ -42,7 +42,7 @@ describe("Student recommendation results", () => {
       screen.queryByRole("img", { name: /RIASEC profile/i }),
     ).not.toBeInTheDocument();
     const resultSummary = screen.getByText(
-      /three leading recorded areas are investigative, conventional, and social/i,
+      /you value careful inquiry and problem-solving/i,
     );
     expect(resultSummary).toBeVisible();
     expect(resultSummary).toHaveClass("text-base", "font-medium");
@@ -112,6 +112,32 @@ describe("Student recommendation results", () => {
     expect(screen.queryByText(/logical reasoning/i)).not.toBeInTheDocument();
   });
 
+  it("shows the approved two-word name and two-sentence copy for a mapped profile", () => {
+    render(
+      <StudentRecommendationResultsPage
+        onBack={vi.fn()}
+        initialAssessment={testAssessmentLifecycle}
+        initialSnapshot={{
+          ...testRecommendationSnapshot,
+          profile: {
+            ...testRecommendationSnapshot.profile!,
+            topCode: "I-R-C",
+            topLabels: ["Investigative", "Realistic", "Conventional"],
+          },
+        }}
+      />,
+    );
+
+    expect(
+      screen.getByRole("heading", { level: 1, name: "Systems Solver" }),
+    ).toBeVisible();
+    expect(
+      screen.getByText(
+        "You enjoy understanding how systems work and fixing problems through logical, hands-on action. You often thrive with technology, structured processes, and tasks that reward accuracy and persistence.",
+      ),
+    ).toBeVisible();
+  });
+
   it("explains the self-declared entrance group used before interest matching", () => {
     render(
       <StudentRecommendationResultsPage
@@ -167,7 +193,7 @@ describe("Student recommendation results", () => {
     ).toHaveClass("rounded-3xl");
   });
 
-  it("steps down the colored field across the top three and leaves later ranks plain", () => {
+  it("steps down the colored field across the top three while keeping all ranked cards consistently rounded", () => {
     const courses = Array.from({ length: 4 }, (_, index) => ({
       ...testRecommendationSnapshot.courses[0],
       id: `course-${index + 1}`,
@@ -197,7 +223,29 @@ describe("Student recommendation results", () => {
     ).not.toBeInTheDocument();
     expect(
       screen.getByRole("heading", { name: "Course 4" }).closest("article"),
-    ).not.toHaveClass("rounded-3xl");
+    ).toHaveClass("rounded-3xl");
+  });
+
+  it("places share result at the bottom of the page below all ranked matches", () => {
+    render(
+      <StudentRecommendationResultsPage
+        onBack={vi.fn()}
+        initialAssessment={testAssessmentLifecycle}
+        initialSnapshot={testRecommendationSnapshot}
+      />,
+    );
+
+    const shareButton = screen.getByRole("button", { name: "Share result" });
+    const rankedMatchesHeading = screen.getByRole("heading", {
+      name: "All ranked matches",
+    });
+
+    expect(shareButton.closest("section")).toBeNull();
+    expect(
+      rankedMatchesHeading.compareDocumentPosition(shareButton) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(shareButton.textContent).toContain("Share result");
   });
 
   it("shows equal scores as shared ranks without inventing a score difference", () => {

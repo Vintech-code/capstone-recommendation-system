@@ -81,6 +81,11 @@ function AuthProvider({ children, initialUser }: AuthProviderProps) {
     }
   }, [])
 
+  const refreshSession = useCallback(() => {
+    sessionRequest.current = null
+    setSessionAttempt((attempt) => attempt + 1)
+  }, [])
+
   const value = useMemo<AuthContextValue>(
     () => ({
       user,
@@ -92,8 +97,9 @@ function AuthProvider({ children, initialUser }: AuthProviderProps) {
         setStatus('loading')
         setSessionAttempt((attempt) => attempt + 1)
       },
+      refreshSession,
     }),
-    [signIn, signOut, status, user],
+    [signIn, signOut, status, user, refreshSession],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

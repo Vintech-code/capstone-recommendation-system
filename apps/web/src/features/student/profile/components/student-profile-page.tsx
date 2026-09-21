@@ -1,12 +1,12 @@
 import {
   ArrowRight,
   BadgeCheck,
+  BookOpenCheck,
   Camera,
   Check,
   ChevronLeft,
   ChevronRight,
   Loader2,
-  Sparkles,
   UserRound,
   X,
 } from 'lucide-react'
@@ -232,7 +232,7 @@ function StudentProfilePage({ onBack }: { onBack: () => void }) {
   const lastName = nameParts.slice(1).join(' ') || ''
 
   return (
-    <div className="student-grid-page min-h-[calc(100vh-5rem)] py-4 sm:py-6">
+    <div className="student-grid-page student-dashboard-canvas min-h-[calc(100vh-5rem)] py-4 sm:py-6">
       <div className="student-page max-w-5xl space-y-5">
         {/* Top Header Row with Breadcrumb & Save Button matching reference */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -312,7 +312,7 @@ function StudentProfilePage({ onBack }: { onBack: () => void }) {
                     : 'border-transparent text-muted-foreground hover:text-foreground',
                 )}
               >
-                <Sparkles className="size-4" />
+                <BookOpenCheck aria-hidden="true" className="size-4" />
                 Learning Profile & Strengths
               </button>
             </div>

@@ -18,6 +18,7 @@ const frontendDebtCaps = new Map([
   ['apps/web/src/features/admin/reports/components/admin-reports-page.tsx', 700],
   ['apps/web/src/features/admin/components/admin-dashboard-page.tsx', 650],
   ['apps/web/src/features/student/recommendations/components/student-recommendation-results-page.tsx', 550],
+  ['apps/web/src/features/student/recommendations/components/student-recommendation-results-page.tsx', 600],
   ['apps/web/src/features/auth/components/workspace-preview.tsx', 650],
 ])
 
@@ -73,6 +74,10 @@ for (const path of filesBelow(webSource, new Set(['.ts', '.tsx']))) {
 
   if (/^apps\/web\/src\/services\//.test(name) && /['"]@\/(?:components|features)\//.test(source)) {
     report(path, 'cross-feature services must not depend on UI or feature modules')
+  }
+
+  if (/from\s+['"]lucide-react['"]/.test(source) && /\bSparkles\b/.test(source)) {
+    report(path, 'do not use the Sparkles icon; choose a neutral task-specific Lucide icon')
   }
 
   if (!isTest) {

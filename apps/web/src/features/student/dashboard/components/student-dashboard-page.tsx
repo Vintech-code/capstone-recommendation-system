@@ -32,6 +32,7 @@ import {
   formatAssessmentDate,
   mapAssessmentResult,
 } from "@/features/student/assessment/assessment-result-mapper";
+import { getRiasecProfileCopy } from "@/features/student/assessment/riasec-profile-copy";
 import { getProgrammeImages } from "@/features/student/programmes/programme-images";
 import {
   getLatestRecommendation,
@@ -41,6 +42,7 @@ import type {
   StudentRecommendedCourse,
   StudentRecommendationState,
 } from "@/features/student/recommendations/recommendation-types";
+import { formatAreaList } from "@/features/student/utils/format-area-list";
 
 interface StudentDashboardPageProps {
   onSelectModule: (moduleId: string) => void;
@@ -89,12 +91,6 @@ const dimensionPresentation: Record<
     accent: "bg-muted-foreground",
   },
 };
-
-function formatAreaList(labels: string[]) {
-  if (labels.length < 2) return labels[0] ?? "";
-  if (labels.length === 2) return labels.join(" and ");
-  return `${labels.slice(0, -1).join(", ")}, and ${labels.at(-1)}`;
-}
 
 let cachedDashboardState: {
   lifecycle: AssessmentLifecycle | null;
@@ -218,6 +214,7 @@ function StudentDashboardPage({
   const resultSource =
     lifecycle.status === "result_available" ? lifecycle : latestResultLifecycle;
   const result = resultSource ? mapAssessmentResult(resultSource) : null;
+  const profileCopy = result ? getRiasecProfileCopy(result.topCode) : null;
   const snapshot =
     recommendations?.status === "available"
       ? recommendations.recommendation
@@ -276,9 +273,12 @@ function StudentDashboardPage({
         {result ? (
           <header data-print-only className="hidden">
             <p>TAGOLOAN COMMUNITY COLLEGE</p>
-            <h2>Pathways Student Summary</h2>
+            <h2>Student Summary</h2>
             <div>
-              <span>Interest profile: {result.topCode}</span>
+              <span>
+                Interest profile:{" "}
+                {profileCopy?.name ?? formatAreaList(result.topLabels)} ({result.topCode})
+              </span>
               <span>Assessment completed: {result.availableAt}</span>
             </div>
           </header>
@@ -470,17 +470,10 @@ function StudentDashboardPage({
                     </p>
                     <h3
                       id="interest-scores-title"
-                      aria-label={formatAreaList(result.topLabels)}
+                      aria-label={profileCopy?.name ?? formatAreaList(result.topLabels)}
                       className="mt-3 font-display text-3xl font-bold tracking-[-0.04em] sm:text-4xl"
                     >
-                      {result.topLabels.map((label, index) => (
-                        <span key={label}>
-                          {index ? (
-                            <span className="text-foreground"> and </span>
-                          ) : null}
-                          <span className="text-primary-ink">{label}</span>
-                        </span>
-                      ))}
+                      {profileCopy?.name ?? formatAreaList(result.topLabels)}
                     </h3>
                     <p className="mt-2 text-xs font-medium text-muted-foreground">
                       Top code {result.topCode} · completed {result.availableAt}

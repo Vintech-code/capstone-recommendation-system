@@ -291,7 +291,7 @@ describe('Student dashboard', () => {
     render(<StudentDashboardPage onSelectModule={vi.fn()} />)
 
     expect(await screen.findByRole('heading', { name: 'Finalizing your submission' })).toBeVisible()
-    expect(screen.getByRole('heading', { name: 'Investigative, Conventional, and Social' })).toBeVisible()
+    expect(screen.getByRole('heading', { name: 'Helpful Investigator' })).toBeVisible()
     expect(screen.getByText('Test Course')).toBeVisible()
   })
 

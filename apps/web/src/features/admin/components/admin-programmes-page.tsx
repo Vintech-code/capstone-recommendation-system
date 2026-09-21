@@ -265,7 +265,7 @@ function AdminProgrammeCard({
   const fallback = getProgrammeImages(programme.id);
   const cover = programme.coverImageUrl || fallback.cover;
   const programmeType = getProgrammeType(programme);
-  const primaryCareer = programme.careerDirections[0] || "Various pathways";
+  const primaryCareer = programme.careerDirections[0] || "Various career options";
 
   return (
     <article className="group flex flex-col overflow-hidden rounded-xs border border-border bg-card shadow-xs transition-colors hover:border-primary/40">
@@ -441,7 +441,7 @@ function AdminProgrammeSheet({
   const cover = programme.coverImageUrl || fallback.cover;
   const logo = programme.logoImageUrl || fallback.logo;
   const programmeType = getProgrammeType(programme);
-  const primaryCareer = programme.careerDirections[0] || "Various pathways";
+  const primaryCareer = programme.careerDirections[0] || "Various career options";
 
   return (
     <Sheet open onOpenChange={onOpenChange}>

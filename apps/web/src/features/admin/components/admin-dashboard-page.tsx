@@ -105,7 +105,7 @@ export function AdminDashboardPage({ onNavigate }: NavigateProps) {
         <div className="lg:col-span-2 flex flex-col gap-4 sm:gap-5 justify-between">
           <section
             aria-label="Welcome and workspace overview"
-            className="flex flex-col gap-2.5 sm:gap-3 overflow-hidden rounded-xl border border-[#ECE7DC] bg-[#FAF8F2] p-3.5 sm:p-4 shadow-xs relative"
+            className="flex flex-col gap-2.5 sm:gap-3 overflow-hidden rounded-xl border border-[#ECE7DC] bg-[#FAF8F2] dark:border-border dark:bg-card/70 p-3.5 sm:p-4 shadow-xs relative"
           >
             {/* Subtle Ambient Glow Shapes (No bg-gradient) */}
             <div
@@ -127,7 +127,7 @@ export function AdminDashboardPage({ onNavigate }: NavigateProps) {
                 <div>
                   <Button
                     onClick={() => onNavigate("/admin/students")}
-                    className="rounded-full bg-[#1A1F16] text-white hover:bg-[#2C3426] px-4.5 py-2 text-xs sm:text-sm font-bold shadow-xs transition-colors inline-flex items-center gap-1.5"
+                    className="rounded-full bg-[#1A1F16] text-white hover:bg-[#2C3426] dark:bg-primary dark:text-primary-foreground dark:hover:bg-primary/90 px-4.5 py-2 text-xs sm:text-sm font-bold shadow-xs transition-colors inline-flex items-center gap-1.5"
                   >
                     View all records <ArrowRight className="size-3.5" />
                   </Button>
@@ -151,11 +151,11 @@ export function AdminDashboardPage({ onNavigate }: NavigateProps) {
             {/* Bottom Half: Pure White Glassy Card with 3 Stats - Overlaying the lower portion of the avatar */}
             <div
               data-testid="admin-operational-strip"
-              className="relative z-20 mt-1 sm:mt-2 overflow-hidden rounded-xl border border-white/90 bg-card bg-white/95 backdrop-blur-xl p-3 sm:p-3.5 shadow-[0_8px_30px_rgb(0,0,0,0.06)] grid grid-cols-3 divide-x divide-neutral-200/70"
+              className="relative z-20 mt-1 sm:mt-2 overflow-hidden rounded-xl border border-white/90 dark:border-border/60 bg-card bg-card/95 backdrop-blur-xl p-3 sm:p-3.5 shadow-[0_8px_30px_rgb(0,0,0,0.06)] grid grid-cols-3 divide-x divide-neutral-200/70 dark:divide-border/60"
             >
               {/* Stat 1: Active students */}
               <div className="px-2 sm:px-2.5 lg:px-2 xl:px-3">
-                <p className="text-[11px] sm:text-xs font-semibold text-neutral-600 leading-tight">
+                <p className="text-[11px] sm:text-xs font-semibold text-neutral-600 dark:text-muted-foreground leading-tight">
                   Active students
                 </p>
                 <div className="mt-1 flex items-baseline gap-1 sm:gap-1.5">
@@ -170,7 +170,7 @@ export function AdminDashboardPage({ onNavigate }: NavigateProps) {
 
               {/* Stat 2: Results ready */}
               <div className="px-2 sm:px-2.5 lg:px-2 xl:px-3">
-                <p className="text-[11px] sm:text-xs font-semibold text-neutral-600 leading-tight">
+                <p className="text-[11px] sm:text-xs font-semibold text-neutral-600 dark:text-muted-foreground leading-tight">
                   Results ready
                 </p>
                 <div className="mt-1 flex items-baseline gap-1 sm:gap-1.5">
@@ -185,7 +185,7 @@ export function AdminDashboardPage({ onNavigate }: NavigateProps) {
 
               {/* Stat 3: In progress */}
               <div className="px-2 sm:px-2.5 lg:px-2 xl:px-3">
-                <p className="text-[11px] sm:text-xs font-semibold text-neutral-600 leading-tight">
+                <p className="text-[11px] sm:text-xs font-semibold text-neutral-600 dark:text-muted-foreground leading-tight">
                   In progress
                 </p>
                 <div className="mt-1 flex items-baseline gap-1 sm:gap-1.5">
@@ -220,7 +220,7 @@ export function AdminDashboardPage({ onNavigate }: NavigateProps) {
                   </p>
                 </div>
               </div>
-              <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-200/60">
+              <span className="rounded-full bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/60">
                 {data.recommendations} generated
               </span>
             </div>

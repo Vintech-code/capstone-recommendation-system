@@ -132,8 +132,8 @@ async function defaultFetch(
   if (url === '/api/v1/admin/administrators' && (!init?.method || init.method === 'GET')) {
     return Response.json({ data: {
       administrators: [
-        { id: 2, name: 'Admin User', email: 'admin@example.test', accountStatus: 'active', canManageAdministrators: true, lastActiveAt: '2026-09-14T08:00:00Z', createdAt: '2026-09-01T08:00:00Z' },
-        { id: 3, name: 'Records Administrator', email: 'records@example.test', accountStatus: 'active', canManageAdministrators: false, lastActiveAt: null, createdAt: '2026-09-02T08:00:00Z' },
+        { id: 2, name: 'Admin User', email: 'admin@example.test', photoUrl: 'https://lh3.googleusercontent.com/avatar-2.png', accountStatus: 'active', canManageAdministrators: true, lastActiveAt: '2026-09-14T08:00:00Z', createdAt: '2026-09-01T08:00:00Z' },
+        { id: 3, name: 'Records Administrator', email: 'records@example.test', photoUrl: null, accountStatus: 'active', canManageAdministrators: false, lastActiveAt: null, createdAt: '2026-09-02T08:00:00Z' },
       ],
       invitations: [
         { id: 7, name: 'Pending Administrator', email: 'pending@example.test', status: 'pending', canManageAdministrators: false, invitedBy: 'Admin User', expiresAt: '2026-09-15T08:00:00Z', sentAt: '2026-09-14T08:00:00Z', createdAt: '2026-09-14T08:00:00Z' },

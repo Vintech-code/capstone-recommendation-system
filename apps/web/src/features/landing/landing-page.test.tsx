@@ -116,7 +116,7 @@ describe("public landing page", () => {
       screen.queryByRole("link", { name: "Administrator sign in" }),
     ).not.toBeInTheDocument();
     expect(
-      screen.queryByText(/Pathways Capstone Project/i),
+      screen.queryByText(/Capstone Project/i),
     ).not.toBeInTheDocument();
     expect(
       screen.queryByText(/Exclusively built for TCC applicants/i),

@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { getNotifications, markNotificationRead, type PathwaysNotification } from '@/features/notifications/notification-api'
+import { getNotifications, markNotificationRead, type ApplicationNotification } from '@/features/notifications/notification-api'
 import { cn } from '@/lib/utils'
 
 interface NotificationCenterProps {
@@ -15,7 +15,7 @@ interface NotificationCenterProps {
 function NotificationCenter({ workspaceLabel, className, onNavigate }: NotificationCenterProps) {
   const [open, setOpen] = useState(false)
   const [state, setState] = useState<'loading' | 'ready' | 'error'>('loading')
-  const [notifications, setNotifications] = useState<PathwaysNotification[]>([])
+  const [notifications, setNotifications] = useState<ApplicationNotification[]>([])
   const [markingId, setMarkingId] = useState<string | null>(null)
   const [interactionError, setInteractionError] = useState<string | null>(null)
   const [filter, setFilter] = useState<'all' | 'unread'>('all')
@@ -50,7 +50,7 @@ function NotificationCenter({ workspaceLabel, className, onNavigate }: Notificat
     setOpen(nextOpen)
   }
 
-  async function markRead(notification: PathwaysNotification) {
+  async function markRead(notification: ApplicationNotification) {
     if (notification.readAt !== null) return true
     if (markingId !== null) return false
     setMarkingId(notification.id)
@@ -67,7 +67,7 @@ function NotificationCenter({ workspaceLabel, className, onNavigate }: Notificat
     }
   }
 
-  async function selectNotification(notification: PathwaysNotification) {
+  async function selectNotification(notification: ApplicationNotification) {
     const destination = resolveNotificationDestination(workspaceLabel, notification)
     const wasMarkedRead = await markRead(notification)
     if (destination && wasMarkedRead && onNavigate) {
@@ -111,7 +111,7 @@ function NotificationCenter({ workspaceLabel, className, onNavigate }: Notificat
   )
 }
 
-function NotificationRow({ notification, busy, navigable, onSelect }: { notification: PathwaysNotification; busy: boolean; navigable: boolean; onSelect: () => void }) {
+function NotificationRow({ notification, busy, navigable, onSelect }: { notification: ApplicationNotification; busy: boolean; navigable: boolean; onSelect: () => void }) {
   const Icon = notification.eventType === 'assessment_result_ready' ? ClipboardCheck : notification.eventType === 'programme_updated' ? BookOpenText : MessageSquareText
   const unread = notification.readAt === null
   const content = <div className="flex min-w-0 items-start gap-3"><span className={cn('relative flex size-12 shrink-0 items-center justify-center rounded-full', unread ? 'bg-primary-fixed text-on-primary-fixed' : 'bg-secondary text-muted-foreground')}><Icon aria-hidden="true" className="size-5" /><span className={cn('absolute -bottom-0.5 -right-0.5 size-4 rounded-full ring-2 ring-background', notification.eventType === 'programme_updated' ? 'bg-success' : 'bg-primary')} /></span><span className="min-w-0 flex-1"><span className="block text-sm leading-5"><strong className="font-bold">{notification.title}</strong> <span className="text-muted-foreground">{notification.message}</span></span><time dateTime={notification.createdAt} className={cn('mt-1 block text-xs font-semibold', unread ? 'text-primary-ink' : 'text-muted-foreground')}>{formatNotificationDate(notification.createdAt)}</time>{busy ? <span className="mt-1 block text-xs text-muted-foreground">Updating…</span> : null}</span>{unread ? <span className="mt-5 size-2.5 shrink-0 rounded-full bg-primary"><span className="sr-only">Unread</span></span> : null}</div>
@@ -119,7 +119,7 @@ function NotificationRow({ notification, busy, navigable, onSelect }: { notifica
   return <li>{interactive ? <button type="button" disabled={busy} onClick={onSelect} aria-label={navigable ? `Open notification: ${notification.title}` : `Mark notification as read: ${notification.title}`} className="block w-full rounded-xl px-3 py-3 text-left transition-colors duration-150 hover:bg-secondary/70 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-inset focus-visible:ring-ring/40">{content}</button> : <div className="rounded-xl px-3 py-3">{content}</div>}</li>
 }
 
-function resolveNotificationDestination(workspaceLabel: NotificationCenterProps['workspaceLabel'], notification: PathwaysNotification) {
+function resolveNotificationDestination(workspaceLabel: NotificationCenterProps['workspaceLabel'], notification: ApplicationNotification) {
   const { eventType, context } = notification
 
   if (workspaceLabel === 'Student') {

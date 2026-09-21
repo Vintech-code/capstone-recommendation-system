@@ -563,18 +563,18 @@ export function AdminStudentDetailPage({
             </section>
           </div>
 
-          {/* 5. Academic Program Pathways (Admissions Clearance Matrix) */}
+          {/* 5. Academic Programme Recommendations (Admissions Clearance Matrix) */}
           <section
-            aria-labelledby="academic-pathways-heading"
+            aria-labelledby="academic-recommendations-heading"
             className="flex flex-col gap-4"
           >
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
               <div>
                 <h2
-                  id="academic-pathways-heading"
+                  id="academic-recommendations-heading"
                   className="font-display text-xl font-bold tracking-tight text-foreground"
                 >
-                  Academic programme pathways
+                  Academic programme recommendations
                 </h2>
                 <p className="font-body text-xs sm:text-sm text-muted-foreground">
                   Direct curriculum mappings computed against the TCC RIASEC

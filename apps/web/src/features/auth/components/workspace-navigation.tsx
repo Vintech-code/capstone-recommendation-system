@@ -42,14 +42,21 @@ function WorkspaceNavigation({
   if (tone === "staff") {
     const mainIds = ["overview", "students", "programmes"];
     const mainItems = allItems.filter((item) => mainIds.includes(item.id));
-    const governanceItems = allItems.filter(
-      (item) => !mainIds.includes(item.id),
+    const governanceIds = ["reports", "activity", "administrators"];
+    const governanceItems = allItems.filter((item) =>
+      governanceIds.includes(item.id),
+    );
+    const accountItems = allItems.filter(
+      (item) => !mainIds.includes(item.id) && !governanceIds.includes(item.id),
     );
 
     sections = [
       { title: "General", items: mainItems },
       ...(governanceItems.length > 0
         ? [{ title: "Governance", items: governanceItems }]
+        : []),
+      ...(accountItems.length > 0
+        ? [{ title: "Account", items: accountItems }]
         : []),
     ];
   } else {

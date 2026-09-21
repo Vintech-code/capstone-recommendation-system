@@ -22,6 +22,8 @@
 @import "@fontsource/montserrat/latin-900.css";
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   color-scheme: light;
 
@@ -198,6 +200,58 @@
   --chart-teal: #9add5b;
   --chart-yellow: #e2b34f;
   --chart-slate: #9aabb2;
+}
+
+.admin-workspace-body.dark,
+.staff-workspace-theme.dark,
+.dark .staff-workspace-theme {
+  color-scheme: dark;
+  --background: #0d120c;
+  --foreground: #f2f7ed;
+  --card: #151c14;
+  --card-foreground: #f2f7ed;
+  --popover: #151c14;
+  --popover-foreground: #f2f7ed;
+  --primary: #7ed321;
+  --primary-foreground: #0e1a06;
+  --primary-ink: #9de64e;
+  --primary-fixed: #1e2c1a;
+  --on-primary-fixed: #a2e858;
+  --secondary: #1b2419;
+  --secondary-foreground: #dce5d6;
+  --muted: #1b2419;
+  --muted-foreground: #94a38f;
+  --accent: #223020;
+  --accent-foreground: #9de64e;
+  --border: #293526;
+  --input: #202b1e;
+  --ring: #7ed321;
+  --destructive: #e58b91;
+  --destructive-foreground: #2b1214;
+  --destructive-ink: #fca5a5;
+  --success: #7ed321;
+  --success-foreground: #0e1a06;
+  --success-ink: #9de64e;
+  --warning: #e2b34f;
+  --warning-foreground: #2b220a;
+  --warning-ink: #fcd34d;
+  --info: #d889ae;
+  --info-foreground: #2b1420;
+  --info-ink: #f9a8d4;
+  --secondary-container: #332711;
+  --on-secondary-container: #fcd34d;
+  --secondary-fixed-dim: #996e12;
+  --outline-variant: #293526;
+  --chart-pink: #e89abf;
+  --chart-teal: #a2e858;
+  --chart-yellow: #f5c35c;
+  --chart-slate: #7a8b94;
+}
+
+.admin-workspace-body.dark .staff-dashboard-canvas [class*="bg-card"],
+.staff-workspace-theme.dark .staff-dashboard-canvas [class*="bg-card"],
+.dark .staff-workspace-theme [class*="bg-card"] {
+  background-color: var(--card);
 }
 
 .staff-workspace-theme h1,

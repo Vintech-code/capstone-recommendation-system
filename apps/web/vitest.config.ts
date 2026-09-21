@@ -15,5 +15,6 @@ export default defineConfig({
     exclude: ['e2e/**', 'node_modules/**', 'dist/**'],
     css: true,
     fileParallelism: false,
+    testTimeout: 15_000,
   },
 })

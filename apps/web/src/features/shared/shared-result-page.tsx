@@ -65,7 +65,7 @@ function SharedResultPage() {
                 Tanauan City College
               </span>
               <span className="text-[10px] font-bold text-primary-ink">
-                Career Pathways & Recommendation
+                Career Directions & Recommendation
               </span>
             </div>
           </Link>

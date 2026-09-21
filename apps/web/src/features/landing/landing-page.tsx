@@ -183,7 +183,7 @@ const questions = [
 
 const landingNavigation = [
   { href: "#landing-hero", label: "Home" },
-  { href: "#why-pathways", label: "What We Provide" },
+  { href: "#why-guidance", label: "What We Provide" },
   { href: "#journey", label: "How It Works" },
   { href: "#riasec", label: "RIASEC" },
   { href: "#faq", label: "FAQ" },
@@ -530,7 +530,7 @@ function LandingPage({ initialAuth }: LandingPageProps = {}) {
 
         {/* SECTION 2: WHAT WE PROVIDE (4-Card Grid) */}
         <section
-          id="why-pathways"
+          id="why-guidance"
           className="scroll-mt-24 px-4 py-14 sm:px-6 lg:px-8 lg:py-20 bg-surface-subtle/50 border-y border-border/60"
           aria-labelledby="why-title"
         >
@@ -952,7 +952,7 @@ function LandingPage({ initialAuth }: LandingPageProps = {}) {
                 </li>
                 <li>
                   <a
-                    href="#why-pathways"
+                    href="#why-guidance"
                     className="text-white/90 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-white/50"
                   >
                     What We Provide

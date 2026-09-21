@@ -17,6 +17,10 @@ import {
   type ResultCardData,
 } from "@/features/student/assessment/assessment-api";
 import { formatAssessmentDate } from "@/features/student/assessment/assessment-result-mapper";
+import {
+  formatRiasecProfileDescription,
+  getRiasecProfileCopy,
+} from "@/features/student/assessment/riasec-profile-copy";
 
 interface StudentResultCardProps {
   card: ResultCardData;
@@ -81,6 +85,7 @@ function StudentResultCard({
   const dateLabel = formatAssessmentDate(
     card.resultAvailableAt ?? card.submittedAt ?? card.startedAt,
   );
+  const profileCopy = getRiasecProfileCopy(card.topCode);
 
   async function handleShare() {
     setSharing(true);
@@ -296,8 +301,13 @@ function StudentResultCard({
         <div className="mt-5 flex flex-col gap-5 rounded-2xl border border-primary/20 bg-muted/20 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
           <div>
             <span className="inline-block text-[10px] font-black uppercase tracking-[0.14em] text-primary-ink">
-              Dominant Holland Code
+              Recorded interest pattern
             </span>
+            {profileCopy ? (
+              <h3 className="mt-1 font-display text-2xl font-black text-foreground sm:text-3xl">
+                {profileCopy.name}
+              </h3>
+            ) : null}
             <div className="mt-1 flex items-baseline gap-3">
               <span className="font-display text-4xl font-black tracking-wider text-foreground sm:text-5xl">
                 {card.topCode}
@@ -306,9 +316,10 @@ function StudentResultCard({
                 ({card.formattedTopCode})
               </span>
             </div>
-            <p className="mt-2 text-xs leading-5 text-muted-foreground">
-              Your highest reported interest alignment in order of statement
-              agreement:
+            <p className="mt-2 max-w-xl text-xs leading-5 text-muted-foreground">
+              {profileCopy
+                ? formatRiasecProfileDescription(profileCopy)
+                : "Your highest reported interest alignment in order of statement agreement."}
             </p>
           </div>
 

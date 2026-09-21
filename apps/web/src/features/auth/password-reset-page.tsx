@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { resetPassword } from '@/features/auth/auth-api'
 import { PASSWORD_MIN_LENGTH, PASSWORD_POLICY_MESSAGE, passwordMeetsPolicy } from '@/features/auth/password-policy'
-import { AuthRecoveryFrame } from '@/features/auth/password-recovery-page'
+import { AuthRecoveryFrame } from '@/features/auth/components/auth-recovery-frame'
 
 function PasswordResetPage() {
   const [params] = useSearchParams()

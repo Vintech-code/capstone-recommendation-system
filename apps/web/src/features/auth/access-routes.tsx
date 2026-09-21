@@ -224,6 +224,11 @@ function AccessRoutes() {
         <Route path="/admin/reports" element={<AdminWorkspaceRoute />} />
         <Route path="/admin/activity" element={<AdminWorkspaceRoute />} />
         <Route path="/admin/administrators" element={<AdminWorkspaceRoute />} />
+        <Route path="/admin/profile" element={<AdminWorkspaceRoute />} />
+        <Route
+          path="/admin/settings"
+          element={<Navigate to="/admin/profile" replace />}
+        />
         <Route
           path="/admin/applicants/*"
           element={<Navigate to="/admin/students" replace />}

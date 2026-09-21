@@ -13,6 +13,7 @@ interface AuthContextValue {
   signIn: (credentials: SignInCredentials) => Promise<AuthUser>
   signOut: () => Promise<void>
   retrySession: () => void
+  refreshSession: () => void
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)

@@ -120,7 +120,7 @@ function ProgrammeCard({
   const coverStyle = programme.coverImageUrl
     ? programmeMediaStyle(programme.coverImagePosition)
     : undefined;
-  const primaryCareer = programme.careerDirections[0] || "Various pathways";
+  const primaryCareer = programme.careerDirections[0] || "Various career options";
   const programmeType =
     programme.eligibilityGroup === "non_board"
       ? "Non-board programme"
