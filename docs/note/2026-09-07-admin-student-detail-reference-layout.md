@@ -9,7 +9,7 @@ The protected Administrator Student detail now adapts the supplied `tcc_admin_st
 - Student identity, account state, attempt count, and saved-programme count form the opening evidence dossier.
 - The latest recorded RIASEC pattern is presented with its assessment reference, instrument, lifecycle status, and evidence date.
 - The dimension matrix displays exact stored raw scores without frontend normalization or interpretation.
-- Ranked programme pathways use the immutable recommendation snapshot and exact recorded match values.
+- Ranked programme recommendations use the immutable recommendation snapshot and exact recorded match values.
 - The separate Assessment history and evidence section was removed by owner request on 2026-09-07. Assessment records and API data remain preserved.
 
 ## Product boundary

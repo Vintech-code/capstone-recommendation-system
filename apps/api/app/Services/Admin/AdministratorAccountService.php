@@ -40,6 +40,9 @@ final class AdministratorAccountService
                     'email' => $administrator->email,
                     'accountStatus' => $administrator->account_status,
                     'canManageAdministrators' => (bool) $administrator->can_manage_administrators,
+                    'photoUrl' => $administrator->admin_photo_path
+                        ? '/api/v1/admin/administrators/'.$administrator->getKey().'/photo?v='.$administrator->updated_at?->getTimestamp()
+                        : $administrator->google_avatar_url,
                     'lastActiveAt' => $lastActivity ? Carbon::createFromTimestamp((int) $lastActivity)->toIso8601String() : null,
                     'createdAt' => $administrator->created_at?->toIso8601String(),
                 ];
@@ -147,7 +150,7 @@ final class AdministratorAccountService
             return $user;
         });
 
-        $this->notifySecurityChange($user, $user, 'Your TCC Pathways Administrator account is active', 'Your individual Administrator account was activated successfully.');
+        $this->notifySecurityChange($user, $user, 'Your TCC Administrator account is active', 'Your individual Administrator account was activated successfully.');
 
         return $user;
     }
@@ -176,7 +179,7 @@ final class AdministratorAccountService
         $this->notifySecurityChange(
             $actor,
             $administrator,
-            'Your TCC Pathways Administrator access changed',
+            'Your TCC Administrator access changed',
             $status === 'suspended' ? 'Your Administrator account was suspended and its active sessions were revoked.' : 'Your Administrator account was reactivated.',
         );
 
@@ -215,7 +218,7 @@ final class AdministratorAccountService
         }
         $this->sessions->revoke($administrator);
         $this->audit($actor, 'administrator.sessions_revoked', 'administrator', (string) $administrator->getKey(), ['reason' => $reason]);
-        $this->notifySecurityChange($actor, $administrator, 'Your Administrator sessions were revoked', 'Your active TCC Pathways Administrator sessions were revoked. Sign in again to continue.');
+        $this->notifySecurityChange($actor, $administrator, 'Your Administrator sessions were revoked', 'Your active TCC Administrator sessions were revoked. Sign in again to continue.');
     }
 
     /** @return array<string, mixed> */

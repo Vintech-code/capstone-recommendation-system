@@ -26,6 +26,6 @@ class AdministratorSecurityNotification extends Notification
             ->subject($this->subject)
             ->greeting('Hello '.$notifiable->name.',')
             ->line($this->message)
-            ->line('If you did not expect this change, contact another authorized TCC Pathways Administrator immediately.');
+            ->line('If you did not expect this change, contact another authorized TCC Administrator immediately.');
     }
 }

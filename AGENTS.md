@@ -4,7 +4,7 @@
 **Status:** APPROVED for repository workflow; institutional rules remain subject to recorded approval.  
 **Basis:** Surviving repository authorities indexed in [docs/README.md](docs/README.md).
 **Owner:** Capstone team.  
-**Last updated:** 2026-09-07.
+**Last updated:** 2026-09-14.
 **Related approvals:** User-approved role-model replacement on 2026-08-09, purple/pastel visual-system replacement on 2026-08-28, warm coastal palette replacement on 2026-08-30, Nunito Sans/Montserrat typography replacement on 2026-09-01, white line-based Administrator layout with retained sidebar on 2026-09-01, unified reference-derived palette replacement on 2026-09-05, public Student landing page restoration on 2026-09-06, and light-green-primary pastel palette replacement on 2026-09-07.
 
 Before any UI/UX task, read [DESIGN.md](DESIGN.md) in full before proposing or editing the interface. The former controlled `docs/` baseline was intentionally removed by the repository owner and must not be restored unless explicitly requested.
@@ -38,6 +38,7 @@ Before any UI/UX task, read [DESIGN.md](DESIGN.md) in full before proposing or e
 - The repository-owner-approved 2026-09-06 direction supersedes D-010's direct role-access entry and restores one public Student landing page at `/`. Keep Student and Administrator authentication on their dedicated portal URLs, and do not add role selection to the landing page or sign-in forms.
 - Do not ask users to select a role on a sign-in form. Use dedicated Student and Administrator portal URLs; the backend remains authoritative for account role and cross-role authorization.
 - Do not use proprietary fonts without a valid project licence. Use bundled open-source Nunito Sans Variable for headings and Montserrat Variable for paragraphs, labels, controls, and data, with system fallbacks; preserve readable weights, text resizing, and contrast.
+- Do not use proprietary fonts without a valid project licence. Use bundled open-source Open Runde for headings and Montserrat Alternates for paragraphs, labels, controls, and data, with system fallbacks; preserve readable weights, text resizing, and contrast.
 - Implement UI work one reviewable component or screen slice at a time. Define responsive, loading, empty, error, blocked, permission, and interaction states whenever the approved feature requires them.
 - Keep all controls functional. Do not add fake links, placeholder authentication, fabricated dashboard metrics, or actions whose route/API behavior does not exist; show an explicit BLOCKED or preview state instead.
 - For every UI change, add or update component/content/accessibility tests and run frontend lint, tests, and production build. Perform real-browser desktop/mobile, keyboard-focus, overflow, console, and rendered-contrast checks before marking a screen COMPLETED. If the browser or required approval is unavailable, keep the item IN PROGRESS and record the missing evidence.
@@ -52,6 +53,32 @@ Before any UI/UX task, read [DESIGN.md](DESIGN.md) in full before proposing or e
 - Never mark work COMPLETED without test, review, or approval evidence.
 - Make small, reviewable changes. Avoid destructive commands and never overwrite human work without comparison and review.
 - Never commit secrets, personal production data, generated credentials, or environment files.
+
+## Repository architecture and clean-code rules
+
+The repository-wide implementation standard is [docs/architecture/development-standards.md](docs/architecture/development-standards.md). Apply it to every new feature, bug fix, refactor, and review.
+
+- Preserve the framework-native monorepo boundary: `apps/web` is the React presentation application and `apps/api` is the Laravel authority. Do not add parallel `frontend`, `backend`, root `database`, root `tests`, or duplicate asset trees.
+- Assign every change to one business owner before coding. Prefer a cohesive feature module over generic `misc`, `helpers`, `common`, `final`, `backup`, or version-suffixed folders.
+- Keep dependency direction explicit. Application composition may depend on features; features may depend on shared components, UI primitives, and cross-feature services; shared/UI/service layers must never depend back on feature modules.
+- Keep route and page components focused on composition and state coordination. Extract independently testable sections, hooks, adapters, and interaction components when a file mixes unrelated responsibilities. Do not split code only to satisfy an arbitrary file count.
+- Use `apps/web/src/services/api-client.ts` for ordinary browser HTTP transport. Feature API adapters own endpoint-specific request and response types; components do not call `fetch` directly or implement authorization, scoring, eligibility, or policy.
+- Keep Laravel routes declarative and controllers focused on HTTP orchestration. Use Form Requests for reusable validation, middleware and policies for access, services for workflow/domain/integration logic, models for persistence relationships/casts/scopes, and jobs for retryable asynchronous work.
+- Keep one source of truth for each contract. When a payload or behavior changes, update its Laravel producer, React consumer, fixtures, tests, and documentation in the same slice.
+- Reuse an existing abstraction when it genuinely matches. Do not create speculative repositories, managers, utilities, hooks, services, or wrapper components with only one unclear responsibility.
+- Remove code or dependencies only after proving they have no runtime, framework-discovery, build, script, test, documentation, migration-history, or asset-pipeline role.
+- Treat large-file limits as health signals. The automated architecture check prevents new oversized modules and growth in recorded legacy hotspots; exceptions require a dated rationale and a concrete follow-up split plan.
+- Before completion, run `npm.cmd run check:architecture` from `apps/web` in addition to the relevant backend/frontend validation commands.
+
+## Required implementation workflow
+
+1. Read the applicable authority and dated decisions; identify APPROVED, PROPOSED, PROVISIONAL, BLOCKED, and OUT OF SCOPE boundaries.
+2. Trace the existing route, request, service, persistence, API payload, frontend adapter, component, and test path before editing.
+3. State the owning domain and place new files at the narrowest correct layer. Record a genuine unresolved policy or contract decision as BLOCKED.
+4. Implement one reviewable vertical slice. Preserve authorization, validation, ownership, historical evidence, loading/error/empty states, and accessibility.
+5. Add focused unit/component tests and integration/feature tests at the behavior boundary. Add Playwright coverage when a user-visible workflow or responsive interaction changes.
+6. Run architecture, formatting, lint, type, test, build, and rendered-browser checks in proportion to the change. Report unavailable evidence honestly.
+7. Synchronize the documentation index, architecture/API/database/design records, progress, backlog, and dated implementation note before marking the slice COMPLETED.
 
 ## Current gate
 

@@ -3,13 +3,13 @@
 namespace App\Services\Notifications;
 
 use App\Models\User;
-use App\Notifications\PathwaysEventNotification;
+use App\Notifications\ApplicationEventNotification;
 
-final class PathwaysNotifier
+final class ApplicationNotifier
 {
     /** @param array<string, int|string|null> $context */
     public function notify(User $recipient, string $eventType, string $title, string $message, array $context = []): void
     {
-        $recipient->notify(new PathwaysEventNotification($eventType, $title, $message, $context));
+        $recipient->notify(new ApplicationEventNotification($eventType, $title, $message, $context));
     }
 }

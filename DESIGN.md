@@ -1,9 +1,10 @@
 ---
 name: TCC Course Recommendation Design System
 status: APPROVED working product direction; PROVISIONAL institutional identity
-version: 4.3
-last_updated: 2026-09-12
+version: 4.4
+last_updated: 2026-09-14
 font_family: Nunito Sans headings / Montserrat Alternates body
+font_family: Open Runde headings / Montserrat Alternates body
 theme: light
 colors:
   background: '#F7FAF2'
@@ -29,6 +30,29 @@ colors:
   danger_soft: '#FCEBEC'
   info: '#D889AE'
   info_soft: '#FAECF3'
+  background: "#F7FAF2"
+  surface: "#FBFFF7"
+  surface_subtle: "#EEF5E8"
+  foreground: "#34402D"
+  foreground_muted: "#65705F"
+  border: "#DCE7D4"
+  border_strong: "#C6D6BA"
+  primary: "#7ED321"
+  primary_hover: "#70C21D"
+  primary_pressed: "#62AD19"
+  primary_soft: "#EFF9DF"
+  primary_ink: "#3B700B"
+  on_primary: "#20340F"
+  accent: "#F4B740"
+  accent_soft: "#FFF4CC"
+  success: "#7ED321"
+  success_soft: "#EFF9DF"
+  warning: "#E2B34F"
+  warning_soft: "#FFF4CC"
+  danger: "#E58B91"
+  danger_soft: "#FCEBEC"
+  info: "#D889AE"
+  info_soft: "#FAECF3"
 radii:
   control: 12px
   nested: 16px
@@ -38,6 +62,8 @@ radii:
 shadows:
   small: '0 1px 2px rgba(52, 64, 45, 0.12)'
   clay_small: 'inset 0 1px 0 rgba(255, 255, 255, 0.85), 0 1px 2px rgba(52, 64, 45, 0.12)'
+  small: "0 1px 2px rgba(52, 64, 45, 0.12)"
+  clay_small: "inset 0 1px 0 rgba(255, 255, 255, 0.85), 0 1px 2px rgba(52, 64, 45, 0.12)"
 layout:
   content_max: 1200px
   reading_max: 720px
@@ -100,6 +126,28 @@ Use semantic CSS variables and Tailwind utilities. Do not scatter raw hex values
 | Warning | `#E2B34F` | Review or attention fills |
 | Danger | `#E58B91` | Error and destructive fills |
 | Information | `#D889AE` | Neutral information and analytical fills |
+| Role             | Value     | Use                                                     |
+| ---------------- | --------- | ------------------------------------------------------- |
+| Canvas           | `#F7FAF2` | Quiet green-neutral page background                     |
+| Surface          | `#FBFFF7` | Clay cards, dialogs, menus, and inputs                  |
+| Subtle surface   | `#EEF5E8` | Quiet grouped content and insets                        |
+| Foreground       | `#34402D` | Primary text and icons without near-black visual weight |
+| Muted foreground | `#65705F` | Descriptions and metadata                               |
+| Border           | `#DCE7D4` | Default card and control outline                        |
+| Strong border    | `#C6D6BA` | Dividers and emphasized control outlines                |
+| Primary green    | `#7ED321` | Primary actions, active navigation, focus, and progress |
+| Primary hover    | `#70C21D` | Hovered primary controls                                |
+| Primary pressed  | `#62AD19` | Pressed primary controls                                |
+| Primary soft     | `#EFF9DF` | Selected controls and quiet highlights                  |
+| Primary ink      | `#3B700B` | Accessible green text and icons on light surfaces only  |
+| Soft coral       | `#E58B91` | Decorative warmth and error fills                       |
+| Fresh green      | `#8AD3A2` | Decorative growth cues                                  |
+| Soft violet      | `#9B86D4` | Investigative data and restrained illustration accents  |
+| Sun accent       | `#F4B740` | Restrained attention and secondary visual rhythm        |
+| Success          | `#7ED321` | Completed and successful fills                          |
+| Warning          | `#E2B34F` | Review or attention fills                               |
+| Danger           | `#E58B91` | Error and destructive fills                             |
+| Information      | `#D889AE` | Neutral information and analytical fills                |
 
 Muted tones support hierarchy without becoming a competing rainbow:
 
@@ -122,12 +170,21 @@ Use one stable mapping wherever the six recorded dimensions appear:
 | S | Social | `#7ED321` | `#EFF9DF` |
 | E | Enterprising | `#E2B34F` | `#FFF4CC` |
 | C | Conventional | `#8E9A73` | `#F1F3EC` |
+| Code | Category      | Indicator | Soft surface |
+| ---- | ------------- | --------- | ------------ |
+| R    | Realistic     | `#E9966A` | `#FBEDE5`    |
+| I    | Investigative | `#9B86D4` | `#F2EEFA`    |
+| A    | Artistic      | `#D889AE` | `#FAECF3`    |
+| S    | Social        | `#7ED321` | `#EFF9DF`    |
+| E    | Enterprising  | `#E2B34F` | `#FFF4CC`    |
+| C    | Conventional  | `#8E9A73` | `#F1F3EC`    |
 
 Always pair color with code, full name, score, and accessible label. These colors identify categories only; they never mean good, bad, passing, aptitude, or expected success.
 
 ### 3.3 Typography
 
 Use bundled open-source **Nunito Sans Variable** for display headings and **Montserrat Alternates** for paragraphs, controls, labels, and data. Bundle Montserrat Alternates weights 400–900 locally and keep `ui-sans-serif`, `system-ui`, and `sans-serif` fallbacks. Do not introduce proprietary fonts.
+Use bundled open-source **Open Runde** for display headings and **Montserrat Alternates** for paragraphs, controls, labels, and data. Bundle Montserrat Alternates weights 400–900 and Open Runde weights 400–700 locally and keep `ui-sans-serif`, `system-ui`, and `sans-serif` fallbacks. Do not introduce proprietary fonts.
 
 | Token | Desktop | Mobile | Weight | Use |
 | --- | --- | --- | --- | --- |
@@ -140,8 +197,20 @@ Use bundled open-source **Nunito Sans Variable** for display headings and **Mont
 | Label | 14/20px | 14/20px | 700 | Buttons and fields |
 | Overline | 12/16px | 12/16px | 700 | Rank and category labels |
 | Caption | 14/20px | 14/20px | 500 | Timestamps and helpers |
+| Token      | Desktop | Mobile  | Weight  | Use                            |
+| ---------- | ------- | ------- | ------- | ------------------------------ |
+| Display    | 52/56px | 38/42px | 700/800 | Recorded result hero statement |
+| Heading 1  | 40/48px | 30/38px | 700     | Page title                     |
+| Heading 2  | 30/38px | 26/34px | 700     | Major section                  |
+| Heading 3  | 22/30px | 20/28px | 700     | Card title                     |
+| Body large | 18/30px | 17/28px | 500     | Hero description               |
+| Body       | 16/27px | 16/26px | 500     | Default copy                   |
+| Label      | 14/20px | 14/20px | 700     | Buttons and fields             |
+| Overline   | 12/16px | 12/16px | 700     | Rank and category labels       |
+| Caption    | 14/20px | 14/20px | 500     | Timestamps and helpers         |
 
 Use sentence case. Reserve uppercase for short overlines with `0.10em` tracking. Result hero headings use Nunito Sans at weight 900, tight but readable line height, and restrained negative tracking to create the bold reference-inspired treatment without copying its archetype wording. Result summaries, score labels, evidence copy, metadata, and recommendation explanations use the body, label, or caption tokens above rather than 10–12px utility text. Keep prose near 65 characters per line. Primary green ink may emphasize one key idea in a heading, not multiple competing phrases.
+Use sentence case. Reserve uppercase for short overlines with `0.10em` tracking. Result hero headings use Open Runde at bold weight, tight but readable line height, and restrained negative tracking to create the bold reference-inspired treatment without copying its archetype wording. Result summaries, score labels, evidence copy, metadata, and recommendation explanations use the body, label, or caption tokens above rather than 10–12px utility text. Keep prose near 65 characters per line. Primary green ink may emphasize one key idea in a heading, not multiple competing phrases.
 
 ### 3.4 Spacing and grid
 
@@ -172,7 +241,7 @@ Subtle card borders are part of this revision. Use spacing, tone, or dividers fo
 
 ### 3.6 Icons and illustrations
 
-Use Lucide React for functional icons, normally 18–22px with consistent line weight. Ambiguous icons require visible or assistive labels.
+Use Lucide React for functional icons, normally 18–22px with consistent line weight. Ambiguous icons require visible or assistive labels. Do not use Lucide's `Sparkles` icon or another Gemini-like sparkle mark; choose a neutral task-specific symbol instead.
 
 Illustrations must be original or properly licensed flat/vector-style assets with inclusive rounded characters, simple shapes, limited detail, quiet outlines, generous transparent space, and at most one soft gradient or glow. Favor educational activities, exploration, making, analysis, community, and study.
 
@@ -184,7 +253,7 @@ Avoid realistic photography, copied reference characters, other products' mascot
 
 The public `/` route is an approved Student-oriented introduction. It uses the project-owned `assets/images/landing-image-bg.png` artwork in a two-column hero with original TCC course-recommendation content. The composition may take inspiration from the supplied reference's pacing and friendly educational tone, but it must not copy the reference logo, wording, claims, metrics, card artwork, or product identity.
 
-- Use a sticky white header with the existing Pathways mark, in-page section links, and one full-pill **Start assessment** action on desktop. On mobile, replace the links with one labelled burger control and omit the header assessment action from both the bar and menu.
+- Use a sticky white header with the existing TCC course-recommendation mark, in-page section links, and one full-pill **Start assessment** action on desktop. On mobile, replace the links with one labelled burger control and omit the header assessment action from both the bar and menu.
 - Place original project copy on the left and the supplied transparent illustration on the right; stack copy before artwork on mobile.
 - Use full-pill primary and secondary calls to action on this public page. This is a deliberate landing-page exception to the standard 12px application-control radius.
 - Describe the six RIASEC areas factually without presenting them as ability, personality, diagnosis, or destiny labels.
@@ -291,6 +360,8 @@ The result hero gives a calm summary before detail.
 - Mobile stacks illustration, title, description, evidence, and actions.
 
 Do not label a Student with a fictional personality archetype unless the label and explanation belong to the approved versioned result model. Prefer recorded interest pattern names and codes.
+
+Under the repository-owner-approved 2026-09-21 presentation model `PSG-PROFILE-NAMES-2026-09-21`, the 11 distinct classified PSG-matrix codes may show their approved two-word interest-profile name and exact two-sentence guidance copy. Describe these as friendly interest-pattern summaries, not personality diagnoses, and retain the factual code/leading-area presentation for every unmapped Student result.
 
 ### 5.7 Score Breakdown Card
 
@@ -448,6 +519,7 @@ Apply light green to action fills and focus indicators, with primary green ink f
 - Reports are privacy-aware and limited to Student totals, assessment progress, completion history, entrance-group distribution, recommendations, and programme saves. Present these as one compact aggregate snapshot with a date filter, completion trend, exact lifecycle counts, and clearly separated engagement context. Do not expose CSV export or catalogue-governance sections in the Admin interface.
 - Activity rows show the recorded action, responsible Administrator, and date without raw metadata, internal subject references, or generated summaries.
 - Do not expose a separate catalogue-evidence page or entry point.
+- Administrator account governance uses a dedicated, capability-gated **Administrators** destination. Present active accounts and invitation history as compact divided ledgers on desktop and stacked divided records on mobile. Invitations never ask the inviter to create the recipient's password; sensitive actions use focused confirmation dialogs and expose pending, accepted, expired, revoked, active, and suspended states with text as well as color.
 - Programme monitoring cards and programme detail media show their source images without colored or directional gradient overlays.
 - Never show ambiguous `Top-three placements` or `Programme match frequency` labels.
 
@@ -506,6 +578,46 @@ Recommended shared components: `AppTopBar`, `PageHeading`, `SurfaceCard`, `Statu
 - Centralize reusable visual tokens and keyframes. Every animation must include a reduced-motion treatment and must not block keyboard, touch, or screen-reader operation.
 - Add focused behavior and accessibility tests when a component gains state or interaction. Refactor when a file begins mixing unrelated workflow, data-access, and presentation responsibilities.
 
+### Frontend ownership and dependency direction
+
+Use this dependency direction for production code:
+
+```text
+app and route composition
+          |
+          v
+feature modules ---> cross-feature services and lib utilities
+          |
+          v
+shared application components
+          |
+          v
+UI primitives
+```
+
+- `src/app` owns providers and application bootstrap, not feature behavior.
+- `src/features/<feature>` owns that domain's pages, components, hooks, API adapter, types, and feature-only utilities. Colocate code until it is demonstrably shared.
+- `src/components/shared` owns application-level presentation used by multiple features. It must not import a feature module or contain scoring, admission, authorization, or endpoint policy.
+- `src/components/ui` owns customized shadcn/Radix primitives. Primitives contain no TCC workflow copy, feature state, API access, or feature imports.
+- `src/services` owns cross-feature infrastructure such as HTTP transport. Services must not import React presentation or feature modules.
+- `src/lib` and `src/utils` are for small domain-neutral functions. Do not move feature logic into a generic utility merely to shorten a component.
+- Cross-feature imports are allowed only through a stable, intentionally shared contract. If two features repeatedly depend on one feature's internal component or type, extract the shared contract to the narrowest neutral owner instead of creating a dependency cycle.
+
+Page and route components may coordinate loading and navigation, but they should not contain raw HTTP calls, server-owned business rules, duplicated payload parsing, or several unrelated state machines. A section deserves extraction when it has its own interaction state, async lifecycle, accessibility contract, or focused tests. Hooks coordinate reusable React behavior; they do not become hidden service locators or stores for unrelated workflows.
+
+### Styling ownership
+
+- Prefer semantic Tailwind utilities backed by the tokens in this file. Raw colors and arbitrary values require a documented visual reason and should become a token or component variant when reused.
+- Put reusable variants in UI/shared components, feature composition beside its owning feature, and only tokens, font/body defaults, print rules, keyframes, and rare cross-application selectors in `index.css`.
+- Do not duplicate long class lists across screens. Extract a component or variant when the anatomy and behavior are the same; do not abstract merely similar-looking content with different semantics.
+- Preserve native elements and Radix semantics. Effects may enhance presentation but must not be required for the control's name, state, keyboard operation, or server-authoritative behavior.
+
+### Automated architecture guard
+
+Run `npm.cmd run check:architecture` from `apps/web` for every implementation slice. It rejects direct production `fetch` calls outside the shared client, reverse dependencies from shared/UI/service layers into feature code, direct Laravel `env()` access in application classes, service/model dependencies on HTTP controllers, oversized new production modules, and further growth beyond recorded caps for existing large files.
+
+The guard is a minimum boundary, not proof of good design. Reviewers must still check cohesion, naming, accessibility, truthful data flow, Laravel authority, tests, and rendered behavior. A guard exception requires a dated implementation note explaining why the boundary cannot yet be met and how the debt will be removed.
+
 ## 11. Migration and validation
 
 Implement in reviewable slices:
@@ -525,6 +637,7 @@ Each slice requires affected component/content/accessibility tests, lint, produc
 
 - Green-neutral canvas, neutral text, `#7ED321` actions, softly saturated orange/violet/pink/yellow/olive accents, and spacious hierarchy.
 - Nunito Sans/Montserrat Alternates hierarchy, the Student 20–28px subtle-bordered surface family, and the Administrator line-led canvas exception.
+- Open Runde/Montserrat Alternates hierarchy, the Student 20–28px subtle-bordered surface family, and the Administrator line-led canvas exception.
 - One dominant task/conclusion per section.
 - Pastels remain accessible and never carry meaning alone.
 - Data, labels, thresholds, and reasons come from approved stored evidence.
@@ -539,6 +652,7 @@ Each slice requires affected component/content/accessibility tests, lint, produc
 ## 13. Status boundaries
 
 - **APPROVED:** Minimalist claymorphism, `#7ED321` primary green, no blue UI surface or semantic product tokens, orange/violet/pink/yellow/olive/neutral supporting colors, `shadow-sm` maximum elevation, Nunito Sans/Montserrat Alternates typography, responsive layout, accessibility, and reusable architecture.
+- **APPROVED:** Minimalist claymorphism, `#7ED321` primary green, no blue UI surface or semantic product tokens, orange/violet/pink/yellow/olive/neutral supporting colors, `shadow-sm` maximum elevation, Open Runde/Montserrat Alternates typography, responsive layout, accessibility, and reusable architecture.
 - **APPROVED:** Public Student landing page at `/`, supplied `assets/images/landing-image-bg.png` hero artwork, original project-specific content, full-pill landing actions, and dedicated portal links.
 - **APPROVED:** Current 42-item binary questionnaire UI and server-side 0-7 category-count formula, self-declared examination gate, all-programme RIASEC ranking with separate entrance-group guidance, competition ranks for exact ties, and truthful evidence boundaries. The selected external questionnaire remains PROPOSED for institutional or psychometric adoption.
 - **PROVISIONAL:** Colors, illustrations, typography, and product identity as institutional branding.

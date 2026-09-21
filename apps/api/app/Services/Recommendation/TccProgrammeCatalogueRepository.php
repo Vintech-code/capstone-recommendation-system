@@ -39,8 +39,9 @@ class TccProgrammeCatalogueRepository
         $catalogue['guidance_content_notice'] = $content['student_notice'] ?? null;
 
         $catalogue['programmes'] = array_map(static function (array $programme) use ($programmeContent, $programmeOutlook, $commonRequirements, $content, $outlook): array {
-            $details = $programmeContent[$programme['id']] ?? [];
-            $market = $programmeOutlook[$programme['id']] ?? [];
+            $contentReferenceId = $programme['content_reference_id'] ?? $programme['id'];
+            $details = $programmeContent[$contentReferenceId] ?? [];
+            $market = $programmeOutlook[$contentReferenceId] ?? [];
 
             $editable = array_intersect_key($programme, array_flip([
                 'career_opportunities', 'recommended_strands', 'strand_guidance',
@@ -87,7 +88,8 @@ class TccProgrammeCatalogueRepository
         ]);
 
         $bundled['programmes'] = array_map(static function (array $programme) use ($publishedProgrammes, $editableFields): array {
-            $publishedProgramme = $publishedProgrammes->get($programme['id']);
+            $publishedProgramme = $publishedProgrammes->get($programme['id'])
+                ?? $publishedProgrammes->get($programme['legacy_enrichment_id'] ?? '');
             if (! is_array($publishedProgramme)) {
                 return $programme;
             }

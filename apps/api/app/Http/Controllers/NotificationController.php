@@ -17,7 +17,7 @@ final class NotificationController extends Controller
             ->map(static fn (DatabaseNotification $notification): array => [
                 'id' => $notification->getKey(),
                 'eventType' => $notification->data['eventType'] ?? 'system_event',
-                'title' => $notification->data['title'] ?? 'Pathways update',
+                'title' => $notification->data['title'] ?? 'System update',
                 'message' => $notification->data['message'] ?? '',
                 'context' => $notification->data['context'] ?? [],
                 'readAt' => $notification->read_at?->toAtomString(),

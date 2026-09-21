@@ -26,6 +26,8 @@ docs/                     current guides, evidence, and dated records
 
 This layout adapts the requested frontend/backend reference to framework conventions. Moving Laravel's `app`, `routes`, `database`, or `tests` into a generic `backend/src` tree would break convention and tooling without adding maintainability.
 
+File-placement, dependency-direction, clean-code, contract-change, and validation requirements are defined in [Development and architecture standards](development-standards.md).
+
 ## Runtime flow
 
 1. `apps/web/src/main.tsx` mounts application providers and the route tree.
@@ -37,16 +39,16 @@ This layout adapts the requested frontend/backend reference to framework convent
 
 ## Domain modules
 
-- **Authentication:** local Student registration, individual Administrator login, Student-only Google OAuth, password recovery, session restoration, suspension, and revocation.
+- **Authentication:** local Student registration, invitation-based individual Administrator activation, individual Administrator login, role-aware Google OAuth, password recovery, session restoration, suspension, and revocation. Google may create or link a Student account, but it may only link an already-provisioned active Administrator whose email matches; it never grants the Administrator role.
 - **Assessment:** versioned questionnaire, entrance declaration prerequisite, answer persistence, immutable completion, retryable result processing, and retakes.
 - **Recommendation:** locally versioned programme catalogue, deterministic RIASEC engine, ties, pending classifications, saved programmes, and historical snapshots.
 - **Student profile:** encrypted/self-owned personal and academic fields, structured PSGC location references, profile media, and derived read-only result content.
-- **Administrator:** operational overview, Student directory/detail, catalogue enrichment, ESCO lookup, aggregate reports, and sanitized audit records.
+- **Administrator:** operational overview, Student directory/detail, catalogue enrichment, ESCO lookup, aggregate reports, sanitized audit records, and capability-gated Administrator account governance.
 - **Notifications and governance:** result-ready events, batched programme-update events, retention, and encrypted SQLite backup support.
 
 ## External integrations
 
-- Google OAuth through Laravel Socialite; it can create or link only Student accounts.
+- Google OAuth through Laravel Socialite; every authorization starts with Google's account chooser. Student authorization can create or link a Student account, while Administrator authorization requires a matching existing Administrator account and cannot create or grant that role.
 - PSGC Cloud v2 through an explicit sync command; normal profile requests read the local database and cache.
 - ESCO occupation API through the authenticated, throttled Laravel Admin boundary; published selections enrich exploration and never affect scoring.
 - Mail transport through Laravel for password recovery.

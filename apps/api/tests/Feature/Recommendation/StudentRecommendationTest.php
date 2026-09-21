@@ -46,8 +46,8 @@ class StudentRecommendationTest extends TestCase
             ->getJson('/api/v1/student/programmes')
             ->assertOk()
             ->assertJsonPath('data.academicYear', '2026-2027')
-            ->assertJsonPath('data.catalogueVersion', 3)
-            ->assertJsonCount(11, 'data.programmes')
+            ->assertJsonPath('data.catalogueVersion', 4)
+            ->assertJsonCount(13, 'data.programmes')
             ->assertJsonPath('data.programmes.0.id', 'bs-information-technology');
 
         $this->getJson('/api/v1/student/programmes/bs-information-technology')
@@ -164,8 +164,8 @@ class StudentRecommendationTest extends TestCase
             ->assertOk()
             ->assertJsonPath('data.status', 'available')
             ->assertJsonPath('data.recommendation.status', 'Proposed methodology')
-            ->assertJsonPath('data.recommendation.totalEligible', 6)
-            ->assertJsonPath('data.recommendation.totalRanked', 10)
+            ->assertJsonPath('data.recommendation.totalEligible', 8)
+            ->assertJsonPath('data.recommendation.totalRanked', 12)
             ->assertJsonPath('data.recommendation.canViewAll', false)
             ->assertJsonPath('data.recommendation.showingAll', true)
             ->assertJsonPath('data.recommendation.guidanceContentStatus', 'mixed_cmo_sourced_and_proposed')
@@ -176,10 +176,14 @@ class StudentRecommendationTest extends TestCase
             ->assertJsonPath('data.recommendation.courses.0.jobGrowth.status', 'not_published')
             ->assertJsonMissingPath('data.recommendation.courses.0.careerTrajectory')
             ->assertJsonCount(3, 'data.recommendation.courses.0.careerDirections')
-            ->assertJsonCount(10, 'data.recommendation.courses')
+            ->assertJsonCount(12, 'data.recommendation.courses')
             ->assertJsonCount(1, 'data.recommendation.pendingProgrammes')
             ->assertJsonPath('data.recommendation.pendingProgrammes.0.name', 'BS Community Development')
             ->assertJsonPath('data.recommendation.pendingProgrammes.0.status', 'classification_pending')
+            ->assertJsonFragment([
+                'id' => 'bachelor-secondary-education-social-studies',
+                'interestAreas' => ['S', 'I', 'E'],
+            ])
             ->assertJsonFragment(['eligibleForDeclaredGroup' => false]);
 
         $this->assertDatabaseCount('recommendation_runs', 1);
@@ -323,7 +327,7 @@ class StudentRecommendationTest extends TestCase
             ->getJson("/api/v1/student/recommendations/attempts/{$completed->getKey()}")
             ->assertOk()
             ->assertJsonPath('data.status', 'available')
-            ->assertJsonCount(10, 'data.recommendation.courses')
+            ->assertJsonCount(12, 'data.recommendation.courses')
             ->assertJsonCount(1, 'data.recommendation.pendingProgrammes');
 
         $this->actingAs($otherStudent)

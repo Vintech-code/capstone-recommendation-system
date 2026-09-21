@@ -39,5 +39,5 @@ The refactor did not treat these baseline failures as successful evidence. Their
 - `index.css` remains large and contains legacy compatibility selectors. DESIGN.md requires obsolete-theme removal as a separately verified UI slice.
 - Large landing and assessment PNG files dominate the production asset payload. Re-encoding or replacing them changes presentation assets and requires visual QA.
 - The Playwright suite is intentionally configured for one worker in this Windows checkout. Higher concurrency caused browser setup timeouts even when the same cases passed alone; reliability is preferred over a shorter local run.
-- Historical migrations intentionally include creation and later removal of deprecated counselor/appointment tables. They are migration history, not dead runtime code, and must not be deleted from an established database lineage.
+- Historical migrations intentionally included creation and later removal of deprecated counselor/appointment tables. This finding was superseded by the repository-owner-approved 2026-09-16 clean baseline and verified local reset; see [the current implementation record](../note/2026-09-16-backend-clean-baseline.md).
 - Exact Criminology, BSEd, BPEd, and Community Development source gaps remain as recorded in the CMO programme-content note. Refactoring cannot resolve those institutional evidence gaps.

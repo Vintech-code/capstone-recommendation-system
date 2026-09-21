@@ -21,13 +21,13 @@
   - BS Criminology: `IRS`
   - BS Hospitality Management: `ESC`
   - Bachelor of Elementary Education: `SAC`
-  - Bachelor of Secondary Education: shared `SAI`; recorded major profiles are English `SAI`, Filipino `SAI`, and Social Studies / Araling Panlipunan `SIE`
+  - Bachelor of Secondary Education: separately ranked English `SAI`, Filipino `SAI`, and Social Studies / Araling Panlipunan `SIE` entries
   - BS Midwifery: `SIR`
   - Bachelor of Library and Information Science: `CIS`
   - BA Sociology: `ISA`
   - Bachelor of Physical Education: `SRE`
 - BS Community Development remains in the catalogue with `pending_authoritative_psg_basis`, an empty RIASEC profile, and no rank or match. Recommendation snapshots store and expose it separately under `pendingProgrammes` so the pending state remains visible and historical runs do not gain a fabricated score.
-- Catalogue version: `TCC-AY-2026-2027-V2`.
+- Current catalogue version after the 2026-09-20 major-profile correction: `TCC-AY-2026-2027-V4`.
 - Matching rule: `PROPOSED-RIASEC-3-PSG-MATRIX`.
 - Profile version: `PSG-MATRIX-2026-09-10`.
 

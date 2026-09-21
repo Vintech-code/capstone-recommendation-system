@@ -5,7 +5,7 @@ namespace App\Notifications;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
 
-class PathwaysEventNotification extends Notification
+class ApplicationEventNotification extends Notification
 {
     use Queueable;
 

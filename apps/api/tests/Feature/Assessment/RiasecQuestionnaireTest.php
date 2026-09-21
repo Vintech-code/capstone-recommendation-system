@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Assessment;
 
+use App\Models\AssessmentQuestion;
 use App\Models\EntranceExaminationResult;
 use App\Models\Role;
 use App\Models\RoleSlug;
@@ -70,7 +71,7 @@ class RiasecQuestionnaireTest extends TestCase
         $response = $this->getJson('/api/v1/student/recommendations/latest')
             ->assertOk()
             ->assertJsonPath('data.status', 'available')
-            ->assertJsonPath('data.recommendation.totalEligible', 6)
+            ->assertJsonPath('data.recommendation.totalEligible', 8)
             ->assertJsonPath('data.recommendation.entranceExamination.score', 2.5)
             ->assertJsonPath('data.recommendation.entranceExamination.eligibilityGroup', 'board')
             ->assertJsonPath('data.recommendation.profile.dimensions.0.value', 7)
@@ -78,6 +79,15 @@ class RiasecQuestionnaireTest extends TestCase
             ->assertJsonPath('data.recommendation.profile.dimensions.1.maximum', 7)
             ->assertJsonPath('data.recommendation.profile.guidance.status', 'mixed_cmo_sourced_and_proposed')
             ->assertJsonPath('data.recommendation.profile.guidance.explanations.R', fn (string $value): bool => $value !== '');
+
+        $this->assertDatabaseCount('assessment_questions', 42);
+        foreach (['R', 'I', 'A', 'S', 'E', 'C'] as $code) {
+            $this->assertSame(
+                7,
+                AssessmentQuestion::query()->where('riasec_code', $code)->count(),
+                "Expected exactly seven mapped questions for {$code}.",
+            );
+        }
 
         $this->assertEqualsCanonicalizing(
             ['board', 'non_board'],

@@ -100,7 +100,9 @@ class AuthenticatedSessionController extends Controller
             'canManageAdministrators' => (bool) $user->can_manage_administrators,
             'photoUrl' => $user->studentProfile?->photo_path
                 ? '/api/v1/profile-photos/'.$user->getKey().'?v='.$user->studentProfile->updated_at?->getTimestamp()
-                : $user->google_avatar_url,
+                : ($user->admin_photo_path
+                    ? '/api/v1/admin/profile/photo?v='.$user->updated_at?->getTimestamp()
+                    : $user->google_avatar_url),
             'roles' => $user->roles->pluck('slug')->values()->all(),
         ];
     }

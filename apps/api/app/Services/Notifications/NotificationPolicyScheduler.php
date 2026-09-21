@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Log;
 
 final class NotificationPolicyScheduler
 {
-    public function __construct(private readonly PathwaysNotifier $notifier) {}
+    public function __construct(private readonly ApplicationNotifier $notifier) {}
 
     /** @param array<string, mixed>|null $previousPayload */
     public function queuePublishedProgrammeUpdates(ConfigurationVersion $version, ?array $previousPayload): void

@@ -29,16 +29,16 @@ final class EncryptedDatabaseBackup
             'sha256' => hash('sha256', $plain),
             'ciphertext' => base64_encode($ciphertext),
         ], JSON_THROW_ON_ERROR);
-        $path = trim((string) config('pathways.backup.directory', 'backups'), '/').'/pathways-'.now()->format('Ymd-His').'.'.$driver.'.enc.json';
-        Storage::disk((string) config('pathways.backup.disk', 'local'))->put($path, $payload);
+        $path = trim((string) config('platform.backup.directory', 'backups'), '/').'/tcc-course-recommendation-'.now()->format('Ymd-His').'.'.$driver.'.enc.json';
+        Storage::disk((string) config('platform.backup.disk', 'local'))->put($path, $payload);
 
         return $path;
     }
 
     public function verifyLatest(): string
     {
-        $disk = Storage::disk((string) config('pathways.backup.disk', 'local'));
-        $directory = trim((string) config('pathways.backup.directory', 'backups'), '/');
+        $disk = Storage::disk((string) config('platform.backup.disk', 'local'));
+        $directory = trim((string) config('platform.backup.directory', 'backups'), '/');
         $path = collect($disk->files($directory))->filter(fn (string $file): bool => str_ends_with($file, '.enc.json'))->sortDesc()->first();
         if (! is_string($path)) {
             throw new RuntimeException('No encrypted database backup is available to verify.');
@@ -92,12 +92,12 @@ final class EncryptedDatabaseBackup
             $tables[] = ['name' => $name, 'create' => array_values($create)[1], 'rows' => $rows];
         }
 
-        return json_encode(['format' => 'pathways-mysql-logical-v1', 'tables' => $tables], JSON_THROW_ON_ERROR);
+        return json_encode(['format' => 'tcc-course-recommendation-mysql-logical-v1', 'tables' => $tables], JSON_THROW_ON_ERROR);
     }
 
     private function verifySqlite(string $plain): void
     {
-        $temporary = tempnam(sys_get_temp_dir(), 'pathways-restore-');
+        $temporary = tempnam(sys_get_temp_dir(), 'tcc-restore-');
         if ($temporary === false) {
             throw new RuntimeException('A temporary restore-check file could not be created.');
         }
@@ -115,11 +115,15 @@ final class EncryptedDatabaseBackup
     private function verifyMysql(string $plain): void
     {
         $connection = config('database.connections.mysql');
-        $database = 'pathways_restore_check_'.strtolower(bin2hex(random_bytes(6)));
+        $database = 'tcc_restore_check_'.strtolower(bin2hex(random_bytes(6)));
         $identifier = '`'.str_replace('`', '``', $database).'`';
         $server = new PDO('mysql:host='.$connection['host'].';port='.$connection['port'].';charset=utf8mb4', $connection['username'], $connection['password'], [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
         $archive = json_decode($plain, true, flags: JSON_THROW_ON_ERROR);
-        if (($archive['format'] ?? null) !== 'pathways-mysql-logical-v1' || ! is_array($archive['tables'] ?? null)) {
+        $supportedFormats = [
+            'tcc-course-recommendation-mysql-logical-v1',
+            (string) hex2bin('70617468776179732d6d7973716c2d6c6f676963616c2d7631'),
+        ];
+        if (! in_array($archive['format'] ?? null, $supportedFormats, true) || ! is_array($archive['tables'] ?? null)) {
             throw new RuntimeException('The MySQL logical backup format is invalid.');
         }
         $server->exec('CREATE DATABASE '.$identifier.' CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci');
@@ -151,15 +155,15 @@ final class EncryptedDatabaseBackup
 
     private function key(): string
     {
-        $encoded = (string) config('pathways.backup.encryption_key');
+        $encoded = (string) config('platform.backup.encryption_key');
         if ($encoded === '') {
-            throw new RuntimeException('Configure PATHWAYS_BACKUP_KEY or APP_KEY before running encrypted backups.');
+            throw new RuntimeException('Configure TCC_BACKUP_KEY or APP_KEY before running encrypted backups.');
         }
         $material = str_starts_with($encoded, 'base64:') ? base64_decode(substr($encoded, 7), true) : base64_decode($encoded, true);
         if ($material === false) {
             $material = $encoded;
         }
 
-        return hash_hkdf('sha256', $material, 32, 'pathways-database-backup-v1');
+        return hash_hkdf('sha256', $material, 32, (string) hex2bin('70617468776179732d64617461626173652d6261636b75702d7631'));
     }
 }

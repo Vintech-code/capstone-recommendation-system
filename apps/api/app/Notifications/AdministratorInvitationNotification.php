@@ -26,9 +26,9 @@ class AdministratorInvitationNotification extends Notification
         $url = rtrim((string) config('app.frontend_url'), '/').'/admin/setup#token='.rawurlencode($this->token);
 
         return (new MailMessage)
-            ->subject('Set up your TCC Pathways Administrator account')
+            ->subject('Set up your TCC Administrator account')
             ->greeting('Hello '.$this->invitation->name.',')
-            ->line('You were invited to use an individual Administrator account in TCC Pathways.')
+            ->line('You were invited to use an individual TCC Administrator account.')
             ->action('Set up Administrator account', $url)
             ->line('This single-use link expires at '.$this->invitation->expires_at->toDayDateTimeString().' UTC.')
             ->line('If you were not expecting this invitation, do not use the link and contact the capstone team.');

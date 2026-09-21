@@ -4,7 +4,7 @@ namespace App\Jobs;
 
 use App\Models\AssessmentSession;
 use App\Services\Assessment\RiasecQuestionnaire;
-use App\Services\Notifications\PathwaysNotifier;
+use App\Services\Notifications\ApplicationNotifier;
 use App\Services\Recommendation\ProposedGuidanceContentRepository;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -50,7 +50,7 @@ class ProcessAssessmentResult implements ShouldQueue
 
         $session->loadMissing('user:id,name,email');
         if ($session->user !== null) {
-            app(PathwaysNotifier::class)->notify(
+            app(ApplicationNotifier::class)->notify(
                 $session->user,
                 'assessment_result_ready',
                 'Assessment result ready',

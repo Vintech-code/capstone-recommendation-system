@@ -265,6 +265,31 @@ class AdministratorAccountManagementTest extends TestCase
         ])->assertUnprocessable()->assertJsonValidationErrors('status');
     }
 
+    public function test_administrator_list_includes_photo_url_and_google_avatar(): void
+    {
+        $manager = $this->admin(true);
+        $manager->update(['google_avatar_url' => 'https://lh3.googleusercontent.com/test-avatar.png']);
+
+        $response = $this->actingAs($manager)->getJson('/api/v1/admin/administrators')->assertOk();
+        $administrators = $response->json('data.administrators');
+        $this->assertNotEmpty($administrators);
+        $found = collect($administrators)->firstWhere('id', $manager->getKey());
+        $this->assertNotNull($found);
+        $this->assertSame('https://lh3.googleusercontent.com/test-avatar.png', $found['photoUrl']);
+
+        // Custom uploaded photo takes precedence over Google avatar
+        \Illuminate\Support\Facades\Storage::fake('local');
+        \Illuminate\Support\Facades\Storage::disk('local')->put('admin-profile-media/'.$manager->getKey().'/custom.png', 'test-image-content');
+        $manager->update(['admin_photo_path' => 'admin-profile-media/'.$manager->getKey().'/custom.png']);
+
+        $response = $this->actingAs($manager)->getJson('/api/v1/admin/administrators')->assertOk();
+        $found = collect($response->json('data.administrators'))->firstWhere('id', $manager->getKey());
+        $this->assertStringContainsString('/api/v1/admin/administrators/'.$manager->getKey().'/photo', $found['photoUrl']);
+
+        $photoResponse = $this->actingAs($manager)->get($found['photoUrl'])->assertOk();
+        $this->assertSame('test-image-content', $photoResponse->streamedContent());
+    }
+
     private function admin(bool $canManage): User
     {
         $role = Role::query()->firstOrCreate(['slug' => RoleSlug::Admin->value], ['name' => 'Administrator']);

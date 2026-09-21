@@ -67,7 +67,13 @@ class TccProgrammeCatalogueTest extends TestCase
         }
 
         $this->assertSame('pending_local_cmo', $programmes['bs-criminology']['content_status']);
-        $this->assertSame('pending_local_cmo', $programmes['bachelor-secondary-education']['content_status']);
+        foreach ([
+            'bachelor-secondary-education-english',
+            'bachelor-secondary-education-filipino',
+            'bachelor-secondary-education-social-studies',
+        ] as $id) {
+            $this->assertSame('pending_local_cmo', $programmes[$id]['content_status']);
+        }
         $this->assertSame('pending_local_cmo', $programmes['bachelor-physical-education']['content_status']);
         $this->assertSame('pending_exact_psg', $programmes['bs-community-development']['content_status']);
         $this->assertSame('BA Sociology', $programmes['bs-sociology']['display_name']);
@@ -86,12 +92,12 @@ class TccProgrammeCatalogueTest extends TestCase
         $programmes = $catalogue['programmes'];
 
         $this->assertSame('approved_current_scope', $catalogue['catalogue_status']);
-        $this->assertSame(3, $catalogue['catalogue_version']);
+        $this->assertSame(4, $catalogue['catalogue_version']);
         $this->assertSame('2026-2027', $catalogue['academic_year']);
         $this->assertSame(['R', 'I', 'A', 'S', 'E', 'C'], $catalogue['riasec_dimensions']);
-        $this->assertCount(11, $programmes);
-        $this->assertCount(11, array_unique(array_column($programmes, 'id')));
-        $this->assertSame(6, collect($programmes)->where('eligibility_group', 'board')->count());
+        $this->assertCount(13, $programmes);
+        $this->assertCount(13, array_unique(array_column($programmes, 'id')));
+        $this->assertSame(8, collect($programmes)->where('eligibility_group', 'board')->count());
         $this->assertSame(5, collect($programmes)->where('eligibility_group', 'non_board')->count());
 
         $this->assertSame([
@@ -100,7 +106,9 @@ class TccProgrammeCatalogueTest extends TestCase
             'BS Criminology',
             'BS Hospitality Management',
             'Bachelor of Elementary Education',
-            'Bachelor of Secondary Education',
+            'Bachelor of Secondary Education major in English',
+            'Bachelor of Secondary Education major in Filipino',
+            'Bachelor of Secondary Education major in Social Studies / Araling Panlipunan',
             'BS Midwifery',
             'Bachelor of Library and Information Science',
             'BA Sociology',
@@ -115,12 +123,24 @@ class TccProgrammeCatalogueTest extends TestCase
             ['E', 'S', 'C'],
             ['S', 'A', 'C'],
             ['S', 'A', 'I'],
+            ['S', 'A', 'I'],
+            ['S', 'I', 'E'],
             ['S', 'I', 'R'],
             ['C', 'I', 'S'],
             ['I', 'S', 'A'],
             [],
             ['S', 'R', 'E'],
         ], array_column($programmes, 'riasec_profile'));
+        $this->assertCount(
+            11,
+            collect($programmes)
+                ->pluck('riasec_profile')
+                ->filter()
+                ->map(static fn (array $profile): string => implode('', $profile))
+                ->unique()
+                ->values(),
+            'The workbook records 11 distinct ordered three-code profiles; English and Filipino share SAI.',
+        );
 
         foreach ($programmes as $programme) {
             $expectedStatus = $programme['id'] === 'bs-community-development'
@@ -135,7 +155,7 @@ class TccProgrammeCatalogueTest extends TestCase
     }
 
     #[Test]
-    public function it_keeps_bped_separate_and_records_the_approved_bsed_majors(): void
+    public function it_keeps_bped_and_each_workbook_classified_bsed_major_separately_rankable(): void
     {
         $catalogue = json_decode(
             file_get_contents(resource_path('data/tcc-programme-catalogue-v1.json')),
@@ -149,15 +169,18 @@ class TccProgrammeCatalogueTest extends TestCase
             'separate_degree_confirmed',
             $programmes['bachelor-physical-education']['major_confirmation_status'],
         );
-        $this->assertSame([
-            'English',
-            'Filipino',
-            'Social Studies / Araling Panlipunan',
-        ], $programmes['bachelor-secondary-education']['majors']);
-        $this->assertSame(
-            'approved_current_scope',
-            $programmes['bachelor-secondary-education']['major_confirmation_status'],
-        );
+        $expected = [
+            'bachelor-secondary-education-english' => [['English'], ['S', 'A', 'I']],
+            'bachelor-secondary-education-filipino' => [['Filipino'], ['S', 'A', 'I']],
+            'bachelor-secondary-education-social-studies' => [['Social Studies / Araling Panlipunan'], ['S', 'I', 'E']],
+        ];
+
+        foreach ($expected as $id => [$majors, $profile]) {
+            $this->assertSame($majors, $programmes[$id]['majors'], $id);
+            $this->assertSame($profile, $programmes[$id]['riasec_profile'], $id);
+            $this->assertSame('approved_current_scope', $programmes[$id]['major_confirmation_status'], $id);
+            $this->assertSame('bachelor-secondary-education', $programmes[$id]['content_reference_id'], $id);
+        }
     }
 
     #[Test]

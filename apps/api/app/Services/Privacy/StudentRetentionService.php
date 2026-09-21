@@ -15,7 +15,7 @@ final class StudentRetentionService
     /** @return array<int, array{studentId: int, lastActivityAt: string}> */
     public function candidates(): array
     {
-        $cutoff = CarbonImmutable::now()->subYears(max(1, (int) config('pathways.student_retention_years', 5)));
+        $cutoff = CarbonImmutable::now()->subYears(max(1, (int) config('platform.student_retention_years', 5)));
 
         return User::query()
             ->whereNull('privacy_anonymized_at')

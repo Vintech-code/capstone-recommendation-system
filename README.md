@@ -1,6 +1,6 @@
-# TCC Pathways
+# TCC Course Recommendation System
 
-TCC Pathways is a responsive course-recommendation decision-support system for incoming Tagoloan Community College Student Applicants. A React application presents a Laravel-owned workflow for self-declared entrance examination guidance, a versioned RIASEC assessment, explainable programme matches, catalogue exploration, Student records, and Administrator governance.
+The TCC Course Recommendation System is a responsive decision-support application for incoming Tagoloan Community College Student Applicants. A React application presents a Laravel-owned workflow for self-declared entrance examination guidance, a versioned RIASEC assessment, explainable programme matches, catalogue exploration, Student records, and Administrator governance.
 
 The system does not enrol students, guarantee admission, diagnose ability or personality, or make a final course assignment. Researcher-proposed RIASEC programme profiles and the working visual identity must not be described as institutionally or psychometrically approved.
 
@@ -16,7 +16,7 @@ DESIGN.md       UI/UX source of truth
 
 The repository keeps framework-native structures. Laravel migrations and PHPUnit tests remain in `apps/api/database` and `apps/api/tests`; React feature tests and Playwright system tests remain in `apps/web/src` and `apps/web/e2e`; runtime assets remain with the application that bundles or stores them.
 
-Start with the [documentation index](docs/README.md), [system architecture](docs/architecture/system-overview.md), [product requirements](docs/requirements/README.md), and [design system](DESIGN.md).
+Start with the [documentation index](docs/README.md), [system architecture](docs/architecture/system-overview.md), [development standards](docs/architecture/development-standards.md), [product requirements](docs/requirements/README.md), and [design system](DESIGN.md).
 
 ## Prerequisites
 
@@ -73,6 +73,7 @@ php artisan test
 Frontend, from `apps/web`:
 
 ```powershell
+npm.cmd run check:architecture
 npm.cmd run lint
 npm.cmd test
 npm.cmd run build

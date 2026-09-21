@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\AdminConfigurationController;
 use App\Http\Controllers\Admin\AdminEscoOccupationController;
 use App\Http\Controllers\Admin\AdministratorAccountController;
+use App\Http\Controllers\Admin\AdminProfileController;
 use App\Http\Controllers\Admin\AdminProgrammeMediaController;
 use App\Http\Controllers\Admin\AdminWorkspaceController;
 use App\Http\Controllers\Assessment\AssessmentSessionController;
@@ -135,6 +136,11 @@ Route::prefix('v1/admin')
         Route::put('/configurations/versions/{configurationVersion}', [AdminConfigurationController::class, 'update']);
         Route::post('/configurations/versions/{configurationVersion}/preview', [AdminConfigurationController::class, 'preview']);
         Route::post('/configurations/versions/{configurationVersion}/publish', [AdminConfigurationController::class, 'publish']);
+
+        Route::post('/profile/photo', [AdminProfileController::class, 'storePhoto']);
+        Route::delete('/profile/photo', [AdminProfileController::class, 'destroyPhoto']);
+        Route::get('/profile/photo', [AdminProfileController::class, 'showPhoto']);
+        Route::get('/administrators/{administrator}/photo', [AdminProfileController::class, 'showAdministratorPhoto']);
 
         Route::prefix('administrators')->middleware(['manages_admins', 'throttle:20,1'])->group(function (): void {
             Route::get('/', [AdministratorAccountController::class, 'index']);

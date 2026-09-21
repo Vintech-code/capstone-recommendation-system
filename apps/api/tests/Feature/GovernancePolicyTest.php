@@ -40,16 +40,16 @@ final class GovernancePolicyTest extends TestCase
 
     public function test_sqlite_backup_is_encrypted_and_restores_to_an_integrity_checked_temporary_database(): void
     {
-        $database = tempnam(sys_get_temp_dir(), 'pathways-source-');
+        $database = tempnam(sys_get_temp_dir(), 'tcc-source-');
         $pdo = new \PDO('sqlite:'.$database);
         $pdo->exec('CREATE TABLE verification (id INTEGER PRIMARY KEY, value TEXT)');
         $pdo->exec("INSERT INTO verification (value) VALUES ('Student Name')");
         Storage::fake('local');
         config()->set('database.default', 'sqlite');
         config()->set('database.connections.sqlite.database', $database);
-        config()->set('pathways.backup.disk', 'local');
-        config()->set('pathways.backup.directory', 'backups');
-        config()->set('pathways.backup.encryption_key', base64_encode(random_bytes(32)));
+        config()->set('platform.backup.disk', 'local');
+        config()->set('platform.backup.directory', 'backups');
+        config()->set('platform.backup.encryption_key', base64_encode(random_bytes(32)));
 
         $service = app(EncryptedDatabaseBackup::class);
         $path = $service->create();
@@ -61,6 +61,6 @@ final class GovernancePolicyTest extends TestCase
 
     public function test_identifiable_export_policy_is_disabled(): void
     {
-        $this->assertFalse(config('pathways.identifiable_exports_enabled'));
+        $this->assertFalse(config('platform.identifiable_exports_enabled'));
     }
 }

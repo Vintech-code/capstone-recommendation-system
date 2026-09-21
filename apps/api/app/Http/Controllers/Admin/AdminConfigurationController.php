@@ -77,7 +77,7 @@ final class AdminConfigurationController extends Controller
         $payload = $configurationVersion->kind === 'catalogue'
             ? $this->preserveApiFields($validated['payload'], $catalogues->current())
             : $validated['payload'];
-        $this->validatePayload($configurationVersion->kind, $payload);
+        $this->validatePayload($configurationVersion->kind, $payload, $catalogues->current());
         $changes = $this->diff($configurationVersion->payload, $payload);
         $configurationVersion->update(['payload' => $payload]);
         $this->audit($request, 'configuration.draft_updated', $configurationVersion, null, [
@@ -88,10 +88,14 @@ final class AdminConfigurationController extends Controller
         return response()->json(['data' => $this->payload($configurationVersion->fresh('creator:id,name'))]);
     }
 
-    public function publish(Request $request, ConfigurationVersion $configurationVersion, NotificationPolicyScheduler $notificationPolicies): JsonResponse
-    {
+    public function publish(
+        Request $request,
+        ConfigurationVersion $configurationVersion,
+        NotificationPolicyScheduler $notificationPolicies,
+        TccProgrammeCatalogueRepository $catalogues,
+    ): JsonResponse {
         abort_unless($configurationVersion->status === 'draft', 409, 'Only a draft configuration can be published.');
-        $this->validatePayload($configurationVersion->kind, $configurationVersion->payload);
+        $this->validatePayload($configurationVersion->kind, $configurationVersion->payload, $catalogues->current());
 
         $previousPayload = ConfigurationVersion::query()
             ->where('kind', $configurationVersion->kind)
@@ -137,7 +141,7 @@ final class AdminConfigurationController extends Controller
         if ($configurationVersion->kind === 'catalogue') {
             $payload = $this->preserveApiFields($payload, $catalogues->current());
         }
-        $this->validatePayload($configurationVersion->kind, $payload);
+        $this->validatePayload($configurationVersion->kind, $payload, $catalogues->current());
 
         return response()->json(['data' => $this->diff(
             $configurationVersion->kind === 'catalogue' ? $catalogues->current() : $catalogues->current()['matching_policy'],
@@ -167,6 +171,8 @@ final class AdminConfigurationController extends Controller
             $source = $locked->get($programme['id'] ?? '', []);
             foreach ([
                 'id',
+                'content_reference_id',
+                'legacy_enrichment_id',
                 'display_name',
                 'short_label',
                 'majors',
@@ -204,12 +210,15 @@ final class AdminConfigurationController extends Controller
         return $payload;
     }
 
-    /** @param array<string, mixed> $payload */
-    private function validatePayload(string $kind, array $payload): void
+    /** @param array<string, mixed> $payload @param array<string, mixed> $runtime */
+    private function validatePayload(string $kind, array $payload, array $runtime): void
     {
         $programmes = $payload['programmes'] ?? null;
-        if (! is_array($programmes) || count($programmes) !== 11) {
-            throw ValidationException::withMessages(['payload.programmes' => 'The catalogue must contain all 11 configured programmes.']);
+        $expectedProgrammeCount = count($runtime['programmes'] ?? []);
+        if (! is_array($programmes) || count($programmes) !== $expectedProgrammeCount) {
+            throw ValidationException::withMessages([
+                'payload.programmes' => "The catalogue must contain all {$expectedProgrammeCount} configured programmes.",
+            ]);
         }
         foreach ($programmes as $programme) {
             $profile = $programme['riasec_profile'] ?? [];

@@ -10,6 +10,8 @@ The application previously called the protected `GET /api/v1/auth/me` endpoint d
 
 Initial restoration now uses `GET /api/v1/auth/session`. This endpoint returns HTTP 200 with either the active authenticated user or `user: null`. It does not weaken `GET /api/v1/auth/me`: that endpoint remains protected and continues returning 401 to guests. An inactive account is signed out and returned as `user: null` without exposing account information through the public bootstrap response.
 
+**Superseded contract note (2026-09-16):** `/api/v1/auth/me` was later removed after repository-wide usage tracing confirmed that no active frontend flow consumed it. `/api/v1/auth/session` is now the single current-user bootstrap contract; protected portal authorization remains separate.
+
 Protected portal authorization and all Student and Administrator data endpoints retain their existing authentication, active-account, and role middleware.
 
 ## Validation

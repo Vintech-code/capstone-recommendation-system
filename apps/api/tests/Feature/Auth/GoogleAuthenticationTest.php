@@ -30,10 +30,64 @@ class GoogleAuthenticationTest extends TestCase
 
     public function test_student_can_start_google_authentication(): void
     {
-        Socialite::fake('google');
+        $response = $this->get('/auth/google/redirect');
 
-        $this->get('/auth/google/redirect')
-            ->assertRedirect('https://socialite.fake/google/authorize');
+        $response->assertRedirect();
+
+        $location = (string) $response->headers->get('Location');
+        parse_str((string) parse_url($location, PHP_URL_QUERY), $query);
+
+        $this->assertSame('accounts.google.com', parse_url($location, PHP_URL_HOST));
+        $this->assertSame('select_account', $query['prompt'] ?? null);
+    }
+
+    public function test_admin_google_authentication_also_prompts_for_account_selection(): void
+    {
+        $response = $this->get('/auth/google/redirect?portal=admin');
+
+        $response->assertRedirect();
+
+        $location = (string) $response->headers->get('Location');
+        parse_str((string) parse_url($location, PHP_URL_QUERY), $query);
+
+        $this->assertSame('select_account', $query['prompt'] ?? null);
+        $response->assertSessionHas('google_auth_portal', 'admin');
+    }
+
+    public function test_existing_admin_can_authenticate_with_matching_google_account(): void
+    {
+        $admin = $this->userWithRole(RoleSlug::Admin, [
+            'email' => 'new.student@example.test',
+            'google_id' => null,
+        ]);
+
+        Socialite::fake('google', $this->googleUser());
+
+        $this->withSession(['google_auth_portal' => 'admin'])
+            ->get('/auth/google/callback')
+            ->assertRedirect('http://localhost:5173/admin');
+
+        $admin->refresh();
+        $this->assertAuthenticatedAs($admin);
+        $this->assertSame('google-student-123', $admin->google_id);
+        $this->assertFalse($admin->hasRole(RoleSlug::Student));
+    }
+
+    public function test_student_google_account_cannot_access_the_admin_portal(): void
+    {
+        $student = $this->userWithRole(RoleSlug::Student, [
+            'email' => 'new.student@example.test',
+        ]);
+
+        Socialite::fake('google', $this->googleUser());
+
+        $this->withSession(['google_auth_portal' => 'admin'])
+            ->get('/auth/google/callback')
+            ->assertRedirect('http://localhost:5173/admin/login?google_error=portal_forbidden');
+
+        $this->assertGuest();
+        $this->assertFalse($student->fresh()->hasRole(RoleSlug::Admin));
+        $this->assertNull($student->fresh()->google_id);
     }
 
     public function test_verified_google_account_creates_and_authenticates_a_student(): void
