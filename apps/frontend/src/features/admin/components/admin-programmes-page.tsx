@@ -1,0 +1,685 @@
+import {
+  AlertTriangle,
+  BookOpen,
+  BriefcaseBusiness,
+  Clock3,
+  ExternalLink,
+  Eye,
+  GraduationCap,
+  Pencil,
+  Search,
+  ShieldCheck,
+} from "lucide-react";
+import { useMemo, useState } from "react";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import {
+  AdminPageError,
+  AdminPageHeader,
+  AdminPageSkeleton,
+  EmptyPanel,
+} from "@/features/admin/components/admin-shared";
+import { ConfigurationWorkflow } from "@/features/admin/components/configuration-workflow";
+import {
+  useAdminResource,
+  type AdminProgramme,
+  type AdminProgrammeCatalogue,
+} from "@/features/admin/data/admin-api";
+import { getProgrammeImages } from "@/features/student/programmes/programme-images";
+import { cn } from "@/lib/utils";
+
+const programmeGroups = [
+  { label: "Technology", ids: ["bs-information-technology"] },
+  {
+    label: "Business & Hospitality",
+    ids: ["bs-business-administration", "bs-hospitality-management"],
+  },
+  {
+    label: "Education",
+    ids: [
+      "bachelor-elementary-education",
+      "bachelor-secondary-education-english",
+      "bachelor-secondary-education-filipino",
+      "bachelor-secondary-education-social-studies",
+      "bachelor-physical-education",
+    ],
+  },
+  { label: "Criminology & Public Safety", ids: ["bs-criminology"] },
+  {
+    label: "Community, Health & Information",
+    ids: [
+      "bs-midwifery",
+      "bachelor-library-information-science",
+      "bs-sociology",
+      "bs-community-development",
+    ],
+  },
+];
+
+function programmeGroup(programmeId: string) {
+  return (
+    programmeGroups.find((group) => group.ids.includes(programmeId))?.label ??
+    "Academic programme"
+  );
+}
+
+function getProgrammeType(programme: AdminProgramme) {
+  if (programme.eligibilityGroup === "board") return "Board programme";
+  if (programme.eligibilityGroup === "non_board") return "Non-board programme";
+  return "Classification unavailable";
+}
+
+const RIASEC_META: Record<
+  string,
+  { label: string; bg: string; text: string; border: string }
+> = {
+  R: {
+    label: "Realistic",
+    bg: "bg-[var(--riasec-r)]/15",
+    text: "text-[var(--riasec-r)]",
+    border: "border-[var(--riasec-r)]/30",
+  },
+  I: {
+    label: "Investigative",
+    bg: "bg-[var(--riasec-i)]/15",
+    text: "text-[var(--riasec-i)]",
+    border: "border-[var(--riasec-i)]/30",
+  },
+  A: {
+    label: "Artistic",
+    bg: "bg-[var(--riasec-a)]/15",
+    text: "text-[var(--riasec-a)]",
+    border: "border-[var(--riasec-a)]/30",
+  },
+  S: {
+    label: "Social",
+    bg: "bg-[var(--riasec-s)]/15",
+    text: "text-[var(--riasec-s)]",
+    border: "border-[var(--riasec-s)]/30",
+  },
+  E: {
+    label: "Enterprising",
+    bg: "bg-[var(--riasec-e)]/15",
+    text: "text-[var(--riasec-e)]",
+    border: "border-[var(--riasec-e)]/30",
+  },
+  C: {
+    label: "Conventional",
+    bg: "bg-[var(--riasec-c)]/15",
+    text: "text-[var(--riasec-c)]",
+    border: "border-[var(--riasec-c)]/30",
+  },
+};
+
+function AdminProgrammesPage() {
+  const resource = useAdminResource<AdminProgrammeCatalogue>("/programmes");
+  const [query, setQuery] = useState("");
+  const [filter, setFilter] = useState<"all" | "confirmed" | "review">("all");
+  const [selected, setSelected] = useState<AdminProgramme | null>(null);
+  const [editing, setEditing] = useState<AdminProgramme | null>(null);
+
+  const visibleProgrammes = useMemo(() => {
+    const normalizedQuery = query.trim().toLowerCase();
+    return (resource.data?.programmes ?? []).filter((programme) => {
+      const searchable = [
+        programme.code,
+        programme.name,
+        programme.description,
+        programmeGroup(programme.id),
+        ...programme.learningAreas,
+        ...programme.careerDirections,
+      ]
+        .join(" ")
+        .toLowerCase();
+      const matchesFilter =
+        filter === "all" ||
+        (filter === "confirmed" && programme.duration?.status === "ched_psg") ||
+        (filter === "review" && programme.duration?.status !== "ched_psg");
+      return (
+        matchesFilter &&
+        (!normalizedQuery || searchable.includes(normalizedQuery))
+      );
+    });
+  }, [filter, query, resource.data]);
+
+  if (resource.loading) return <AdminPageSkeleton />;
+  if (resource.error || !resource.data)
+    return (
+      <AdminPageError
+        message={resource.error ?? "No programme data was returned."}
+        onRetry={resource.retry}
+      />
+    );
+
+  const catalogue = resource.data;
+
+  return (
+    <div className="space-y-4">
+      <AdminPageHeader title="Programme monitoring" />
+
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:gap-4">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+            Active catalogue
+          </p>
+          <p className="mt-1 font-display text-lg font-bold">
+            {catalogue.programmes.length} programmes
+          </p>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            For Explore and My Matches
+          </p>
+        </div>
+        <div className="h-px bg-border lg:h-10 lg:w-px" />
+        <label className="flex-1 min-w-0">
+          <span className="sr-only">Search programme catalogue</span>
+          <div className="relative">
+            <Search
+              aria-hidden="true"
+              className="absolute left-3 top-1/2 size-5 -translate-y-1/2 text-muted-foreground"
+            />
+            <Input
+              type="search"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Search by name, code, areas, or careers"
+              className="min-h-11 rounded-xs pl-10 text-xs"
+            />
+          </div>
+        </label>
+        <label className="min-w-48">
+          <span className="sr-only">Filter by source status</span>
+          <select
+            value={filter}
+            onChange={(event) => setFilter(event.target.value as typeof filter)}
+            className="min-h-11 w-full rounded-xs border border-input bg-background px-3 text-xs font-semibold text-foreground"
+          >
+            <option value="all">All programmes</option>
+            <option value="confirmed">CHED confirmed</option>
+            <option value="review">Needs review</option>
+          </select>
+        </label>
+      </div>
+
+      <div className="flex items-center justify-between gap-3 border-t border-border pt-4">
+        <h2 className="font-display text-lg font-bold">Results</h2>
+        <p className="text-sm text-muted-foreground">
+          {visibleProgrammes.length} of {catalogue.programmes.length}
+        </p>
+      </div>
+
+      {visibleProgrammes.length ? (
+        <section
+          className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3"
+          aria-label="Programme catalogue monitoring cards"
+        >
+          {visibleProgrammes.map((programme) => (
+            <AdminProgrammeCard
+              key={programme.id}
+              programme={programme}
+              onInspect={() => setSelected(programme)}
+              onEdit={() => setEditing(programme)}
+            />
+          ))}
+        </section>
+      ) : (
+        <EmptyPanel
+          title="No programmes match this view"
+          description="Clear the search or choose another monitoring filter."
+        />
+      )}
+
+      <AdminProgrammeSheet
+        programme={selected}
+        onOpenChange={(open) => {
+          if (!open) setSelected(null);
+        }}
+      />
+      <ProgrammeEditorSheet
+        programme={editing}
+        onOpenChange={(open) => {
+          if (!open) setEditing(null);
+        }}
+        onPublished={resource.retry}
+      />
+    </div>
+  );
+}
+
+function AdminProgrammeCard({
+  programme,
+  onInspect,
+  onEdit,
+}: {
+  programme: AdminProgramme;
+  onInspect: () => void;
+  onEdit: () => void;
+}) {
+  const fallback = getProgrammeImages(programme.id);
+  const cover = programme.coverImageUrl || fallback.cover;
+  const programmeType = getProgrammeType(programme);
+  const primaryCareer = programme.careerDirections[0] || "Various career options";
+
+  return (
+    <article className="group flex flex-col overflow-hidden rounded-xs border border-border bg-card shadow-xs transition-colors hover:border-primary/40">
+      <div className="relative h-44 w-full overflow-hidden bg-surface-subtle sm:h-48">
+        {cover ? (
+          <img
+            src={cover}
+            alt={`${programme.name} programme`}
+            loading="lazy"
+            decoding="async"
+            className="size-full object-cover object-top transition-transform duration-300 group-hover:scale-105"
+          />
+        ) : (
+          <div className="flex size-full items-center justify-center bg-primary/10">
+            <BookOpen
+              aria-hidden="true"
+              className="size-12 text-primary-ink/25"
+            />
+          </div>
+        )}
+      </div>
+      <div className="flex flex-1 flex-col p-3.5 sm:p-4">
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-xs font-bold uppercase tracking-[0.14em] text-primary-ink">
+            {programme.code}
+          </span>
+          <div
+            className="flex shrink-0 items-center gap-1"
+            aria-label={`RIASEC profile ${programme.profile.join(", ")}`}
+          >
+            {programme.profile.map((code) => {
+              const meta = RIASEC_META[code] ?? {
+                label: code,
+                bg: "bg-primary-fixed",
+                text: "text-on-primary-fixed",
+                border: "border-primary/20",
+              };
+              return (
+                <span
+                  key={code}
+                  title={`${code} · ${meta.label}`}
+                  className={cn(
+                    "flex size-6 items-center justify-center rounded-xs text-[11px] font-bold border",
+                    meta.bg,
+                    meta.text,
+                    meta.border,
+                  )}
+                >
+                  {code}
+                </span>
+              );
+            })}
+          </div>
+        </div>
+        <h3 className="mt-1 font-display text-base font-bold leading-snug text-foreground line-clamp-1 group-hover:text-primary-ink transition-colors">
+          {programme.name}
+        </h3>
+        <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
+          {programme.description}
+        </p>
+        <dl className="mt-3 grid grid-cols-2 gap-2 rounded-xs border border-border/70 bg-surface-subtle/50 p-2.5 text-xs">
+          <CardDatum
+            icon={Clock3}
+            label="Duration"
+            value={programme.duration?.display || "Not published"}
+          />
+          <CardDatum
+            icon={GraduationCap}
+            label="Degree type"
+            value={programme.degreeType || "Not published"}
+          />
+          <CardDatum
+            icon={ShieldCheck}
+            label="Programme type"
+            value={programmeType}
+          />
+          <CardDatum
+            icon={BriefcaseBusiness}
+            label="Career field"
+            value={primaryCareer}
+          />
+        </dl>
+        <div className="mt-3.5 flex flex-wrap items-center justify-between gap-2 border-t border-border/60 pt-3">
+          {programme.duration?.source_url ? (
+            <a
+              href={programme.duration.source_url}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1 text-xs font-semibold text-primary-ink underline underline-offset-4 hover:text-primary"
+            >
+              <span className="truncate max-w-[110px]">
+                {programme.duration.source_name || "CHED source"}
+              </span>
+              <ExternalLink aria-hidden="true" className="size-3 shrink-0" />
+            </a>
+          ) : (
+            <span className="text-xs text-muted-foreground">
+              No duration source published
+            </span>
+          )}
+          <div className="flex items-center gap-1.5 ml-auto">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-8 rounded-xs px-2.5 text-xs"
+              onClick={onInspect}
+            >
+              <Eye aria-hidden="true" className="size-3.5" />
+              View details
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              className="h-8 rounded-xs px-2.5 text-xs"
+              onClick={onEdit}
+            >
+              <Pencil aria-hidden="true" className="size-3.5" />
+              Manage programme
+            </Button>
+          </div>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function ProgrammeEditorSheet({
+  programme,
+  onOpenChange,
+  onPublished,
+}: {
+  programme: AdminProgramme | null;
+  onOpenChange: (open: boolean) => void;
+  onPublished: () => void;
+}) {
+  if (!programme) return null;
+  return (
+    <Sheet open onOpenChange={onOpenChange}>
+      <SheetContent className="w-[min(56rem,96vw)] max-w-none overflow-y-auto p-0">
+        <div className="sticky top-0 z-10 border-b border-border bg-background px-6 py-5">
+          <SheetHeader>
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary-ink">
+              Programme governance - {programme.code}
+            </p>
+            <SheetTitle>Manage {programme.name}</SheetTitle>
+            <SheetDescription>
+              Review protected programme facts and manage only the student
+              enrichment and media fields owned by this catalogue workflow.
+            </SheetDescription>
+          </SheetHeader>
+        </div>
+        <div className="p-5">
+          <ConfigurationWorkflow
+            programmeId={programme.id}
+            onPublished={onPublished}
+          />
+        </div>
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+function AdminProgrammeSheet({
+  programme,
+  onOpenChange,
+}: {
+  programme: AdminProgramme | null;
+  onOpenChange: (open: boolean) => void;
+}) {
+  if (!programme) return null;
+  const fallback = getProgrammeImages(programme.id);
+  const cover = programme.coverImageUrl || fallback.cover;
+  const logo = programme.logoImageUrl || fallback.logo;
+  const programmeType = getProgrammeType(programme);
+  const primaryCareer = programme.careerDirections[0] || "Various career options";
+
+  return (
+    <Sheet open onOpenChange={onOpenChange}>
+      <SheetContent className="w-[min(48rem,96vw)] max-w-none overflow-y-auto p-0">
+        <div className="relative h-52 overflow-hidden bg-primary">
+          {cover ? (
+            <img src={cover} alt="" className="size-full object-cover" />
+          ) : null}
+          {logo ? (
+            <img
+              src={logo}
+              alt=""
+              className="absolute bottom-5 right-6 size-16 rounded-xs bg-white object-contain p-1 shadow-sm"
+            />
+          ) : null}
+        </div>
+        <div className="p-6">
+          <SheetHeader>
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary-ink">
+              {programme.code} · {programmeGroup(programme.id)}
+            </p>
+            <SheetTitle className="font-display text-xl font-semibold">
+              {programme.name}
+            </SheetTitle>
+            <SheetDescription>{programme.description}</SheetDescription>
+          </SheetHeader>
+          <dl className="mt-6 grid gap-3 sm:grid-cols-2">
+            <DetailDatum
+              label="Degree type"
+              value={programme.degreeType || "Not published"}
+            />
+            <DetailDatum
+              label="Duration"
+              value={programme.duration?.display || "Not published"}
+            />
+            <DetailDatum label="Programme type" value={programmeType} />
+            <DetailDatum label="Career field" value={primaryCareer} />
+          </dl>
+          <ContentSourcePanel source={programme.contentSource} />
+          <SourcePanel title="Duration source" value={programme.duration} />
+          <DetailSection
+            title="Learning areas"
+            items={programme.learningAreas}
+            descriptions={programme.learningAreaDescriptions}
+            topics={programme.learningAreaTopics}
+          />
+          <DetailSection
+            title="Possible career directions"
+            items={programme.careerDirections}
+          />
+          {programme.majors.length ? (
+            <DetailSection title="Recorded majors" items={programme.majors} />
+          ) : null}
+          <DetailSection
+            title="Recommended SHS strands"
+            items={programme.recommendedStrands}
+          />
+        </div>
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+function CardDatum({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: typeof Clock3;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="min-w-0">
+      <dt className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+        <Icon
+          aria-hidden="true"
+          className="size-3.5 shrink-0 text-primary-ink"
+        />
+        <span className="truncate">{label}</span>
+      </dt>
+      <dd
+        className="mt-0.5 truncate font-semibold text-foreground"
+        title={value}
+      >
+        {value}
+      </dd>
+    </div>
+  );
+}
+function DetailDatum({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xs bg-secondary/80 p-3">
+      <dt className="text-xs font-medium text-muted-foreground">{label}</dt>
+      <dd className="mt-1 font-semibold">{value}</dd>
+    </div>
+  );
+}
+function ContentSourcePanel({
+  source,
+}: {
+  source: AdminProgramme["contentSource"];
+}) {
+  if (!source) return null;
+  return (
+    <section className="mt-3 rounded-xs bg-secondary/80 p-3">
+      <div className="flex items-start gap-3">
+        {source.document_path ? (
+          <BookOpen
+            aria-hidden="true"
+            className="mt-0.5 size-5 text-primary-ink"
+          />
+        ) : (
+          <AlertTriangle
+            aria-hidden="true"
+            className="mt-0.5 size-5 text-warning-ink"
+          />
+        )}
+        <div>
+          <h3 className="font-semibold">Programme content source</h3>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {source.note ||
+              source.reference ||
+              "Source details are pending review."}
+          </p>
+          {source.source_url && source.source_name ? (
+            <a
+              href={source.source_url}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-primary-ink underline underline-offset-4"
+            >
+              {source.source_name}
+              <ExternalLink aria-hidden="true" className="size-3" />
+            </a>
+          ) : null}
+        </div>
+      </div>
+    </section>
+  );
+}
+function SourcePanel({
+  title,
+  value,
+}: {
+  title: string;
+  value: AdminProgramme["duration"];
+}) {
+  if (!value) return null;
+  return (
+    <section className="mt-3 rounded-xs bg-secondary/80 p-3">
+      <div className="flex items-start gap-3">
+        {value.status === "ched_psg" ? (
+          <BookOpen
+            aria-hidden="true"
+            className="mt-0.5 size-5 text-primary-ink"
+          />
+        ) : (
+          <AlertTriangle
+            aria-hidden="true"
+            className="mt-0.5 size-5 text-warning-ink"
+          />
+        )}
+        <div>
+          <h3 className="font-semibold">{title}</h3>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {value.note || value.display}
+          </p>
+          {value.source_url ? (
+            <a
+              href={value.source_url}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-primary-ink underline underline-offset-4"
+            >
+              {value.source_name || "Open source"}
+              <ExternalLink aria-hidden="true" className="size-3" />
+            </a>
+          ) : null}
+        </div>
+      </div>
+    </section>
+  );
+}
+function DetailSection({
+  title,
+  items,
+  descriptions,
+  topics,
+}: {
+  title: string;
+  items: string[];
+  descriptions?: Record<string, string>;
+  topics?: Record<string, string[]>;
+}) {
+  return (
+    <section className="mt-6">
+      <h3 className="font-display text-lg font-semibold">{title}</h3>
+      {items.length ? (
+        <ul className="mt-3 divide-y divide-border/60 overflow-hidden rounded-xs border border-border/70 bg-card">
+          {items.map((item, index) => (
+            <li
+              key={item}
+              className="flex items-start gap-4 p-4 transition-colors hover:bg-secondary/40"
+            >
+              <span className="flex size-7 shrink-0 items-center justify-center rounded-xs bg-primary-fixed font-label text-xs font-bold text-on-primary-fixed">
+                {String(index + 1).padStart(2, "0")}
+              </span>
+              <div className="min-w-0 flex-1">
+                <strong className="text-sm font-semibold">{item}</strong>
+                {descriptions?.[item] ? (
+                  <p className="mt-1 text-xs leading-relaxed text-muted-foreground sm:text-sm">
+                    {descriptions[item]}
+                  </p>
+                ) : null}
+                {topics?.[item]?.length ? (
+                  <ul className="mt-2 flex flex-wrap gap-1.5">
+                    {topics[item].map((topic) => (
+                      <li
+                        key={topic}
+                        className="rounded-xs bg-secondary px-2.5 py-0.5 font-label text-[11px] font-medium text-foreground/80"
+                      >
+                        {topic}
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+              </div>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="mt-2 text-sm text-muted-foreground">
+          No published entries.
+        </p>
+      )}
+    </section>
+  );
+}
+
+export { AdminProgrammesPage };
