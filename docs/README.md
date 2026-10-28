@@ -26,9 +26,12 @@ This is the index for the surviving TCC course-recommendation documentation. The
 - [Google account-selection hardening](note/2026-09-19-google-account-selection.md) records the forced account chooser and the role-safe Student and Administrator OAuth boundaries.
 - [RIASEC formula and PSG profile audit](note/2026-09-20-riasec-result-formula-and-profile-audit.md) records the verified scoring path, independently ranked BSEd majors, 11 distinct workbook codes, and pending Community Development boundary.
 - [RIASEC interest-profile names](note/2026-09-21-riasec-interest-profile-names.md) records the approved two-word names, two-sentence descriptions, fallback boundary, implementation, and validation evidence.
+- [In-app notification removal](note/2026-09-30-in-app-notification-removal.md) records removal of the Student and Administrator notification feed, its API/producers/storage, retained account-security email boundary, and validation evidence.
 - [Product-name removal](note/2026-09-21-product-name-removal.md) records the repository-wide removal of the former product label from source, configuration, tests, and documentation.
 - [Workspace preview JSX repair](note/2026-09-21-workspace-preview-jsx-repair.md) records the duplicated-markup repair, focused regression evidence, and remaining rendered-validation blocker.
 - [Frontend modular refactor](note/2026-09-21-frontend-modular-refactor.md) records the first architecture-only extraction slice, automated validation, and remaining browser/test drift.
+- [Assessment progress divider and retake-cancel audit](note/2026-10-28-assessment-progress-divider-and-retake-cancel-audit.md) records the open-canvas divider removal, current retake-cancel boundary, automated evidence, and remaining rendered-validation blocker.
+- [Clone and local setup guide](note/2026-10-28-clone-and-local-setup-guide.md) records the current clone-to-running PowerShell onboarding guide and its verification boundaries.
 - `cmo/` contains locally reviewed CHED programme-standard evidence.
 - `pdf/` contains the capstone paper and historical roadmap sources.
 - `../PSG_Informed_RIASEC_Classification.xlsx` is the repository-owner-supplied analytical matrix. Its RIASEC classifications remain proposed, not official CHED or psychometric classifications.

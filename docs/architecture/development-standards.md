@@ -27,7 +27,7 @@ apps/api/
   app/Models/           persistence relationships, casts, and scopes
   app/Services/         domain workflows and integrations
   app/Jobs/             asynchronous retryable work
-  app/Notifications/    notification payloads
+  app/Notifications/    transactional account-email payloads
   routes/               declarative route registration
   database/             migrations, factories, and seeders
   tests/                Laravel unit and feature tests

@@ -18,7 +18,7 @@ apps/
     app/Models/           Eloquent persistence model
     app/Services/         domain and integration services
     app/Jobs/             result-processing jobs
-    app/Notifications/    in-app notification payloads
+    app/Notifications/    transactional account-email payloads
     database/             migrations, factories, and seeders
     tests/                PHPUnit unit and feature tests
 docs/                     current guides, evidence, and dated records
@@ -34,7 +34,7 @@ File-placement, dependency-direction, clean-code, contract-change, and validatio
 2. Public and dedicated portal routes are composed in the auth feature. Protected routes restore the Sanctum session and authorize the requested role.
 3. Feature API adapters use the shared `src/services/api-client.ts` transport for credentials, JSON headers, CSRF headers, response parsing, and network errors.
 4. Laravel routes in `routes/api.php` apply authentication, active-account, role, ownership, validation, and throttling middleware before controllers run.
-5. Controllers delegate scoring, catalogue, location, privacy, notification, reliability, and Administrator presentation/reporting work to services.
+5. Controllers delegate scoring, catalogue, location, privacy, reliability, and Administrator presentation/reporting work to services.
 6. Eloquent models persist owned records. Versioned JSON snapshots preserve assessment, entrance, catalogue, and recommendation evidence.
 
 ## Domain modules
@@ -44,7 +44,7 @@ File-placement, dependency-direction, clean-code, contract-change, and validatio
 - **Recommendation:** locally versioned programme catalogue, deterministic RIASEC engine, ties, pending classifications, saved programmes, and historical snapshots.
 - **Student profile:** encrypted/self-owned personal and academic fields, structured PSGC location references, profile media, and derived read-only result content.
 - **Administrator:** operational overview, Student directory/detail, catalogue enrichment, ESCO lookup, aggregate reports, sanitized audit records, and capability-gated Administrator account governance.
-- **Notifications and governance:** result-ready events, batched programme-update events, retention, and encrypted SQLite backup support.
+- **Governance and reliability:** retention, audit records, account-security email delivery, and encrypted SQLite backup support. The Student and Administrator panels do not provide an in-app notification feed.
 
 ## External integrations
 

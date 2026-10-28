@@ -11,7 +11,6 @@ The authoritative API is Laravel under `/api/v1`. Browser authentication uses st
 | `/student/programmes` | catalogue and programme detail | active Student |
 | `/student/saved-programmes` | list, save, remove | owning active Student |
 | `/student/profile` | profile and profile photo | owning active Student |
-| `/notifications` | list and mark recipient notification read | active authenticated account |
 | `/admin` | overview, Students, programmes, ESCO, catalogue configuration, reports, activity | active Administrator |
 | `/admin/administrators` | list accounts/invitations, invite, resend/revoke, suspend/reactivate, manage account capability, revoke sessions | active Administrator with account-management capability; throttled and password-confirmed for mutations |
 | `/locations` | locally synced PSGC hierarchy | active authenticated account; throttled |

@@ -11,7 +11,7 @@
 
 Recommendations are guidance, not admission decisions or guarantees.
 
-When a recorded three-letter result matches one of the 11 classified PSG-matrix profiles, the result page and shareable result card show its approved two-word interest-profile name and two-sentence description. Other valid combinations continue to show their three leading RIASEC areas without an invented name; these summaries describe vocational interests rather than personality, ability, or expected success.
+Every valid ordered three-letter result shows a unique two-word interest-profile name and two-sentence description on the result page and shareable result card. Eleven names are repository-owner-approved presentation overrides for the classified PSG-matrix profiles; the other 109 are derived from the ordered primary, secondary, and tertiary RIASEC meanings and do not classify additional programmes. These summaries describe vocational interests rather than personality, ability, expected success, admission, or institutional approval.
 
 When using **Continue with Google**, choose the intended Student Google account from Google's account picker. A Google account already assigned to another portal cannot be used as a Student account.
 

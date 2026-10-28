@@ -270,10 +270,10 @@ Use one sticky light top bar, not a sidebar:
 - Warm canvas/white background at 92–96% opacity with a subtle bottom divider.
 - Left: context-aware Back or Home action.
 - Center: page title visually centered independently of side widths.
-- Right: real notification control and authenticated identity.
+- Right: authenticated identity and the actions explicitly assigned to that workspace.
 - Keep one row on mobile; use icons with accessible names and tooltips when labels do not fit.
 
-The identity control shows uploaded photo, then verified Google avatar, then recorded-name initials. Unread counts come only from the authenticated API.
+The identity control shows uploaded photo, then verified Google avatar, then recorded-name initials. Student and Administrator workspaces do not include a notification bell or feed.
 
 Authenticated application and authentication routes use no global page footer. Keep route content focused within those shells. The approved public landing page may use its dedicated compact portal-link footer.
 
@@ -420,11 +420,9 @@ Before a first assessment or retake starts or continues, a Student without a dec
 
 This is the project rule `SELF-DECLARED-TCC-ENTRANCE-2026-01`; never call it a CHED- or TCC-published cutoff.
 
-### 5.11 Navigation, notifications, and overlays
+### 5.11 Navigation and overlays
 
 Active navigation uses primary green ink plus a pale-green fill or short underline and `aria-current`. Menus use a 16px clay surface, visible focus, and `shadow-sm` only.
-
-Notifications open as a compact anchored feed with real unread counts, All/Unread filters, event markers, timestamps, and explicit loading, empty, error, retry, unread, and read states. Selecting an unread item changes only that recipient's record and opens an authorized destination.
 
 Use dialogs for short confirmations and sheets for focused editing or mobile navigation. Toasts may confirm transient success but never carry the only completion, permission, or failure explanation.
 

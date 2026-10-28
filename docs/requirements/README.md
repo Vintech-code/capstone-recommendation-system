@@ -6,7 +6,7 @@ The TCC Course Recommendation System is a decision-support application for incom
 
 ## Implemented roles
 
-- **Student Applicant:** owns a personal account, profile, entrance declaration, assessment attempts, recommendation history, saved programmes, and notification records.
+- **Student Applicant:** owns a personal account, profile, entrance declaration, assessment attempts, recommendation history, and saved programmes.
 - **Administrator:** uses an individual account to monitor students and assessments, govern programme enrichment and media, view aggregate reports, review audit activity, and—when explicitly authorized—manage Administrator invitations and account access.
 
 No role-selection form, shared Administrator credentials, counselor portal, or separate native feature implementation is in scope.
@@ -21,7 +21,7 @@ No role-selection form, shared Administrator credentials, counselor portal, or s
 - `SELF-DECLARED-TCC-ENTRANCE-2026-01` records 1.0–2.5 as the board-programme guidance group and 2.6–5.0 as the non-board group. The group does not filter the all-programme RIASEC ranking.
 - The current 42-item binary instrument is `tcc-uhcc-riasec-42-v1`; each RIASEC area has seven stored questions.
 - The PSG-informed three-code programme matrix remains **PROPOSED**. Catalogue version 4 exposes 12 classified programme-major entries across 11 distinct ordered profiles, including separately ranked BSEd English `SAI`, Filipino `SAI`, and Social Studies / Araling Panlipunan `SIE`. BS Community Development remains visible but unranked while its authoritative basis is pending.
-- Result presentation model `PSG-PROFILE-NAMES-2026-09-21` assigns approved two-word interest-profile names and exact two-sentence descriptions to those 11 classified codes. These are friendly presentation summaries rather than personality diagnoses; valid Student codes outside that set retain the factual RIASEC-area presentation.
+- Result presentation model `PSG-PROFILE-NAMES-2026-09-21-V2` preserves the 11 repository-owner-approved, PSG-matrix-controlled two-word interest-profile names and exact two-sentence descriptions, then derives unique presentation copy for the other 109 valid ordered Student result codes. These 120 labels are friendly summaries of vocational interests rather than personality diagnoses, do not classify additional programmes, and do not affect scoring or recommendation ranking.
 - CMO-grounded programme facts are source-controlled. Administrators may manage proposed SHS guidance, reviewed ESCO mappings, and programme media through the ordinary editor.
 
 See dated records under `docs/note/` for approval history and validation evidence.

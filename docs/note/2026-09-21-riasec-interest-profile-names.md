@@ -47,3 +47,13 @@ The workbook codes are programme profiles, while a Student result can be any of 
 - The architecture check passed.
 - Playwright was not rerun for version 2. Earlier full-browser validation remains blocked by unrelated Admin workflow failures and a stale Student workflow image expectation.
 - The in-app browser was unavailable. Manual desktop/mobile, keyboard, overflow, console, contrast, zoom, and reduced-motion evidence remains pending, so this UI slice is not marked COMPLETED.
+
+## 2026-09-30 revalidation
+
+- Focused frontend Vitest passed: 4 files, 32 tests passed, and 4 skipped. Coverage confirms all 120 ordered distinct three-code results, unique two-word names, exact two-sentence descriptions, the 11 PSG-controlled overrides, and rejection of invalid or repeated codes.
+- Focused frontend ESLint passed for the profile-copy module and its Student result, recommendation, and dashboard consumers.
+- Laravel questionnaire and recommendation-engine coverage passed: 6 tests and 54 assertions. This independently confirms that the presentation-name lookup does not change scoring, normalization, deterministic ties, entrance guidance, or programme ranking.
+- The production frontend build passed with the existing large-chunk warning.
+- Full frontend ESLint remains blocked by unrelated Fast Refresh export violations in `configuration-diff-preview.tsx` and `admin-theme-context.tsx`.
+- The architecture command is blocked because the existing `api`/`web` to `backend`/`frontend` worktree relocation has not synchronized the checker's configured `apps/web/src` path. This revalidation did not alter or approve that repository-boundary change.
+- The in-app browser remained unavailable, so rendered desktop/mobile, keyboard, overflow, console, contrast, zoom, and reduced-motion evidence is still pending.

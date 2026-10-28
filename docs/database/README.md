@@ -11,9 +11,9 @@ Laravel owns schema evolution under `apps/api/database/migrations`; factories an
 - recommendation runs with catalogue, rule, entrance, ranked, and pending-programme snapshots;
 - saved programmes;
 - catalogue configuration versions and Administrator audit events;
-- notification dispatch records and Laravel queue/cache infrastructure.
+- Laravel queue/cache infrastructure.
 
-The repository-owner-approved 2026-09-16 clean baseline consolidates the active schema into four migrations. Counselor, appointment, API-token, programme-source-registry, and other superseded tables are not part of the baseline. The reset was performed only after an encrypted backup was created and successfully restore-verified; see the [implementation record](../note/2026-09-16-backend-clean-baseline.md).
+The repository-owner-approved 2026-09-16 clean baseline consolidates the active schema. Counselor, appointment, API-token, programme-source-registry, in-app notification, and other superseded tables are not part of the current schema. The reset was performed only after an encrypted backup was created and successfully restore-verified; see the [implementation record](../note/2026-09-16-backend-clean-baseline.md). The later in-app notification removal retains a forward migration so existing installations can drop those tables through Artisan rather than by manual schema editing.
 
 ## Integrity rules
 

@@ -28,9 +28,15 @@ Administrators govern programme content and media, review catalogue source evide
 
 ### Product-name removal — 2026-09-21
 
-**Progress / sprint: IMPLEMENTED with automated validation.** The former product label was removed case-insensitively from repository source paths and contents. Visible copy now uses factual TCC course-recommendation language; internal notification classes, frontend types, configuration keys, environment examples, backup identifiers, anchors, tests, and documentation use neutral replacements. Existing legacy environment settings and encrypted backups remain compatible without retaining the former literal label in source.
+**Progress / sprint: IMPLEMENTED with automated validation.** The former product label was removed case-insensitively from repository source paths and contents. Visible copy now uses factual TCC course-recommendation language; transactional account-email classes, configuration keys, environment examples, backup identifiers, anchors, tests, and documentation use neutral replacements. Existing legacy environment settings and encrypted backups remain compatible without retaining the former literal label in source.
 
 **Remaining evidence:** The build, backend suite, focused frontend coverage, lint, and Laravel formatting pass. Full frontend validation retains three unrelated existing failures recorded in the dated implementation note; rendered browser review remains pending.
+
+### In-app notification removal — 2026-09-30
+
+**Progress / sprint: IMPLEMENTED with automated validation; migration application and rendered browser review remain pending.** The Student and Administrator notification bell/feed, frontend feature module, authenticated notification endpoints, assessment-result and programme-update producers, scheduled dispatcher, dispatch model/configuration, and active notification schema were removed. Transactional password-reset, Administrator invitation, and Administrator security emails remain because they are account-security delivery rather than panel notifications.
+
+**Remaining evidence:** Apply `2026_09_30_000000_remove_in_app_notifications` through Artisan after the target environment's required backup; it is currently pending locally. The full Laravel suite and frontend production build pass. Focused shell tests and changed-file lint pass. Full frontend tests retain three unrelated failures, full lint retains two unrelated Fast Refresh violations, the architecture check remains blocked by the unresolved `api`/`web` to `backend`/`frontend` relocation, and the in-app browser was unavailable.
 
 ### Public Student entry
 
@@ -67,7 +73,7 @@ Administrators govern programme content and media, review catalogue source evide
 - Return the Student's three leading recorded RIASEC dimensions and require exactly three ordered dimensions for every classified programme profile.
 - Use the PSG-informed analytical matrix under `PROPOSED-RIASEC-3-PSG-MATRIX`. Keep BS Community Development visible as classification pending, with no rank or match percentage, until an authoritative programme standard is supplied.
 - Keep all 12 classified programme-major entries independently rankable across the matrix's 11 distinct ordered three-code profiles; in particular, do not collapse BSEd Social Studies `SIE` into the English/Filipino `SAI` profile.
-- Present the 11 classified codes through the repository-owner-approved `PSG-PROFILE-NAMES-2026-09-21` two-word interest-profile names and two-sentence descriptions. Preserve a factual leading-area fallback for every other valid Student result code and never present the names as personality diagnoses.
+- Present all 120 valid ordered Student result codes through `PSG-PROFILE-NAMES-2026-09-21-V2`: preserve the 11 repository-owner-approved PSG-matrix presentation overrides and derive unique two-word names and two-sentence descriptions for the other 109 combinations. Keep this presentation layer separate from scoring and programme classification, and never present the names as personality diagnoses.
 - Preserve completed attempt history and the recommendation snapshot generated for each attempt.
 - Explain recommendations only from recorded scores and configured programme evidence.
 - Show multiple catalogue career directions per recommended programme. Treat Administrator-selected ESCO occupations as versioned external enrichment, never as an independent Student-career score or employment prediction.
