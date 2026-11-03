@@ -1,5 +1,4 @@
 import { render, screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
 import { ConfigurationWorkflow } from '@/features/admin/components/configuration-workflow'
@@ -9,7 +8,7 @@ function response(data: unknown) {
 }
 
 describe('Administrator catalogue configuration workflow', () => {
-  it('renders protected facts, allows editing guidance, and excludes ESCO and crop sliders', async () => {
+  it('renders protected facts without SHS guidance, ESCO, or crop sliders', async () => {
     const programme = {
       id: 'bs-information-technology',
       short_label: 'BSIT',
@@ -21,8 +20,6 @@ describe('Administrator catalogue configuration workflow', () => {
       learning_area_descriptions: {},
       learning_area_topics: {},
       career_directions: ['Software and application development', 'Systems administration'],
-      recommended_strands: ['STEM'],
-      strand_guidance: 'STEM may support preparation.',
       content_status: 'ched_psg_sourced',
       content_source: { source_name: 'CHED CMO No. 25, series of 2015', source_url: 'https://ched.gov.ph/', reference: 'Article IV, Sections 5 and 6' },
       degree_type: "Bachelor's degree",
@@ -39,7 +36,6 @@ describe('Administrator catalogue configuration workflow', () => {
       return response({})
     })
 
-    const user = userEvent.setup()
     render(<ConfigurationWorkflow programmeId="bs-information-technology" />)
 
     expect(await screen.findByRole('heading', { name: 'BS Information Technology' })).toBeVisible()
@@ -47,8 +43,8 @@ describe('Administrator catalogue configuration workflow', () => {
     expect(screen.getByRole('link', { name: /CHED CMO No. 25/ })).toBeVisible()
     expect(screen.queryByRole('textbox', { name: 'Programme name' })).not.toBeInTheDocument()
     expect(screen.queryByRole('textbox', { name: 'RIASEC codes, one per line' })).not.toBeInTheDocument()
-    expect(screen.getByRole('textbox', { name: 'Recommended SHS strands, one per line' })).toBeVisible()
-    expect(screen.getByRole('textbox', { name: 'Preparation guidance' })).toBeVisible()
+    expect(screen.queryByRole('textbox', { name: 'Recommended SHS strands, one per line' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('textbox', { name: 'Preparation guidance' })).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Publish full catalogue' })).toBeDisabled()
 
     // Assert that ESCO mapping UI is removed
@@ -66,10 +62,5 @@ describe('Administrator catalogue configuration workflow', () => {
     expect(screen.getByLabelText('Programme cover photo')).toBeVisible()
     expect(screen.getByLabelText('Programme logo')).toBeVisible()
 
-    // Guidance fields can be edited
-    const guidanceInput = screen.getByRole('textbox', { name: 'Preparation guidance' })
-    await user.clear(guidanceInput)
-    await user.type(guidanceInput, 'Updated STEM preparation guidance.')
-    expect(guidanceInput).toHaveValue('Updated STEM preparation guidance.')
   })
 })

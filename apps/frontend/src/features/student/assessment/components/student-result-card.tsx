@@ -327,13 +327,15 @@ function StudentResultCard({
             {card.topDimensions.map((dim, idx) => {
               const meta = dimensionMeta[dim.code];
               const rankLabels = ["Primary", "Secondary", "Tertiary"];
+              const position = dim.rank ?? idx + 1;
+              const rankLabel = rankLabels[position - 1] ?? `#${position}`;
               return (
                 <div
                   key={dim.code}
                   className="flex items-center gap-2 rounded-xl bg-card px-3 py-1.5 shadow-2xs border border-border/70"
                 >
                   <span className="text-[10px] font-bold uppercase text-muted-foreground">
-                    {rankLabels[idx] ?? `#${idx + 1}`}:
+                    {dim.isTied ? `Shared ${rankLabel.toLowerCase()}` : rankLabel}:
                   </span>
                   <span
                     className={`inline-flex size-5 items-center justify-center rounded-full text-xs font-black ${meta?.bg ?? "bg-muted"} ${meta?.text ?? "text-foreground"}`}

@@ -31,7 +31,7 @@ File-placement, dependency-direction, clean-code, contract-change, and validatio
 ## Runtime flow
 
 1. `apps/web/src/main.tsx` mounts application providers and the route tree.
-2. Public and dedicated portal routes are composed in the auth feature. Protected routes restore the Sanctum session and authorize the requested role.
+2. Public and dedicated portal routes are composed in the auth feature. Protected routes restore the Sanctum session and authorize the requested role. Authenticated Student sections use route-backed browser history, while only the explicit sign-out workflow calls the logout endpoint.
 3. Feature API adapters use the shared `src/services/api-client.ts` transport for credentials, JSON headers, CSRF headers, response parsing, and network errors.
 4. Laravel routes in `routes/api.php` apply authentication, active-account, role, ownership, validation, and throttling middleware before controllers run.
 5. Controllers delegate scoring, catalogue, location, privacy, reliability, and Administrator presentation/reporting work to services.
@@ -48,7 +48,7 @@ File-placement, dependency-direction, clean-code, contract-change, and validatio
 
 ## External integrations
 
-- Google OAuth through Laravel Socialite; every authorization starts with Google's account chooser. Student authorization can create or link a Student account, while Administrator authorization requires a matching existing Administrator account and cannot create or grant that role.
+- Google OAuth through Laravel Socialite; every authorization starts with Google's account chooser in a separate popup or browser-managed secondary tab. A session-bound flow identifier returns success or a safe error through a same-origin completion channel, keeping provider URLs out of the main application tab's history. Student authorization can create or link a Student account, while Administrator authorization requires a matching existing Administrator account and cannot create or grant that role.
 - PSGC Cloud v2 through an explicit sync command; normal profile requests read the local database and cache.
 - ESCO occupation API through the authenticated, throttled Laravel Admin boundary; published selections enrich exploration and never affect scoring.
 - Mail transport through Laravel for password recovery.

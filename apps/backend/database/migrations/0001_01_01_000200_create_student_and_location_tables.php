@@ -64,6 +64,7 @@ return new class extends Migration
             $table->text('barangay')->nullable();
             $table->text('municipality')->nullable();
             $table->text('province')->nullable();
+            // Historical baseline fields removed by the 2026-11-03 forward migration.
             $table->string('shs_school_name')->nullable();
             $table->string('shs_strand', 120)->nullable();
             $table->unsignedSmallInteger('shs_graduation_year')->nullable();

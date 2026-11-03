@@ -101,7 +101,7 @@ final class StudentRecommendationController extends Controller
             $run = $session->recommendationRun()->firstOrCreate([], [
                 'user_id' => $request->user()->getKey(),
                 'catalogue_reference' => 'TCC-AY-'.$catalogue['academic_year'].'-V'.$catalogue['catalogue_version'],
-                'rule_reference' => (string) ($catalogue['matching_policy']['version'] ?? 'PROPOSED-RIASEC-3-PSG-MATRIX'),
+                'rule_reference' => (string) ($catalogue['matching_policy']['version'] ?? 'PROPOSED-RIASEC-4-ORDERED-WEIGHTS'),
                 'entrance_examination_snapshot' => $this->entranceExaminationSnapshot($session),
                 'methodology_status' => 'Proposed methodology',
                 'default_count' => $defaultCount,
@@ -333,7 +333,31 @@ final class StudentRecommendationController extends Controller
         $leading = $dimensions;
         usort($leading, static fn (array $left, array $right): int => ($right['value'] <=> $left['value']) ?: ($left['order'] <=> $right['order'])
         );
-        $leading = array_slice($leading, 0, 3);
+        $previousValue = null;
+        $rank = 0;
+        foreach ($leading as $index => &$dimension) {
+            if ($previousValue === null || $dimension['value'] !== $previousValue) {
+                $rank = $index + 1;
+            }
+            $dimension['rank'] = $rank;
+            $previousValue = $dimension['value'];
+        }
+        unset($dimension);
+        $rankCounts = array_count_values(array_column($leading, 'rank'));
+        foreach ($leading as &$dimension) {
+            $dimension['isTied'] = ($rankCounts[$dimension['rank']] ?? 0) > 1;
+        }
+        unset($dimension);
+        $rankedByCode = collect($leading)->keyBy('code');
+        $dimensions = array_map(static fn (array $dimension): array => [
+            ...$dimension,
+            'rank' => $rankedByCode->get($dimension['code'])['rank'],
+            'isTied' => $rankedByCode->get($dimension['code'])['isTied'],
+        ], $dimensions);
+        $leading = array_values(array_filter(
+            $leading,
+            static fn (array $dimension): bool => $dimension['rank'] <= 3,
+        ));
 
         $guidance = $session->result_payload['guidance'] ?? null;
 
@@ -348,6 +372,8 @@ final class StudentRecommendationController extends Controller
                 'value' => $dimension['value'],
                 'minimum' => $dimension['minimum'],
                 'maximum' => $dimension['maximum'],
+                'rank' => $dimension['rank'],
+                'isTied' => $dimension['isTied'],
             ], $dimensions),
             'guidance' => is_array($guidance) ? [
                 'status' => $guidance['status'] ?? 'proposed',

@@ -20,3 +20,5 @@ Google OAuth redirects are web routes under `/auth/google/*`. The redirect accep
 Run `php artisan route:list --except-vendor` from `apps/api` for the exact current method, URI, action, and middleware mapping. Controllers return JSON and React consumes the `data` envelope for domain endpoints.
 
 The 2026-09-16 contract cleanup removed unused duplicate endpoints for `/auth/me`, direct score-only RIASEC results, the profile RIASEC-result alias, configuration rollback, and the programme-source registry. The frontend uses the remaining session-backed assessment and catalogue workflows.
+
+Active profile and programme responses do not expose SHS school, strand/track, graduation-year, recommended-strand, or strand-guidance fields. Recommendation result dimensions include competition-rank metadata so equal scores can be presented as shared positions. New recommendation snapshots identify the proposed ordered 50% / 30% / 20% programme-profile formula through their stored rule reference.

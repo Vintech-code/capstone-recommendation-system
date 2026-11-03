@@ -1,5 +1,5 @@
 import { BookOpenCheck, History, Share2 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { EmptyState, ErrorState, LoadingState } from "@/components/shared";
 import { Button } from "@/components/ui/button";
@@ -63,6 +63,12 @@ function StudentRecommendationResultsPage({
     () => getTopCareerPaths(results.snapshot?.courses ?? []),
     [results.snapshot],
   );
+
+  useEffect(() => {
+    if (!selectedCourse) return;
+
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, [selectedCourse]);
 
   if (results.loadState === "loading") {
     return (

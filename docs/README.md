@@ -31,6 +31,11 @@ This is the index for the surviving TCC course-recommendation documentation. The
 - [Workspace preview JSX repair](note/2026-09-21-workspace-preview-jsx-repair.md) records the duplicated-markup repair, focused regression evidence, and remaining rendered-validation blocker.
 - [Frontend modular refactor](note/2026-09-21-frontend-modular-refactor.md) records the first architecture-only extraction slice, automated validation, and remaining browser/test drift.
 - [Assessment progress divider and retake-cancel audit](note/2026-10-28-assessment-progress-divider-and-retake-cancel-audit.md) records the open-canvas divider removal, current retake-cancel boundary, automated evidence, and remaining rendered-validation blocker.
+- [Ordered RIASEC weights and SHS removal](note/2026-11-03-weighted-riasec-and-shs-removal.md) records the provisional 50% / 30% / 20% deterministic formula, shared Student tie ranks, separate entrance guidance, SHS removal, and historical-data boundary.
+- [Programme-detail scroll reset](note/2026-11-04-programme-detail-scroll-reset.md) records the Student recommendation transition that opens programme details at the top of the document.
+- [Student loading-skeleton alignment](note/2026-11-04-student-loading-skeleton-alignment.md) records the responsive My Matches, Explore Programs, and My Profile loading geometry plus active-module restoration after refresh.
+- [Student profile form balance](note/2026-11-04-student-profile-form-balance.md) records the balanced desktop field grouping and responsive mobile order for the Personal & Academic editor.
+- [Student protected browser history](note/2026-11-04-student-protected-browser-history.md) records route-backed Student section history, explicit-only sign-out behavior, Google launch-history handling, and the remaining live-provider verification.
 - [Clone and local setup guide](note/2026-10-28-clone-and-local-setup-guide.md) records the current clone-to-running PowerShell onboarding guide and its verification boundaries.
 - `cmo/` contains locally reviewed CHED programme-standard evidence.
 - `pdf/` contains the capstone paper and historical roadmap sources.

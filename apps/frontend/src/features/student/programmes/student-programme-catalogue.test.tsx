@@ -38,8 +38,6 @@ const catalogue = {
       retrievedAt: '2026-09-06T12:00:00+08:00',
       reviewStatus: 'proposed' as const,
     }],
-    recommendedStrands: ['STEM', 'TVL-ICT'],
-    strandGuidance: 'STEM supports analytical preparation while TVL-ICT provides practical computer experience.',
     requirements: ['Meet the published general admission requirements.'],
     readinessPrompt: 'Discuss your interest in problem solving and technology.',
     contentStatus: 'ched_psg_sourced',
@@ -117,23 +115,17 @@ describe('Student programme catalogue', () => {
     expect(screen.getByRole('heading', { name: 'No programmes match these filters' })).toBeVisible()
   })
 
-  it('filters using API-provided SHS strands and RIASEC areas', async () => {
+  it('filters using API-provided RIASEC areas', async () => {
     const user = userEvent.setup()
     const mixedCatalogue = {
       ...catalogue,
       programmes: [
         catalogue.programmes[0],
-        { ...catalogue.programmes[0], id: 'business-option', name: 'Business Option', code: 'BUS', recommendedStrands: ['ABM'], riasecProfile: ['E', 'S'] },
+        { ...catalogue.programmes[0], id: 'business-option', name: 'Business Option', code: 'BUS', riasecProfile: ['E', 'S'] },
       ],
     }
     render(<StudentProgrammeCataloguePage initialCatalogue={mixedCatalogue} />)
 
-    await user.click(screen.getByRole('button', { name: 'Recommended SHS strand' }))
-    await user.click(screen.getByRole('checkbox', { name: 'ABM' }))
-    expect(screen.getByText('Business Option')).toBeVisible()
-    expect(screen.queryByText('BS Information Technology')).not.toBeInTheDocument()
-
-    await user.click(screen.getByRole('button', { name: 'Clear all' }))
     await user.click(screen.getByRole('button', { name: 'RIASEC interest' }))
     await user.click(screen.getByRole('checkbox', { name: 'Enterprising (E)' }))
     expect(screen.getByText('Business Option')).toBeVisible()
@@ -158,7 +150,7 @@ describe('Student programme catalogue', () => {
       ...catalogue,
       programmes: [
         catalogue.programmes[0],
-        { ...catalogue.programmes[0], id: 'second-programme', name: 'Second Programme', code: 'SECOND', recommendedStrands: ['ABM'], riasecProfile: ['E', 'S'] },
+        { ...catalogue.programmes[0], id: 'second-programme', name: 'Second Programme', code: 'SECOND', riasecProfile: ['E', 'S'] },
       ],
     }
     render(<StudentProgrammeCataloguePage initialCatalogue={compareCatalogue} />)
@@ -219,7 +211,7 @@ describe('Student programme catalogue', () => {
     expect(screen.getByRole('heading', { name: 'Programme content source' })).toBeVisible()
     expect(screen.getByText('Article IV, Sections 5.2.3, 5.4 and 6.3')).toBeVisible()
     expect(screen.getByRole('link', { name: 'CHED CMO No. 25, series of 2015' })).toHaveAttribute('href', 'https://legacy.ched.gov.ph/2015-ched-memorandum-orders/')
-    expect(screen.getByRole('heading', { name: 'Helpful tracks and strands' })).toBeVisible()
+    expect(screen.queryByRole('heading', { name: 'Helpful tracks and strands' })).not.toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Possible career directions' })).toBeVisible()
     expect(screen.getByText('Software and application development')).toBeVisible()
     expect(screen.getByRole('heading', { name: 'software developer' })).toBeVisible()

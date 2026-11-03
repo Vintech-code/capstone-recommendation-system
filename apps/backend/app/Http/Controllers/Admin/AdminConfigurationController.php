@@ -153,6 +153,7 @@ final class AdminConfigurationController extends Controller
 
         $payload['programmes'] = array_map(static function (array $programme) use ($locked): array {
             $source = $locked->get($programme['id'] ?? '', []);
+            unset($programme['recommended_strands'], $programme['strand_guidance']);
             foreach ([
                 'id',
                 'content_reference_id',

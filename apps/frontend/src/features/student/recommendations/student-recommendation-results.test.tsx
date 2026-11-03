@@ -421,6 +421,9 @@ describe("Student recommendation results", () => {
 
   it("opens a selected match in the reference-informed course detail view", async () => {
     const user = userEvent.setup();
+    const scrollTo = vi
+      .spyOn(window, "scrollTo")
+      .mockImplementation(() => undefined);
     const detailedCourse = {
       ...testRecommendationSnapshot.courses[0],
       summary: "A programme connected to the recorded assessment profile.",
@@ -465,6 +468,12 @@ describe("Student recommendation results", () => {
     );
 
     await user.click(screen.getByRole("button", { name: "View programme" }));
+
+    expect(scrollTo).toHaveBeenCalledWith({
+      top: 0,
+      left: 0,
+      behavior: "auto",
+    });
 
     expect(
       screen.queryByRole("navigation", { name: "Breadcrumb" }),
@@ -535,6 +544,7 @@ describe("Student recommendation results", () => {
     expect(
       screen.getByRole("heading", { name: "All ranked matches" }),
     ).toBeVisible();
+    scrollTo.mockRestore();
   });
 
   it("confirms a retake before creating the new assessment", async () => {

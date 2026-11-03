@@ -7,8 +7,6 @@
   "field_provenance": {
     "cmo_sourced_fields": ["description", "learning_areas", "learning_area_descriptions", "learning_area_topics", "career_directions", "readiness_prompt"],
     "separately_governed_fields": {
-      "recommended_strands": "Proposed preparation guidance; not sourced from the programme CMO.",
-      "strand_guidance": "Proposed preparation guidance; not sourced from the programme CMO.",
       "requirements": "Must come from current TCC Registrar or Admissions records.",
       "riasec_profile": "Researcher-proposed analytical classification; not issued by CHED."
     }
@@ -51,8 +49,6 @@
         "Application and database development": ["Web and application development", "Database administration", "Systems integration"]
       },
       "career_directions": ["Web and applications developer", "Database, systems, or network administrator", "Information security, systems integration, or technical support"],
-      "recommended_strands": ["STEM", "TVL-ICT", "GAS"],
-      "strand_guidance": "STEM supports mathematics and analytical preparation, while TVL-ICT provides practical exposure to computer systems and digital tools.",
       "readiness_prompt": "The CMO expects graduates to address organisational user needs through the selection, development, application, integration, and management of computing technologies."
     },
     "bs-business-administration": {
@@ -79,8 +75,6 @@
         "Ethics, regulation, and governance": ["Market integrity", "Financial regulation", "Good governance"]
       },
       "career_directions": ["Corporate-finance or financial-management trainee", "Banking, credit, collections, or treasury work", "Investment, trading, insurance, or financial-analysis work"],
-      "recommended_strands": ["ABM", "GAS"],
-      "strand_guidance": "ABM offers the closest preparation in business, accounting, management, and entrepreneurship; GAS also provides broad academic preparation.",
       "readiness_prompt": "The CMO frames effective financial decision-making around analytical tools, ethics, market integrity, regulation, good governance, and a competitive global perspective."
     },
     "bs-criminology": {
@@ -108,8 +102,6 @@
         "Community safety": ["Crime prevention", "Risk assessment", "Public-safety coordination"]
       },
       "career_directions": ["Law-enforcement services", "Investigation and security support", "Community safety and crime prevention"],
-      "recommended_strands": ["HUMSS", "GAS"],
-      "strand_guidance": "HUMSS supports study of society, governance, communication, and human behaviour, while GAS offers broad preparation across disciplines.",
       "readiness_prompt": "Ask TCC about current fitness, conduct, health, or other programme requirements before making a decision."
     },
     "bs-hospitality-management": {
@@ -136,8 +128,6 @@
         "Housekeeping and risk management": ["Housekeeping services", "Facility operations", "Workplace safety and security"]
       },
       "career_directions": ["Accommodation and front-office operations", "Food production and food-and-beverage operations", "Housekeeping, guest-service, or hospitality-management work"],
-      "recommended_strands": ["TVL-HE", "ABM", "GAS"],
-      "strand_guidance": "TVL-Home Economics can provide practical hospitality and food-service exposure, while ABM supports the management side of hospitality operations.",
       "readiness_prompt": "The CMO requires operational and managerial preparation and identifies longer practicum training as part of preparing graduates for hospitality-industry work."
     },
     "bachelor-elementary-education": {
@@ -164,8 +154,6 @@
         "Teaching tools and technology": ["Instructional resources", "ICT for teaching", "Higher-order thinking"]
       },
       "career_directions": ["Elementary-level teaching"],
-      "recommended_strands": ["HUMSS", "GAS"],
-      "strand_guidance": "HUMSS develops communication and understanding of people and society; GAS provides broad preparation across subjects taught in elementary school.",
       "readiness_prompt": "The CMO prepares graduates to practise the teaching profession at the elementary level; current professional-licensure requirements are governed separately."
     },
     "bachelor-secondary-education": {
@@ -193,8 +181,6 @@
         "Classroom assessment": ["Assessment design", "Performance analysis", "Instructional feedback"]
       },
       "career_directions": ["Secondary teaching", "Subject-focused learning support", "Curriculum and education programme support"],
-      "recommended_strands": ["HUMSS", "GAS"],
-      "strand_guidance": "HUMSS aligns closely with the recorded English, Filipino, and Social Studies majors; GAS offers broad preparation for further subject specialisation.",
       "readiness_prompt": "Confirm the available major with TCC and discuss your interest in teaching, communication, and subject-focused study."
     },
     "bs-midwifery": {
@@ -221,8 +207,6 @@
         "Professional and clinical practice": ["Clinical practicum", "Professional accountability", "Documentation and regulation"]
       },
       "career_directions": ["Health-care provider", "Entrepreneur or clinic owner/manager", "Administrator, educator, or researcher"],
-      "recommended_strands": ["STEM", "TVL-HE", "GAS"],
-      "strand_guidance": "STEM strengthens preparation in the sciences, while relevant TVL-Home Economics health-care subjects may provide practical care experience.",
       "readiness_prompt": "The CMO states that the four-year programme includes intensive fourth-year clinical practicum and prepares graduates to take the Midwifery Licensure Examination."
     },
     "bachelor-library-information-science": {
@@ -249,8 +233,6 @@
         "Managing information organisations": ["Strategic planning and policy", "Project and personnel management", "Collaboration and facilities"]
       },
       "career_directions": ["Entry-level library, documentation, or records support", "Licensed librarian or information-specialist practice", "Archives, preservation, database, or library-systems work"],
-      "recommended_strands": ["HUMSS", "TVL-ICT", "GAS"],
-      "strand_guidance": "HUMSS supports research and communication, while TVL-ICT can help with digital information systems and technology-enabled library services.",
       "readiness_prompt": "The CMO distinguishes entry-level roles from professional librarian roles that require the necessary licence; confirm current PRC and TCC requirements."
     },
     "bs-sociology": {
@@ -277,8 +259,6 @@
         "Social programmes and professional practice": ["Programme and project design", "Implementation and assessment", "Communication and professional ethics"]
       },
       "career_directions": ["Teaching and academic work", "Social research", "Development work in academic, corporate, government, local, or international organisations"],
-      "recommended_strands": ["HUMSS", "GAS"],
-      "strand_guidance": "HUMSS provides close preparation in society, culture, communication, and social sciences; GAS offers a broad academic foundation.",
       "readiness_prompt": "The CMO emphasizes sociological theories and research methodologies for understanding, analysing, and addressing social problems and issues."
     },
     "bs-community-development": {
@@ -306,8 +286,6 @@
         "Participatory research": ["Community-led inquiry", "Local data gathering", "Action planning"]
       },
       "career_directions": ["Community organising and facilitation", "Development project coordination", "Community research and programme support"],
-      "recommended_strands": ["HUMSS", "GAS"],
-      "strand_guidance": "HUMSS supports communication, social analysis, and understanding communities; GAS provides flexible preparation for interdisciplinary community work.",
       "readiness_prompt": "Discuss your interest in community service, facilitation, fieldwork, teamwork, and project planning."
     },
     "bachelor-physical-education": {
@@ -335,8 +313,6 @@
         "Teaching methods": ["Lesson planning", "Active-class management", "Learner assessment"]
       },
       "career_directions": ["Physical education teaching", "Sports and fitness instruction", "Wellness programme support"],
-      "recommended_strands": ["Sports Track", "HUMSS", "GAS"],
-      "strand_guidance": "The Sports Track offers the closest activity-based preparation, while HUMSS and GAS support communication and broad academic readiness for teaching.",
       "readiness_prompt": "Ask TCC about current physical, health, practicum, or activity requirements before making a decision."
     }
   }

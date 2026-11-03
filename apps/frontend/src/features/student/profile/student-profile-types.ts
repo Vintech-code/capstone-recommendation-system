@@ -18,9 +18,6 @@ interface PersonalAcademicProfile {
   barangay: string | null
   municipality: string | null
   province: string | null
-  shsSchoolName: string | null
-  shsStrand: string | null
-  shsGraduationYear: number | null
   updatedAt: string | null
 }
 
@@ -59,9 +56,6 @@ interface StudentProfilePayload {
   barangay: string | null
   municipality: string | null
   province: string | null
-  shsSchoolName: string | null
-  shsStrand: string | null
-  shsGraduationYear: number | null
   strengths: string[]
   growthAreas: string[]
   learningPreferences: string[]

@@ -1,5 +1,11 @@
-import { lazy, Suspense, useState } from "react";
-import { Navigate, Route, Routes, useNavigate } from "react-router";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
+import {
+  Navigate,
+  Route,
+  Routes,
+  useLocation,
+  useNavigate,
+} from "react-router";
 
 import { ApplicationStatePage } from "@/components/shared";
 import { LandingPage } from "@/features/landing/landing-page";
@@ -12,12 +18,20 @@ import { PasswordRecoveryPage } from "@/features/auth/password-recovery-page";
 import { PasswordResetPage } from "@/features/auth/password-reset-page";
 import { PasswordChangePage } from "@/features/auth/password-change-page";
 import { AdministratorSetupPage } from "@/features/auth/administrator-setup-page";
+import { GoogleAuthCompletionPage } from "@/features/auth/google-auth-completion-page";
 import { StudentAssessmentSessionPage } from "@/features/student/assessment/components/student-assessment-session-page";
 import { StudentAssessmentHistoryPage } from "@/features/student/assessment/components/student-assessment-history-page";
 import { StudentRecommendationResultsPage } from "@/features/student/recommendations/components/student-recommendation-results-page";
 import { StudentProgrammeCataloguePage } from "@/features/student/programmes/components/student-programme-catalogue-page";
 import type { StudentProgrammeMatchContext } from "@/features/student/programmes/programme-types";
 import { StudentProfilePage } from "@/features/student/profile/components/student-profile-page";
+import {
+  clearStudentWorkspaceModule,
+  getStudentWorkspaceModuleFromPath,
+  getStudentWorkspaceModulePath,
+  persistStudentWorkspaceModule,
+  readStudentWorkspaceModule,
+} from "@/features/student/student-workspace-state";
 import { SharedResultPage } from "@/features/shared/shared-result-page";
 
 const AdminWorkspaceRoute = lazy(() =>
@@ -27,21 +41,51 @@ const AdminWorkspaceRoute = lazy(() =>
 );
 function WorkspaceRoute({ role }: { role: AccessRole }) {
   const navigate = useNavigate();
-  const { signOut } = useAuth();
-  const [activeModuleId, setActiveModuleId] = useState<string>(
-    role === "student" ? "assessment" : "overview",
-  );
+  const location = useLocation();
+  const { signOut, user } = useAuth();
+  const restoredStudentId = useRef<number | null>(null);
+  const activeModuleId =
+    role === "student"
+      ? (getStudentWorkspaceModuleFromPath(location.pathname) ?? "assessment")
+      : "overview";
   const [programmeMatchContext, setProgrammeMatchContext] = useState<
     StudentProgrammeMatchContext[]
   >([]);
   const [selectedRecommendationSessionId, setSelectedRecommendationSessionId] =
     useState<number | null>(null);
 
+  useEffect(() => {
+    if (
+      role !== "student" ||
+      !user ||
+      restoredStudentId.current === user.id
+    ) {
+      return;
+    }
+
+    restoredStudentId.current = user.id;
+    if (location.pathname !== "/student") return;
+
+    const restoredModuleId = readStudentWorkspaceModule(user.id);
+    const restoredPath = getStudentWorkspaceModulePath(restoredModuleId);
+    if (restoredPath && restoredPath !== location.pathname) {
+      navigate(restoredPath, { replace: true });
+    }
+  }, [location.pathname, navigate, role, user]);
+
   const handleSelectModule = (id: string) => {
-    if (id === "recommendations") {
+    const moduleId = id === "overview" ? "recommendations" : id;
+    if (moduleId === "recommendations") {
       setSelectedRecommendationSessionId(null);
     }
-    setActiveModuleId(id);
+    if (role === "student" && user) {
+      persistStudentWorkspaceModule(user.id, moduleId);
+    }
+
+    const path = getStudentWorkspaceModulePath(moduleId);
+    if (path && path !== location.pathname) {
+      navigate(path);
+    }
   };
 
   return (
@@ -51,6 +95,9 @@ function WorkspaceRoute({ role }: { role: AccessRole }) {
         activeModuleId={role === "student" ? activeModuleId : undefined}
         onSelectModule={role === "student" ? handleSelectModule : undefined}
         onExit={() => {
+          if (role === "student" && user) {
+            clearStudentWorkspaceModule(user.id);
+          }
           void signOut().finally(() => navigate(`/${role}/login`));
         }}
         renderOverview={
@@ -132,8 +179,8 @@ function WorkspaceRoute({ role }: { role: AccessRole }) {
                       onBack={onBack}
                       onOpenAssessment={() => handleSelectModule("assessment")}
                       onExploreMatches={(sessionId) => {
+                        handleSelectModule("recommendations");
                         setSelectedRecommendationSessionId(sessionId ?? null);
-                        setActiveModuleId("recommendations");
                       }}
                     />
                   );
@@ -198,6 +245,10 @@ function AccessRoutes() {
         <Route path="/change-password" element={<PasswordChangePage />} />
         <Route path="/admin/setup" element={<AdministratorSetupPage />} />
         <Route
+          path="/google-auth/complete"
+          element={<GoogleAuthCompletionPage />}
+        />
+        <Route
           path="/results/shared/:shareToken"
           element={<SharedResultPage />}
         />
@@ -206,6 +257,22 @@ function AccessRoutes() {
           element={<PortalSignInPage role="admin" />}
         />
         <Route path="/student" element={<WorkspaceRoute role="student" />} />
+        <Route
+          path="/student/programmes"
+          element={<WorkspaceRoute role="student" />}
+        />
+        <Route
+          path="/student/matches"
+          element={<WorkspaceRoute role="student" />}
+        />
+        <Route
+          path="/student/profile"
+          element={<WorkspaceRoute role="student" />}
+        />
+        <Route
+          path="/student/history"
+          element={<WorkspaceRoute role="student" />}
+        />
         <Route path="/admin" element={<AdminWorkspaceRoute />} />
         <Route path="/admin/students" element={<AdminWorkspaceRoute />} />
         <Route

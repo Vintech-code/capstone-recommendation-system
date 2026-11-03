@@ -5,7 +5,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { uploadProgrammeMedia } from "@/features/admin/data/admin-api";
 import { humanize } from "@/features/admin/data/admin-formatters";
 
@@ -40,15 +39,6 @@ export function CatalogueProfileEditor({
         itemIndex === index ? { ...programme, ...changes } : programme,
       ),
     });
-  }
-  function stringList(value: unknown) {
-    return Array.isArray(value) ? value.join("\n") : "";
-  }
-  function list(value: string) {
-    return value
-      .split("\n")
-      .map((item) => item.trim())
-      .filter(Boolean);
   }
   async function upload(
     index: number,
@@ -179,48 +169,6 @@ export function CatalogueProfileEditor({
             {open ? (
               <div className="mt-5 space-y-7">
                 <ProtectedProgrammeFacts programme={programme} />
-                <section aria-labelledby={`${id}-guidance-heading`}>
-                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary-ink">
-                    Editable student guidance
-                  </p>
-                  <h4
-                    id={`${id}-guidance-heading`}
-                    className="mt-1 font-display text-lg font-semibold"
-                  >
-                    Proposed SHS preparation
-                  </h4>
-                  <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
-                    These suggestions are separate from CHED programme standards
-                    and must not be presented as admission requirements.
-                  </p>
-                  <div className="mt-4 grid gap-4 md:grid-cols-2">
-                    <ListField
-                      label="Recommended SHS strands, one per line"
-                      id={`${id}-strands`}
-                      value={stringList(programme.recommended_strands)}
-                      onChange={(value) =>
-                        updateProgramme(index, {
-                          recommended_strands: list(value),
-                        })
-                      }
-                    />
-                    <div>
-                      <Label htmlFor={`${id}-strand-guidance`}>
-                        Preparation guidance
-                      </Label>
-                      <Textarea
-                        id={`${id}-strand-guidance`}
-                        value={String(programme.strand_guidance ?? "")}
-                        onChange={(event) =>
-                          updateProgramme(index, {
-                            strand_guidance: event.target.value,
-                          })
-                        }
-                        className="mt-2 min-h-28"
-                      />
-                    </div>
-                  </div>
-                </section>
                 <div>
                   <h4 className="text-sm font-semibold">
                     Images shown to students
@@ -390,29 +338,6 @@ function asStringList(value: unknown): string[] {
     : [];
 }
 
-function ListField({
-  label,
-  id,
-  value,
-  onChange,
-}: {
-  label: string;
-  id: string;
-  value: string;
-  onChange: (value: string) => void;
-}) {
-  return (
-    <div>
-      <Label htmlFor={id}>{label}</Label>
-      <Textarea
-        id={id}
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        className="mt-2 min-h-28"
-      />
-    </div>
-  );
-}
 function MediaField({
   label,
   id,

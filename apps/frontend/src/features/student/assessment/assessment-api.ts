@@ -71,6 +71,8 @@ interface ResultDimension {
   code: 'R' | 'I' | 'A' | 'S' | 'E' | 'C'
   label: string
   value: number
+  rank?: number
+  isTied?: boolean
 }
 
 interface ResultCardData {

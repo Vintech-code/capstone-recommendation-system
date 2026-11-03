@@ -13,6 +13,7 @@ After Google rejected an account for the selected portal, a second **Continue wi
 - Student Google authorization may create or link a Student account.
 - Administrator Google authorization requires an already-provisioned, active Administrator with the same verified email. It cannot create an Administrator or grant the Administrator role.
 - A Student Google account remains forbidden from the Administrator portal.
+- The 2026-11-04 browser-history hardening opens authorization separately and returns the result through a flow-scoped same-origin completion channel. This preserves the chooser and role rules while keeping Google pages out of the main application tab's history.
 
 ## Evidence
 
@@ -21,4 +22,4 @@ After Google rejected an account for the selected portal, a second **Continue wi
 - Laravel Pint completed successfully and formatted the changed controller.
 - Frontend repository architecture check passed.
 
-Live Google-provider selection was not exercised because it requires an interactive external Google session. The authorization URL and both portal callback boundaries are covered by backend feature tests.
+Live Google-provider selection was not exercised because it requires an interactive external Google session. The authorization URL, both portal callback boundaries, and the popup completion redirects are covered by backend feature tests.

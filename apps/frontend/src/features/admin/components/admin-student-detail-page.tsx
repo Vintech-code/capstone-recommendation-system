@@ -2,14 +2,12 @@ import { useState } from "react";
 import {
   ArrowLeft,
   Award,
-  Check,
   CheckCircle2,
   Mail,
   MapPin,
   Phone,
   Printer,
   Radar,
-  School,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -301,26 +299,6 @@ export function AdminStudentDetailPage({
                         </span>
                       ) : null}
                     </div>
-
-                    {student.profile?.shsSchoolName ||
-                    student.profile?.shsStrand ? (
-                      <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-muted-foreground sm:text-sm">
-                        {student.profile.shsSchoolName ? (
-                          <span className="flex items-center gap-1.5">
-                            <School className="size-4 shrink-0 text-primary" />
-                            {student.profile.shsSchoolName}
-                          </span>
-                        ) : null}
-                        {student.profile.shsStrand ? (
-                          <span>
-                            {student.profile.shsStrand}
-                            {student.profile.shsGraduationYear
-                              ? ` · Class of ${student.profile.shsGraduationYear}`
-                              : ""}
-                          </span>
-                        ) : null}
-                      </div>
-                    ) : null}
 
                     {student.profile?.municipality ||
                     student.profile?.province ? (
@@ -651,15 +629,7 @@ export function AdminStudentDetailPage({
                         </p>
                       </div>
 
-                      <div className="space-y-3 pt-3 border-t border-border">
-                        <div className="flex justify-between font-label text-xs">
-                          <span className="text-muted-foreground">
-                            Prerequisite Check
-                          </span>
-                          <span className="flex items-center gap-1 font-bold text-primary-ink">
-                            <Check className="size-3" /> STEM Strand Satisfied
-                          </span>
-                        </div>
+                      <div className="space-y-3 border-t border-border pt-3">
                         <div className="flex justify-between font-label text-xs">
                           <span className="text-muted-foreground">
                             Entrance Score

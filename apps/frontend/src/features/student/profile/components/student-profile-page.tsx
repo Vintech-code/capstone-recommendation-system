@@ -36,9 +36,6 @@ const emptyForm: StudentProfilePayload = {
   barangay: '',
   municipality: '',
   province: '',
-  shsSchoolName: '',
-  shsStrand: '',
-  shsGraduationYear: null,
   strengths: [],
   growthAreas: [],
   learningPreferences: [],
@@ -55,9 +52,6 @@ function toForm(profile: StudentProfileData): StudentProfilePayload {
     barangay: details.barangay ?? '',
     municipality: details.municipality ?? '',
     province: details.province ?? '',
-    shsSchoolName: details.shsSchoolName ?? '',
-    shsStrand: details.shsStrand ?? '',
-    shsGraduationYear: details.shsGraduationYear,
     strengths: profile.questionnaire.strengths,
     growthAreas: profile.questionnaire.growthAreas,
     learningPreferences: profile.questionnaire.learningPreferences,
@@ -105,10 +99,7 @@ function StudentProfilePage({ onBack }: { onBack: () => void }) {
     return Boolean(
       form.birthDate &&
         form.phone &&
-        form.location?.barangayId &&
-        form.shsSchoolName &&
-        form.shsStrand &&
-        form.shsGraduationYear,
+        form.location?.barangayId,
     )
   }, [form])
 
@@ -159,8 +150,6 @@ function StudentProfilePage({ onBack }: { onBack: () => void }) {
         birthDate: form.birthDate || null,
         phone: form.phone || null,
         addressLine: form.addressLine || null,
-        shsSchoolName: form.shsSchoolName || null,
-        shsStrand: form.shsStrand || null,
       })
       setProfile(data)
       setForm(toForm(data))
@@ -199,12 +188,11 @@ function StudentProfilePage({ onBack }: { onBack: () => void }) {
 
   if (loading) {
     return (
-      <div className="student-page py-8">
-        <LoadingState
-          title="Loading your profile"
-          description="Restoring your personal, academic, and learning records."
-        />
-      </div>
+      <LoadingState
+        variant="profile"
+        title="Loading your profile"
+        description="Restoring your personal, academic, and learning records."
+      />
     )
   }
 
@@ -340,7 +328,10 @@ function StudentProfilePage({ onBack }: { onBack: () => void }) {
             {activeTab === 'personal-academic' ? (
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
                 {/* Left Column: Avatar & Personal Information */}
-                <div className="lg:col-span-6 space-y-5">
+                <div
+                  data-profile-column="identity"
+                  className="lg:col-span-6 space-y-5"
+                >
                   {/* Avatar & Name */}
                   <div className="flex flex-col items-center sm:items-start lg:items-center pb-2">
                     <div className="relative group shrink-0">
@@ -471,6 +462,28 @@ function StudentProfilePage({ onBack }: { onBack: () => void }) {
                     />
                   </div>
 
+                </div>
+
+                {/* Right Column: Birth date, address, location, and RIASEC summary */}
+                <div
+                  data-profile-column="details"
+                  className="lg:col-span-6 space-y-5"
+                >
+                  {/* Date of Birth */}
+                  <div>
+                    <Label htmlFor="birth-date" className="text-xs font-semibold text-foreground/80 mb-1.5 block">
+                      Date of birth <span className="text-destructive">*</span>
+                    </Label>
+                    <Input
+                      id="birth-date"
+                      type="date"
+                      required
+                      value={form.birthDate ?? ''}
+                      onChange={(event) => setField('birthDate', event.target.value)}
+                      className="h-10 sm:h-11 rounded-xs border-border/80 text-xs sm:text-sm"
+                    />
+                  </div>
+
                   {/* Address */}
                   <div>
                     <Label htmlFor="address-line" className="text-xs font-semibold text-foreground/80 mb-1.5 block">
@@ -503,94 +516,6 @@ function StudentProfilePage({ onBack }: { onBack: () => void }) {
                       value={form.location}
                       onChange={(location) => setField('location', location)}
                     />
-                  </div>
-                </div>
-
-                {/* Right Column: Date of Birth & Academic Background */}
-                <div className="lg:col-span-6 space-y-5">
-                  {/* Date of Birth */}
-                  <div>
-                    <Label htmlFor="birth-date" className="text-xs font-semibold text-foreground/80 mb-1.5 block">
-                      Date of birth <span className="text-destructive">*</span>
-                    </Label>
-                    <Input
-                      id="birth-date"
-                      type="date"
-                      required
-                      value={form.birthDate ?? ''}
-                      onChange={(event) => setField('birthDate', event.target.value)}
-                      className="h-10 sm:h-11 rounded-xs border-border/80 text-xs sm:text-sm"
-                    />
-                  </div>
-
-                  {/* Academic Background */}
-                  <div className="pt-2 border-t border-border/70 space-y-4">
-                    <div>
-                      <h2 className="font-display text-base font-bold text-foreground">
-                        Academic background
-                      </h2>
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        Senior high school completed, track or academic strand, and graduation year.
-                      </p>
-                    </div>
-
-                    <div>
-                      <Label htmlFor="shs-school" className="text-xs font-semibold text-foreground/80 mb-1.5 block">
-                        Senior high school <span className="text-destructive">*</span>
-                      </Label>
-                      <Input
-                        id="shs-school"
-                        required
-                        maxLength={255}
-                        placeholder="Name of Senior High School"
-                        value={form.shsSchoolName ?? ''}
-                        onChange={(event) => setField('shsSchoolName', event.target.value)}
-                        className="h-10 sm:h-11 rounded-xs border-border/80 text-xs sm:text-sm"
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                      <div>
-                        <Label htmlFor="shs-strand" className="text-xs font-semibold text-foreground/80 mb-1.5 block">
-                          SHS strand or track <span className="text-destructive">*</span>
-                        </Label>
-                        <Input
-                          id="shs-strand"
-                          required
-                          maxLength={120}
-                          placeholder="e.g. STEM, TVL, HUMSS"
-                          value={form.shsStrand ?? ''}
-                          onChange={(event) => setField('shsStrand', event.target.value)}
-                          className="h-10 sm:h-11 rounded-xs border-border/80 text-xs sm:text-sm"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="graduation-year" className="text-xs font-semibold text-foreground/80 mb-1.5 block">
-                          Graduation year <span className="text-destructive">*</span>
-                        </Label>
-                        <Input
-                          id="graduation-year"
-                          type="number"
-                          min={2000}
-                          max={new Date().getFullYear() + 1}
-                          required
-                          placeholder="e.g. 2024"
-                          value={form.shsGraduationYear ?? ''}
-                          onChange={(event) =>
-                            setField(
-                              'shsGraduationYear',
-                              event.target.value ? Number(event.target.value) : null,
-                            )
-                          }
-                          className="h-10 sm:h-11 rounded-xs border-border/80 text-xs sm:text-sm"
-                        />
-                      </div>
-                    </div>
-
-                    <p className="rounded-xs bg-muted/40 p-3 border border-border/60 text-xs leading-relaxed text-muted-foreground">
-                      Your academic background is recorded as Student-provided context and is not used to
-                      alter your RIASEC questionnaire results or curriculum rankings.
-                    </p>
                   </div>
 
                   {/* Holland RIASEC Fit summary */}

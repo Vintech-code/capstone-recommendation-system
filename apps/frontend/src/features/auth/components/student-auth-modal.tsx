@@ -13,6 +13,7 @@ import {
 } from "@/features/auth/auth-api";
 import { SignInForm } from "@/features/auth/components/sign-in-form";
 import { StudentRegistrationForm } from "@/features/auth/components/student-registration-form";
+import { startGoogleAuthentication } from "@/features/auth/google-auth-navigation";
 
 interface StudentAuthModalProps {
   open: boolean;
@@ -30,6 +31,10 @@ const googleErrorMessages: Record<string, string> = {
   not_configured:
     "Google sign-in is temporarily unavailable. Please use email and password.",
   oauth_failed: "Google sign-in could not be completed. Please try again.",
+  popup_blocked: "Allow popups for this site, then try Google sign-in again.",
+  popup_timeout: "Google sign-in took too long. Please try again.",
+  popup_unavailable:
+    "This browser cannot open the secure Google sign-in window.",
   portal_forbidden: "This Google account cannot access the Student portal.",
 };
 
@@ -54,10 +59,12 @@ function StudentAuthModal({
 }: StudentAuthModalProps) {
   const [prevOpen, setPrevOpen] = useState(open);
   const [mode, setMode] = useState<"signin" | "signup">(initialMode);
+  const [googlePopupError, setGooglePopupError] = useState<string | null>(null);
+  const [googlePending, setGooglePending] = useState(false);
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { signIn } = useAuth();
-  const googleError = searchParams.get("google_error");
+  const googleError = googlePopupError ?? searchParams.get("google_error");
   const googleAuthOrigin = (import.meta.env.VITE_API_ORIGIN ?? "").replace(
     /\/$/,
     "",
@@ -71,7 +78,19 @@ function StudentAuthModal({
   }
 
   function continueWithGoogle() {
-    window.location.assign(`${googleAuthOrigin}/auth/google/redirect`);
+    setGooglePopupError(null);
+    setGooglePending(true);
+    startGoogleAuthentication(`${googleAuthOrigin}/auth/google/redirect`, {
+      portal: "student",
+      onResult: (result) => {
+        setGooglePending(false);
+        if (result.status === "success") {
+          window.location.replace("/student");
+          return;
+        }
+        setGooglePopupError(result.error ?? "oauth_failed");
+      },
+    });
   }
 
   async function handleRegister(fields: StudentRegistrationFields) {
@@ -186,10 +205,11 @@ function StudentAuthModal({
                 <button
                   type="button"
                   onClick={continueWithGoogle}
+                  disabled={googlePending}
                   className="flex min-h-9 w-full items-center justify-center gap-2 rounded-xs border border-input/80 bg-white/70 px-3 text-xs font-semibold text-foreground shadow-xs backdrop-blur-xs transition-colors hover:border-primary/40 hover:bg-accent/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/25"
                 >
                   <GmailIcon />
-                  Continue with Google
+                  {googlePending ? "Waiting for Google…" : "Continue with Google"}
                 </button>
 
                 <p className="mt-3.5 text-center text-xs text-muted-foreground">
@@ -221,10 +241,11 @@ function StudentAuthModal({
                 <button
                   type="button"
                   onClick={continueWithGoogle}
+                  disabled={googlePending}
                   className="flex min-h-9 w-full items-center justify-center gap-2 rounded-xs border border-input/80 bg-white/70 px-3 text-xs font-semibold text-foreground shadow-xs backdrop-blur-xs transition-colors hover:border-primary/40 hover:bg-accent/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/25"
                 >
                   <GmailIcon />
-                  Continue with Google
+                  {googlePending ? "Waiting for Google…" : "Continue with Google"}
                 </button>
 
                 <p className="mt-3.5 text-center text-xs text-muted-foreground">

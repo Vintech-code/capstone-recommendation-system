@@ -495,10 +495,6 @@ function AdminProgrammeSheet({
           {programme.majors.length ? (
             <DetailSection title="Recorded majors" items={programme.majors} />
           ) : null}
-          <DetailSection
-            title="Recommended SHS strands"
-            items={programme.recommendedStrands}
-          />
         </div>
       </SheetContent>
     </Sheet>

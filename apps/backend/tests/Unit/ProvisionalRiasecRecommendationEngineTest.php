@@ -20,10 +20,10 @@ class ProvisionalRiasecRecommendationEngineTest extends TestCase
         $this->assertSame(0.0, $result['normalized_scores']['R']);
         $this->assertSame(100.0, $result['normalized_scores']['I']);
         $this->assertSame(50.0, $result['normalized_scores']['A']);
-        $this->assertSame(['alpha', 'social', 'zulu'], array_column($result['ranked'], 'id'));
-        $this->assertSame([75.0, 50.0, 50.0], array_column($result['ranked'], 'match'));
-        $this->assertSame([1, 2, 2], array_column($result['ranked'], 'rank'));
-        $this->assertSame([false, true, true], array_column($result['ranked'], 'is_tied'));
+        $this->assertSame(['alpha', 'zulu', 'social'], array_column($result['ranked'], 'id'));
+        $this->assertSame([80.0, 65.0, 45.0], array_column($result['ranked'], 'match'));
+        $this->assertSame([1, 2, 3], array_column($result['ranked'], 'rank'));
+        $this->assertSame([false, false, false], array_column($result['ranked'], 'is_tied'));
         $this->assertSame('missing', $result['exclusions'][0]['programme_id']);
         $this->assertSame('PROFILE_UNAVAILABLE', $result['exclusions'][0]['reason']);
     }
@@ -53,8 +53,8 @@ class ProvisionalRiasecRecommendationEngineTest extends TestCase
             'board',
         );
 
-        $this->assertSame(['alpha', 'social', 'zulu'], array_column($result['ranked'], 'id'));
-        $this->assertSame([false, false, true], array_column($result['ranked'], 'eligible_for_declared_group'));
+        $this->assertSame(['alpha', 'zulu', 'social'], array_column($result['ranked'], 'id'));
+        $this->assertSame([false, true, false], array_column($result['ranked'], 'eligible_for_declared_group'));
         $this->assertSame(['PROFILE_UNAVAILABLE'], array_column($result['exclusions'], 'reason'));
     }
 
@@ -76,8 +76,11 @@ class ProvisionalRiasecRecommendationEngineTest extends TestCase
     {
         return [
             'matching_policy' => [
-                'method' => 'unweighted_riasec_profile_matching',
-                'formula' => ['name' => 'equal_membership_profile_mean'],
+                'method' => 'ordered_weighted_riasec_profile_matching',
+                'formula' => [
+                    'name' => 'ordered_profile_weighted_sum',
+                    'position_weights' => [0.5, 0.3, 0.2],
+                ],
                 'normalization' => ['instrument_min' => 5, 'instrument_max' => 25],
             ],
             'programmes' => [

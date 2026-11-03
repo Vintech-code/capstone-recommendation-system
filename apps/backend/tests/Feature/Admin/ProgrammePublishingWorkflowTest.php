@@ -21,7 +21,8 @@ class ProgrammePublishingWorkflowTest extends TestCase
         $draft['payload']['programmes'][0]['display_name'] = 'Unsupported renamed programme';
         $draft['payload']['programmes'][0]['description'] = 'Unsupported replacement description.';
         $draft['payload']['programmes'][0]['riasec_profile'] = ['A', 'S', 'E'];
-        $draft['payload']['programmes'][0]['recommended_strands'] = ['STEM', 'TVL-ICT'];
+        $draft['payload']['programmes'][0]['recommended_strands'] = ['STEM'];
+        $draft['payload']['programmes'][0]['strand_guidance'] = 'Removed guidance.';
         $draft['payload']['programmes'][0]['cover_image_position'] = ['x' => 65, 'y' => 40, 'zoom' => 1.3];
         $draft['payload']['programmes'][0]['duration'] = ['display' => '99 years'];
         $draft['payload']['programmes'][0]['eligibility_group'] = 'board';
@@ -32,11 +33,12 @@ class ProgrammePublishingWorkflowTest extends TestCase
             ->assertJsonPath('data.hasChanges', true)
             ->assertJsonPath('data.changedProgrammeCount', 1)
             ->assertJsonPath('data.programmeChanges.0.programmeId', 'bs-information-technology')
-            ->assertJsonFragment(['field' => 'recommended_strands', 'after' => ['STEM', 'TVL-ICT']])
             ->assertJsonFragment(['field' => 'cover_image_position', 'after' => ['x' => 65, 'y' => 40, 'zoom' => 1.3]])
             ->assertJsonMissing(['field' => 'display_name', 'after' => 'Unsupported renamed programme'])
             ->assertJsonMissing(['field' => 'description', 'after' => 'Unsupported replacement description.'])
             ->assertJsonMissing(['field' => 'riasec_profile', 'after' => ['A', 'S', 'E']])
+            ->assertJsonMissing(['field' => 'recommended_strands'])
+            ->assertJsonMissing(['field' => 'strand_guidance'])
             ->assertJsonMissing(['field' => 'duration', 'after' => ['display' => '99 years']])
             ->assertJsonMissing(['field' => 'eligibility_group', 'after' => 'board']);
     }
@@ -74,7 +76,7 @@ class ProgrammePublishingWorkflowTest extends TestCase
             ->assertCreated()->json('data');
         $draft['payload']['programmes'][0]['display_name'] = 'Unsupported renamed programme';
         $draft['payload']['programmes'][0]['description'] = 'Unsupported replacement description.';
-        $draft['payload']['programmes'][0]['recommended_strands'] = ['STEM'];
+        $draft['payload']['programmes'][0]['cover_image_position'] = ['x' => 65, 'y' => 40, 'zoom' => 1.3];
 
         $this->actingAs($admin)->putJson("/api/v1/admin/configurations/versions/{$draft['id']}", [
             'payload' => $draft['payload'],
@@ -86,7 +88,7 @@ class ProgrammePublishingWorkflowTest extends TestCase
 
         $this->assertSame('BS Information Technology', $programme['display_name']);
         $this->assertStringStartsWith('Studies hardware and software technologies', $programme['description']);
-        $this->assertSame(['STEM'], $programme['recommended_strands']);
+        $this->assertSame(['x' => 65, 'y' => 40, 'zoom' => 1.3], $programme['cover_image_position']);
     }
 
     private function admin(): User

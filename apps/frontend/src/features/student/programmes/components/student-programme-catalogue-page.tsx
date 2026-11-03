@@ -11,7 +11,6 @@ import {
   LibraryBig,
   Scale,
   Search,
-  School,
   ShieldCheck,
   SlidersHorizontal,
   Stethoscope,
@@ -56,7 +55,7 @@ const riasecDefinitions = [
 ]
 
 
-type FilterSectionId = 'field' | 'riasec' | 'duration' | 'strand'
+type FilterSectionId = 'field' | 'riasec' | 'duration'
 
 function FilterSection({ id, title, open, activeCount, onToggle, children }: { id: FilterSectionId; title: string; open: boolean; activeCount: number; onToggle: () => void; children: ReactNode }) {
   const panelId = `programme-filter-${id}`
@@ -74,15 +73,6 @@ function FilterSection({ id, title, open, activeCount, onToggle, children }: { i
   )
 }
 
-const strandLabels: Record<string, string> = {
-  ABM: 'Accountancy, Business and Management',
-  GAS: 'General Academic Strand',
-  HUMSS: 'Humanities and Social Sciences',
-  STEM: 'Science, Technology, Engineering and Mathematics',
-  'Sports Track': 'Sports Track',
-  'TVL-HE': 'Technical-Vocational-Livelihood – Home Economics',
-  'TVL-ICT': 'Technical-Vocational-Livelihood – Information and Communications Technology',
-}
 
 function StudentProgrammeCataloguePage({ initialCatalogue, matchContext = [] }: StudentProgrammeCataloguePageProps) {
   const cachedCatalogue = initialCatalogue ?? getSyncStudentResource<StudentProgrammeCatalogue>('programmes:catalogue')
@@ -93,7 +83,6 @@ function StudentProgrammeCataloguePage({ initialCatalogue, matchContext = [] }: 
   const [query, setQuery] = useState('')
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const [selectedRiasec, setSelectedRiasec] = useState<string[]>([])
-  const [selectedStrands, setSelectedStrands] = useState<string[]>([])
   const [openFilterSection, setOpenFilterSection] = useState<FilterSectionId | null>('field')
   const [sortBy, setSortBy] = useState<'name' | 'category'>('name')
   const [durationFilter, setDurationFilter] = useState('all')
@@ -110,9 +99,6 @@ function StudentProgrammeCataloguePage({ initialCatalogue, matchContext = [] }: 
       .map((programme) => programme.duration?.display)
       .filter((value): value is string => Boolean(value)),
   )).sort((left, right) => left.localeCompare(right, undefined, { numeric: true })), [catalogue])
-  const strandOptions = useMemo(() => Array.from(new Set(
-    (catalogue?.programmes ?? []).flatMap((programme) => programme.recommendedStrands),
-  )).sort(), [catalogue])
   useEffect(() => {
     if (initialCatalogue) return
     let active = true
@@ -137,13 +123,12 @@ function StudentProgrammeCataloguePage({ initialCatalogue, matchContext = [] }: 
       const matchesCategory = selectedCategories.length === 0 || (category && selectedCategories.includes(category.id))
       const matchesRiasec = selectedRiasec.length === 0 || selectedRiasec.some((code) => programme.riasecProfile.includes(code))
       const matchesDuration = durationFilter === 'all' || programme.duration?.display === durationFilter
-      const matchesStrands = selectedStrands.length === 0 || selectedStrands.some((strand) => programme.recommendedStrands.includes(strand))
       const matchesSaved = !savedOnly || savedProgrammeIds.has(programme.id)
       const searchable = [programme.name, programme.code, programme.description, ...programme.learningAreas, ...programme.careerDirections]
         .join(' ')
         .toLowerCase()
 
-      return matchesCategory && matchesRiasec && matchesDuration && matchesStrands && matchesSaved && (!normalizedQuery || searchable.includes(normalizedQuery))
+      return matchesCategory && matchesRiasec && matchesDuration && matchesSaved && (!normalizedQuery || searchable.includes(normalizedQuery))
     })
 
     return [...filtered].sort((left, right) => {
@@ -156,7 +141,7 @@ function StudentProgrammeCataloguePage({ initialCatalogue, matchContext = [] }: 
 
       return left.name.localeCompare(right.name)
     })
-  }, [catalogue, durationFilter, query, savedOnly, savedProgrammeIds, selectedCategories, selectedRiasec, selectedStrands, sortBy])
+  }, [catalogue, durationFilter, query, savedOnly, savedProgrammeIds, selectedCategories, selectedRiasec, sortBy])
   const displayedProgrammes = visibleProgrammes.slice(0, visibleCount)
   const comparisonProgrammes = (catalogue?.programmes ?? []).filter((programme) => comparisonIds.has(programme.id))
 
@@ -245,7 +230,7 @@ function StudentProgrammeCataloguePage({ initialCatalogue, matchContext = [] }: 
             </div>
             <button
               type="button"
-              onClick={() => { setSelectedCategories([]); setSelectedRiasec([]); setSelectedStrands([]); setDurationFilter('all'); setSavedOnly(false); setQuery(''); setVisibleCount(programmesPerBatch) }}
+              onClick={() => { setSelectedCategories([]); setSelectedRiasec([]); setDurationFilter('all'); setSavedOnly(false); setQuery(''); setVisibleCount(programmesPerBatch) }}
               className="min-h-11 text-sm font-semibold text-primary-ink hover:underline"
             >
               Clear all
@@ -313,24 +298,6 @@ function StudentProgrammeCataloguePage({ initialCatalogue, matchContext = [] }: 
                     className="size-4 accent-primary"
                   />
                   {label}
-                </label>
-              ))}
-            </div>
-          </FilterSection>
-          <FilterSection id="strand" title="Recommended SHS strand" open={openFilterSection === 'strand'} activeCount={selectedStrands.length} onToggle={() => setOpenFilterSection((current) => current === 'strand' ? null : 'strand')}>
-            <div className="grid gap-1">
-              {strandOptions.map((strand) => (
-                <label key={strand} className="flex min-h-9 cursor-pointer items-center gap-2 rounded px-1 text-sm hover:bg-card">
-                  <input
-                    type="checkbox"
-                    checked={selectedStrands.includes(strand)}
-                    onChange={() => {
-                      setSelectedStrands((current) => current.includes(strand) ? current.filter((item) => item !== strand) : [...current, strand])
-                      setVisibleCount(programmesPerBatch)
-                    }}
-                    className="size-4 rounded accent-primary"
-                  />
-                  {strand}
                 </label>
               ))}
             </div>
@@ -438,7 +405,6 @@ function StudentProgrammeCataloguePage({ initialCatalogue, matchContext = [] }: 
 
 function StudentProgrammeDetail({ programme, academicYear, onBack }: { programme: StudentProgramme; academicYear: string; onBack: () => void }) {
   const careerDirections = programme.careerDirections ?? []
-  const recommendedStrands = programme.recommendedStrands ?? []
   const DetailIcon = programme.id.includes('midwifery')
     ? Stethoscope
     : programme.id.includes('library')
@@ -470,7 +436,6 @@ function StudentProgrammeDetail({ programme, academicYear, onBack }: { programme
             </Button>
             <div className="flex flex-wrap gap-2">
               <span className="outcome-chip">Academic Year {academicYear}</span>
-              {recommendedStrands.map((strand) => <span key={strand} className="outcome-chip">{strand}</span>)}
             </div>
             <h1 id="catalogue-detail-title" className="mt-4 max-w-4xl font-display text-4xl font-bold tracking-[-0.035em] sm:text-5xl">{programme.name}</h1>
             <p className="mt-3 max-w-3xl text-base leading-7 text-foreground/70">{programme.description}</p>
@@ -543,29 +508,6 @@ function StudentProgrammeDetail({ programme, academicYear, onBack }: { programme
             )}
           </section>
 
-          {recommendedStrands.length > 0 ? (
-            <section aria-labelledby="strand-title" className="space-y-3.5">
-              <div className="flex items-center gap-2.5">
-                <School aria-hidden="true" className="size-5 text-primary-ink" />
-                <div>
-                  <p className="font-label text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Senior High preparation</p>
-                  <h2 id="strand-title" className="font-display text-lg font-bold text-foreground sm:text-xl">Helpful tracks and strands</h2>
-                </div>
-              </div>
-              <ul className="overflow-hidden rounded-2xl border border-border/70 bg-card/60 shadow-sm divide-y divide-border/60">
-                {recommendedStrands.map((strand) => (
-                  <li key={strand} className="flex items-center gap-3.5 p-4 transition-colors hover:bg-card sm:px-5">
-                    <span className="inline-flex min-h-7 items-center rounded-lg bg-primary-fixed px-2.5 font-label text-xs font-bold text-on-primary-fixed">
-                      {strand}
-                    </span>
-                    <span className="text-xs font-medium text-foreground sm:text-sm">
-                      {strandLabels[strand] ?? strand}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          ) : null}
         </div>
 
         <aside className="space-y-6">

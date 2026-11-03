@@ -68,12 +68,8 @@ class StudentRecommendationTest extends TestCase
             ->assertJsonPath('data.salary.status', 'not_published')
             ->assertJsonPath('data.jobGrowth.status', 'not_published')
             ->assertJsonMissingPath('data.careerTrajectory')
-            ->assertJsonPath('data.recommendedStrands.0', 'STEM')
-            ->assertJsonPath('data.recommendedStrands.1', 'TVL-ICT')
-            ->assertJsonPath(
-                'data.strandGuidance',
-                'STEM supports mathematics and analytical preparation, while TVL-ICT provides practical exposure to computer systems and digital tools.',
-            );
+            ->assertJsonMissingPath('data.recommendedStrands')
+            ->assertJsonMissingPath('data.strandGuidance');
 
         $this->getJson('/api/v1/student/programmes/bs-sociology')
             ->assertOk()
@@ -164,13 +160,14 @@ class StudentRecommendationTest extends TestCase
             ->assertOk()
             ->assertJsonPath('data.status', 'available')
             ->assertJsonPath('data.recommendation.status', 'Proposed methodology')
+            ->assertJsonPath('data.recommendation.ruleReference', 'PROPOSED-RIASEC-4-ORDERED-WEIGHTS')
             ->assertJsonPath('data.recommendation.totalEligible', 8)
             ->assertJsonPath('data.recommendation.totalRanked', 12)
             ->assertJsonPath('data.recommendation.canViewAll', false)
             ->assertJsonPath('data.recommendation.showingAll', true)
             ->assertJsonPath('data.recommendation.guidanceContentStatus', 'mixed_cmo_sourced_and_proposed')
-            ->assertJsonPath('data.recommendation.courses.0.contentStatus', 'ched_psg_sourced')
-            ->assertJsonPath('data.recommendation.courses.0.contentSource.source_name', 'CHED CMO No. 24, series of 2015')
+            ->assertJsonPath('data.recommendation.courses.0.id', 'bachelor-secondary-education-social-studies')
+            ->assertJsonPath('data.recommendation.courses.0.contentStatus', 'pending_local_cmo')
             ->assertJsonPath('data.recommendation.courses.0.degreeType', "Bachelor's degree")
             ->assertJsonPath('data.recommendation.courses.0.salary.status', 'not_published')
             ->assertJsonPath('data.recommendation.courses.0.jobGrowth.status', 'not_published')
@@ -233,7 +230,7 @@ class StudentRecommendationTest extends TestCase
             ->assertJsonPath('data.recommendation.canViewAll', false)
             ->assertJsonCount(4, 'data.recommendation.courses')
             ->assertJsonPath('data.recommendation.courses.0.name', 'Alpha Programme')
-            ->assertJsonPath('data.recommendation.courses.0.match', 85.71)
+            ->assertJsonPath('data.recommendation.courses.0.match', 90)
             ->assertJsonPath('data.recommendation.courses.0.rank', 1)
             ->assertJsonPath('data.recommendation.courses.0.isTie', true)
             ->assertJsonPath('data.recommendation.courses.1.rank', 1)
@@ -379,8 +376,11 @@ class StudentRecommendationTest extends TestCase
             'catalogue_version' => 1,
             'academic_year' => '2026-2027',
             'matching_policy' => [
-                'method' => 'unweighted_riasec_profile_matching',
-                'formula' => ['name' => 'equal_membership_profile_mean'],
+                'method' => 'ordered_weighted_riasec_profile_matching',
+                'formula' => [
+                    'name' => 'ordered_profile_weighted_sum',
+                    'position_weights' => [0.5, 0.3, 0.2],
+                ],
                 'normalization' => ['instrument_min' => 0, 'instrument_max' => 7],
                 'display' => ['default_count' => 3, 'allow_view_all' => true],
             ],

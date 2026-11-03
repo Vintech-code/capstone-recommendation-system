@@ -26,8 +26,16 @@ it('edits the Student-owned profile without GWA fields', async () => {
   expect(screen.getByLabelText('Learner reference numberOptional')).toHaveValue('128490000001')
   expect(screen.queryByLabelText(/GWA/i)).not.toBeInTheDocument()
 
-  expect(screen.getByRole('heading', { name: 'Academic background' })).toBeVisible()
-  expect(screen.getByLabelText(/Senior high school/)).toHaveValue('Tagoloan National High School')
+  const identityColumn = document.querySelector('[data-profile-column="identity"]')
+  const detailsColumn = document.querySelector('[data-profile-column="details"]')
+  expect(identityColumn).toContainElement(screen.getByDisplayValue('user@example.com'))
+  expect(identityColumn).toContainElement(screen.getByLabelText(/Mobile number/))
+  expect(detailsColumn).toContainElement(screen.getByLabelText(/Date of birth/))
+  expect(detailsColumn).toContainElement(screen.getByLabelText(/House, street, or zone/))
+  expect(detailsColumn).toContainElement(screen.getByLabelText(/Region/))
+
+  expect(screen.queryByRole('heading', { name: 'Academic background' })).not.toBeInTheDocument()
+  expect(screen.queryByLabelText(/Senior high school/)).not.toBeInTheDocument()
   expect(screen.queryByLabelText(/GWA/i)).not.toBeInTheDocument()
 
   await user.click(screen.getByRole('button', { name: /Next/ }))

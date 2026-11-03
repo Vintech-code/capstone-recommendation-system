@@ -61,10 +61,7 @@ final class StudentProfilePresenter
                     && $birthDate !== null
                     && $profile->phone !== null
                     && $profile->municipality !== null
-                    && ($profile->barangay_id !== null || $profile->province !== null)
-                    && $profile->shs_school_name !== null
-                    && $profile->shs_strand !== null
-                    && $profile->shs_graduation_year !== null,
+                    && ($profile->barangay_id !== null || $profile->province !== null),
                 'lrn' => $profile?->lrn,
                 'birthDate' => $birthDate,
                 'age' => $age,
@@ -74,9 +71,6 @@ final class StudentProfilePresenter
                 'barangay' => $profile?->barangay,
                 'municipality' => $profile?->municipality,
                 'province' => $profile?->province,
-                'shsSchoolName' => $profile?->shs_school_name,
-                'shsStrand' => $profile?->shs_strand,
-                'shsGraduationYear' => $profile?->shs_graduation_year,
                 'updatedAt' => $profile?->updated_at?->toAtomString(),
             ],
             'options' => [
@@ -113,7 +107,25 @@ final class StudentProfilePresenter
         ], $entries, array_keys($entries));
         $leading = $dimensions;
         usort($leading, static fn (array $left, array $right): int => ($right['value'] <=> $left['value']) ?: ($left['order'] <=> $right['order']));
-        $leading = array_slice($leading, 0, 3);
+        $previousValue = null;
+        $rank = 0;
+        foreach ($leading as $index => &$dimension) {
+            if ($previousValue === null || $dimension['value'] !== $previousValue) {
+                $rank = $index + 1;
+            }
+            $dimension['rank'] = $rank;
+            $previousValue = $dimension['value'];
+        }
+        unset($dimension);
+        $rankCounts = array_count_values(array_column($leading, 'rank'));
+        foreach ($leading as &$dimension) {
+            $dimension['isTied'] = ($rankCounts[$dimension['rank']] ?? 0) > 1;
+        }
+        unset($dimension);
+        $leading = array_values(array_filter(
+            $leading,
+            static fn (array $dimension): bool => $dimension['rank'] <= 3,
+        ));
 
         return [
             'sessionReference' => 'ASMT-'.str_pad((string) $assessment->getKey(), 6, '0', STR_PAD_LEFT),
@@ -121,6 +133,12 @@ final class StudentProfilePresenter
             'primary' => isset($leading[0]) ? ['code' => $leading[0]['code'], 'label' => $leading[0]['label']] : null,
             'secondary' => isset($leading[1]) ? ['code' => $leading[1]['code'], 'label' => $leading[1]['label']] : null,
             'tertiary' => isset($leading[2]) ? ['code' => $leading[2]['code'], 'label' => $leading[2]['label']] : null,
+            'leadingAreas' => array_map(static fn (array $dimension): array => [
+                'code' => $dimension['code'],
+                'label' => $dimension['label'],
+                'rank' => $dimension['rank'],
+                'isTied' => $dimension['isTied'],
+            ], $leading),
             'code' => implode('-', array_column($leading, 'code')),
             'dimensions' => array_map(static fn (array $dimension): array => [
                 'code' => $dimension['code'], 'label' => $dimension['label'], 'value' => $dimension['value'],
@@ -163,8 +181,10 @@ final class StudentProfilePresenter
     private function summary(?array $riasec, array $strengths, array $learningPreferences): string
     {
         $sentences = [];
-        if ($riasec && $riasec['primary'] && $riasec['secondary'] && $riasec['tertiary']) {
-            $sentences[] = "The latest recorded RIASEC result is {$riasec['code']} ({$riasec['primary']['label']}, {$riasec['secondary']['label']}, and {$riasec['tertiary']['label']}).";
+        if ($riasec && ($riasec['leadingAreas'] ?? []) !== []) {
+            $labels = implode(', ', array_column($riasec['leadingAreas'], 'label'));
+            $shared = collect($riasec['leadingAreas'])->contains('isTied', true) ? ' with shared ranks where scores are equal' : '';
+            $sentences[] = "The latest recorded RIASEC result is {$riasec['code']} ({$labels}){$shared}.";
         }
         if ($strengths !== []) {
             $sentences[] = 'The student selected '.implode(', ', $strengths).' as self-reported strengths.';

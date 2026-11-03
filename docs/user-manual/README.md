@@ -13,7 +13,9 @@ Recommendations are guidance, not admission decisions or guarantees.
 
 Every valid ordered three-letter result shows a unique two-word interest-profile name and two-sentence description on the result page and shareable result card. Eleven names are repository-owner-approved presentation overrides for the classified PSG-matrix profiles; the other 109 are derived from the ordered primary, secondary, and tertiary RIASEC meanings and do not classify additional programmes. These summaries describe vocational interests rather than personality, ability, expected success, admission, or institutional approval.
 
-When using **Continue with Google**, choose the intended Student Google account from Google's account picker. A Google account already assigned to another portal cannot be used as a Student account.
+When using **Continue with Google**, allow the separate Google sign-in window and choose the intended Student account from Google's account picker. Keep the original TCC course-recommendation tab open; it returns to the authenticated Student home after the separate window completes. A Google account already assigned to another portal cannot be used as a Student account.
+
+The authenticated Student sections use protected URLs: `/student`, `/student/programmes`, `/student/matches`, `/student/profile`, and `/student/history`. Browser Back moves through previously opened Student sections and does not sign the Student out. Only use **Sign out** when the session should end. If the session has genuinely expired or has been revoked, the protected route returns to the Student sign-in flow.
 
 ## Administrator
 
@@ -26,7 +28,7 @@ When using **Continue with Google**, choose the intended Student Google account 
 
 Administrators cannot alter completed Student answers, historical recommendations, protected CMO facts, entrance groups, or RIASEC profiles through the ordinary editor.
 
-An already-provisioned active Administrator may also use **Continue with Google** when the selected Google email exactly matches that Administrator account. Google sign-in does not create Administrators or grant the Administrator role. Google shows the account picker on every attempt so a previously rejected account can be changed.
+An already-provisioned active Administrator may also use **Continue with Google** in the separate sign-in window when the selected Google email exactly matches that Administrator account. Google sign-in does not create Administrators or grant the Administrator role. Google shows the account picker on every attempt so a previously rejected account can be changed.
 
 ## Password recovery
 

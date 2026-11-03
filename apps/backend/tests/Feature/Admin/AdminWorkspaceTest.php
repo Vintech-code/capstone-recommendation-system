@@ -32,9 +32,6 @@ class AdminWorkspaceTest extends TestCase
             'phone' => '+63 917 842 1928',
             'municipality' => 'Tagoloan',
             'province' => 'Misamis Oriental',
-            'shs_school_name' => 'Tagoloan National High School',
-            'shs_strand' => 'STEM',
-            'shs_graduation_year' => 2026,
             'strengths' => [],
             'growth_areas' => [],
             'learning_preferences' => [],
@@ -63,7 +60,7 @@ class AdminWorkspaceTest extends TestCase
             ->assertJsonPath('data.attempts.0.recommendationSnapshot.catalogueReference', 'TCC-AY-2026-2027-V1')
             ->assertJsonPath('data.attempts.0.recommendations.0.code', 'BSIT')
             ->assertJsonPath('data.profile.lrn', '128490000011')
-            ->assertJsonPath('data.profile.shsStrand', 'STEM')
+            ->assertJsonMissingPath('data.profile.shsStrand')
             ->assertJsonMissingPath('data.profile.shsGwa');
 
         $this->getJson('/api/v1/admin/programmes')

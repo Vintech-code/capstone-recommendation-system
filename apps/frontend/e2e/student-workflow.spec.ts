@@ -79,7 +79,11 @@ function json(route: Route, body: unknown, status = 200) {
   })
 }
 
-async function installStudentApi(page: Page, initiallyComplete = false) {
+async function installStudentApi(
+  page: Page,
+  initiallyComplete = false,
+  delayedPaths: string[] = [],
+) {
   let authenticated = false
   let submitted = initiallyComplete
   let answers: Record<string, number> = {}
@@ -99,6 +103,9 @@ async function installStudentApi(page: Page, initiallyComplete = false) {
     }
     if (path === '/api/v1/auth/authorize/student') return json(route, { authorized: true, portal: 'student' })
     if (path === '/api/v1/auth/logout') return json(route, { message: 'Signed out.' })
+    if (delayedPaths.includes(path)) {
+      await new Promise((resolve) => setTimeout(resolve, 15_000))
+    }
     if (path.startsWith('/api/v1/locations/')) {
       const data = path.endsWith('/regions') ? [{ id: 1, code: '0100000000', name: 'Test region' }, { id: 9, code: '0900000000', name: 'Another region' }]
         : path.endsWith('/provinces') ? { items: [{ id: 2, code: '0100100000', name: 'Test province' }], hasIndependentCities: true }
@@ -109,7 +116,7 @@ async function installStudentApi(page: Page, initiallyComplete = false) {
     if (path === '/api/v1/student/profile') {
       return json(route, { data: {
         student: { ...user, photoUrl: null },
-        personalAcademic: { location: { regionId: 1, provinceId: 2, cityMunicipalityId: 3, barangayId: 4 }, complete: true, lrn: '128490000001', birthDate: '2007-04-18', age: 19, phone: '+63 917 842 1928', addressLine: 'Zone 2', barangay: 'Poblacion', municipality: 'Tagoloan', province: 'Misamis Oriental', shsSchoolName: 'Tagoloan National High School', shsStrand: 'STEM', shsGraduationYear: 2026, updatedAt: '2026-09-07T10:00:00+08:00' },
+        personalAcademic: { location: { regionId: 1, provinceId: 2, cityMunicipalityId: 3, barangayId: 4 }, complete: true, lrn: '128490000001', birthDate: '2007-04-18', age: 19, phone: '+63 917 842 1928', addressLine: 'Zone 2', barangay: 'Poblacion', municipality: 'Tagoloan', province: 'Misamis Oriental', updatedAt: '2026-09-07T10:00:00+08:00' },
         questionnaire: { complete: true, strengths: ['Problem-solving'], growthAreas: ['Time management'], learningPreferences: ['Reading'], updatedAt: '2026-09-07T10:00:00+08:00' },
         options: { strengths: ['Problem-solving', 'Creativity'], growthAreas: ['Time management', 'Public speaking'], learningPreferences: ['Reading', 'Hands-on activities'] },
         riasec: null,
@@ -167,6 +174,12 @@ async function installStudentApi(page: Page, initiallyComplete = false) {
 
     return json(route, { message: `Unhandled browser-test endpoint: ${method} ${path}` }, 404)
   })
+
+  return {
+    authenticateWithGoogle() {
+      authenticated = true
+    },
+  }
 }
 
 function currentAssessment(answers: Record<string, number>) {
@@ -229,8 +242,7 @@ function programmeCatalogue() {
       learningAreaDescriptions: { 'Software development': 'Design, test, and maintain software applications.' },
       learningAreaTopics: { 'Software development': ['Programming', 'Testing', 'Maintenance'] },
       careerDirections: ['Software development'],
-      recommendedStrands: ['STEM', 'TVL-ICT'],
-      strandGuidance: 'These strands provide helpful preparation.',
+
       requirements: [],
       readinessPrompt: 'Discuss your interest in technology.',
       contentVersion: 'GUIDANCE-1',
@@ -271,7 +283,111 @@ test('shows the simplified Student authentication modal', async ({ page }, testI
   await page.screenshot({ path: testInfo.outputPath('student-auth-modal.png') })
 })
 
-test('lets the Student manage personal and academic profile information without GWA', async ({ page }) => {
+test('keeps Google OAuth out of the main tab browser history', async ({ page }) => {
+  const auth = await installStudentApi(page, true)
+  await page.context().route('**/auth/google/redirect?**', async (route) => {
+    const authorizationUrl = new URL(route.request().url())
+    const flow = authorizationUrl.searchParams.get('flow')
+    expect(authorizationUrl.searchParams.get('popup')).toBe('1')
+    expect(flow).toBeTruthy()
+    auth.authenticateWithGoogle()
+    await route.fulfill({
+      status: 302,
+      headers: {
+        location: `/google-auth/complete?${new URLSearchParams({
+          flow: flow!,
+          portal: 'student',
+          status: 'success',
+        })}`,
+      },
+    })
+  })
+  await page.goto('/student/login')
+
+  const googleButton = page.getByRole('button', { name: 'Continue with Google' })
+  await expect(googleButton).toBeVisible()
+  const popupPromise = page.waitForEvent('popup')
+  await googleButton.click({ force: true })
+  const popup = await popupPromise
+
+  await expect(page).toHaveURL(/\/student$/)
+  await expect(page.getByRole('button', { name: 'My Matches' }).first()).toBeVisible()
+  await expect.poll(() => popup.isClosed()).toBe(true)
+  expect(page.url()).not.toContain('accounts.google.com')
+})
+
+test('matches loading skeletons to the Student page geometry', async ({ page }, testInfo) => {
+  await installStudentApi(page, true, [
+    '/api/v1/student/recommendations/latest',
+    '/api/v1/student/programmes',
+    '/api/v1/student/saved-programmes',
+    '/api/v1/student/profile',
+  ])
+  await signIn(page)
+
+  await page.getByRole('button', { name: 'My Matches' }).first().click()
+  const recommendations = page.locator('[data-loading-layout="recommendations"]')
+  await expect(recommendations).toBeVisible()
+  await expect(recommendations.locator('[data-loading-region="recommendation-summary"]')).toBeVisible()
+  await expect(recommendations.locator('[data-loading-region="recommendation-scores"]')).toBeVisible()
+  await page.screenshot({ path: testInfo.outputPath('recommendations-loading.png'), fullPage: true })
+
+  await page.getByRole('button', { name: 'Explore Programs' }).first().click()
+  const catalogue = page.locator('[data-loading-layout="catalogue"]')
+  await expect(catalogue).toBeVisible()
+  await expect(catalogue.locator('[data-loading-region="catalogue-hero"]')).toBeVisible()
+  await expect(catalogue.locator('[data-loading-region="catalogue-filters"]')).toBeVisible()
+  await page.screenshot({ path: testInfo.outputPath('catalogue-loading.png'), fullPage: true })
+
+  await page.getByRole('button', { name: 'My Profile' }).first().click()
+  const profile = page.locator('[data-loading-layout="profile"]')
+  await expect(profile).toBeVisible()
+  await expect(profile.locator('[data-loading-region="profile-identity"]')).toBeVisible()
+  await expect(profile.locator('[data-loading-region="profile-details"]')).toBeVisible()
+  await expectNoHorizontalOverflow(page)
+  await page.screenshot({ path: testInfo.outputPath('profile-loading.png'), fullPage: true })
+})
+
+test('restores My Matches and its matching skeleton after a refresh', async ({ page }) => {
+  await installStudentApi(page, true, [
+    '/api/v1/student/recommendations/latest',
+  ])
+  await signIn(page)
+
+  await page.getByRole('button', { name: 'My Matches' }).first().click()
+  await expect(page).toHaveURL(/\/student\/matches$/)
+  await expect(page.locator('[data-loading-layout="recommendations"]')).toBeVisible()
+
+  await page.reload()
+
+  await expect(page.getByRole('button', { name: 'My Matches' }).first()).toHaveAttribute('aria-current', 'page')
+  await expect(page.locator('[data-loading-layout="recommendations"]')).toBeVisible()
+  await expect(page.locator('[data-loading-layout="recommendations"] [data-loading-region="recommendation-scores"]')).toBeVisible()
+})
+
+test('uses protected Student routes for browser Back without signing out', async ({ page }) => {
+  const requests: string[] = []
+  page.on('request', (request) => requests.push(new URL(request.url()).pathname))
+  await installStudentApi(page, true)
+  await signIn(page)
+
+  await page.getByRole('button', { name: 'My Matches' }).first().click()
+  await expect(page).toHaveURL(/\/student\/matches$/)
+  await expect(page.getByRole('heading', { name: 'RIASEC scores' })).toBeVisible()
+
+  await page.getByRole('button', { name: 'Explore Programs' }).first().click()
+  await expect(page).toHaveURL(/\/student\/programmes$/)
+  await expect(page.getByRole('heading', { level: 1, name: 'Explore TCC programmes' })).toBeVisible()
+
+  await page.goBack()
+
+  await expect(page).toHaveURL(/\/student\/matches$/)
+  await expect(page.getByRole('heading', { name: 'RIASEC scores' })).toBeVisible()
+  expect(requests).not.toContain('/api/v1/auth/logout')
+  expect(page.url()).not.toContain('accounts.google.com')
+})
+
+test('lets the Student manage personal profile information without SHS or GWA fields', async ({ page }, testInfo) => {
   await installStudentApi(page)
   await signIn(page)
   await page.getByRole('button', { name: 'Go to dashboard' }).click()
@@ -280,8 +396,30 @@ test('lets the Student manage personal and academic profile information without 
   await expect(page.getByText('Edit Profile', { exact: true })).toBeVisible()
   await expect(page.getByLabel('Learner reference numberOptional')).toHaveValue('128490000001')
   await expect(page.getByLabel(/Mobile number/)).toHaveValue('+63 917 842 1928')
-  await expect(page.getByLabel(/Senior high school/)).toHaveValue('Tagoloan National High School')
+  await expect(page.getByLabel(/Senior high school/)).toHaveCount(0)
   await expect(page.getByLabel(/GWA/i)).toHaveCount(0)
+  const identityColumn = page.locator('[data-profile-column="identity"]')
+  const detailsColumn = page.locator('[data-profile-column="details"]')
+  await expect(identityColumn).toBeVisible()
+  await expect(detailsColumn).toBeVisible()
+  await expect(detailsColumn.getByLabel(/Date of birth/)).toBeVisible()
+  await expect(detailsColumn.getByLabel(/House, street, or zone/)).toBeVisible()
+  await expect(detailsColumn.getByLabel(/Region/)).toBeVisible()
+
+  const identityBox = await identityColumn.boundingBox()
+  const detailsBox = await detailsColumn.boundingBox()
+  expect(identityBox).not.toBeNull()
+  expect(detailsBox).not.toBeNull()
+  if ((page.viewportSize()?.width ?? 0) >= 1024) {
+    expect(detailsBox!.x).toBeGreaterThan(identityBox!.x)
+    expect(Math.abs(detailsBox!.y - identityBox!.y)).toBeLessThanOrEqual(2)
+    expect(Math.abs(detailsBox!.height - identityBox!.height)).toBeLessThan(180)
+  } else {
+    expect(detailsBox!.y).toBeGreaterThan(identityBox!.y)
+  }
+  await expectNoHorizontalOverflow(page)
+  await page.screenshot({ path: testInfo.outputPath('student-profile-balanced-form.png'), fullPage: true })
+
   await page.getByRole('button', { name: /Next/ }).click()
   await expect(page.getByRole('heading', { name: 'Learning profile & preferences' })).toBeVisible()
   await expect(page.getByLabel(/GWA/i)).toHaveCount(0)
@@ -373,7 +511,9 @@ test('shows multiple programme career directions and published ESCO details', as
 
   await page.getByRole('button', { name: 'My Matches' }).first().click()
   await expect(page.getByRole('heading', { name: 'All ranked matches' })).toBeVisible()
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
   await page.getByRole('button', { name: 'View programme' }).click()
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0)
 
   await expect(page.getByText('2 to explore')).toBeVisible()
   const careerSection = page.getByRole('region', { name: 'Possible career directions' })

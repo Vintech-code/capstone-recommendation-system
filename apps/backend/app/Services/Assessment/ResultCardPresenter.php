@@ -11,9 +11,12 @@ final class ResultCardPresenter
     {
         $session->loadMissing(['user:id,name,email', 'entranceExaminationResult']);
 
-        $dimensions = $this->dimensions($session);
+        $dimensions = $this->rankDimensions($this->dimensions($session));
         $topCodeInfo = $this->topCode($dimensions);
-        $topDimensions = array_slice($this->sortDimensions($dimensions), 0, 3);
+        $topDimensions = array_values(array_filter(
+            $this->sortDimensions($dimensions),
+            static fn (array $dimension): bool => ($dimension['rank'] ?? 99) <= 3,
+        ));
 
         $scoringVersion = $session->result_payload['instrument']['content_version']
             ?? $session->result_payload['scoring_source']
@@ -126,6 +129,37 @@ final class ResultCardPresenter
     }
 
     /**
+     * Assign competition ranks so equal scores are represented as shared positions.
+     *
+     * @param  array<int, array{code: string, label: string, value: int}>  $dimensions
+     * @return array<int, array<string, mixed>>
+     */
+    public function rankDimensions(array $dimensions): array
+    {
+        $sorted = $this->sortDimensions($dimensions);
+        $previousValue = null;
+        $rank = 0;
+        foreach ($sorted as $index => &$dimension) {
+            if ($previousValue === null || $dimension['value'] !== $previousValue) {
+                $rank = $index + 1;
+            }
+            $dimension['rank'] = $rank;
+            $previousValue = $dimension['value'];
+        }
+        unset($dimension);
+
+        $rankCounts = array_count_values(array_column($sorted, 'rank'));
+        foreach ($sorted as &$dimension) {
+            $dimension['isTied'] = ($rankCounts[$dimension['rank']] ?? 0) > 1;
+        }
+        unset($dimension);
+
+        $byCode = collect($sorted)->keyBy('code');
+
+        return array_map(static fn (array $dimension): array => $byCode->get($dimension['code']), $dimensions);
+    }
+
+    /**
      * @param  array<int, array{code: string, label: string, value: int}>  $dimensions
      * @return array{code: string, formatted: string}
      */
@@ -135,8 +169,11 @@ final class ResultCardPresenter
             return ['code' => '', 'formatted' => ''];
         }
 
-        $sorted = $this->sortDimensions($dimensions);
-        $top = array_slice($sorted, 0, 3);
+        $ranked = isset($dimensions[0]['rank']) ? $dimensions : $this->rankDimensions($dimensions);
+        $top = array_values(array_filter(
+            $this->sortDimensions($ranked),
+            static fn (array $dimension): bool => ($dimension['rank'] ?? 99) <= 3,
+        ));
         $codes = array_column($top, 'code');
 
         return [

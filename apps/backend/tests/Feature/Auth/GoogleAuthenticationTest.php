@@ -54,6 +54,19 @@ class GoogleAuthenticationTest extends TestCase
         $response->assertSessionHas('google_auth_portal', 'admin');
     }
 
+    public function test_popup_authentication_preserves_a_valid_completion_flow(): void
+    {
+        $response = $this->get(
+            '/auth/google/redirect?portal=student&popup=1&flow=flow-1234567890',
+        );
+
+        $response->assertRedirect();
+        $response->assertSessionHas('google_auth_popup_flow', [
+            'flow' => 'flow-1234567890',
+            'portal' => 'student',
+        ]);
+    }
+
     public function test_existing_admin_can_authenticate_with_matching_google_account(): void
     {
         $admin = $this->userWithRole(RoleSlug::Admin, [
@@ -113,6 +126,29 @@ class GoogleAuthenticationTest extends TestCase
         $this->getJson('/api/v1/auth/session')
             ->assertOk()
             ->assertJsonPath('user.photoUrl', 'https://example.test/student-avatar.png');
+    }
+
+    public function test_popup_callback_authenticates_and_returns_to_the_frontend_completion_route(): void
+    {
+        Socialite::fake('google', $this->googleUser());
+
+        $this->withSession([
+            'google_auth_portal' => 'student',
+            'google_auth_popup_flow' => [
+                'flow' => 'flow-1234567890',
+                'portal' => 'student',
+            ],
+        ])->get('/auth/google/callback')
+            ->assertRedirect(
+                'http://localhost:5173/google-auth/complete?'.http_build_query([
+                    'flow' => 'flow-1234567890',
+                    'portal' => 'student',
+                    'status' => 'success',
+                ]),
+            );
+
+        $user = User::query()->where('email', 'new.student@example.test')->firstOrFail();
+        $this->assertAuthenticatedAs($user);
     }
 
     public function test_existing_student_is_linked_by_verified_email(): void
@@ -203,6 +239,31 @@ class GoogleAuthenticationTest extends TestCase
 
         $this->get('/auth/google/callback')
             ->assertRedirect('http://localhost:5173/student/login?google_error=oauth_failed');
+
+        $this->assertGuest();
+    }
+
+    public function test_popup_provider_failure_returns_the_error_to_the_original_tab(): void
+    {
+        Socialite::fake('google', function (): never {
+            throw new RuntimeException('Provider callback failed.');
+        });
+
+        $this->withSession([
+            'google_auth_portal' => 'student',
+            'google_auth_popup_flow' => [
+                'flow' => 'flow-1234567890',
+                'portal' => 'student',
+            ],
+        ])->get('/auth/google/callback')
+            ->assertRedirect(
+                'http://localhost:5173/google-auth/complete?'.http_build_query([
+                    'flow' => 'flow-1234567890',
+                    'portal' => 'student',
+                    'status' => 'error',
+                    'google_error' => 'oauth_failed',
+                ]),
+            );
 
         $this->assertGuest();
     }

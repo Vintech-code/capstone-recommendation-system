@@ -4,6 +4,8 @@
 **Methodology status:** PROPOSED; not institutionally or psychometrically approved  
 **Date:** 2026-09-20
 
+**2026-11-03 superseding formula:** The unweighted formula and canonical tie presentation described below are historical. New runs use the proposed ordered 50% / 30% / 20% programme-profile weights, and equal Student scores are presented as shared competition ranks. See `2026-11-03-weighted-riasec-and-shs-removal.md`.
+
 ## Scope and authority
 
 This audit traced the local 42-item assessment from stored question mappings through raw scoring, result-code ordering, programme normalization, profile matching, ranking, recommendation snapshots, and Student/Admin catalogue consumers. The repository-owner-supplied `PSG_Informed_RIASEC_Classification.xlsx` remains the controlling analytical matrix. The previously reviewed extraction records 12 classified programme-major rows containing 11 distinct ordered three-code profiles because BSEd English and BSEd Filipino both use `SAI`. BS Community Development remains a thirteenth visible catalogue entry with no profile.

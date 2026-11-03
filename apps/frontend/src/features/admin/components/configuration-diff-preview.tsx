@@ -79,8 +79,6 @@ function DiffValue({ label, value }: { label: string; value: unknown }) {
 }
 
 const EDITABLE_PROGRAMME_FIELDS = [
-  "recommended_strands",
-  "strand_guidance",
   "cover_image_url",
   "logo_image_url",
 ] as const;

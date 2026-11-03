@@ -72,6 +72,8 @@ interface StudentRecommendationProfile {
     value: number
     minimum?: number
     maximum?: number
+    rank?: number
+    isTied?: boolean
   }>
   guidance?: {
     status: 'proposed'

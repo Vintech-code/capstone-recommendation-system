@@ -68,6 +68,29 @@ describe('shared frontend foundation components', () => {
     expect(container.querySelectorAll('[data-slot="skeleton"]').length).toBeGreaterThan(0)
   })
 
+  it('matches Student page geometry for catalogue, recommendations, and profile loading', () => {
+    const { rerender } = render(
+      <LoadingState variant="catalogue" title="Loading programmes" />,
+    )
+
+    expect(screen.getByRole('status')).toHaveAttribute('data-loading-layout', 'catalogue')
+    expect(document.querySelector('[data-loading-region="catalogue-hero"]')).toBeInTheDocument()
+    expect(document.querySelector('[data-loading-region="catalogue-filters"]')).toBeInTheDocument()
+    expect(document.querySelector('[data-loading-region="catalogue-programmes"]')).toBeInTheDocument()
+
+    rerender(<LoadingState variant="recommendations" title="Loading matches" />)
+    expect(screen.getByRole('status')).toHaveAttribute('data-loading-layout', 'recommendations')
+    expect(document.querySelector('[data-loading-region="recommendation-summary"]')).toBeInTheDocument()
+    expect(document.querySelector('[data-loading-region="recommendation-scores"]')).toBeInTheDocument()
+    expect(document.querySelector('[data-loading-region="recommendation-list"]')).toBeInTheDocument()
+
+    rerender(<LoadingState variant="profile" title="Loading profile" />)
+    expect(screen.getByRole('status')).toHaveAttribute('data-loading-layout', 'profile')
+    expect(document.querySelector('[data-loading-region="profile-heading"]')).toBeInTheDocument()
+    expect(document.querySelector('[data-loading-region="profile-identity"]')).toBeInTheDocument()
+    expect(document.querySelector('[data-loading-region="profile-details"]')).toBeInTheDocument()
+  })
+
   it('provides an actionable semantic empty state', async () => {
     const user = userEvent.setup()
     const onCreate = vi.fn()

@@ -15,6 +15,8 @@ Laravel owns schema evolution under `apps/api/database/migrations`; factories an
 
 The repository-owner-approved 2026-09-16 clean baseline consolidates the active schema. Counselor, appointment, API-token, programme-source-registry, in-app notification, and other superseded tables are not part of the current schema. The reset was performed only after an encrypted backup was created and successfully restore-verified; see the [implementation record](../note/2026-09-16-backend-clean-baseline.md). The later in-app notification removal retains a forward migration so existing installations can drop those tables through Artisan rather than by manual schema editing.
 
+The 2026-11-03 forward migration removes the legacy `shs_school_name`, `shs_strand`, and `shs_graduation_year` columns from Student profiles. Historical assessment results and recommendation snapshots are not rewritten by that migration.
+
 ## Integrity rules
 
 - Run migrations through Artisan; never hand-edit production schema state.

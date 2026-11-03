@@ -46,4 +46,18 @@ describe("StudentResultCard", () => {
       ),
     ).toBeVisible();
   });
+
+  it("labels equal leading scores as a shared position", () => {
+    render(<StudentResultCard card={{
+      ...resultCard,
+      topCode: "IR",
+      formattedTopCode: "I-R",
+      topDimensions: [
+        { code: "I", label: "Investigative", value: 7, rank: 1, isTied: true },
+        { code: "R", label: "Realistic", value: 7, rank: 1, isTied: true },
+      ],
+    }} />);
+
+    expect(screen.getAllByText("Shared primary:")).toHaveLength(2);
+  });
 });

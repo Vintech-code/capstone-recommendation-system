@@ -62,9 +62,6 @@ class StudentProfileTest extends TestCase
             'barangay' => 'Poblacion',
             'municipality' => 'Tagoloan',
             'province' => 'Misamis Oriental',
-            'shsSchoolName' => 'Tagoloan National High School',
-            'shsStrand' => 'STEM',
-            'shsGraduationYear' => 2026,
             'strengths' => ['Problem-solving', 'Logical thinking'],
             'growthAreas' => ['Time management'],
             'learningPreferences' => ['Hands-on activities', 'Independent work'],
@@ -77,7 +74,7 @@ class StudentProfileTest extends TestCase
             ->assertJsonPath('data.questionnaire.strengths.0', 'Problem-solving')
             ->assertJsonPath('data.personalAcademic.complete', true)
             ->assertJsonPath('data.personalAcademic.lrn', '128490000011')
-            ->assertJsonPath('data.personalAcademic.shsStrand', 'STEM')
+            ->assertJsonMissingPath('data.personalAcademic.shsStrand')
             ->assertJsonPath('data.student.id', $student->getKey())
             ->assertJsonPath('data.riasec', null)
             ->assertJsonPath('data.careerInterests', []);
@@ -100,6 +97,18 @@ class StudentProfileTest extends TestCase
         $this->assertArrayNotHasKey('shs_gwa', $stored->getAttributes());
         $this->assertDatabaseHas('student_profiles', ['user_id' => $other->getKey()]);
         $this->assertSame(['Leadership'], $other->studentProfile()->firstOrFail()->strengths);
+    }
+
+    public function test_removed_shs_fields_are_rejected(): void
+    {
+        $student = $this->userWithRole(RoleSlug::Student);
+
+        $this->actingAs($student)->putJson('/api/v1/student/profile', [
+            'shsStrand' => 'STEM',
+            'strengths' => [],
+            'growthAreas' => [],
+            'learningPreferences' => [],
+        ])->assertUnprocessable()->assertJsonValidationErrors('shsStrand');
     }
 
     public function test_lrn_cannot_be_connected_to_multiple_student_accounts(): void
@@ -175,7 +184,7 @@ class StudentProfileTest extends TestCase
             ->getJson('/api/v1/student/profile')
             ->assertOk()
             ->assertJsonPath('data.careerInterests.0', 'Web and applications developer')
-            ->assertJsonPath('data.riasec.code', 'I-S-A');
+            ->assertJsonPath('data.riasec.code', 'I-S-A-C');
     }
 
     public function test_guest_cannot_read_or_write_student_profiles(): void

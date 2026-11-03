@@ -40,8 +40,6 @@ interface StudentProgramme {
   learningAreaTopics?: Record<string, string[]>
   careerDirections: string[]
   careerOpportunities?: CareerOpportunity[]
-  recommendedStrands: string[]
-  strandGuidance: string
   requirements: string[]
   readinessPrompt: string
   contentStatus?: string

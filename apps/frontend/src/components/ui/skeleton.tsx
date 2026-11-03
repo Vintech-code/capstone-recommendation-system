@@ -6,7 +6,10 @@ function Skeleton({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
     <div
       data-slot="skeleton"
       aria-hidden="true"
-      className={cn("animate-pulse rounded-md bg-muted/70", className)}
+      className={cn(
+        "animate-pulse rounded-md bg-border/70 motion-reduce:animate-none",
+        className,
+      )}
       {...props}
     />
   );

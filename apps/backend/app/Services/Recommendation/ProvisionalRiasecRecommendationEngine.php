@@ -23,7 +23,7 @@ final class ProvisionalRiasecRecommendationEngine
     public function recommend(array $resultEntries, array $catalogue, ?string $eligibilityGroup = null): array
     {
         $policy = $catalogue['matching_policy'] ?? null;
-        if (! is_array($policy) || ($policy['method'] ?? null) !== 'unweighted_riasec_profile_matching') {
+        if (! is_array($policy) || ($policy['method'] ?? null) !== 'ordered_weighted_riasec_profile_matching') {
             throw new DomainException('The configured recommendation method is unavailable.');
         }
 
@@ -32,6 +32,16 @@ final class ProvisionalRiasecRecommendationEngine
         $maximum = is_array($normalization) ? $normalization['instrument_max'] ?? null : null;
         if (! is_numeric($minimum) || ! is_numeric($maximum) || (float) $maximum <= (float) $minimum) {
             throw new DomainException('The configured instrument range is invalid.');
+        }
+
+        $weights = $policy['formula']['position_weights'] ?? null;
+        if (! is_array($weights) || count($weights) !== 3) {
+            throw new DomainException('The configured programme-profile weights are invalid.');
+        }
+        $weights = array_values(array_map(static fn (mixed $weight): float => (float) $weight, $weights));
+        if (array_filter($weights, static fn (float $weight): bool => ! is_finite($weight) || $weight < 0) !== []
+            || abs(array_sum($weights) - 1.0) > 0.000001) {
+            throw new DomainException('The configured programme-profile weights are invalid.');
         }
 
         $scores = $this->scoreVector($resultEntries);
@@ -75,9 +85,10 @@ final class ProvisionalRiasecRecommendationEngine
             }
 
             $match = array_sum(array_map(
-                static fn (string $code): float => $normalized[$code],
+                static fn (string $code, int $index): float => $normalized[$code] * $weights[$index],
                 $profile,
-            )) / count($profile);
+                array_keys($profile),
+            ));
 
             $ranked[] = [
                 'id' => (string) ($programme['id'] ?? ''),
@@ -140,7 +151,7 @@ final class ProvisionalRiasecRecommendationEngine
         unset($programme);
 
         return [
-            'method' => (string) ($policy['formula']['name'] ?? 'equal_membership_profile_mean'),
+            'method' => (string) ($policy['formula']['name'] ?? 'ordered_profile_weighted_sum'),
             'normalized_scores' => $normalized,
             'ranked' => $ranked,
             'exclusions' => $exclusions,

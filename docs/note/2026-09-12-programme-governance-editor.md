@@ -1,5 +1,7 @@
 # Programme governance editor
 
+**2026-11-03 scope update:** The SHS preparation fields described below are historical and have been removed from the active Student and Administrator scope. Reviewed ESCO mappings and programme media remain the editable enrichment fields. See `2026-11-03-weighted-riasec-and-shs-removal.md`.
+
 **Status:** COMPLETED  
 **Date:** 2026-09-12  
 **Scope:** Administrator programme-management sheet and catalogue publication boundary

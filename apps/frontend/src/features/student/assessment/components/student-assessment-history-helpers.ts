@@ -17,7 +17,18 @@ export function toResultCardData(
     value: dimension.value,
   }));
   const sorted = [...dimensions].sort((a, b) => b.value - a.value);
-  const topCodes = sorted.slice(0, 3).map((dimension) => dimension.code);
+  let previousValue: number | null = null;
+  let rank = 0;
+  const ranked = sorted.map((dimension, index) => {
+    if (previousValue === null || dimension.value !== previousValue) rank = index + 1;
+    previousValue = dimension.value;
+    return { ...dimension, rank };
+  });
+  const rankCounts = new Map<number, number>();
+  ranked.forEach((dimension) => rankCounts.set(dimension.rank, (rankCounts.get(dimension.rank) ?? 0) + 1));
+  const rankedWithTies = ranked.map((dimension) => ({ ...dimension, isTied: (rankCounts.get(dimension.rank) ?? 0) > 1 }));
+  const topDimensions = rankedWithTies.filter((dimension) => dimension.rank <= 3);
+  const topCodes = topDimensions.map((dimension) => dimension.code);
 
   return {
     id: attempt.id,
@@ -32,8 +43,8 @@ export function toResultCardData(
     resultAvailableAt: attempt.result_available_at,
     topCode: topCodes.join(""),
     formattedTopCode: topCodes.join("-"),
-    topDimensions: sorted.slice(0, 3),
-    dimensions,
+    topDimensions,
+    dimensions: dimensions.map((dimension) => rankedWithTies.find((rankedDimension) => rankedDimension.code === dimension.code) ?? dimension),
     scoringVersion:
       attempt.result?.scoring_source ??
       attempt.result?.instrument_code ??

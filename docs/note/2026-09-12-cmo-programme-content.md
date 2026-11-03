@@ -1,5 +1,7 @@
 # CMO-sourced programme content
 
+**2026-11-03 scope update:** References below to recommended SHS strands are historical. SHS preparation fields were removed from active guidance data and Student/Administrator contracts; see `2026-11-03-weighted-riasec-and-shs-removal.md`.
+
 **Status:** IN PROGRESS  
 **Date:** 2026-09-12  
 **Scope:** Student-facing programme descriptions, learning areas, career directions, and source disclosure

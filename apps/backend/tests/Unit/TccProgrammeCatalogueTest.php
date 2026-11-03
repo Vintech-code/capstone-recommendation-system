@@ -22,20 +22,11 @@ class TccProgrammeCatalogueTest extends TestCase
                 $this->assertCount(3, $topics, $programme['id']);
             }
             $this->assertNotEmpty($programme['career_directions'], $programme['id']);
-            $this->assertNotEmpty($programme['recommended_strands'], $programme['id']);
-            $this->assertNotEmpty($programme['strand_guidance'], $programme['id']);
+            $this->assertArrayNotHasKey('recommended_strands', $programme, $programme['id']);
+            $this->assertArrayNotHasKey('strand_guidance', $programme, $programme['id']);
             $this->assertNotEmpty($programme['readiness_prompt'], $programme['id']);
         }
 
-        $programmes = collect($catalogue['programmes'])->keyBy('id');
-        $this->assertSame(
-            ['STEM', 'TVL-ICT', 'GAS'],
-            $programmes['bs-information-technology']['recommended_strands'],
-        );
-        $this->assertSame(
-            ['Sports Track', 'HUMSS', 'GAS'],
-            $programmes['bachelor-physical-education']['recommended_strands'],
-        );
     }
 
     #[Test]
@@ -184,7 +175,7 @@ class TccProgrammeCatalogueTest extends TestCase
     }
 
     #[Test]
-    public function it_records_the_proposed_unweighted_matching_and_result_presentation_policy(): void
+    public function it_records_the_proposed_weighted_matching_and_result_presentation_policy(): void
     {
         $catalogue = json_decode(
             file_get_contents(resource_path('data/tcc-programme-catalogue-v1.json')),
@@ -194,18 +185,19 @@ class TccProgrammeCatalogueTest extends TestCase
 
         $policy = $catalogue['matching_policy'];
 
-        $this->assertSame('unweighted_riasec_profile_matching', $policy['method']);
-        $this->assertFalse($policy['percentage_weights_used']);
+        $this->assertSame('ordered_weighted_riasec_profile_matching', $policy['method']);
+        $this->assertTrue($policy['percentage_weights_used']);
         $this->assertSame('researcher_proposed_psg_informed_runtime', $policy['approval_status']);
         $this->assertTrue($policy['runtime_enabled']);
         $this->assertSame('capstone_researchers', $policy['proposed_by']);
         $this->assertSame('Jason D. Ang', $policy['designated_reviewer']);
         $this->assertSame('pending', $policy['review_status']);
         $this->assertNull($policy['approval_date']);
-        $this->assertSame('equal_membership_profile_mean', $policy['formula']['name']);
+        $this->assertSame('ordered_profile_weighted_sum', $policy['formula']['name']);
         $this->assertSame('proposed', $policy['formula']['status']);
         $this->assertSame(3, $policy['formula']['profile_size_min']);
         $this->assertSame(3, $policy['formula']['profile_size_max']);
+        $this->assertSame([0.5, 0.3, 0.2], $policy['formula']['position_weights']);
         $this->assertSame(0, $policy['normalization']['output_min']);
         $this->assertSame(100, $policy['normalization']['output_max']);
         $this->assertSame(0, $policy['normalization']['instrument_min']);

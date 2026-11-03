@@ -7,9 +7,9 @@
     "academic_year": "2026-2027",
     "riasec_dimensions": ["R", "I", "A", "S", "E", "C"],
     "matching_policy": {
-        "version": "PROPOSED-RIASEC-3-PSG-MATRIX",
-        "method": "unweighted_riasec_profile_matching",
-        "percentage_weights_used": false,
+        "version": "PROPOSED-RIASEC-4-ORDERED-WEIGHTS",
+        "method": "ordered_weighted_riasec_profile_matching",
+        "percentage_weights_used": true,
         "approval_status": "researcher_proposed_psg_informed_runtime",
         "runtime_enabled": true,
         "proposed_by": "capstone_researchers",
@@ -17,11 +17,13 @@
         "review_status": "pending",
         "approval_date": null,
         "formula": {
-            "name": "equal_membership_profile_mean",
+            "name": "ordered_profile_weighted_sum",
             "status": "proposed",
             "profile_size_min": 3,
             "profile_size_max": 3,
-            "included_dimensions_are_equally_weighted": true
+            "included_dimensions_are_equally_weighted": false,
+            "position_weights": [0.5, 0.3, 0.2],
+            "position_labels": ["primary", "secondary", "tertiary"]
         },
         "normalization": {
             "output_min": 0,

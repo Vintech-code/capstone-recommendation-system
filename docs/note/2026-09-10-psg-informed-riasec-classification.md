@@ -1,5 +1,7 @@
 # PSG-informed three-code RIASEC classification
 
+**2026-11-03 formula update:** The profile classifications remain the recorded analytical basis, but the equal-membership calculation described below is superseded for new runs by the proposed ordered 50% / 30% / 20% formula in `2026-11-03-weighted-riasec-and-shs-removal.md`.
+
 **Date:** 2026-09-10  
 **Implementation status:** IMPLEMENTED pending rendered browser review  
 **Methodology status:** PROPOSED PSG-informed analytical classification  

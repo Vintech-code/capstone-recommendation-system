@@ -82,6 +82,10 @@ Administrators govern programme content and media, review catalogue source evide
 ### Student journey
 
 - Keep assessment, result, history, programme exploration, saved programmes, and profile actions accessible on desktop and mobile.
+- **Progress / sprint: IN PROGRESS for protected Student browser history on 2026-11-04.** Route My Matches, Explore Programs, My Profile, and History through protected Student URLs so browser Back returns to the preceding Student section without ending the session. Google authorization now runs separately and returns through a flow-scoped same-origin completion channel, keeping provider pages out of the main tab's history without `window.closed` polling. Focused frontend and backend tests, lint, architecture, build, and desktop/mobile Student-route assertions pass; a clean browser-runner exit and live Google-provider check remain pending.
+- Keep My Matches, Explore Programs, and My Profile loading skeletons aligned with the final page geometry across desktop and mobile, including restoration of the matching loader after a page refresh.
+- Keep the Student Personal & Academic editor balanced across both desktop columns while preserving one logical, overflow-free mobile sequence.
+- Open a selected recommendation's programme detail at the top of the document instead of retaining the ranked-list scroll position.
 - Prefer persistent result and history actions over redundant completed-state cards.
 - Use authenticated profile data and truthful empty, loading, processing, and failure states.
 - Present the top three ranked programme matches with compact descending-width pastel fields and an exact recorded-match rail; keep later ranks plain and move detailed RIASEC evidence to the programme detail flow.
@@ -103,6 +107,8 @@ Administrators govern programme content and media, review catalogue source evide
 ### Authentication and authorization
 
 - Maintain dedicated Student and Administrator portal URLs without role selection.
+- Keep browser navigation separate from authentication state: Student Back/Forward navigation must not call logout, and session termination remains an explicit Sign out action or a server-authoritative expiry/revocation.
+- Keep third-party OAuth pages outside the main application tab's browser history. Match popup completion to the session-bound flow and portal before restoring the protected route.
 - Keep Google Student self-onboarding role-safe. Administrator Google sign-in is limited to a matching, already-provisioned active Administrator account; it must never create an Administrator or grant that role. Always request Google's account chooser so a rejected browser account can be changed on retry.
 - **Progress / sprint: COMPLETED for Administrator account governance on 2026-09-14.** Authorized account managers can issue 15-minute single-use invitations, review invitation history, resend or revoke invitations, suspend/reactivate accounts, grant/remove the management capability while preserving a last-active-manager safeguard, and revoke sessions. Sensitive mutations require the acting Administrator's password and create audit events.
 - **Progress / sprint: COMPLETED for password recovery hardening on 2026-09-14.** Reset emails preserve the account's dedicated Student or Administrator portal, successful reset navigation returns to that portal, and every user-created password path shares the Laravel-authoritative 12-to-255-character mixed-case, number, and symbol policy.
@@ -119,7 +125,8 @@ Administrators govern programme content and media, review catalogue source evide
 ## Current risks
 
 - Institutional adoption remains gated by external approval of proposed questionnaire and programme-matching defaults.
-- The current 42-statement binary instrument has seven questions in each RIASEC category and uses the matching 0-7 normalization range. Exact equal means use competition ranking with an alphabetical display fallback. The PSG-informed three-code profiles and equal-membership matching methodology remain PROPOSED pending external review; Community Development remains unclassified.
+- The current 42-statement binary instrument has seven questions in each RIASEC category and uses the matching 0-7 normalization range. New runs apply the researcher-proposed ordered programme-profile weights 50% / 30% / 20%; this methodology remains PROPOSED pending external review. Equal Student scores and exact programme percentages use competition ranks with deterministic source-order or alphabetical display fallbacks. Community Development remains unclassified.
+- SHS school, strand/track, graduation-year, recommended-strand, and strand-guidance fields have been removed from active Student and Administrator workflows and contracts. Existing assessment and recommendation snapshots remain immutable.
 - The local development database was reset to the approved four-migration baseline on 2026-09-16 after an encrypted backup passed restore verification. Any future non-local baseline adoption still requires an environment-specific verified backup and rollback plan.
 - The local `db_psychometric` database was reset again on 2026-09-18 for start-to-finish retesting. A new encrypted backup passed restore verification before deletion; the four migrations, two roles, local sign-in seeds, and PSGC locations were restored. See [reset record](docs/note/2026-09-18-local-database-reset.md). Any non-local reset still requires its own authorization, verified backup, and rollback plan.
 - Browser-rendered evidence must be recorded independently of unit tests and builds.

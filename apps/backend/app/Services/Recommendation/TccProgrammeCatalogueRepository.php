@@ -44,7 +44,7 @@ class TccProgrammeCatalogueRepository
             $market = $programmeOutlook[$contentReferenceId] ?? [];
 
             $editable = array_intersect_key($programme, array_flip([
-                'career_opportunities', 'recommended_strands', 'strand_guidance',
+                'career_opportunities',
                 'cover_image_url', 'logo_image_url',
                 'cover_image_position', 'logo_image_position',
             ]));
@@ -79,8 +79,6 @@ class TccProgrammeCatalogueRepository
         $publishedProgrammes = collect($published['programmes'] ?? [])->keyBy('id');
         $editableFields = array_flip([
             'career_opportunities',
-            'recommended_strands',
-            'strand_guidance',
             'cover_image_url',
             'logo_image_url',
             'cover_image_position',

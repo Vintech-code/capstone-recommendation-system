@@ -84,9 +84,6 @@ interface AdminStudentRecord {
     barangay: string | null
     municipality: string | null
     province: string | null
-    shsSchoolName: string | null
-    shsStrand: string | null
-    shsGraduationYear: number | null
   } | null
   assessmentSummary?: { totalAttempts: number; completedAttempts: number; retakeCount: number; latestAttempt: AdminAssessment | null } | null
   attempts: AdminAssessment[]
@@ -102,14 +99,12 @@ interface AdminProgramme {
   profileStatus: string
   profileVersion: string | null
   majors: string[]
-  recommendedStrands: string[]
   description: string
   learningAreas: string[]
   learningAreaDescriptions: Record<string, string>
   learningAreaTopics: Record<string, string[]>
   careerDirections: string[]
   careerOpportunities?: CareerOpportunity[]
-  strandGuidance: string
   requirements: string[]
   readinessPrompt: string
   contentStatus?: string

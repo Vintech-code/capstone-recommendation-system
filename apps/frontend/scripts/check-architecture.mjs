@@ -4,29 +4,28 @@ import { fileURLToPath } from 'node:url'
 
 const scriptDirectory = dirname(fileURLToPath(import.meta.url))
 const repositoryRoot = resolve(scriptDirectory, '../../..')
-const webSource = join(repositoryRoot, 'apps/web/src')
-const apiApp = join(repositoryRoot, 'apps/api/app')
+const webSource = join(repositoryRoot, 'apps/frontend/src')
+const apiApp = join(repositoryRoot, 'apps/backend/app')
 
 const frontendDebtCaps = new Map([
-  ['apps/web/src/features/student/dashboard/components/student-dashboard-page.tsx', 1650],
-  ['apps/web/src/features/admin/components/admin-student-detail-page.tsx', 1150],
-  ['apps/web/src/features/landing/landing-page.tsx', 1050],
-  ['apps/web/src/features/student/assessment/components/student-assessment-session-page.tsx', 950],
-  ['apps/web/src/features/student/profile/components/student-profile-page.tsx', 800],
-  ['apps/web/src/features/student/programmes/components/student-programme-catalogue-page.tsx', 800],
-  ['apps/web/src/features/admin/components/admin-programmes-page.tsx', 750],
-  ['apps/web/src/features/admin/reports/components/admin-reports-page.tsx', 700],
-  ['apps/web/src/features/admin/components/admin-dashboard-page.tsx', 650],
-  ['apps/web/src/features/student/recommendations/components/student-recommendation-results-page.tsx', 550],
-  ['apps/web/src/features/student/recommendations/components/student-recommendation-results-page.tsx', 600],
-  ['apps/web/src/features/auth/components/workspace-preview.tsx', 650],
+  ['apps/frontend/src/features/student/dashboard/components/student-dashboard-page.tsx', 1650],
+  ['apps/frontend/src/features/admin/components/admin-student-detail-page.tsx', 1150],
+  ['apps/frontend/src/features/landing/landing-page.tsx', 1050],
+  ['apps/frontend/src/features/student/assessment/components/student-assessment-session-page.tsx', 950],
+  ['apps/frontend/src/features/student/profile/components/student-profile-page.tsx', 800],
+  ['apps/frontend/src/features/student/programmes/components/student-programme-catalogue-page.tsx', 800],
+  ['apps/frontend/src/features/admin/components/admin-programmes-page.tsx', 750],
+  ['apps/frontend/src/features/admin/reports/components/admin-reports-page.tsx', 700],
+  ['apps/frontend/src/features/admin/components/admin-dashboard-page.tsx', 650],
+  ['apps/frontend/src/features/student/recommendations/components/student-recommendation-results-page.tsx', 600],
+  ['apps/frontend/src/features/auth/components/workspace-preview.tsx', 650],
 ])
 
 const controllerDebtCaps = new Map([
-  ['apps/api/app/Http/Controllers/Admin/AdminWorkspaceController.php', 450],
-  ['apps/api/app/Http/Controllers/Recommendation/StudentRecommendationController.php', 450],
-  ['apps/api/app/Http/Controllers/Admin/AdminConfigurationController.php', 420],
-  ['apps/api/app/Http/Controllers/Assessment/AssessmentSessionController.php', 390],
+  ['apps/backend/app/Http/Controllers/Admin/AdminWorkspaceController.php', 450],
+  ['apps/backend/app/Http/Controllers/Recommendation/StudentRecommendationController.php', 450],
+  ['apps/backend/app/Http/Controllers/Admin/AdminConfigurationController.php', 420],
+  ['apps/backend/app/Http/Controllers/Assessment/AssessmentSessionController.php', 390],
 ])
 
 const errors = []
@@ -56,23 +55,23 @@ for (const path of filesBelow(webSource, new Set(['.ts', '.tsx']))) {
   const source = readFileSync(path, 'utf8')
   const isTest = /(?:^|\/)(?:test\/|e2e\/)|\.(?:test|spec)\.[^.]+$/.test(name)
 
-  if (!isTest && /\b(?:window\.)?fetch\s*\(/.test(source) && name !== 'apps/web/src/services/api-client.ts') {
+  if (!isTest && /\b(?:window\.)?fetch\s*\(/.test(source) && name !== 'apps/frontend/src/services/api-client.ts') {
     report(path, 'use the shared services/api-client transport instead of calling fetch directly')
   }
 
   if (
     !isTest &&
     /\bnew\s+XMLHttpRequest\b/.test(source) &&
-    name !== 'apps/web/src/features/admin/data/admin-api.ts'
+    name !== 'apps/frontend/src/features/admin/data/admin-api.ts'
   ) {
     report(path, 'use the shared transport; XMLHttpRequest is reserved for the upload adapter with progress events')
   }
 
-  if (/^apps\/web\/src\/components\/(?:ui|shared)\//.test(name) && /['"]@\/features\//.test(source)) {
+  if (/^apps\/frontend\/src\/components\/(?:ui|shared)\//.test(name) && /['"]@\/features\//.test(source)) {
     report(path, 'shared and primitive components must not depend on feature modules')
   }
 
-  if (/^apps\/web\/src\/services\//.test(name) && /['"]@\/(?:components|features)\//.test(source)) {
+  if (/^apps\/frontend\/src\/services\//.test(name) && /['"]@\/(?:components|features)\//.test(source)) {
     report(path, 'cross-feature services must not depend on UI or feature modules')
   }
 
@@ -93,7 +92,7 @@ for (const path of filesBelow(apiApp, new Set(['.php']))) {
   const name = repositoryPath(path)
   const source = readFileSync(path, 'utf8')
 
-  if (/^apps\/api\/app\/(?:Models|Services)\//.test(name) && /App\\Http\\Controllers\\/.test(source)) {
+  if (/^apps\/backend\/app\/(?:Models|Services)\//.test(name) && /App\\Http\\Controllers\\/.test(source)) {
     report(path, 'models and services must not depend on HTTP controllers')
   }
 
