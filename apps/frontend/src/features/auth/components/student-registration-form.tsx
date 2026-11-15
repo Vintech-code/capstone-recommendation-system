@@ -17,7 +17,8 @@ import {
 
 const registrationSchema = z
   .object({
-    name: z.string().trim().min(1, "Enter your full name."),
+    firstName: z.string().trim().min(1, "Enter your first name."),
+    lastName: z.string().trim().min(1, "Enter your last name."),
     email: z
       .string()
       .trim()
@@ -47,7 +48,8 @@ function StudentRegistrationForm({ onRegister }: StudentRegistrationFormProps) {
   } = useForm<StudentRegistrationFields>({
     resolver: zodResolver(registrationSchema),
     defaultValues: {
-      name: "",
+      firstName: "",
+      lastName: "",
       email: "",
       password: "",
       passwordConfirmation: "",
@@ -84,15 +86,26 @@ function StudentRegistrationForm({ onRegister }: StudentRegistrationFormProps) {
         </div>
       ) : null}
 
-      <FloatingInputField
-        id="registration-name"
-        label="Full name"
-        icon={UserRound}
-        type="text"
-        autoComplete="name"
-        error={errors.name?.message}
-        {...register("name")}
-      />
+      <div className="grid gap-2.5 sm:grid-cols-2">
+        <FloatingInputField
+          id="registration-first-name"
+          label="First name"
+          icon={UserRound}
+          type="text"
+          autoComplete="given-name"
+          error={errors.firstName?.message}
+          {...register("firstName")}
+        />
+        <FloatingInputField
+          id="registration-last-name"
+          label="Last name"
+          icon={UserRound}
+          type="text"
+          autoComplete="family-name"
+          error={errors.lastName?.message}
+          {...register("lastName")}
+        />
+      </div>
       <FloatingInputField
         id="registration-email"
         label="Email address"

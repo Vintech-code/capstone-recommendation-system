@@ -9,8 +9,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 #[Fillable([
     'user_id',
     'photo_path',
-    'lrn',
-    'lrn_lookup_hash',
+    'id_number',
+    'id_number_lookup_hash',
     'birth_date',
     'phone',
     'address_line',
@@ -18,9 +18,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'barangay_id',
     'municipality',
     'province',
-    'strengths',
-    'growth_areas',
-    'learning_preferences',
 ])]
 class StudentProfile extends Model
 {
@@ -54,16 +51,13 @@ class StudentProfile extends Model
     protected function casts(): array
     {
         return [
-            'lrn' => 'encrypted',
+            'id_number' => 'encrypted',
             'birth_date' => 'encrypted',
             'phone' => 'encrypted',
             'address_line' => 'encrypted',
             'barangay' => 'encrypted',
             'municipality' => 'encrypted',
             'province' => 'encrypted',
-            'strengths' => 'array',
-            'growth_areas' => 'array',
-            'learning_preferences' => 'array',
         ];
     }
 }

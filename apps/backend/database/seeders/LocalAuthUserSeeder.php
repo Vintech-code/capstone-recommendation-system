@@ -55,7 +55,10 @@ class LocalAuthUserSeeder extends Seeder
         }
 
         $user ??= new User;
+        [$firstName, $lastName] = User::splitDisplayName($validated['name']);
         $user->fill([
+            'first_name' => $firstName,
+            'last_name' => $lastName,
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => $password,

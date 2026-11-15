@@ -129,6 +129,10 @@ Stop either development server with `Ctrl+C` in its terminal.
 
 ## Optional local configuration
 
+### Verification email delivery
+
+Local Student email/password registration requires a signed verification link before sign-in. The default `MAIL_MAILER=log` writes that link to `apps/backend/storage/logs/laravel.log` for development; it does not deliver a real message. To test actual ownership delivery, configure an SMTP or supported transactional mail provider in `apps/backend/.env`, including `MAIL_MAILER`, host/URL, credentials, and a valid `MAIL_FROM_ADDRESS`. Never commit those credentials.
+
 ### Google sign-in
 
 Email and password authentication works without Google credentials. To enable Google sign-in, create OAuth credentials with this callback URL:

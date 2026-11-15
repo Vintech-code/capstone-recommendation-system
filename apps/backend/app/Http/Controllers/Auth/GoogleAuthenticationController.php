@@ -208,8 +208,16 @@ class GoogleAuthenticationController extends Controller
                 ['name' => 'Student Applicant'],
             );
 
+            $displayName = trim((string) $googleUser->getName()) ?: $email;
+            $raw = $googleUser->getRaw();
+            [$fallbackFirstName, $fallbackLastName] = User::splitDisplayName($displayName);
+            $firstName = trim((string) ($raw['given_name'] ?? $fallbackFirstName));
+            $lastName = trim((string) ($raw['family_name'] ?? $fallbackLastName));
+
             $user = User::query()->create([
-                'name' => trim((string) $googleUser->getName()) ?: $email,
+                'first_name' => $firstName,
+                'last_name' => $lastName,
+                'name' => trim($firstName.' '.$lastName),
                 'email' => $email,
                 'password' => Str::random(64),
                 'account_status' => 'active',

@@ -4,7 +4,10 @@ import { apiRequest } from '@/services/api-client'
 interface AuthUser {
   id: number
   name: string
+  firstName?: string | null
+  lastName?: string | null
   email: string
+  emailVerified?: boolean
   roles: AccessRole[]
   accountStatus?: 'active' | 'pending' | 'suspended' | 'archived'
   canManageAdministrators?: boolean
@@ -18,7 +21,8 @@ interface SignInCredentials {
 }
 
 interface StudentRegistrationFields {
-  name: string
+  firstName: string
+  lastName: string
   email: string
   password: string
   passwordConfirmation: string
@@ -77,11 +81,21 @@ async function registerStudent(fields: StudentRegistrationFields) {
   return request<{ message: string }>('/api/v1/auth/register', {
     method: 'POST',
     body: JSON.stringify({
-      name: fields.name,
+      firstName: fields.firstName,
+      lastName: fields.lastName,
       email: fields.email,
       password: fields.password,
       password_confirmation: fields.passwordConfirmation,
     }),
+  })
+}
+
+async function resendVerificationEmail(email: string) {
+  await csrfCookie()
+
+  return request<{ message: string }>('/api/v1/auth/email/verification-notification', {
+    method: 'POST',
+    body: JSON.stringify({ email }),
   })
 }
 
@@ -178,6 +192,7 @@ export {
   authorizePortal,
   restoreSession,
   registerStudent,
+  resendVerificationEmail,
   signIn,
   signOut,
   requestPasswordReset,

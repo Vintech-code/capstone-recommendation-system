@@ -3,13 +3,15 @@ import type { LocationSelection } from '@/features/locations/location-api'
 interface StudentProfileIdentity {
   id: number
   name: string
+  firstName?: string | null
+  lastName?: string | null
   email: string
   photoUrl: string | null
 }
 
 interface PersonalAcademicProfile {
   complete: boolean
-  lrn: string | null
+  idNumber: string | null
   birthDate: string | null
   age: number | null
   phone: string | null
@@ -21,34 +23,18 @@ interface PersonalAcademicProfile {
   updatedAt: string | null
 }
 
-interface StudentProfileQuestionnaire {
-  complete: boolean
-  strengths: string[]
-  growthAreas: string[]
-  learningPreferences: string[]
-  updatedAt: string | null
-}
-
 interface StudentProfileData {
   student: StudentProfileIdentity
   personalAcademic: PersonalAcademicProfile
-  questionnaire: StudentProfileQuestionnaire
-  options: {
-    strengths: string[]
-    growthAreas: string[]
-    learningPreferences: string[]
-  }
   riasec: {
     sessionReference: string
     availableAt: string | null
     code: string
   } | null
-  careerInterests: string[]
-  about: string
 }
 
 interface StudentProfilePayload {
-  lrn: string | null
+  idNumber: string
   birthDate: string | null
   phone: string | null
   location?: LocationSelection | null
@@ -56,9 +42,6 @@ interface StudentProfilePayload {
   barangay: string | null
   municipality: string | null
   province: string | null
-  strengths: string[]
-  growthAreas: string[]
-  learningPreferences: string[]
 }
 
 export type { StudentProfileData, StudentProfilePayload }

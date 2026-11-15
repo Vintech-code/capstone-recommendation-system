@@ -6,6 +6,7 @@ use App\Models\Role;
 use App\Models\RoleSlug;
 use App\Models\User;
 use Illuminate\Auth\Notifications\ResetPassword;
+use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -69,10 +70,12 @@ class AuthenticationTest extends TestCase
         $this->assertGuest();
     }
 
-    public function test_student_can_register_with_only_the_student_role_and_then_sign_in(): void
+    public function test_student_registers_with_split_names_and_must_verify_before_signing_in(): void
     {
+        Notification::fake();
         $response = $this->postJson('/api/v1/auth/register', [
-            'name' => 'New Student',
+            'firstName' => 'Clark',
+            'lastName' => 'Cabatuan',
             'email' => 'new.student@example.test',
             'password' => 'StudentPass!2026',
             'password_confirmation' => 'StudentPass!2026',
@@ -80,12 +83,50 @@ class AuthenticationTest extends TestCase
 
         $response
             ->assertCreated()
+            ->assertJsonPath('user.firstName', 'Clark')
+            ->assertJsonPath('user.lastName', 'Cabatuan')
+            ->assertJsonPath('user.name', 'Clark Cabatuan')
+            ->assertJsonPath('user.emailVerified', false)
             ->assertJsonPath('user.email', 'new.student@example.test')
             ->assertJsonPath('user.roles.0', RoleSlug::Student->value);
 
         $user = User::query()->where('email', 'new.student@example.test')->firstOrFail();
         $this->assertTrue($user->hasRole(RoleSlug::Student));
         $this->assertFalse($user->hasRole(RoleSlug::Admin));
+        $this->assertSame('Clark', $user->first_name);
+        $this->assertSame('Cabatuan', $user->last_name);
+        $this->assertSame('Clark Cabatuan', $user->name);
+        $this->assertNull($user->email_verified_at);
+        Notification::assertSentTo($user, VerifyEmail::class);
+
+        $this->postJson('/api/v1/auth/login', [
+            'email' => 'new.student@example.test',
+            'password' => 'StudentPass!2026',
+            'portal' => RoleSlug::Student->value,
+        ])->assertForbidden()->assertJsonPath('error.code', 'EMAIL_NOT_VERIFIED');
+        $this->assertGuest();
+
+        $verificationUrl = null;
+        Notification::assertSentTo($user, VerifyEmail::class, function (VerifyEmail $notification) use ($user, &$verificationUrl): bool {
+            $mail = $notification->toMail($user);
+            $verificationUrl = $mail->actionUrl;
+            $rendered = (string) $mail->render();
+
+            $this->assertSame('Verify your email address | TCC Course Recommendation', $mail->subject);
+            $this->assertSame([
+                'html' => 'mail.auth.verify-email',
+                'text' => 'mail.auth.verify-email-text',
+            ], $mail->view);
+            $this->assertStringContainsString('Hi Clark,', $rendered);
+            $this->assertStringContainsString('new.student@example.test', $rendered);
+            $this->assertStringContainsString('background:#7ED321', $rendered);
+            $this->assertStringNotContainsString('Laravel', $rendered);
+
+            return true;
+        });
+        $this->get((string) $verificationUrl)
+            ->assertRedirect('http://localhost:5173/student/login?email_verified=1');
+        $this->assertNotNull($user->fresh()->email_verified_at);
 
         $this->postJson('/api/v1/auth/login', [
             'email' => 'new.student@example.test',
@@ -94,14 +135,25 @@ class AuthenticationTest extends TestCase
         ])->assertOk();
     }
 
+    public function test_unverified_account_cannot_access_a_protected_portal(): void
+    {
+        $role = Role::query()->create([
+            'slug' => RoleSlug::Student->value,
+            'name' => 'Student Applicant',
+        ]);
+        $user = User::factory()->unverified()->create();
+        $user->roles()->attach($role);
+
+        $this->actingAs($user)
+            ->getJson('/api/v1/auth/authorize/student')
+            ->assertForbidden();
+    }
+
     public function test_student_session_includes_the_current_profile_photo(): void
     {
         $user = $this->studentUser();
         $user->studentProfile()->create([
             'photo_path' => 'student-profile-photos/'.$user->getKey().'/profile.webp',
-            'strengths' => [],
-            'growth_areas' => [],
-            'learning_preferences' => [],
         ]);
 
         $response = $this->actingAs($user)->getJson('/api/v1/auth/session')->assertOk();
@@ -117,7 +169,8 @@ class AuthenticationTest extends TestCase
         User::factory()->create(['email' => 'existing@example.test']);
 
         $this->postJson('/api/v1/auth/register', [
-            'name' => 'Duplicate Student',
+            'firstName' => 'Duplicate',
+            'lastName' => 'Student',
             'email' => 'existing@example.test',
             'password' => 'StudentPass!2026',
             'password_confirmation' => 'DifferentPass!2026',
@@ -129,13 +182,41 @@ class AuthenticationTest extends TestCase
     public function test_student_registration_rejects_a_password_below_the_shared_policy(): void
     {
         $this->postJson('/api/v1/auth/register', [
-            'name' => 'New Student',
+            'firstName' => 'New',
+            'lastName' => 'Student',
             'email' => 'new.student@example.test',
             'password' => 'lowercase-only',
             'password_confirmation' => 'lowercase-only',
         ])->assertUnprocessable()->assertJsonValidationErrors('password');
 
         $this->assertDatabaseMissing('users', ['email' => 'new.student@example.test']);
+    }
+
+    public function test_student_registration_rejects_invalid_and_misspelled_email_domains(): void
+    {
+        foreach (['not-an-email', 'user@gamil.com'] as $email) {
+            $this->postJson('/api/v1/auth/register', [
+                'firstName' => 'Clark',
+                'lastName' => 'Cabatuan',
+                'email' => $email,
+                'password' => 'StudentPass!2026',
+                'password_confirmation' => 'StudentPass!2026',
+            ])->assertUnprocessable()->assertJsonValidationErrors('email');
+        }
+    }
+
+    public function test_verification_email_can_be_resent_without_account_enumeration(): void
+    {
+        Notification::fake();
+        $user = User::factory()->unverified()->create(['email' => 'unverified@example.test']);
+
+        foreach (['unverified@example.test', 'missing@example.test'] as $email) {
+            $this->postJson('/api/v1/auth/email/verification-notification', ['email' => $email])
+                ->assertOk()
+                ->assertJsonPath('message', 'If an unverified account matches that email, a new verification link has been sent.');
+        }
+
+        Notification::assertSentToTimes($user, VerifyEmail::class, 1);
     }
 
     public function test_incorrect_credentials_are_rejected_without_starting_a_session(): void

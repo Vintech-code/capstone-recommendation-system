@@ -83,10 +83,11 @@ async function installStudentApi(
   page: Page,
   initiallyComplete = false,
   delayedPaths: string[] = [],
+  initialAnswers: Record<string, number> = {},
 ) {
   let authenticated = false
   let submitted = initiallyComplete
-  let answers: Record<string, number> = {}
+  let answers: Record<string, number> = initialAnswers
 
   await page.route('**/sanctum/csrf-cookie', (route) => route.fulfill({ status: 204 }))
   await page.route('**/api/v1/**', async (route) => {
@@ -116,12 +117,8 @@ async function installStudentApi(
     if (path === '/api/v1/student/profile') {
       return json(route, { data: {
         student: { ...user, photoUrl: null },
-        personalAcademic: { location: { regionId: 1, provinceId: 2, cityMunicipalityId: 3, barangayId: 4 }, complete: true, lrn: '128490000001', birthDate: '2007-04-18', age: 19, phone: '+63 917 842 1928', addressLine: 'Zone 2', barangay: 'Poblacion', municipality: 'Tagoloan', province: 'Misamis Oriental', updatedAt: '2026-09-07T10:00:00+08:00' },
-        questionnaire: { complete: true, strengths: ['Problem-solving'], growthAreas: ['Time management'], learningPreferences: ['Reading'], updatedAt: '2026-09-07T10:00:00+08:00' },
-        options: { strengths: ['Problem-solving', 'Creativity'], growthAreas: ['Time management', 'Public speaking'], learningPreferences: ['Reading', 'Hands-on activities'] },
+        personalAcademic: { location: { regionId: 1, provinceId: 2, cityMunicipalityId: 3, barangayId: 4 }, complete: true, idNumber: '12345678', birthDate: '2007-04-18', age: 19, phone: '+63 917 842 1928', addressLine: 'Zone 2', barangay: 'Poblacion', municipality: 'Tagoloan', province: 'Misamis Oriental', updatedAt: '2026-09-07T10:00:00+08:00' },
         riasec: null,
-        careerInterests: [],
-        about: 'The Student profile contains self-reported information.',
       } })
     }
     if (path === '/api/v1/student/entrance-examination') {
@@ -133,6 +130,9 @@ async function installStudentApi(
     }
     if (path === '/api/v1/student/assessments/riasec/questions') {
       return json(route, { data: questionPayload() })
+    }
+    if (path === '/api/v1/student/assessments/riasec/sessions/1/card') {
+      return json(route, { data: resultCardPayload() })
     }
     if (path === '/api/v1/student/assessments/riasec/sessions' && method === 'POST') {
       answers = {}
@@ -212,6 +212,26 @@ function completedAssessment() {
     result_available_at: '2026-08-08T00:00:00Z',
     can_retake: false,
     result: { instrument_code: 'tcc-uhcc-riasec-42-v1', answer_count: 6, result: resultEntries },
+  }
+}
+
+function resultCardPayload() {
+  return {
+    id: 1,
+    reference: 'ASMT-000001',
+    studentName: 'Browser Test Student',
+    attemptNumber: 1,
+    isCurrent: true,
+    instrumentCode: 'tcc-uhcc-riasec-42-v1',
+    status: 'result_available',
+    resultAvailableAt: '2026-08-08T00:00:00Z',
+    topCode: 'ICR',
+    formattedTopCode: 'I-C-R',
+    topDimensions: [{ code: 'I', label: 'Investigative', value: 7 }, { code: 'C', label: 'Conventional', value: 6 }, { code: 'R', label: 'Realistic', value: 5 }],
+    dimensions: [{ code: 'R', label: 'Realistic', value: 5 }, { code: 'I', label: 'Investigative', value: 7 }, { code: 'A', label: 'Artistic', value: 2 }, { code: 'S', label: 'Social', value: 3 }, { code: 'E', label: 'Enterprising', value: 4 }, { code: 'C', label: 'Conventional', value: 6 }],
+    scoringVersion: 'RIASEC-OQ42-2026-01',
+    guidanceVersion: 'PSG-PROFILE-NAMES-2026-09-21',
+    disclaimer: 'This result reflects self-reported vocational interests.',
   }
 }
 
@@ -394,7 +414,7 @@ test('lets the Student manage personal profile information without SHS or GWA fi
   await page.getByRole('button', { name: 'My Profile' }).first().click()
 
   await expect(page.getByText('Edit Profile', { exact: true })).toBeVisible()
-  await expect(page.getByLabel('Learner reference numberOptional')).toHaveValue('128490000001')
+  await expect(page.getByLabel('ID number *')).toHaveValue('12345678')
   await expect(page.getByLabel(/Mobile number/)).toHaveValue('+63 917 842 1928')
   await expect(page.getByLabel(/Senior high school/)).toHaveCount(0)
   await expect(page.getByLabel(/GWA/i)).toHaveCount(0)
@@ -420,8 +440,8 @@ test('lets the Student manage personal profile information without SHS or GWA fi
   await expectNoHorizontalOverflow(page)
   await page.screenshot({ path: testInfo.outputPath('student-profile-balanced-form.png'), fullPage: true })
 
-  await page.getByRole('button', { name: /Next/ }).click()
-  await expect(page.getByRole('heading', { name: 'Learning profile & preferences' })).toBeVisible()
+  await expect(page.getByText('Learning Profile & Strengths')).toHaveCount(0)
+  await expect(page.getByRole('heading', { name: 'Learning profile & preferences' })).toHaveCount(0)
   await expect(page.getByLabel(/GWA/i)).toHaveCount(0)
   await expectNoHorizontalOverflow(page)
 })
@@ -503,6 +523,44 @@ test('uses the Student header canvas across the assessment', async ({ page }, te
   expect(new Set(backgrounds.slice(1)).size).toBe(1)
   await expectNoHorizontalOverflow(page)
   await page.screenshot({ path: testInfo.outputPath('assessment-matched-canvas.png') })
+})
+
+test('lets the Student scroll through the same complete result card', async ({ page }, testInfo) => {
+  await installStudentApi(page, true)
+  await signIn(page)
+
+  await page.getByRole('button', { name: 'Share result' }).first().click()
+  const dialog = page.getByRole('dialog')
+  await expect(dialog.getByRole('heading', { name: 'RIASEC Interest Profile' })).toBeVisible()
+  await expect(dialog.getByRole('button', { name: 'Download card' })).toBeVisible()
+  const scrollState = await dialog.evaluate((element) => ({
+    clientHeight: element.clientHeight,
+    overflowY: getComputedStyle(element).overflowY,
+    scrollHeight: element.scrollHeight,
+  }))
+  expect(scrollState.overflowY).toBe('auto')
+  expect(scrollState.scrollHeight).toBeGreaterThan(scrollState.clientHeight)
+  await dialog.getByText('Conventional').last().scrollIntoViewIfNeeded()
+  await expect(dialog.getByRole('progressbar', { name: 'Conventional: 6 out of 7' })).toBeVisible()
+  await page.screenshot({ path: testInfo.outputPath('student-result-card-scroll.png') })
+})
+
+test('finds a skipped assessment question and prevents stacked rapid-tap advances', async ({ page }) => {
+  await installStudentApi(page, false, [], { '1': 1, '3': 1, '4': 1, '5': 1, '6': 1 })
+  await signIn(page)
+
+  await expect(page.getByText('You skipped 1 question')).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Review 1 unanswered' })).toBeVisible()
+  await page.getByRole('button', { name: 'Go to unanswered question 2' }).click()
+  await expect(page.getByRole('group', { name: 'Response for question 2' })).toBeVisible()
+
+  await page.getByText('Agree', { exact: true }).click()
+  await page.getByText('Do not agree', { exact: true }).click()
+  await expect(page.getByRole('group', { name: 'Response for question 3' })).toBeVisible()
+  await page.waitForTimeout(400)
+  await expect(page.getByRole('group', { name: 'Response for question 3' })).toBeVisible()
+  await expect(page.getByRole('group', { name: 'Response for question 4' })).toHaveCount(0)
+  await expectNoHorizontalOverflow(page)
 })
 
 test('shows multiple programme career directions and published ESCO details', async ({ page }) => {

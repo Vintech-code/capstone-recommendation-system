@@ -277,9 +277,9 @@ export function AdminStudentDetailPage({
                           {latestAttempt.reference}
                         </span>
                       ) : null}
-                      {student.profile?.lrn ? (
+                      {student.profile?.idNumber ? (
                         <span className="font-semibold text-primary-ink">
-                          LRN: {student.profile.lrn}
+                          ID number: {student.profile.idNumber}
                         </span>
                       ) : null}
                       {student.profile?.age != null ? (
@@ -786,7 +786,10 @@ export function AdminStudentDetailPage({
           </section>
 
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogContent className="max-w-3xl overflow-hidden p-0 border-none bg-transparent shadow-2xl">
+            <DialogContent
+              className="max-h-[calc(100svh-1rem)] max-w-4xl overflow-y-auto border-none bg-transparent p-0 shadow-none sm:max-h-[calc(100svh-2rem)]"
+              showCloseButton={false}
+            >
               <DialogHeader className="sr-only">
                 <DialogTitle>RIASEC Result Card</DialogTitle>
                 <DialogDescription>

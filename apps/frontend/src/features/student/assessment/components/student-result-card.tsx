@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   Calendar,
   Check,
   Download,
   Hash,
+  LoaderCircle,
   Share2,
   ShieldCheck,
   User,
@@ -12,6 +13,9 @@ import {
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { cn } from "@/lib/utils";
 import {
   shareAssessmentResult,
   type ResultCardData,
@@ -32,43 +36,37 @@ interface StudentResultCardProps {
 
 const dimensionMeta: Record<
   string,
-  { bg: string; text: string; bar: string; label: string }
+  { surface: string; bar: string; label: string }
 > = {
   R: {
     label: "Realistic",
-    bg: "bg-orange-500/10",
-    text: "text-orange-700 dark:text-orange-400",
-    bar: "bg-orange-500",
+    surface: "bg-riasec-r/15",
+    bar: "bg-riasec-r",
   },
   I: {
     label: "Investigative",
-    bg: "bg-sky-500/10",
-    text: "text-sky-700 dark:text-sky-400",
-    bar: "bg-sky-500",
+    surface: "bg-riasec-i/15",
+    bar: "bg-riasec-i",
   },
   A: {
     label: "Artistic",
-    bg: "bg-rose-500/10",
-    text: "text-rose-700 dark:text-rose-400",
-    bar: "bg-rose-500",
+    surface: "bg-riasec-a/15",
+    bar: "bg-riasec-a",
   },
   S: {
     label: "Social",
-    bg: "bg-emerald-500/10",
-    text: "text-emerald-700 dark:text-emerald-400",
-    bar: "bg-emerald-500",
+    surface: "bg-riasec-s/15",
+    bar: "bg-riasec-s",
   },
   E: {
     label: "Enterprising",
-    bg: "bg-purple-500/10",
-    text: "text-purple-700 dark:text-purple-400",
-    bar: "bg-purple-500",
+    surface: "bg-riasec-e/15",
+    bar: "bg-riasec-e",
   },
   C: {
     label: "Conventional",
-    bg: "bg-teal-500/10",
-    text: "text-teal-700 dark:text-teal-400",
-    bar: "bg-teal-500",
+    surface: "bg-riasec-c/15",
+    bar: "bg-riasec-c",
   },
 };
 
@@ -81,6 +79,8 @@ function StudentResultCard({
 }: StudentResultCardProps) {
   const [sharing, setSharing] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [downloading, setDownloading] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
 
   const dateLabel = formatAssessmentDate(
     card.resultAvailableAt ?? card.submittedAt ?? card.startedAt,
@@ -128,7 +128,7 @@ function StudentResultCard({
         setCopied(true);
         toast.success("Share link copied to clipboard!", {
           description:
-            "Anyone with this link can view this verified result card.",
+            "Anyone with this link can view this recorded result card.",
         });
         setTimeout(() => setCopied(false), 3000);
       }
@@ -141,49 +141,82 @@ function StudentResultCard({
     }
   }
 
-  function handleDownload() {
-    const prevTitle = document.title;
-    document.title = `assessment-result-${card.reference}-attempt-${card.attemptNumber}`;
-    window.print();
-    setTimeout(() => {
-      document.title = prevTitle;
-    }, 1000);
+  async function handleDownload() {
+    if (!cardRef.current) return;
+    setDownloading(true);
+    try {
+      if (document.fonts) await document.fonts.ready;
+      const { toPng } = await import("html-to-image");
+      const node = cardRef.current;
+      const dataUrl = await toPng(node, {
+        backgroundColor: "#FBFFF7",
+        cacheBust: true,
+        height: node.scrollHeight,
+        pixelRatio: 2,
+        skipFonts: true,
+        width: node.scrollWidth,
+        style: {
+          maxHeight: "none",
+          overflow: "visible",
+        },
+        filter: (element) =>
+          !(element instanceof HTMLElement && element.hasAttribute("data-card-action")),
+      });
+      const link = document.createElement("a");
+      link.download = `assessment-result-${card.reference}-attempt-${card.attemptNumber}.png`;
+      link.href = dataUrl;
+      document.body.append(link);
+      link.click();
+      link.remove();
+      toast.success("Result card downloaded", {
+        description: "The complete assessment card was saved as a PNG image.",
+      });
+    } catch {
+      toast.error("Could not download the result card", {
+        description: "Please try again after the card finishes loading.",
+      });
+    } finally {
+      setDownloading(false);
+    }
   }
 
   return (
     <div
-      className={`mx-auto w-full max-w-3xl overflow-hidden rounded-3xl border border-border bg-card shadow-sm print:m-0 print:w-full print:max-w-none print:rounded-none print:border-none print:shadow-none ${className}`}
+      ref={cardRef}
+      data-assessment-result-card
+      className={cn(
+        "mx-auto w-full max-w-4xl rounded-3xl border border-border bg-card shadow-sm",
+        className,
+      )}
     >
-      {/* Top action bar - Hidden during print */}
       <div
-        data-print-hidden
-        className="flex flex-wrap items-center justify-between gap-3 border-b border-border/80 bg-secondary/40 px-5 py-3.5 sm:px-7"
+        className="sticky top-0 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-t-3xl border-b border-border/80 bg-card/95 px-4 py-3 backdrop-blur-sm sm:flex sm:justify-start sm:px-7 sm:py-3.5"
       >
-        <div className="flex items-center gap-2">
+        <div className="col-start-1 row-start-1 flex min-w-0 items-center gap-2 sm:mr-auto">
           <span className="inline-flex size-2 rounded-full bg-primary" />
-          <span className="text-xs font-semibold text-muted-foreground">
+          <span className="truncate text-xs font-semibold text-muted-foreground">
             {isPublic
-              ? "Public Shared Result"
-              : "Official Assessment Result Card"}
+              ? "Shared Assessment Result"
+              : "Recorded Assessment Result Card"}
           </span>
         </div>
-        <div className="flex items-center gap-2">
+        <div data-card-action className="col-span-2 row-start-2 grid grid-cols-2 gap-2 sm:flex sm:items-center">
           <Button
             type="button"
             variant="outline"
             size="sm"
             onClick={handleShare}
-            disabled={sharing}
+            disabled={sharing || downloading}
             className="h-9 gap-1.5 rounded-full px-4 text-xs font-bold"
           >
             {copied ? (
               <>
-                <Check className="size-3.5 text-primary" aria-hidden="true" />
+                <Check data-icon="inline-start" aria-hidden="true" />
                 Copied!
               </>
             ) : (
               <>
-                <Share2 className="size-3.5" aria-hidden="true" />
+                <Share2 data-icon="inline-start" aria-hidden="true" />
                 {sharing ? "Generating…" : "Share Result"}
               </>
             )}
@@ -193,26 +226,32 @@ function StudentResultCard({
             type="button"
             variant="outline"
             size="sm"
-            onClick={handleDownload}
+            onClick={() => void handleDownload()}
+            disabled={sharing || downloading}
             className="h-9 gap-1.5 rounded-full px-4 text-xs font-bold"
           >
-            <Download className="size-3.5" aria-hidden="true" />
-            Download (PDF)
+            {downloading ? (
+              <LoaderCircle data-icon="inline-start" className="animate-spin" aria-hidden="true" />
+            ) : (
+              <Download data-icon="inline-start" aria-hidden="true" />
+            )}
+            {downloading ? "Preparing card…" : "Download card"}
           </Button>
 
-          {onClose ? (
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              onClick={onClose}
-              className="size-9 rounded-full"
-              aria-label="Close result card"
-            >
-              <X className="size-4" />
-            </Button>
-          ) : null}
         </div>
+        {onClose ? (
+          <Button
+            data-card-action
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={onClose}
+            className="col-start-2 row-start-1 size-9 rounded-full"
+            aria-label="Close result card"
+          >
+            <X aria-hidden="true" />
+          </Button>
+        ) : null}
       </div>
 
       {/* Main Printable Card Body */}
@@ -223,28 +262,24 @@ function StudentResultCard({
             <h2 className="font-display text-2xl font-black text-foreground sm:text-3xl">
               RIASEC Interest Profile
             </h2>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Official vocational preference and career interest assessment
-              record
+            <p className="mt-1 text-sm leading-6 text-muted-foreground">
+              Recorded RIASEC interest assessment result
             </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-2 sm:flex-col sm:items-end sm:gap-1.5">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-black text-primary-ink">
-              <ShieldCheck
-                className="size-3.5 text-primary"
-                aria-hidden="true"
-              />
+            <Badge variant="success">
+              <ShieldCheck aria-hidden="true" />
               Attempt {card.attemptNumber}
-            </span>
+            </Badge>
             {card.isCurrent ? (
-              <span className="rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
+              <Badge variant="success">
                 Current Record
-              </span>
+              </Badge>
             ) : (
-              <span className="rounded-full bg-muted px-2.5 py-0.5 text-[10px] font-bold text-muted-foreground border border-border/60">
+              <Badge variant="secondary">
                 Historical Retake
-              </span>
+              </Badge>
             )}
           </div>
         </div>
@@ -316,7 +351,7 @@ function StudentResultCard({
                 ({card.formattedTopCode})
               </span>
             </div>
-            <p className="mt-2 max-w-xl text-xs leading-5 text-muted-foreground">
+            <p className="mt-3 max-w-xl text-sm leading-6 text-muted-foreground">
               {profileCopy
                 ? formatRiasecProfileDescription(profileCopy)
                 : "Your highest reported interest alignment in order of statement agreement."}
@@ -332,20 +367,23 @@ function StudentResultCard({
               return (
                 <div
                   key={dim.code}
-                  className="flex items-center gap-2 rounded-xl bg-card px-3 py-1.5 shadow-2xs border border-border/70"
+                    className="flex min-w-56 items-center gap-2 rounded-xl border border-border/70 bg-card px-3 py-2 shadow-xs"
                 >
                   <span className="text-[10px] font-bold uppercase text-muted-foreground">
                     {dim.isTied ? `Shared ${rankLabel.toLowerCase()}` : rankLabel}:
                   </span>
                   <span
-                    className={`inline-flex size-5 items-center justify-center rounded-full text-xs font-black ${meta?.bg ?? "bg-muted"} ${meta?.text ?? "text-foreground"}`}
+                    className={cn(
+                      "inline-flex size-6 items-center justify-center rounded-full text-xs font-black text-foreground",
+                      meta?.surface ?? "bg-muted",
+                    )}
                   >
                     {dim.code}
                   </span>
                   <span className="text-xs font-bold text-foreground">
                     {dim.label}
                   </span>
-                  <span className="text-xs font-extrabold text-foreground ml-1">
+                  <span className="ml-auto text-xs font-extrabold text-foreground">
                     {dim.value}/7
                   </span>
                 </div>
@@ -376,7 +414,10 @@ function StudentResultCard({
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
                       <span
-                        className={`inline-flex size-7 items-center justify-center rounded-lg text-xs font-black ${meta?.bg ?? "bg-muted"} ${meta?.text ?? "text-foreground"}`}
+                        className={cn(
+                          "inline-flex size-8 items-center justify-center rounded-lg text-xs font-black text-foreground",
+                          meta?.surface ?? "bg-muted",
+                        )}
                       >
                         {dim.code}
                       </span>
@@ -400,18 +441,18 @@ function StudentResultCard({
                     </div>
                   </div>
 
-                  {/* Visual Progress Bar */}
-                  <div className="mt-2.5 h-2 w-full overflow-hidden rounded-full bg-secondary/80">
-                    <div
-                      className={`h-full rounded-full transition-all duration-300 ${meta?.bar ?? "bg-primary"}`}
-                      style={{ width: `${pct}%` }}
-                    />
-                  </div>
+                  <Progress
+                    value={pct}
+                    aria-label={`${dim.label}: ${dim.value} out of 7`}
+                    className="mt-2.5"
+                    indicatorClassName={meta?.bar ?? "bg-primary"}
+                  />
                 </div>
               );
             })}
           </div>
         </div>
+
       </div>
     </div>
   );

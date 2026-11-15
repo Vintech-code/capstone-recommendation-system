@@ -13,7 +13,7 @@ it('omits the removed history section while retaining the student result', async
   expect(screen.queryByRole('heading', { name: 'Assessment context' })).not.toBeInTheDocument()
   expect(screen.getAllByTestId('student-resume-card')).toHaveLength(1)
   expect(screen.getByText('ASMT-000001')).toBeVisible()
-  expect(screen.getByText('LRN: 128490000011')).toBeVisible()
+  expect(screen.getByText('ID number: 12345678')).toBeVisible()
   expect(screen.queryByText('Tagoloan National High School')).not.toBeInTheDocument()
   expect(screen.queryByText(/GWA/i)).not.toBeInTheDocument()
   expect(screen.getByRole('heading', { name: 'Academic programme recommendations' })).toBeVisible()

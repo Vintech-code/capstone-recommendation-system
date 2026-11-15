@@ -75,7 +75,7 @@ interface AdminStudentRecord {
   savedProgrammeCount: number
   profile: {
     photoUrl?: string | null
-    lrn: string | null
+    idNumber: string | null
     birthDate: string | null
     age: number | null
     phone: string | null

@@ -6,7 +6,7 @@
 
 ### Student Applicant
 
-Students create and own their account, self-declare their entrance examination result, complete the locally stored RIASEC assessment, review immutable results, explore and save programmes, compare recommendations, manage their self-report profile, and make the final course decision.
+Students create and own their account, self-declare their entrance examination result, complete the locally stored RIASEC assessment, review immutable results, explore and save programmes, compare recommendations, manage their personal and academic profile, and make the final course decision.
 
 ### Administrator
 
@@ -58,6 +58,7 @@ Administrators govern programme content and media, review catalogue source evide
 - Keep page, sidebar, card, and hero surfaces light. Reserve deeper values for readable text, icons, and accessible hover or pressed states rather than large dark areas.
 - Preserve the current binary assessment contract. The illustrated two-activity, three-level rating pattern remains proposed and blocked until its instrument and scoring contract are approved.
 - Keep the active assessment controls visible with a compact open-canvas progress strip and sticky bottom navigation. Answers auto-advance, while an answered question revisited through Previous exposes an explicit Next action.
+- **Progress / sprint: IN PROGRESS for skipped-question recovery on 2026-11-16.** Auto-advance now permits only one pending transition, preventing rapid answer taps from jumping over multiple questions. A compact alert exposes unanswered question numbers behind the current position, and final submission routes the Student to the first missing answer. Focused component tests pass; rendered desktop/mobile, keyboard, overflow, and console validation remain pending.
 - Present the current Agree and Do not agree radio controls with the shared minimalist clay treatment while preserving accessible selection and focus states.
 - Replace photographic presentation assets with original or properly licensed flat educational illustrations in separately tested screen slices.
 - Keep the interface light-only and retire existing dark-theme presentation only through a reviewed implementation change.
@@ -82,8 +83,10 @@ Administrators govern programme content and media, review catalogue source evide
 ### Student journey
 
 - Keep assessment, result, history, programme exploration, saved programmes, and profile actions accessible on desktop and mobile.
+- **Progress / sprint: IMPLEMENTED with browser validation for the shared assessment result card on 2026-11-16.** Student and Administrator dialogs now scroll within the viewport, expose the same clearer recorded-result layout, and download the complete card as a high-resolution PNG instead of opening a PDF/print flow. The separate interpretation and version-details panel is intentionally omitted by repository-owner direction.
 - **Progress / sprint: IN PROGRESS for protected Student browser history on 2026-11-04.** Route My Matches, Explore Programs, My Profile, and History through protected Student URLs so browser Back returns to the preceding Student section without ending the session. Google authorization now runs separately and returns through a flow-scoped same-origin completion channel, keeping provider pages out of the main tab's history without `window.closed` polling. Focused frontend and backend tests, lint, architecture, build, and desktop/mobile Student-route assertions pass; a clean browser-runner exit and live Google-provider check remain pending.
 - Keep My Matches, Explore Programs, and My Profile loading skeletons aligned with the final page geometry across desktop and mobile, including restoration of the matching loader after a page refresh.
+- **Progress / sprint: IMPLEMENTED with automated validation for Student profile simplification on 2026-11-16; clean Playwright exit remains pending.** The optional LRN contract is replaced by a required unique eight-digit ID number across Student and Administrator views. The separate Learning Profile & Strengths step, its API payload/response fields, stored strengths/growth/preferences, derived summary, and active schema columns are removed. The local MySQL migration was applied only after an encrypted backup passed restore verification. Historical assessment and recommendation evidence is unchanged. See the dated implementation record for migration and validation boundaries.
 - Keep the Student Personal & Academic editor balanced across both desktop columns while preserving one logical, overflow-free mobile sequence.
 - Open a selected recommendation's programme detail at the top of the document instead of retaining the ranked-list scroll position.
 - Prefer persistent result and history actions over redundant completed-state cards.
@@ -96,6 +99,7 @@ Administrators govern programme content and media, review catalogue source evide
 - Use the authoritative entrance declaration, current assessment lifecycle, recommendation availability, and saved-programme counts in the server-paginated Student directory.
 - Preserve each attempt and its versioned evidence in the authoritative records. The separate Assessment history and evidence section is removed from Administrator Student detail by owner request on 2026-09-07.
 - Structure Student detail as one résumé-style profile and assessment surface followed by ranked programme recommendations. The separate Assessment context surface was removed by owner request on 2026-09-07.
+- Use the same shared, scrollable assessment result card as the Student flow; do not maintain a separate Administrator card or export format.
 - Keep the dashboard operational: show the Student funnel and actionable failure, source-review, and draft queues instead of decorative or inferred readiness metrics.
 - Keep the redesigned dashboard palette tied to meaning: green for the primary journey, violet for assessment records, yellow for available results, and pink for recommendation runs. Preserve the joined data-strip and exact stage-flow treatment without adding fabricated indicators.
 - Read programme eligibility only from the versioned backend catalogue; never infer board or non-board classification in the browser.
@@ -110,6 +114,7 @@ Administrators govern programme content and media, review catalogue source evide
 - Keep browser navigation separate from authentication state: Student Back/Forward navigation must not call logout, and session termination remains an explicit Sign out action or a server-authoritative expiry/revocation.
 - Keep third-party OAuth pages outside the main application tab's browser history. Match popup completion to the session-bound flow and portal before restoring the protected route.
 - Keep Google Student self-onboarding role-safe. Administrator Google sign-in is limited to a matching, already-provisioned active Administrator account; it must never create an Administrator or grant that role. Always request Google's account chooser so a rejected browser account can be changed on retry.
+- **Progress / sprint: IN PROGRESS for split-name registration and email ownership verification on 2026-11-16.** Local Student registration stores first and last names separately, sends a signed verification link, provides non-enumerating resend, and blocks unverified login and protected APIs. The verification message now uses the provisional green-neutral product direction, personalized ownership copy, an accessible primary action, a security/expiry notice, a visible fallback URL, and a plain-text alternative instead of Laravel's default branding. Focused backend/frontend tests and the production frontend build pass; rendered mail-client coverage and live SMTP delivery evidence remain pending.
 - **Progress / sprint: COMPLETED for Administrator account governance on 2026-09-14.** Authorized account managers can issue 15-minute single-use invitations, review invitation history, resend or revoke invitations, suspend/reactivate accounts, grant/remove the management capability while preserving a last-active-manager safeguard, and revoke sessions. Sensitive mutations require the acting Administrator's password and create audit events.
 - **Progress / sprint: COMPLETED for password recovery hardening on 2026-09-14.** Reset emails preserve the account's dedicated Student or Administrator portal, successful reset navigation returns to that portal, and every user-created password path shares the Laravel-authoritative 12-to-255-character mixed-case, number, and symbol policy.
 - Require individual Administrator accounts and enforce role checks, capability checks, suspension, session revocation, and ownership on the server.

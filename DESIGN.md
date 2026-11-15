@@ -1,8 +1,8 @@
 ---
 name: TCC Course Recommendation Design System
 status: APPROVED working product direction; PROVISIONAL institutional identity
-version: 4.4
-last_updated: 2026-09-14
+version: 4.9
+last_updated: 2026-11-16
 font_family: Nunito Sans headings / Montserrat Alternates body
 font_family: Open Runde headings / Montserrat Alternates body
 theme: light
@@ -76,7 +76,7 @@ layout:
 
 ## 1. Authority and reference boundary
 
-This file is the visual and interaction authority for the responsive TCC course-recommendation application. Version 4.0 uses a minimalist claymorphism language with `#7ED321` as the product green. UI surfaces and semantic product tokens do not use blue; the supporting palette uses orange, violet, pink, yellow, olive, green, and neutral tones.
+This file is the visual and interaction authority for the responsive TCC course-recommendation application. Version 4.7 uses a minimalist claymorphism language with `#7ED321` as the product green. UI surfaces and semantic product tokens do not use blue; the supporting palette uses orange, violet, pink, yellow, olive, green, and neutral tones.
 
 The repository owner approved this working direction on 2026-08-28. It is not an official Tagoloan Community College identity. Its palette, illustration style, typography, and product presentation remain **PROVISIONAL institutional branding** until institutionally approved.
 
@@ -396,7 +396,7 @@ The two response controls use the same minimalist clay surface as the rest of th
 
 The authoritative server-side formula counts each **Agree** response as one point in the statement's stored RIASEC category and each **Do not agree** response as zero. Each of R, I, A, S, E, and C has seven mapped statements, so every raw category score is an integer from 0 through 7. The browser never supplies or changes category mappings.
 
-The page includes top navigation, `Question n of total`, exact progress, a centered readable question, two 48px-minimum response controls, Previous/Next in a stable navigation region, and visible saving, saved, retry, and validation feedback. The last action is **Finish assessment**; do not insert a full answer-review list between the last question and result processing.
+The page includes top navigation, `Question n of total`, exact progress, a centered readable question, two 48px-minimum response controls, Previous/Next in a stable navigation region, and visible saving, saved, retry, and validation feedback. Auto-advance keeps only one pending transition so rapid repeated taps can never skip more than one question. When an unanswered question exists behind the current position, show one compact alert listing only those missing question numbers as keyboard-operable jump controls. At the last question, replace **Finish assessment** with **Review n unanswered** until every response exists; jump to the first missing item rather than submitting an incomplete assessment. This is missing-response recovery, not a full answer-review list.
 
 After Finish, replace the questionnaire with one full-page calculation state. Use a large custom green/violet/yellow spinner, the factual heading **Calculating your programme matches**, a concise scoring/comparison explanation, and an accessible live status. Keep this state visible while the server reports `preparing_result`. Redirect to **My Matches** only after the authoritative assessment status is `result_available`. A processing or connection failure must preserve recorded answers and expose a retryable error instead of fabricating a result.
 
@@ -471,6 +471,7 @@ Filters use the existing compact single-open-section accordion. Closed rows expo
 ### 6.3 Results, recommendations, and history
 
 - Begin with one open-canvas illustrated result narrative and at most one bordered Score Breakdown surface in a two-column desktop composition.
+- Student and Administrator result-card actions open the same recorded assessment card in a viewport-bounded, vertically scrollable dialog. Keep the action bar reachable, use the semantic RIASEC colors and exact scores, and preserve the complete card at mobile and desktop widths. **Download card** exports the full card as a high-resolution PNG image with action controls omitted; do not label the action as PDF or invoke the browser print dialog. Keep the card focused on identity, record reference/date, recorded interest pattern, ranked dimensions, and the six-score breakdown; do not append a separate interpretation/version-details panel.
 - Place the recommended-career-path guidance below that composition as one full-width, open-canvas section. Use divided opportunity rows and an inline explanation rail; do not wrap the section or individual opportunities in cards.
 - Present ranked recommendations as one spacious list of broad split rows. The top three use restrained pastel programme fields whose desktop widths descend by rank, paired with a compact white recorded-match rail; later ranks use plain compact divided rows. Use the exact recorded percentage and `Recorded match`; do not invent qualitative thresholds. Stack the match rail below the programme field on mobile.
 - Follow with an open-canvas heading and ranked list at 20–24px gaps.
@@ -492,10 +493,11 @@ Filters use the existing compact single-open-section accordion. Closed rows expo
 ### 6.5 Student profile
 
 - Use a strong identity header with authenticated image fallback.
-- Place learning snapshot beside recorded-interest and career-direction areas on wide screens; stack on mobile.
+- Keep the editor focused on personal and academic identity details in one responsive form.
+- Require an eight-digit Student ID number. Present it as **ID number**, accept digits only, and do not describe it as an LRN.
 - RIASEC scores and interests remain read-only.
-- Label strengths, growth areas, and learning preferences as Student-reported.
-- Editing remains an inline three-step flow with Previous/Next and final Save.
+- Do not collect or display a separate Learning Profile & Strengths questionnaire, self-reported strengths, growth areas, or learning preferences.
+- Editing uses one final Save action; do not add a tab or step for the removed learning-profile questionnaire.
 - Personal information uses the existing labelled Select controls for Region, Province, City or municipality, and Barangay. Changing a parent clears its descendants. Province-less cities use an explicit No province choice; loading, empty, and retry states preserve the current draft. Existing text addresses remain visible until replaced with a structured selection.
 - Factual summaries never infer personality, intelligence, diagnosis, or success.
 
@@ -506,6 +508,10 @@ Student and Administrator URLs remain separate; sign-in never asks the user to s
 The public landing-page Student authentication modal uses one mode at a time in a generous 500px maximum surface with `rounded-sm` corners, increased internal spacing, and a larger readable text hierarchy. Do not place a segmented Sign in/Create account switch above the form; use the contextual text action below the current form to change modes.
 
 Apply light green to action fills and focus indicators, with primary green ink for links. Reuse one labelled field pattern. The global footer is omitted throughout the application, including full-screen authentication and session restoration. Student Google authentication appears only when its real development/testing flow is active. Administrator access uses individually provisioned credentials; social login never creates or infers a staff role.
+
+Student registration collects separate **First name** and **Last name** fields, using `given-name` and `family-name` autocomplete. After submission, replace the form with a focused verification state that names the destination email, explains that protected access remains unavailable, and provides **Resend verification email** and **Return to sign in** actions. A successful verification link returns to Student sign-in with an explicit success status; never imply that format validation alone proves email ownership.
+
+Transactional email verification extends the same provisional visual direction within email-client constraints. Use the green-neutral canvas, light surface, semantic border, primary-green action, readable green ink, personalized first-name greeting, exact destination email, expiry/security notice, and visible fallback URL. Remove framework branding and generic framework sign-off. Table layout, inline token values, and system-font fallbacks are deliberate compatibility exceptions for mail clients; every HTML message must retain a complete plain-text alternative. Do not present the working visual identity as official TCC branding.
 
 ### 6.7 Administrator workspace
 

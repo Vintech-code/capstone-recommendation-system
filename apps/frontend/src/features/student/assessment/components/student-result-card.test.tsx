@@ -1,8 +1,14 @@
-import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { toPng } from "html-to-image";
+import { describe, expect, it, vi } from "vitest";
 
 import type { ResultCardData } from "@/features/student/assessment/assessment-api";
 import { StudentResultCard } from "@/features/student/assessment/components/student-result-card";
+
+vi.mock("html-to-image", () => ({
+  toPng: vi.fn(),
+}));
 
 const resultCard: ResultCardData = {
   id: 12,
@@ -59,5 +65,35 @@ describe("StudentResultCard", () => {
     }} />);
 
     expect(screen.getAllByText("Shared primary:")).toHaveLength(2);
+  });
+
+  it("shows accessible exact scores for every recorded dimension", () => {
+    render(<StudentResultCard card={resultCard} />);
+
+    expect(screen.getByRole("progressbar", { name: "Investigative: 7 out of 7" })).toBeVisible();
+    expect(screen.queryByText("How to read this result")).not.toBeInTheDocument();
+  });
+
+  it("downloads the complete card as a PNG image instead of opening print", async () => {
+    const user = userEvent.setup();
+    const anchorClick = vi
+      .spyOn(HTMLAnchorElement.prototype, "click")
+      .mockImplementation(() => undefined);
+    vi.mocked(toPng).mockResolvedValue("data:image/png;base64,card");
+
+    render(<StudentResultCard card={resultCard} />);
+    await user.click(screen.getByRole("button", { name: "Download card" }));
+
+    await waitFor(() => expect(toPng).toHaveBeenCalledOnce());
+    expect(toPng).toHaveBeenCalledWith(
+      expect.any(HTMLDivElement),
+      expect.objectContaining({
+        backgroundColor: "#FBFFF7",
+        pixelRatio: 2,
+      }),
+    );
+    expect(anchorClick).toHaveBeenCalledOnce();
+    expect(screen.queryByText("Download (PDF)")).not.toBeInTheDocument();
+    anchorClick.mockRestore();
   });
 });

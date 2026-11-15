@@ -66,12 +66,22 @@ function useAssessmentSession({
   const [entranceExamination, setEntranceExamination] = useState<EntranceExaminationState | null>(null);
   const [content, setContent] = useState<AssessmentSessionContent>(initialContent ?? { id: "", versionReference: "", questions: [], responseOptions: [] });
   const saveTimer = useRef<number | undefined>(undefined);
+  const autoAdvanceTimer = useRef<number | undefined>(undefined);
   const saveQueue = useRef<Promise<void>>(Promise.resolve());
   const onViewMatchesRef = useRef(onViewMatches);
   const question = content.questions[currentIndex];
   const answeredCount = content.questions.filter((item) => answers[item.id]).length;
+  const unansweredQuestionNumbers = content.questions
+    .map((item, index) => answers[item.id] ? null : index + 1)
+    .filter((number): number is number => number !== null);
+  const skippedQuestionNumbers = unansweredQuestionNumbers.filter(
+    (number) => number - 1 < currentIndex,
+  );
 
-  useEffect(() => () => window.clearTimeout(saveTimer.current), []);
+  useEffect(() => () => {
+    window.clearTimeout(saveTimer.current);
+    window.clearTimeout(autoAdvanceTimer.current);
+  }, []);
   useEffect(() => {
     onViewMatchesRef.current = onViewMatches;
   }, [onViewMatches]);
@@ -156,18 +166,29 @@ function useAssessmentSession({
 
   function answerQuestion(value: AssessmentResponseValue) {
     if (!question) return;
+    const answeredIndex = currentIndex;
     const nextAnswers = { ...answers, [question.id]: value };
     setAnswers(nextAnswers);
     setSaveState(connectionState === "offline" ? "saved-locally" : "saving");
     window.clearTimeout(saveTimer.current);
     saveTimer.current = window.setTimeout(() => void persistAnswers(nextAnswers, undefined, currentIndex + 1), 250);
-    if (currentIndex < content.questions.length - 1) {
-      window.setTimeout(() => setCurrentIndex((index) => index + 1), autoAdvanceDelayMs);
+    window.clearTimeout(autoAdvanceTimer.current);
+    if (answeredIndex < content.questions.length - 1) {
+      autoAdvanceTimer.current = window.setTimeout(() => {
+        setCurrentIndex((index) => index === answeredIndex ? index + 1 : index);
+      }, autoAdvanceDelayMs);
     }
+  }
+
+  function goToQuestion(index: number) {
+    window.clearTimeout(autoAdvanceTimer.current);
+    autoAdvanceTimer.current = undefined;
+    setCurrentIndex(Math.min(Math.max(index, 0), content.questions.length - 1));
   }
 
   async function submitAssessment() {
     window.clearTimeout(saveTimer.current);
+    window.clearTimeout(autoAdvanceTimer.current);
     saveTimer.current = undefined;
     setSubmitError(null);
     setView("submitting");
@@ -252,9 +273,11 @@ function useAssessmentSession({
     retryConnection,
     retrySessionLoad,
     saveState,
-    setCurrentIndex,
+    goToQuestion,
+    skippedQuestionNumbers,
     submitAssessment,
     submitError,
+    unansweredQuestionNumbers,
     view,
   };
 }

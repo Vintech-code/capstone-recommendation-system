@@ -217,7 +217,7 @@ final class AdminWorkspaceController extends Controller
                     'photoUrl' => $student->studentProfile->photo_path
                         ? '/api/v1/profile-photos/'.$student->getKey().'?v='.$student->studentProfile->updated_at?->getTimestamp()
                         : $student->google_avatar_url,
-                    'lrn' => $student->studentProfile->lrn,
+                    'idNumber' => $student->studentProfile->id_number,
                     'birthDate' => $student->studentProfile->birth_date,
                     'age' => $student->studentProfile->birth_date
                         ? CarbonImmutable::parse($student->studentProfile->birth_date)->age

@@ -74,6 +74,17 @@ class AuthenticatedSessionController extends Controller
             ], 403);
         }
 
+        if (! $user->hasVerifiedEmail()) {
+            Auth::guard('web')->logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return response()->json([
+                'message' => 'Verify your email address before signing in.',
+                'error' => ['code' => 'EMAIL_NOT_VERIFIED'],
+            ], 403);
+        }
+
         return response()->json(['user' => $this->userPayload($user)]);
     }
 
@@ -88,14 +99,17 @@ class AuthenticatedSessionController extends Controller
     }
 
     /**
-     * @return array{id: int, name: string, email: string, accountStatus: string, canManageAdministrators: bool, photoUrl: string|null, roles: array<int, string>}
+     * @return array{id: int, name: string, firstName: string|null, lastName: string|null, email: string, emailVerified: bool, accountStatus: string, canManageAdministrators: bool, photoUrl: string|null, roles: array<int, string>}
      */
     private function userPayload(User $user): array
     {
         return [
             'id' => $user->id,
             'name' => $user->name,
+            'firstName' => $user->first_name,
+            'lastName' => $user->last_name,
             'email' => $user->email,
+            'emailVerified' => $user->hasVerifiedEmail(),
             'accountStatus' => $user->account_status,
             'canManageAdministrators' => (bool) $user->can_manage_administrators,
             'photoUrl' => $user->studentProfile?->photo_path

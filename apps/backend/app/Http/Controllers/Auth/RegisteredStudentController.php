@@ -20,22 +20,31 @@ class RegisteredStudentController extends Controller
                 ['name' => 'Student Applicant'],
             );
 
-            $user = User::query()->create($request->safe()->only([
-                'name',
-                'email',
-                'password',
-            ]));
+            $firstName = trim((string) $request->validated('firstName'));
+            $lastName = trim((string) $request->validated('lastName'));
+            $user = User::query()->create([
+                'first_name' => $firstName,
+                'last_name' => $lastName,
+                'name' => trim($firstName.' '.$lastName),
+                'email' => mb_strtolower(trim((string) $request->validated('email'))),
+                'password' => $request->validated('password'),
+            ]);
             $user->roles()->attach($role);
 
             return $user;
         });
 
+        $user->sendEmailVerificationNotification();
+
         return response()->json([
-            'message' => 'Student account created.',
+            'message' => 'Student account created. Check your email to verify your account.',
             'user' => [
                 'id' => $user->getKey(),
                 'name' => $user->name,
+                'firstName' => $user->first_name,
+                'lastName' => $user->last_name,
                 'email' => $user->email,
+                'emailVerified' => false,
                 'roles' => [RoleSlug::Student->value],
             ],
         ], 201);

@@ -185,7 +185,7 @@ class LocationTest extends TestCase
         $barangay = Barangay::where('code', '0100101001')->firstOrFail();
         $city = $barangay->cityMunicipality;
         $location = ['regionId' => $city->region_id, 'provinceId' => $city->province_id, 'cityMunicipalityId' => $city->id, 'barangayId' => $barangay->id];
-        $payload = ['strengths' => ['Creativity'], 'growthAreas' => ['Writing'], 'learningPreferences' => ['Reading'], 'location' => $location, 'barangay' => 'Forged name'];
+        $payload = ['idNumber' => '12345678', 'location' => $location, 'barangay' => 'Forged name'];
         $this->putJson('/api/v1/student/profile', $payload)->assertOk()->assertJsonPath('data.personalAcademic.location.code', $barangay->code)->assertJsonPath('data.personalAcademic.barangay', $barangay->name);
         $this->assertDatabaseHas('student_profiles', ['user_id' => $student->id, 'barangay_id' => $barangay->id]);
         foreach (['regionId', 'provinceId', 'cityMunicipalityId', 'barangayId'] as $key) {

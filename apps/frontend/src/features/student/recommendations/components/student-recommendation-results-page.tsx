@@ -212,8 +212,9 @@ function StudentRecommendationResultsPage({
           onOpenChange={(open) => !open && results.setResultCard(null)}
         >
           <DialogContent
-            className="max-h-[92vh] max-w-3xl overflow-y-auto border-none bg-transparent p-0 shadow-2xl"
+            className="max-h-[calc(100svh-1rem)] max-w-4xl overflow-y-auto border-none bg-transparent p-0 shadow-none sm:max-h-[calc(100svh-2rem)]"
             closeLabel="Close result card"
+            showCloseButton={false}
           >
             <DialogTitle className="sr-only">
               RIASEC Assessment Result Card

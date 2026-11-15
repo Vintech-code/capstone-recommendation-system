@@ -11,7 +11,6 @@ use App\Services\Student\StudentProfilePresenter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 final class StudentProfileController extends Controller
@@ -23,55 +22,56 @@ final class StudentProfileController extends Controller
 
     public function store(Request $request, StudentProfilePresenter $presenter): JsonResponse
     {
-        $validated = $request->validate([
-            'lrn' => ['nullable', 'string', 'max:30'],
-            'birthDate' => ['nullable', 'date_format:Y-m-d', 'before_or_equal:today', 'after:1900-01-01'],
-            'phone' => ['nullable', 'string', 'max:32'],
-            'addressLine' => ['nullable', 'string', 'max:255'],
-            'location' => ['sometimes', 'required', 'array:regionId,provinceId,cityMunicipalityId,barangayId,code'],
-            'location.regionId' => ['required_with:location', 'integer', 'min:1'],
-            'location.provinceId' => ['present_with:location', 'nullable', 'integer', 'min:1'],
-            'location.cityMunicipalityId' => ['required_with:location', 'integer', 'min:1'],
-            'location.barangayId' => ['required_with:location', 'integer', 'min:1'],
-            'location.code' => ['sometimes', 'string', 'max:10'],
-            'shsSchoolName' => ['prohibited'],
-            'shsStrand' => ['prohibited'],
-            'shsGraduationYear' => ['prohibited'],
-            'strengths' => ['required', 'array', 'max:10'],
-            'strengths.*' => ['string', 'distinct', Rule::in(StudentProfilePresenter::STRENGTHS)],
-            'growthAreas' => ['required', 'array', 'max:10'],
-            'growthAreas.*' => ['string', 'distinct', Rule::in(StudentProfilePresenter::GROWTH_AREAS)],
-            'learningPreferences' => ['required', 'array', 'max:8'],
-            'learningPreferences.*' => ['string', 'distinct', Rule::in(StudentProfilePresenter::LEARNING_PREFERENCES)],
-        ]);
+        $validated = $request->validate(
+            [
+                'idNumber' => ['required', 'string', 'regex:/^\d{8}$/'],
+                'lrn' => ['prohibited'],
+                'birthDate' => ['nullable', 'date_format:Y-m-d', 'before_or_equal:today', 'after:1900-01-01'],
+                'phone' => ['nullable', 'string', 'max:32'],
+                'addressLine' => ['nullable', 'string', 'max:255'],
+                'location' => ['sometimes', 'required', 'array:regionId,provinceId,cityMunicipalityId,barangayId,code'],
+                'location.regionId' => ['required_with:location', 'integer', 'min:1'],
+                'location.provinceId' => ['present_with:location', 'nullable', 'integer', 'min:1'],
+                'location.cityMunicipalityId' => ['required_with:location', 'integer', 'min:1'],
+                'location.barangayId' => ['required_with:location', 'integer', 'min:1'],
+                'location.code' => ['sometimes', 'string', 'max:10'],
+                'shsSchoolName' => ['prohibited'],
+                'shsStrand' => ['prohibited'],
+                'shsGraduationYear' => ['prohibited'],
+                'strengths' => ['prohibited'],
+                'growthAreas' => ['prohibited'],
+                'learningPreferences' => ['prohibited'],
+            ],
+            [
+                'idNumber.required' => 'Enter your eight-digit ID number.',
+                'idNumber.regex' => 'The ID number must contain exactly eight digits.',
+            ],
+        );
 
         $location = isset($validated['location'])
             ? app(ProfileLocation::class)->attributes($validated['location'])
             : [];
 
-        $lrn = $this->nullableText($validated['lrn'] ?? null);
-        $lrnLookupHash = $lrn === null ? null : hash('sha256', mb_strtolower($lrn));
-        if ($lrnLookupHash !== null && StudentProfile::query()
-            ->where('lrn_lookup_hash', $lrnLookupHash)
+        $idNumber = $validated['idNumber'];
+        $idNumberLookupHash = hash('sha256', $idNumber);
+        if (StudentProfile::query()
+            ->where('id_number_lookup_hash', $idNumberLookupHash)
             ->where('user_id', '!=', $request->user()->getKey())
             ->exists()) {
             throw ValidationException::withMessages([
-                'lrn' => 'This learner reference number is already connected to another account.',
+                'idNumber' => 'This ID number is already connected to another account.',
             ]);
         }
 
         StudentProfile::query()->updateOrCreate(
             ['user_id' => $request->user()->getKey()],
             [
-                'lrn' => $lrn,
-                'lrn_lookup_hash' => $lrnLookupHash,
+                'id_number' => $idNumber,
+                'id_number_lookup_hash' => $idNumberLookupHash,
                 'birth_date' => $this->nullableText($validated['birthDate'] ?? null),
                 'phone' => $this->nullableText($validated['phone'] ?? null),
                 'address_line' => $this->nullableText($validated['addressLine'] ?? null),
                 ...$location,
-                'strengths' => array_values($validated['strengths']),
-                'growth_areas' => array_values($validated['growthAreas']),
-                'learning_preferences' => array_values($validated['learningPreferences']),
             ],
         );
 
@@ -94,10 +94,9 @@ final class StudentProfileController extends Controller
         $validated = $request->validate([
             'photo' => ['required', 'image', 'mimes:jpeg,png,webp', 'max:5120', 'dimensions:min_width=160,min_height=160,max_width=5000,max_height=5000'],
         ]);
-        $profile = StudentProfile::query()->firstOrCreate(
-            ['user_id' => $request->user()->getKey()],
-            ['strengths' => [], 'growth_areas' => [], 'learning_preferences' => []],
-        );
+        $profile = StudentProfile::query()->firstOrCreate([
+            'user_id' => $request->user()->getKey(),
+        ]);
         $previousPath = $profile->photo_path;
         $path = $validated['photo']->store('student-profile-media/'.$request->user()->getKey(), 'local');
         abort_unless($path, 500, 'The profile photo could not be stored.');

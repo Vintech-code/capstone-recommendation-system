@@ -1,7 +1,6 @@
 import {
   ArrowRight,
   BadgeCheck,
-  BookOpenCheck,
   Camera,
   Check,
   ChevronLeft,
@@ -25,43 +24,35 @@ import {
   uploadStudentProfilePhoto,
 } from '@/features/student/profile/student-profile-api'
 import type { StudentProfileData, StudentProfilePayload } from '@/features/student/profile/student-profile-types'
-import { cn } from '@/lib/utils'
 
 const emptyForm: StudentProfilePayload = {
   location: null,
-  lrn: '',
+  idNumber: '',
   birthDate: '',
   phone: '',
   addressLine: '',
   barangay: '',
   municipality: '',
   province: '',
-  strengths: [],
-  growthAreas: [],
-  learningPreferences: [],
 }
 
 function toForm(profile: StudentProfileData): StudentProfilePayload {
   const details = profile.personalAcademic
   return {
     location: details.location ?? null,
-    lrn: details.lrn ?? '',
+    idNumber: details.idNumber ?? '',
     birthDate: details.birthDate ?? '',
     phone: details.phone ?? '',
     addressLine: details.addressLine ?? '',
     barangay: details.barangay ?? '',
     municipality: details.municipality ?? '',
     province: details.province ?? '',
-    strengths: profile.questionnaire.strengths,
-    growthAreas: profile.questionnaire.growthAreas,
-    learningPreferences: profile.questionnaire.learningPreferences,
   }
 }
 
 function StudentProfilePage({ onBack }: { onBack: () => void }) {
   const [profile, setProfile] = useState<StudentProfileData | null>(null)
   const [form, setForm] = useState<StudentProfilePayload>(emptyForm)
-  const [activeTab, setActiveTab] = useState<'personal-academic' | 'learning'>('personal-academic')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
@@ -98,16 +89,9 @@ function StudentProfilePage({ onBack }: { onBack: () => void }) {
   const personalAcademicComplete = useMemo(() => {
     return Boolean(
       form.birthDate &&
+        /^\d{8}$/.test(form.idNumber) &&
         form.phone &&
         form.location?.barangayId,
-    )
-  }, [form])
-
-  const learningComplete = useMemo(() => {
-    return (
-      form.strengths.length > 0 &&
-      form.growthAreas.length > 0 &&
-      form.learningPreferences.length > 0
     )
   }, [form])
 
@@ -118,18 +102,6 @@ function StudentProfilePage({ onBack }: { onBack: () => void }) {
     setForm((current) => ({ ...current, [key]: value }))
     setError(null)
     setSuccess(null)
-  }
-
-  const toggle = (
-    key: 'strengths' | 'growthAreas' | 'learningPreferences',
-    value: string,
-  ) => {
-    setField(
-      key,
-      form[key].includes(value)
-        ? form[key].filter((item) => item !== value)
-        : [...form[key], value],
-    )
   }
 
   const save = async () => {
@@ -146,7 +118,7 @@ function StudentProfilePage({ onBack }: { onBack: () => void }) {
                 form.location.provinceId === -1 ? null : form.location.provinceId,
             }
           : undefined,
-        lrn: form.lrn || null,
+        idNumber: form.idNumber,
         birthDate: form.birthDate || null,
         phone: form.phone || null,
         addressLine: form.addressLine || null,
@@ -191,7 +163,7 @@ function StudentProfilePage({ onBack }: { onBack: () => void }) {
       <LoadingState
         variant="profile"
         title="Loading your profile"
-        description="Restoring your personal, academic, and learning records."
+        description="Restoring your personal and academic records."
       />
     )
   }
@@ -208,16 +180,14 @@ function StudentProfilePage({ onBack }: { onBack: () => void }) {
     )
   }
 
-  const initials = (profile.student.name || '')
-    .split(/\s+/)
+  const firstName = profile.student.firstName ?? ''
+  const lastName = profile.student.lastName ?? ''
+  const initials = [firstName, lastName]
+    .filter(Boolean)
     .slice(0, 2)
     .map((part) => part[0])
     .join('')
     .toUpperCase()
-
-  const nameParts = (profile.student.name || '').trim().split(/\s+/)
-  const firstName = nameParts[0] ?? ''
-  const lastName = nameParts.slice(1).join(' ') || ''
 
   return (
     <div className="student-grid-page student-dashboard-canvas min-h-[calc(100vh-5rem)] py-4 sm:py-6">
@@ -239,7 +209,7 @@ function StudentProfilePage({ onBack }: { onBack: () => void }) {
           <Button
             type="button"
             onClick={save}
-            disabled={saving || !personalAcademicComplete || !learningComplete}
+            disabled={saving || !personalAcademicComplete}
             className="h-10 rounded-full bg-primary px-5 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 disabled:opacity-50"
           >
             {saving ? (
@@ -274,35 +244,11 @@ function StudentProfilePage({ onBack }: { onBack: () => void }) {
           aria-labelledby="profile-editor-title"
           className="rounded-2xl border border-border/80 bg-card p-6 shadow-sm sm:p-10"
         >
-          {/* Card Top Navigation: Tabs & Cancel */}
+          {/* Card heading and cancel action */}
           <div className="flex items-center justify-between border-b border-border/80 pb-3 mb-8">
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setActiveTab('personal-academic')}
-                className={cn(
-                  'flex items-center gap-2 py-2 px-3 text-xs sm:text-sm font-semibold border-b-2 transition-colors cursor-pointer',
-                  activeTab === 'personal-academic'
-                    ? 'border-primary text-primary-ink'
-                    : 'border-transparent text-muted-foreground hover:text-foreground',
-                )}
-              >
-                <UserRound className="size-4" />
-                Personal & Academic
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab('learning')}
-                className={cn(
-                  'flex items-center gap-2 py-2 px-3 text-xs sm:text-sm font-semibold border-b-2 transition-colors cursor-pointer',
-                  activeTab === 'learning'
-                    ? 'border-primary text-primary-ink'
-                    : 'border-transparent text-muted-foreground hover:text-foreground',
-                )}
-              >
-                <BookOpenCheck aria-hidden="true" className="size-4" />
-                Learning Profile & Strengths
-              </button>
+            <div className="flex items-center gap-2 py-2 px-3 text-xs font-semibold text-primary-ink sm:text-sm">
+              <UserRound className="size-4" />
+              Personal & Academic
             </div>
 
             <button
@@ -317,16 +263,11 @@ function StudentProfilePage({ onBack }: { onBack: () => void }) {
           <form
             onSubmit={(event) => {
               event.preventDefault()
-              if (activeTab === 'personal-academic') {
-                setActiveTab('learning')
-              } else {
-                void save()
-              }
+              void save()
             }}
             className="space-y-6"
           >
-            {activeTab === 'personal-academic' ? (
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
                 {/* Left Column: Avatar & Personal Information */}
                 <div
                   data-profile-column="identity"
@@ -446,20 +387,28 @@ function StudentProfilePage({ onBack }: { onBack: () => void }) {
                     />
                   </div>
 
-                  {/* Learner reference number (LRN) */}
+                  {/* Student ID number */}
                   <div>
-                    <Label htmlFor="lrn" className="text-xs font-semibold text-foreground/80 mb-1.5 block">
-                      Learner reference number<span className="font-normal text-muted-foreground ml-1">Optional</span>
+                    <Label htmlFor="id-number" className="text-xs font-semibold text-foreground/80 mb-1.5 block">
+                      ID number <span className="text-destructive">*</span>
                     </Label>
                     <Input
-                      id="lrn"
+                      id="id-number"
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]{8}"
+                      required
                       autoComplete="off"
-                      maxLength={30}
-                      placeholder="12-digit LRN"
-                      value={form.lrn ?? ''}
-                      onChange={(event) => setField('lrn', event.target.value)}
+                      minLength={8}
+                      maxLength={8}
+                      placeholder="8-digit ID number"
+                      value={form.idNumber}
+                      onChange={(event) =>
+                        setField('idNumber', event.target.value.replace(/\D/g, '').slice(0, 8))
+                      }
                       className="h-10 sm:h-11 rounded-xs border-border/80 text-xs sm:text-sm font-mono"
                     />
+                    <p className="mt-1.5 text-xs text-muted-foreground">Enter exactly 8 digits.</p>
                   </div>
 
                 </div>
@@ -539,7 +488,7 @@ function StudentProfilePage({ onBack }: { onBack: () => void }) {
                     </p>
                   </div>
 
-                  {/* Bottom Action for Tab 1 */}
+                  {/* Bottom profile actions */}
                   <div className="flex items-center justify-between pt-4 border-t border-border/70">
                     <Button
                       type="button"
@@ -551,128 +500,27 @@ function StudentProfilePage({ onBack }: { onBack: () => void }) {
                     </Button>
 
                     <Button
-                      type="button"
-                      onClick={() => setActiveTab('learning')}
+                      type="submit"
+                      disabled={saving || !personalAcademicComplete}
                       className="h-10 rounded-xs bg-primary text-primary-foreground font-semibold px-5 gap-2 cursor-pointer text-xs sm:text-sm"
                     >
-                      Next <ChevronRight className="size-4" />
+                      {saving ? (
+                        <>
+                          <Loader2 className="size-4 animate-spin" /> Saving...
+                        </>
+                      ) : (
+                        <>
+                          <Check className="size-4" /> Save profile
+                        </>
+                      )}
                     </Button>
                   </div>
                 </div>
               </div>
-            ) : (
-              /* Tab 2: Learning Profile & Strengths */
-              <div className="space-y-6">
-                <div className="border-b border-border/70 pb-4">
-                  <h2 className="font-display text-xl font-bold text-foreground">
-                    Learning profile & preferences
-                  </h2>
-                  <p className="mt-0.5 text-xs sm:text-sm text-muted-foreground">
-                    Select your self-reported strengths, focus areas, and preferred study modalities.
-                  </p>
-                </div>
-
-                <div className="space-y-6 pt-2">
-                  <ChoiceGroup
-                    title="Self-reported strengths"
-                    values={profile.options.strengths}
-                    selected={form.strengths}
-                    onToggle={(value) => toggle('strengths', value)}
-                  />
-                  <ChoiceGroup
-                    title="Growth areas"
-                    values={profile.options.growthAreas}
-                    selected={form.growthAreas}
-                    onToggle={(value) => toggle('growthAreas', value)}
-                  />
-                  <ChoiceGroup
-                    title="Learning preferences"
-                    values={profile.options.learningPreferences}
-                    selected={form.learningPreferences}
-                    onToggle={(value) => toggle('learningPreferences', value)}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between pt-6 border-t border-border/70">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="h-10 rounded-xs gap-2 cursor-pointer text-xs sm:text-sm"
-                    onClick={() => setActiveTab('personal-academic')}
-                  >
-                    <ChevronLeft className="size-4" /> Back to personal & academic
-                  </Button>
-
-                  <Button
-                    type="button"
-                    onClick={save}
-                    disabled={saving || !learningComplete}
-                    className="h-10 rounded-xl bg-primary px-5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50 sm:text-sm"
-                  >
-                    {saving ? (
-                      <>
-                        <Loader2 className="size-4 animate-spin" /> Saving...
-                      </>
-                    ) : (
-                      <>
-                        <Check className="size-4" /> Save profile
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </div>
-            )}
           </form>
         </section>
       </div>
     </div>
-  )
-}
-
-function ChoiceGroup({
-  title,
-  values,
-  selected,
-  onToggle,
-}: {
-  title: string
-  values: string[]
-  selected: string[]
-  onToggle: (value: string) => void
-}) {
-  return (
-    <fieldset className="space-y-2.5">
-      <div className="flex items-center justify-between">
-        <legend className="font-display text-sm font-bold text-foreground">
-          {title}
-        </legend>
-        <span className="text-xs text-muted-foreground">Select at least one</span>
-      </div>
-      <div className="flex flex-wrap gap-2 pt-0.5">
-        {values.map((value) => {
-          const active = selected.includes(value)
-          return (
-            <button
-              key={value}
-              type="button"
-              aria-pressed={active}
-              onClick={() => onToggle(value)}
-              className={cn(
-                'inline-flex min-h-9 items-center rounded-xs border px-3 py-1.5 text-xs sm:text-sm font-medium transition-all active:scale-95 cursor-pointer',
-                active
-                  ? 'border-primary bg-primary/10 font-semibold text-primary-ink shadow-sm'
-                  : 'border-border/80 bg-card text-foreground/80 hover:border-border hover:bg-muted/40',
-              )}
-            >
-              {active ? (
-                <Check aria-hidden="true" className="mr-1.5 size-3.5 text-primary-ink" />
-              ) : null}
-              {value}
-            </button>
-          )
-        })}
-      </div>
-    </fieldset>
   )
 }
 

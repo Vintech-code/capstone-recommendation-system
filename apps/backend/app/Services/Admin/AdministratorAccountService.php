@@ -135,7 +135,10 @@ final class AdministratorAccountService
             }
 
             $role = Role::query()->where('slug', RoleSlug::Admin->value)->firstOrFail();
+            [$firstName, $lastName] = User::splitDisplayName($invitation->name);
             $user = User::query()->create([
+                'first_name' => $firstName,
+                'last_name' => $lastName,
                 'name' => $invitation->name,
                 'email' => $invitation->email,
                 'password' => $data['password'],

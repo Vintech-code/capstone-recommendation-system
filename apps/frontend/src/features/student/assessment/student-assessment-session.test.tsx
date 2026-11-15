@@ -148,6 +148,68 @@ describe("Student assessment session", () => {
     ).toBeVisible();
   });
 
+  it("advances only once when answers are tapped rapidly", async () => {
+    renderSession();
+
+    fireEvent.click(screen.getByRole("radio", { name: /^Agree/i }));
+    fireEvent.click(screen.getByRole("radio", { name: /^Do not agree/i }));
+
+    expect(
+      await screen.findByRole("group", { name: "Response for question 2" }),
+    ).toBeVisible();
+    await new Promise((resolve) => window.setTimeout(resolve, 350));
+    expect(
+      screen.getByRole("group", { name: "Response for question 2" }),
+    ).toBeVisible();
+    expect(
+      screen.queryByRole("group", { name: "Response for question 3" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows skipped questions and jumps to the selected unanswered item", async () => {
+    const fallbackFetch = vi.mocked(fetch).getMockImplementation();
+    expect(fallbackFetch).toBeDefined();
+    vi.mocked(fetch).mockImplementation(async (input, init) => {
+      if (input.toString() === "/api/v1/student/assessments/riasec/session") {
+        return Response.json({
+          data: {
+            id: 1,
+            reference: "ASMT-000001",
+            status: "in_progress",
+            answers: { 1: 1, 3: 1, 4: 1, 5: 1, 6: 1 },
+            current_question: 6,
+            question_count: 6,
+          },
+        });
+      }
+      return fallbackFetch!(input, init);
+    });
+
+    const user = userEvent.setup();
+    try {
+      renderSession({ remotePersistence: true });
+
+      expect(
+        await screen.findByRole("group", { name: "Response for question 6" }),
+      ).toBeVisible();
+      expect(
+        screen.getByText("You skipped 1 question"),
+      ).toBeVisible();
+      expect(
+        screen.getByRole("button", { name: "Review 1 unanswered" }),
+      ).toBeVisible();
+
+      await user.click(
+        screen.getByRole("button", { name: "Go to unanswered question 2" }),
+      );
+      expect(
+        screen.getByRole("group", { name: "Response for question 2" }),
+      ).toBeVisible();
+    } finally {
+      vi.mocked(fetch).mockImplementation(fallbackFetch!);
+    }
+  });
+
   it("shows pointer click feedback without changing the native radio control", () => {
     renderSession();
 

@@ -12,6 +12,7 @@ use App\Http\Controllers\Assessment\RiasecQuestionnaireController;
 use App\Http\Controllers\Assessment\SharedResultController;
 use App\Http\Controllers\Auth\AdministratorInvitationController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\Auth\PasswordChangeController;
 use App\Http\Controllers\Auth\PasswordRecoveryController;
 use App\Http\Controllers\Auth\PortalAccessController;
@@ -30,6 +31,8 @@ Route::prefix('v1/auth')->group(function (): void {
 
     Route::post('/login', [AuthenticatedSessionController::class, 'store'])
         ->middleware('throttle:login');
+    Route::post('/email/verification-notification', [EmailVerificationController::class, 'resend'])
+        ->middleware('throttle:6,1');
     Route::post('/forgot-password', [PasswordRecoveryController::class, 'requestLink'])
         ->middleware('throttle:6,1');
     Route::post('/reset-password', [PasswordRecoveryController::class, 'reset'])
@@ -48,13 +51,13 @@ Route::prefix('v1/auth')->group(function (): void {
         foreach (RoleSlug::cases() as $role) {
             Route::get("/authorize/{$role->value}", PortalAccessController::class)
                 ->defaults('portal', $role->value)
-                ->middleware("role:{$role->value}");
+                ->middleware(['verified', "role:{$role->value}"]);
         }
     });
 });
 
 Route::prefix('v1/student/assessments/riasec')
-    ->middleware(['auth:sanctum', 'active', 'role:student'])
+    ->middleware(['auth:sanctum', 'active', 'verified', 'role:student'])
     ->group(function (): void {
         Route::get('/questions', [RiasecQuestionnaireController::class, 'questions']);
         Route::get('/session', [AssessmentSessionController::class, 'current']);
@@ -71,28 +74,28 @@ Route::get('v1/shared/results/{shareToken}', [SharedResultController::class, 'sh
     ->middleware('throttle:60,1');
 
 Route::prefix('v1/student/entrance-examination')
-    ->middleware(['auth:sanctum', 'active', 'role:student'])
+    ->middleware(['auth:sanctum', 'active', 'verified', 'role:student'])
     ->group(function (): void {
         Route::get('/', [EntranceExaminationResultController::class, 'show']);
         Route::post('/', [EntranceExaminationResultController::class, 'store']);
     });
 
 Route::prefix('v1/student/recommendations')
-    ->middleware(['auth:sanctum', 'active', 'role:student'])
+    ->middleware(['auth:sanctum', 'active', 'verified', 'role:student'])
     ->group(function (): void {
         Route::get('/latest', [StudentRecommendationController::class, 'latest']);
         Route::get('/attempts/{assessmentSession}', [StudentRecommendationController::class, 'show']);
     });
 
 Route::prefix('v1/student/programmes')
-    ->middleware(['auth:sanctum', 'active', 'role:student'])
+    ->middleware(['auth:sanctum', 'active', 'verified', 'role:student'])
     ->group(function (): void {
         Route::get('/', [StudentProgrammeController::class, 'index']);
         Route::get('/{programme}', [StudentProgrammeController::class, 'show']);
     });
 
 Route::prefix('v1/student/saved-programmes')
-    ->middleware(['auth:sanctum', 'active', 'role:student'])
+    ->middleware(['auth:sanctum', 'active', 'verified', 'role:student'])
     ->group(function (): void {
         Route::get('/', [StudentSavedProgrammeController::class, 'index']);
         Route::put('/{programme}', [StudentSavedProgrammeController::class, 'store']);
@@ -100,7 +103,7 @@ Route::prefix('v1/student/saved-programmes')
     });
 
 Route::prefix('v1/student/profile')
-    ->middleware(['auth:sanctum', 'active', 'role:student'])
+    ->middleware(['auth:sanctum', 'active', 'verified', 'role:student'])
     ->group(function (): void {
         Route::get('/', [StudentProfileController::class, 'show']);
         Route::put('/', [StudentProfileController::class, 'store']);
@@ -108,10 +111,10 @@ Route::prefix('v1/student/profile')
     });
 
 Route::get('v1/profile-photos/{student}', [StudentProfileController::class, 'showPhoto'])
-    ->middleware(['auth:sanctum', 'active']);
+    ->middleware(['auth:sanctum', 'active', 'verified']);
 
 Route::prefix('v1/admin')
-    ->middleware(['auth:sanctum', 'active', 'role:admin'])
+    ->middleware(['auth:sanctum', 'active', 'verified', 'role:admin'])
     ->group(function (): void {
         Route::get('/overview', [AdminWorkspaceController::class, 'overview']);
         Route::get('/students', [AdminWorkspaceController::class, 'students']);
@@ -145,7 +148,7 @@ Route::prefix('v1/admin')
         });
     });
 
-Route::prefix('v1/locations')->middleware(['auth:sanctum', 'active', 'throttle:120,1'])->group(function (): void {
+Route::prefix('v1/locations')->middleware(['auth:sanctum', 'active', 'verified', 'throttle:120,1'])->group(function (): void {
     Route::get('/regions', [LocationController::class, 'regions']);
     Route::get('/regions/{region}/provinces', [LocationController::class, 'provinces']);
     Route::get('/regions/{region}/independent-cities', [LocationController::class, 'independentCities']);

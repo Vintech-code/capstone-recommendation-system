@@ -26,15 +26,12 @@ class AdminWorkspaceTest extends TestCase
         $this->createRecommendation($student, $session);
         StudentProfile::query()->create([
             'user_id' => $student->getKey(),
-            'lrn' => '128490000011',
-            'lrn_lookup_hash' => hash('sha256', '128490000011'),
+            'id_number' => '12345678',
+            'id_number_lookup_hash' => hash('sha256', '12345678'),
             'birth_date' => now()->subYears(18)->format('Y-m-d'),
             'phone' => '+63 917 842 1928',
             'municipality' => 'Tagoloan',
             'province' => 'Misamis Oriental',
-            'strengths' => [],
-            'growth_areas' => [],
-            'learning_preferences' => [],
         ]);
         StudentSavedProgramme::query()->create(['user_id' => $student->getKey(), 'programme_id' => 'bs-information-technology']);
 
@@ -59,7 +56,7 @@ class AdminWorkspaceTest extends TestCase
             ->assertJsonPath('data.attempts.0.entranceExamination.ruleReference', 'SELF-DECLARED-TCC-ENTRANCE-2026-01')
             ->assertJsonPath('data.attempts.0.recommendationSnapshot.catalogueReference', 'TCC-AY-2026-2027-V1')
             ->assertJsonPath('data.attempts.0.recommendations.0.code', 'BSIT')
-            ->assertJsonPath('data.profile.lrn', '128490000011')
+            ->assertJsonPath('data.profile.idNumber', '12345678')
             ->assertJsonMissingPath('data.profile.shsStrand')
             ->assertJsonMissingPath('data.profile.shsGwa');
 

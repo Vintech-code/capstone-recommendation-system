@@ -1,14 +1,16 @@
 import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router";
 import { Dialog as DialogPrimitive } from "radix-ui";
-import { X } from "lucide-react";
+import { MailCheck, X } from "lucide-react";
 
 import logo from "@/assets/logo/login-logo.png";
+import { Button } from "@/components/ui/button";
 import { Dialog, DialogPortal } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/features/auth/auth-context";
 import {
   registerStudent,
+  resendVerificationEmail,
   type StudentRegistrationFields,
 } from "@/features/auth/auth-api";
 import { SignInForm } from "@/features/auth/components/sign-in-form";
@@ -61,6 +63,9 @@ function StudentAuthModal({
   const [mode, setMode] = useState<"signin" | "signup">(initialMode);
   const [googlePopupError, setGooglePopupError] = useState<string | null>(null);
   const [googlePending, setGooglePending] = useState(false);
+  const [verificationEmail, setVerificationEmail] = useState<string | null>(null);
+  const [resendStatus, setResendStatus] = useState<string | null>(null);
+  const [resendPending, setResendPending] = useState(false);
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { signIn } = useAuth();
@@ -95,12 +100,22 @@ function StudentAuthModal({
 
   async function handleRegister(fields: StudentRegistrationFields) {
     await registerStudent(fields);
-    await signIn({
-      email: fields.email,
-      password: fields.password,
-      portal: "student",
-    });
-    navigate("/student", { replace: true });
+    setVerificationEmail(fields.email);
+    setResendStatus(null);
+  }
+
+  async function handleResendVerification() {
+    if (!verificationEmail) return;
+    setResendPending(true);
+    setResendStatus(null);
+    try {
+      const response = await resendVerificationEmail(verificationEmail);
+      setResendStatus(response.message);
+    } catch {
+      setResendStatus("The verification email could not be resent. Please try again.");
+    } finally {
+      setResendPending(false);
+    }
   }
 
   return (
@@ -148,13 +163,19 @@ function StudentAuthModal({
               id="auth-modal-title"
               className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl"
             >
-              {mode === "signin" ? "Welcome back!" : "Create your account"}
+              {verificationEmail
+                ? "Verify your email"
+                : mode === "signin"
+                  ? "Welcome back!"
+                  : "Create your account"}
             </DialogPrimitive.Title>
             <p
               id="auth-modal-description"
               className="mt-2 text-sm text-muted-foreground sm:text-base"
             >
-              {mode === "signin"
+              {verificationEmail
+                ? "Use the secure link we sent before signing in."
+                : mode === "signin"
                 ? "Sign in to access your assessment & recommendations."
                 : "Create your Student Applicant profile to begin."}
             </p>
@@ -162,8 +183,39 @@ function StudentAuthModal({
 
           {/* Form Content */}
           <div className="relative">
-            {mode === "signin" ? (
+            {verificationEmail ? (
+              <div className="mt-5 text-center">
+                <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-primary/12 text-primary-ink">
+                  <MailCheck aria-hidden="true" className="size-6" />
+                </div>
+                <p className="mt-3 text-sm text-foreground">
+                  A verification link was sent to <strong>{verificationEmail}</strong>.
+                </p>
+                <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                  Your account remains unverified and cannot open the Student workspace until you use that link.
+                </p>
+                {resendStatus ? <p role="status" className="mt-3 text-xs font-medium text-primary-ink">{resendStatus}</p> : null}
+                <Button type="button" variant="outline" className="mt-4 w-full rounded-xs" disabled={resendPending} onClick={handleResendVerification}>
+                  {resendPending ? "Sending…" : "Resend verification email"}
+                </Button>
+                <button
+                  type="button"
+                  className="mt-3 text-xs font-bold text-primary-ink underline-offset-4 hover:underline"
+                  onClick={() => {
+                    setVerificationEmail(null);
+                    setMode("signin");
+                  }}
+                >
+                  Return to sign in
+                </button>
+              </div>
+            ) : mode === "signin" ? (
               <div>
+                {searchParams.get("email_verified") === "1" ? (
+                  <p role="status" className="mb-3 rounded-xs bg-primary/10 px-3 py-2 text-xs font-semibold text-primary-ink">
+                    Email verified. You can now sign in.
+                  </p>
+                ) : null}
                 <SignInForm
                   onSignIn={async (credentials) => {
                     await signIn({ ...credentials, portal: "student" });

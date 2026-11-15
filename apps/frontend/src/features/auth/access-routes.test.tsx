@@ -57,10 +57,8 @@ describe("access portals and workspace shell", () => {
       screen.queryByRole("tablist", { name: "Authentication modes" }),
     ).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Sign in" })).toBeVisible();
-    expect(screen.getByRole("textbox", { name: "Full name" })).toHaveAttribute(
-      "placeholder",
-      " ",
-    );
+    expect(screen.getByRole("textbox", { name: "First name" })).toHaveAttribute("placeholder", " ");
+    expect(screen.getByRole("textbox", { name: "Last name" })).toHaveAttribute("placeholder", " ");
     expect(screen.getByLabelText("Password")).toHaveAttribute(
       "placeholder",
       " ",
@@ -70,7 +68,8 @@ describe("access portals and workspace shell", () => {
     await user.click(
       screen.getByRole("button", { name: "Create student account" }),
     );
-    expect(screen.getByText("Enter your full name.")).toBeVisible();
+    expect(screen.getByText("Enter your first name.")).toBeVisible();
+    expect(screen.getByText("Enter your last name.")).toBeVisible();
     expect(screen.getByText("Enter your email address.")).toBeVisible();
     expect(screen.getByText("Enter a password.")).toBeVisible();
     expect(screen.getByText("Confirm your password.")).toBeVisible();

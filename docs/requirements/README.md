@@ -6,7 +6,7 @@ The TCC Course Recommendation System is a decision-support application for incom
 
 ## Implemented roles
 
-- **Student Applicant:** owns a personal account, profile, entrance declaration, assessment attempts, recommendation history, and saved programmes.
+- **Student Applicant:** owns a personal account, personal and academic profile, entrance declaration, assessment attempts, recommendation history, and saved programmes. The profile requires a unique eight-digit ID number and does not include a separate self-reported Learning Profile & Strengths questionnaire.
 - **Administrator:** uses an individual account to monitor students and assessments, govern programme enrichment and media, view aggregate reports, review audit activity, and—when explicitly authorized—manage Administrator invitations and account access.
 
 No role-selection form, shared Administrator credentials, counselor portal, or separate native feature implementation is in scope.
@@ -16,7 +16,9 @@ No role-selection form, shared Administrator credentials, counselor portal, or s
 - Laravel owns authentication, authorization, validation, scoring, admission-group classification, recommendation generation, persistence, and audit records.
 - Administrator accounts are provisioned through expiring single-use invitations. Only Administrators with the account-management capability may invite, suspend, reactivate, change that capability, or revoke sessions, and every sensitive action requires password confirmation and an audit event.
 - Every user-created password uses one Laravel-authoritative policy: 12 to 255 characters with uppercase and lowercase letters, a number, and a symbol. Registration, Administrator invitation acceptance, recovery, authenticated password change, and the local Administrator creation command apply the same rule.
+- Student registration stores `first_name` and `last_name` separately and constructs display names from those fields. Local email registration requires strict server-side syntax/domain validation and signed-link ownership verification; unverified accounts cannot sign in or access protected APIs. Verification resend responses do not reveal whether an account exists. Google sign-in remains an ownership-verifying alternative only when Google reports the email as verified.
 - React presents server-owned state and does not invent thresholds, mappings, policy, or results.
+- Assessment answer selection may auto-advance by one question only. Rapid taps must not stack navigation transitions. Any unanswered question behind the current position must be identified by number and directly reachable, and final submission must remain unavailable until all stored instrument questions have explicit responses.
 - Completed assessments and recommendation snapshots are immutable. Corrections and retakes create auditable history.
 - `SELF-DECLARED-TCC-ENTRANCE-2026-01` records 1.0–2.5 as the board-programme guidance group and 2.6–5.0 as the non-board group. The group does not filter the all-programme RIASEC ranking.
 - The current 42-item binary instrument is `tcc-uhcc-riasec-42-v1`; each RIASEC area has seven stored questions.

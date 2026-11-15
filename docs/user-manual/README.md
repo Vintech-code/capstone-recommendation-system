@@ -2,11 +2,11 @@
 
 ## Student Applicant
 
-1. Open `/` and use the Student sign-in or registration flow.
+1. Open `/` and use the Student sign-in or registration flow. Registration collects separate first and last names. For email/password registration, open the signed verification link sent to the submitted address before signing in; use **Resend verification email** if needed.
 2. Complete the personal profile as needed.
 3. Self-declare the entrance examination result before starting or continuing the assessment.
-4. Answer all 42 binary RIASEC statements and finish the assessment.
-5. Review the recorded result, all ranked classified programmes, and the separately listed pending programme.
+4. Answer all 42 binary RIASEC statements and finish the assessment. If a question was missed, use the numbered **You skipped** alert to jump directly to it. The final action changes to **Review n unanswered** until every statement has a response.
+5. Review the recorded result, all ranked classified programmes, and the separately listed pending programme. Open the result card through **Share result**; the card scrolls inside the dialog on desktop and mobile. Select **Download card** to save the complete card as a PNG image. Administrators receive the same card and download behavior from the Student record.
 6. Explore programme details, compare programmes, save options, and review assessment history.
 
 Recommendations are guidance, not admission decisions or guarantees.

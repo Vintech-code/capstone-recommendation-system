@@ -40,11 +40,17 @@ final class StudentRetentionService
             if ($profile?->photo_path) {
                 Storage::disk('local')->delete($profile->photo_path);
             }
-            $profile?->update(['photo_path' => null, 'strengths' => [], 'growth_areas' => [], 'learning_preferences' => []]);
+            $profile?->update([
+                'photo_path' => null,
+                'id_number' => null,
+                'id_number_lookup_hash' => null,
+            ]);
 
             DB::table('sessions')->where('user_id', $student->getKey())->delete();
 
             $student->forceFill([
+                'first_name' => 'Archived',
+                'last_name' => 'Student '.$student->getKey(),
                 'name' => 'Archived Student '.$student->getKey(),
                 'email' => 'archived-student-'.$student->getKey().'@invalid.local',
                 'password' => Str::random(64),

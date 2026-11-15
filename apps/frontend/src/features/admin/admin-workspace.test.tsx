@@ -78,7 +78,7 @@ describe("Administration workspace", () => {
       }),
     ).toBeVisible();
     expect(screen.getByTestId("student-resume-card")).toBeVisible();
-    expect(screen.getByText("LRN: 128490000011")).toBeVisible();
+    expect(screen.getByText("ID number: 12345678")).toBeVisible();
     expect(screen.queryByText("Tagoloan National High School")).not.toBeInTheDocument();
     expect(
       screen.queryByRole("heading", { name: "Assessment context" }),

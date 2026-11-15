@@ -36,6 +36,10 @@ This is the index for the surviving TCC course-recommendation documentation. The
 - [Student loading-skeleton alignment](note/2026-11-04-student-loading-skeleton-alignment.md) records the responsive My Matches, Explore Programs, and My Profile loading geometry plus active-module restoration after refresh.
 - [Student profile form balance](note/2026-11-04-student-profile-form-balance.md) records the balanced desktop field grouping and responsive mobile order for the Personal & Academic editor.
 - [Student protected browser history](note/2026-11-04-student-protected-browser-history.md) records route-backed Student section history, explicit-only sign-out behavior, Google launch-history handling, and the remaining live-provider verification.
+- [Student ID number and learning-profile removal](note/2026-11-16-student-id-and-learning-profile-removal.md) records the end-to-end profile audit, required eight-digit ID contract, removal of the Learning Profile & Strengths workflow and storage, migration boundary, and validation evidence.
+- [Split-name registration and email verification](note/2026-11-16-registration-email-verification.md) records the name-contract migration, strict email validation, signed ownership verification, resend behavior, protected-access boundary, and validation evidence.
+- [Assessment skipped-question recovery](note/2026-11-16-assessment-skipped-question-recovery.md) records the rapid-tap auto-advance race, missing-question navigator, final submission guard, and validation evidence.
+- [Shared assessment result card](note/2026-11-16-shared-assessment-result-card.md) records the Student/Administrator scroll repair, clearer score layout, and full-card PNG download behavior.
 - [Clone and local setup guide](note/2026-10-28-clone-and-local-setup-guide.md) records the current clone-to-running PowerShell onboarding guide and its verification boundaries.
 - `cmo/` contains locally reviewed CHED programme-standard evidence.
 - `pdf/` contains the capstone paper and historical roadmap sources.

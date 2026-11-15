@@ -11,6 +11,7 @@ import type {
 import { AssessmentProgressPanel } from "@/features/student/assessment/components/assessment-progress-panel";
 import { AssessmentQuestionCard } from "@/features/student/assessment/components/assessment-question-card";
 import { AssessmentResultLoading } from "@/features/student/assessment/components/assessment-result-loading";
+import { AssessmentUnansweredNavigator } from "@/features/student/assessment/components/assessment-unanswered-navigator";
 import { CompletedAssessmentState } from "@/features/student/assessment/components/completed-assessment-state";
 import { EntranceExaminationGate } from "@/features/student/assessment/components/entrance-examination-gate";
 import { useAssessmentSession } from "@/features/student/assessment/hooks/use-assessment-session";
@@ -100,6 +101,10 @@ function StudentAssessmentSessionPage({
       <div className="sticky top-0 z-20 bg-background sm:top-[4.5rem]">
         <div className="student-page w-full max-w-4xl px-4 sm:px-6">
           <AssessmentProgressPanel answeredCount={session.answeredCount} currentQuestion={session.currentIndex + 1} totalQuestions={session.content.questions.length} />
+          <AssessmentUnansweredNavigator
+            questionNumbers={session.skippedQuestionNumbers}
+            onSelect={(questionNumber) => session.goToQuestion(questionNumber - 1)}
+          />
         </div>
       </div>
 
@@ -134,17 +139,32 @@ function StudentAssessmentSessionPage({
 
       <nav aria-label="Question navigation" className="sticky bottom-0 z-20 mt-auto border-t border-border/70 bg-background">
         <div className="student-page flex w-full max-w-4xl items-center justify-between py-3">
-          <Button type="button" variant="clay" disabled={session.currentIndex === 0} onClick={() => session.setCurrentIndex((index) => index - 1)} className="px-5 font-semibold text-foreground">
+          <Button type="button" variant="clay" disabled={session.currentIndex === 0} onClick={() => session.goToQuestion(session.currentIndex - 1)} className="px-5 font-semibold text-foreground">
             <ArrowLeft aria-hidden="true" /> Previous
           </Button>
           <span className="sr-only" role="status">{saveStatus.label}</span>
           {session.currentIndex < session.content.questions.length - 1 && session.answers[session.question.id] ? (
-            <Button type="button" variant="clay" onClick={() => session.setCurrentIndex((index) => index + 1)} className="px-6 font-bold text-primary-ink">
+            <Button type="button" variant="clay" onClick={() => session.goToQuestion(session.currentIndex + 1)} className="px-6 font-bold text-primary-ink">
               Next <ArrowRight aria-hidden="true" />
             </Button>
           ) : session.currentIndex === session.content.questions.length - 1 ? (
-            <Button type="button" variant="clay" disabled={!session.answers[session.question.id]} onClick={() => void session.submitAssessment()} className="px-6 font-bold text-primary-ink">
-              Finish assessment <ArrowRight aria-hidden="true" />
+            <Button
+              type="button"
+              variant="clay"
+              disabled={!session.answers[session.question.id]}
+              onClick={() => {
+                if (session.unansweredQuestionNumbers.length > 0) {
+                  session.goToQuestion(session.unansweredQuestionNumbers[0] - 1);
+                  return;
+                }
+                void session.submitAssessment();
+              }}
+              className="px-6 font-bold text-primary-ink"
+            >
+              {session.unansweredQuestionNumbers.length > 0
+                ? `Review ${session.unansweredQuestionNumbers.length} unanswered`
+                : "Finish assessment"}
+              <ArrowRight aria-hidden="true" />
             </Button>
           ) : null}
         </div>

@@ -5,28 +5,10 @@ namespace App\Services\Student;
 use App\Models\AssessmentSession;
 use App\Models\User;
 use App\Services\Assessment\RiasecQuestionnaire;
-use App\Services\Recommendation\TccProgrammeCatalogueRepository;
 use Carbon\CarbonImmutable;
 
 final class StudentProfilePresenter
 {
-    public const STRENGTHS = [
-        'Problem-solving', 'Logical thinking', 'Creativity', 'Communication', 'Leadership',
-        'Organization', 'Teamwork', 'Critical thinking', 'Attention to detail', 'Adaptability',
-    ];
-
-    public const GROWTH_AREAS = [
-        'Time management', 'Public speaking', 'Mathematics', 'Writing', 'Communication',
-        'Teamwork', 'Leadership', 'Organization', 'Critical thinking', 'Technical skills',
-    ];
-
-    public const LEARNING_PREFERENCES = [
-        'Visual demonstrations', 'Reading', 'Hands-on activities', 'Group activities',
-        'Discussions', 'Independent work', 'Step-by-step examples', 'Practice exercises',
-    ];
-
-    public function __construct(private readonly TccProgrammeCatalogueRepository $catalogues) {}
-
     /** @return array<string, mixed> */
     public function present(User $student): array
     {
@@ -34,9 +16,6 @@ final class StudentProfilePresenter
         $assessment = $this->latestAssessment($student);
         $riasec = $assessment ? $this->riasec($assessment) : null;
         $profile = $student->studentProfile;
-        $strengths = $profile?->strengths ?? [];
-        $growthAreas = $profile?->growth_areas ?? [];
-        $learningPreferences = $profile?->learning_preferences ?? [];
         $birthDate = $profile?->birth_date;
         $age = $birthDate ? CarbonImmutable::createFromFormat('Y-m-d', $birthDate)?->age : null;
 
@@ -44,25 +23,21 @@ final class StudentProfilePresenter
             'student' => [
                 'id' => $student->getKey(),
                 'name' => $student->name,
+                'firstName' => $student->first_name,
+                'lastName' => $student->last_name,
                 'email' => $student->email,
                 'photoUrl' => $profile?->photo_path
                     ? '/api/v1/profile-photos/'.$student->getKey().'?v='.$profile->updated_at?->getTimestamp()
                     : $student->google_avatar_url,
             ],
-            'questionnaire' => [
-                'complete' => $strengths !== [] && $growthAreas !== [] && $learningPreferences !== [],
-                'strengths' => array_values($strengths),
-                'growthAreas' => array_values($growthAreas),
-                'learningPreferences' => array_values($learningPreferences),
-                'updatedAt' => $profile?->updated_at?->toAtomString(),
-            ],
             'personalAcademic' => [
                 'complete' => $profile !== null
+                    && $profile->id_number !== null
                     && $birthDate !== null
                     && $profile->phone !== null
                     && $profile->municipality !== null
                     && ($profile->barangay_id !== null || $profile->province !== null),
-                'lrn' => $profile?->lrn,
+                'idNumber' => $profile?->id_number,
                 'birthDate' => $birthDate,
                 'age' => $age,
                 'phone' => $profile?->phone,
@@ -73,14 +48,7 @@ final class StudentProfilePresenter
                 'province' => $profile?->province,
                 'updatedAt' => $profile?->updated_at?->toAtomString(),
             ],
-            'options' => [
-                'strengths' => self::STRENGTHS,
-                'growthAreas' => self::GROWTH_AREAS,
-                'learningPreferences' => self::LEARNING_PREFERENCES,
-            ],
             'riasec' => $riasec,
-            'careerInterests' => $assessment ? $this->careerInterests($assessment) : [],
-            'about' => $this->summary($riasec, $strengths, $learningPreferences),
         ];
     }
 
@@ -89,7 +57,6 @@ final class StudentProfilePresenter
         return $student->assessmentSessions()
             ->whereIn('instrument_code', RiasecQuestionnaire::supportedInstrumentCodes())
             ->where('status', 'result_available')
-            ->with('recommendationRun')
             ->latest('result_available_at')
             ->first();
     }
@@ -144,57 +111,5 @@ final class StudentProfilePresenter
                 'code' => $dimension['code'], 'label' => $dimension['label'], 'value' => $dimension['value'],
             ], $dimensions),
         ];
-    }
-
-    /** @return array<int, string> */
-    private function careerInterests(AssessmentSession $assessment): array
-    {
-        $programmeIds = collect($assessment->recommendationRun?->ranked_courses ?? [])
-            ->sortBy('rank')
-            ->take(3)
-            ->pluck('id')
-            ->filter()
-            ->values();
-        if ($programmeIds->isEmpty()) {
-            return [];
-        }
-
-        try {
-            $programmes = collect($this->catalogues->current()['programmes'] ?? [])->keyBy('id');
-        } catch (\JsonException) {
-            return [];
-        }
-
-        return $programmeIds
-            ->flatMap(static fn (string $id): array => $programmes->get($id, [])['career_directions'] ?? [])
-            ->filter(static fn (mixed $value): bool => is_string($value) && trim($value) !== '')
-            ->unique()
-            ->take(8)
-            ->values()
-            ->all();
-    }
-
-    /** @param array<string, mixed>|null $riasec
-     * @param  array<int, string>  $strengths
-     * @param  array<int, string>  $learningPreferences
-     */
-    private function summary(?array $riasec, array $strengths, array $learningPreferences): string
-    {
-        $sentences = [];
-        if ($riasec && ($riasec['leadingAreas'] ?? []) !== []) {
-            $labels = implode(', ', array_column($riasec['leadingAreas'], 'label'));
-            $shared = collect($riasec['leadingAreas'])->contains('isTied', true) ? ' with shared ranks where scores are equal' : '';
-            $sentences[] = "The latest recorded RIASEC result is {$riasec['code']} ({$labels}){$shared}.";
-        }
-        if ($strengths !== []) {
-            $sentences[] = 'The student selected '.implode(', ', $strengths).' as self-reported strengths.';
-        }
-        if ($learningPreferences !== []) {
-            $sentences[] = 'Recorded learning preferences include '.implode(', ', $learningPreferences).'.';
-        }
-
-        return $sentences === []
-            ? 'Complete the interest assessment and profile questionnaire to build a factual student profile.'
-            : implode(' ', $sentences);
     }
 }

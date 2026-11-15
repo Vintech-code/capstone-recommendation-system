@@ -86,13 +86,17 @@ describe("server-backed authentication", () => {
     );
   });
 
-  it("registers a Student account and enters the Student workspace", async () => {
+  it("registers with split names and requires email verification", async () => {
     const user = userEvent.setup();
     await renderAppAt("/student/register");
 
     await user.type(
-      screen.getByRole("textbox", { name: "Full name" }),
-      "New Student",
+      screen.getByRole("textbox", { name: "First name" }),
+      "Clark",
+    );
+    await user.type(
+      screen.getByRole("textbox", { name: "Last name" }),
+      "Cabatuan",
     );
     await user.type(
       screen.getByRole("textbox", { name: "Email address" }),
@@ -107,18 +111,28 @@ describe("server-backed authentication", () => {
       screen.getByRole("button", { name: "Create student account" }),
     );
 
-    await waitFor(() => expect(window.location.pathname).toBe("/student"));
+    expect(await screen.findByRole("heading", { name: "Verify your email" })).toBeVisible();
+    expect(screen.getByText(/new\.student@example\.test/)).toBeVisible();
+    expect(window.location.pathname).toBe("/student/register");
     expect(fetch).toHaveBeenCalledWith(
       "/api/v1/auth/register",
       expect.objectContaining({
         body: JSON.stringify({
-          name: "New Student",
+          firstName: "Clark",
+          lastName: "Cabatuan",
           email: "new.student@example.test",
           password: "StudentPass!2026",
           password_confirmation: "StudentPass!2026",
         }),
       }),
     );
+    expect(fetch).not.toHaveBeenCalledWith(
+      "/api/v1/auth/login",
+      expect.anything(),
+    );
+
+    await user.click(screen.getByRole("button", { name: "Resend verification email" }));
+    expect(await screen.findByRole("status")).toHaveTextContent("new verification link has been sent");
   });
 
   it("redirects an unauthenticated Admin request to the Admin portal", async () => {

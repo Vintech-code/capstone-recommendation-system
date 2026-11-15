@@ -23,7 +23,7 @@ it('edits the Student-owned profile without GWA fields', async () => {
   render(<QueryClientProvider client={new QueryClient()}><StudentProfilePage onBack={vi.fn()} /></QueryClientProvider>)
 
   expect(await screen.findByRole('heading', { name: 'Authenticated User' })).toBeVisible()
-  expect(screen.getByLabelText('Learner reference numberOptional')).toHaveValue('128490000001')
+  expect(screen.getByLabelText('ID number *')).toHaveValue('12345678')
   expect(screen.queryByLabelText(/GWA/i)).not.toBeInTheDocument()
 
   const identityColumn = document.querySelector('[data-profile-column="identity"]')
@@ -38,12 +38,14 @@ it('edits the Student-owned profile without GWA fields', async () => {
   expect(screen.queryByLabelText(/Senior high school/)).not.toBeInTheDocument()
   expect(screen.queryByLabelText(/GWA/i)).not.toBeInTheDocument()
 
-  await user.click(screen.getByRole('button', { name: /Next/ }))
-  expect(screen.getByRole('heading', { name: 'Learning profile & preferences' })).toBeVisible()
+  expect(screen.queryByText('Learning Profile & Strengths')).not.toBeInTheDocument()
+  expect(screen.queryByRole('heading', { name: 'Learning profile & preferences' })).not.toBeInTheDocument()
   await user.click(screen.getByRole('button', { name: 'Save profile' }))
 
   await waitFor(() => expect(screen.getByText('Your profile has been saved.')).toBeVisible())
   const putCall = vi.mocked(fetch).mock.calls.find(([, init]) => init?.method === 'PUT')
   expect(putCall).toBeDefined()
   expect(String(putCall?.[1]?.body)).not.toContain('gwa')
+  expect(String(putCall?.[1]?.body)).not.toContain('strengths')
+  expect(String(putCall?.[1]?.body)).toContain('"idNumber":"12345678"')
 })

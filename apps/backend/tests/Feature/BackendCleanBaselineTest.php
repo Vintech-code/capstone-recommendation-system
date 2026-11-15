@@ -15,6 +15,14 @@ class BackendCleanBaselineTest extends TestCase
         $this->assertTrue(Schema::hasTable('roles'));
         $this->assertTrue(Schema::hasTable('assessment_sessions'));
         $this->assertFalse(Schema::hasColumn('users', 'must_change_password'));
+        $this->assertTrue(Schema::hasColumn('student_profiles', 'id_number'));
+        $this->assertTrue(Schema::hasColumn('student_profiles', 'id_number_lookup_hash'));
+        foreach (['lrn', 'lrn_lookup_hash', 'strengths', 'growth_areas', 'learning_preferences'] as $removedColumn) {
+            $this->assertFalse(
+                Schema::hasColumn('student_profiles', $removedColumn),
+                $removedColumn.' should not exist on student_profiles.',
+            );
+        }
 
         foreach ([
             'personal_access_tokens',

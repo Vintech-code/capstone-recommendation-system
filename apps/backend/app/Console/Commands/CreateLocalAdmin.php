@@ -57,7 +57,10 @@ class CreateLocalAdmin extends Command
             return self::FAILURE;
         }
 
+        [$firstName, $lastName] = User::splitDisplayName($name);
         $user = User::query()->create([
+            'first_name' => $firstName,
+            'last_name' => $lastName,
             'name' => $name,
             'email' => $email,
             'password' => $password,

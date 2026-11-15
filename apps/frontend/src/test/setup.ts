@@ -81,11 +81,15 @@ async function defaultFetch(
   }
 
   if (url === '/api/v1/auth/register') {
-    const body = JSON.parse(String(init?.body ?? '{}')) as { name: string; email: string }
+    const body = JSON.parse(String(init?.body ?? '{}')) as { firstName: string; lastName: string; email: string }
     return Response.json({
-      message: 'Student account created.',
-      user: { id: 2, name: body.name, email: body.email, roles: ['student'] },
+      message: 'Student account created. Check your email to verify your account.',
+      user: { id: 2, name: `${body.firstName} ${body.lastName}`, firstName: body.firstName, lastName: body.lastName, email: body.email, emailVerified: false, roles: ['student'] },
     }, { status: 201 })
+  }
+
+  if (url === '/api/v1/auth/email/verification-notification') {
+    return Response.json({ message: 'If an unverified account matches that email, a new verification link has been sent.' })
   }
 
   if (url === '/api/v1/auth/logout') {
@@ -161,7 +165,7 @@ async function defaultFetch(
   if (url === '/api/v1/admin/students/10') {
     return Response.json({ data: {
       id: 10, name: 'Ana Santos', email: 'ana@example.test', accountStatus: 'active', savedProgrammeCount: 1,
-      profile: { lrn: '128490000011', birthDate: '2007-04-18', age: 19, phone: '+63 917 842 1928', addressLine: 'Zone 2', barangay: 'Poblacion', municipality: 'Tagoloan', province: 'Misamis Oriental' },
+      profile: { idNumber: '12345678', birthDate: '2007-04-18', age: 19, phone: '+63 917 842 1928', addressLine: 'Zone 2', barangay: 'Poblacion', municipality: 'Tagoloan', province: 'Misamis Oriental' },
       assessmentSummary: { totalAttempts: 1, completedAttempts: 1, retakeCount: 0, latestAttempt: null },
       attempts: [{ id: 1, reference: 'ASMT-000001', studentId: 10, studentName: 'Ana Santos', studentEmail: 'ana@example.test', attemptNumber: 2, retakeReason: 'I wanted to review my current course interests.', instrumentCode: 'tcc-riasec-30-v1', status: 'result_available', answerCount: 30, questionCount: 30, topCode: 'I-C-R', startedAt: '2026-08-01T08:00:00+08:00', savedAt: '2026-08-01T08:19:00+08:00', submittedAt: '2026-08-01T08:20:00+08:00', resultAvailableAt: '2026-08-01T08:20:01+08:00', processingErrorCode: null, processingFailedAt: null, entranceExamination: { resultId: 4, score: 2.5, eligibilityGroup: 'board', ruleReference: 'SELF-DECLARED-TCC-ENTRANCE-2026-01', source: 'student_self_declared', declaredAt: '2026-08-01T07:30:00+08:00' }, recommendationSnapshot: { catalogueReference: 'TCC-AY-2026-2027-V1', ruleReference: 'PROPOSED-RIASEC-1', methodologyStatus: 'Proposed methodology', generatedAt: '2026-08-01T08:20:01+08:00', totalEligible: 6 }, dimensions: [{ code: 'I', label: 'Investigative', value: 19 }, { code: 'C', label: 'Conventional', value: 18 }, { code: 'R', label: 'Realistic', value: 17 }], recommendations: [{ id: 'bs-information-technology', rank: 1, code: 'BSIT', name: 'BS Information Technology', match: 90 }] }],
     } })
@@ -212,13 +216,9 @@ async function defaultFetch(
 
   if (url === '/api/v1/student/profile') {
     return Response.json({ data: {
-      student: { id: 1, name: 'Authenticated User', email: 'user@example.com', photoUrl: null },
-      personalAcademic: { complete: true, lrn: '128490000001', birthDate: '2007-04-18', age: 19, phone: '+63 917 842 1928', addressLine: 'Zone 2', barangay: 'Poblacion', municipality: 'Tagoloan', province: 'Misamis Oriental', updatedAt: '2026-09-07T10:00:00+08:00' },
-      questionnaire: { complete: true, strengths: ['Problem-solving'], growthAreas: ['Public speaking'], learningPreferences: ['Hands-on activities'], updatedAt: '2026-08-09T10:00:00+08:00' },
-      options: { strengths: ['Problem-solving', 'Creativity'], growthAreas: ['Public speaking', 'Time management'], learningPreferences: ['Hands-on activities', 'Independent work'] },
+      student: { id: 1, name: 'Authenticated User', firstName: 'Authenticated', lastName: 'User', email: 'user@example.com', photoUrl: null },
+      personalAcademic: { complete: true, idNumber: '12345678', birthDate: '2007-04-18', age: 19, phone: '+63 917 842 1928', addressLine: 'Zone 2', barangay: 'Poblacion', municipality: 'Tagoloan', province: 'Misamis Oriental', updatedAt: '2026-09-07T10:00:00+08:00' },
       riasec: { sessionReference: 'ASMT-000001', availableAt: '2026-08-09T09:00:00+08:00', primary: { code: 'I', label: 'Investigative' }, secondary: { code: 'C', label: 'Conventional' }, tertiary: { code: 'R', label: 'Realistic' }, code: 'I-C-R', dimensions: [{ code: 'I', label: 'Investigative', value: 20 }, { code: 'C', label: 'Conventional', value: 18 }, { code: 'R', label: 'Realistic', value: 17 }] },
-      careerInterests: ['Software and application development'],
-      about: 'The latest recorded RIASEC result is I-C-R (Investigative, Conventional, and Realistic). The student selected Problem-solving as a self-reported strength.',
     } })
   }
 

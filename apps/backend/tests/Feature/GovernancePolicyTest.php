@@ -21,7 +21,11 @@ final class GovernancePolicyTest extends TestCase
         $role = Role::query()->create(['slug' => RoleSlug::Student->value, 'name' => RoleSlug::Student->name]);
         $student = User::factory()->create(['name' => 'Student Name', 'email' => 'student@example.test']);
         $student->roles()->attach($role);
-        StudentProfile::query()->create(['user_id' => $student->getKey(), 'strengths' => ['Problem solving'], 'growth_areas' => ['Speaking'], 'learning_preferences' => ['Visual']]);
+        StudentProfile::query()->create([
+            'user_id' => $student->getKey(),
+            'id_number' => '12345678',
+            'id_number_lookup_hash' => hash('sha256', '12345678'),
+        ]);
         $student->forceFill(['created_at' => now()->subYears(6), 'updated_at' => now()->subYears(6)])->saveQuietly();
         StudentProfile::query()->where('user_id', $student->getKey())->update(['created_at' => now()->subYears(6), 'updated_at' => now()->subYears(6)]);
 
@@ -34,7 +38,8 @@ final class GovernancePolicyTest extends TestCase
         $this->assertSame('archived-student-'.$student->getKey().'@invalid.local', $student->email);
         $this->assertSame('suspended', $student->account_status);
         $this->assertNotNull($student->privacy_anonymized_at);
-        $this->assertSame([], $student->studentProfile->strengths);
+        $this->assertNull($student->studentProfile->id_number);
+        $this->assertNull($student->studentProfile->id_number_lookup_hash);
         $this->assertCount(1, User::query()->whereNotNull('privacy_anonymized_at')->get());
     }
 
