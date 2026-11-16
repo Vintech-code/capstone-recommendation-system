@@ -645,7 +645,11 @@ export function AdminStudentDetailPage({
                             variant={idx === 0 ? "default" : "outline"}
                             size="sm"
                             className="w-full text-xs font-semibold gap-1.5"
-                            onClick={() => onNavigate("/admin/programmes")}
+                            onClick={() =>
+                              onNavigate(
+                                `/admin/programmes/${encodeURIComponent(programme.id)}`,
+                              )
+                            }
                           >
                             Review Curriculum & Quotas
                           </Button>

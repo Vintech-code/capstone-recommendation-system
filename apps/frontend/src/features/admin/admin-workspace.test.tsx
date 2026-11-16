@@ -92,6 +92,19 @@ describe("Administration workspace", () => {
     expect(
       screen.getAllByText("BS Information Technology").length,
     ).toBeGreaterThan(0);
+
+    await user.click(
+      screen.getByRole("button", { name: "Review Curriculum & Quotas" }),
+    );
+    expect(window.location.pathname).toBe(
+      "/admin/programmes/bs-information-technology",
+    );
+    expect(
+      await screen.findByRole("heading", {
+        name: "BS Information Technology",
+      }),
+    ).toBeVisible();
+    expect(screen.getByRole("dialog")).toBeVisible();
   });
 
   it("provides programme monitoring and configuration", async () => {

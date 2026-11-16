@@ -296,6 +296,23 @@ test('Admin Student detail follows the evidence dossier layout', async ({ page }
   expect(consoleErrors).toEqual([])
 })
 
+test('Admin recommendation review opens the selected programme detail', async ({ page }) => {
+  test.slow()
+  await installAdminApi(page, true)
+  await page.goto('/admin/students/10', { waitUntil: 'domcontentloaded' })
+
+  await page.getByRole('button', { name: 'Review Curriculum & Quotas' }).first().click()
+
+  await expect(page).toHaveURL(/\/admin\/programmes\/bs-information-technology$/)
+  await expect(page.getByRole('dialog')).toBeVisible()
+  await expect(
+    page.getByRole('dialog').getByRole('heading', {
+      name: 'BS Information Technology',
+      exact: true,
+    }),
+  ).toBeVisible()
+})
+
 test('Administrator invitation and account governance render securely without overflow', async ({ page }, testInfo) => {
   const consoleErrors: string[] = []
   page.on('console', (message) => { if (message.type() === 'error') consoleErrors.push(message.text()) })

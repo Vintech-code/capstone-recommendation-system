@@ -5,6 +5,8 @@
 **Methodology status:** PROPOSED  
 **Repository-owner direction:** Show every configured programme from highest to lowest recorded RIASEC match and correct misleading tie presentation.
 
+**2026-11-16 superseding rank presentation:** The competition-rank convention below is historical. Exact programme ties now use consecutive dense positions under `PROPOSED-RIASEC-5-DENSE-RANKS`; see `2026-11-16-dense-programme-tie-ranking.md`. Historical snapshots remain immutable.
+
 **2026-11-03 superseding formula:** The equal-membership formula below is historical. New runs use the proposed ordered 50% / 30% / 20% programme-profile weights recorded in `2026-11-03-weighted-riasec-and-shs-removal.md`; historical recommendation snapshots remain unchanged.
 
 **2026-09-10 superseding classification boundary:** Ten programmes now have the required three-code PSG-informed analytical profile and remain ranked. BS Community Development stays visible separately as classification pending and receives no fabricated rank or percentage until its authoritative programme basis is available. New runs use `PROPOSED-RIASEC-3-PSG-MATRIX`; see `2026-09-10-psg-informed-riasec-classification.md`.

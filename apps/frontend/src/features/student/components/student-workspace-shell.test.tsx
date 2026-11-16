@@ -106,7 +106,12 @@ describe("StudentWorkspaceShell", () => {
     );
 
     const avatar = screen.getByRole("img", { name: "Maria Santos profile" });
+    const visibleName = screen.getByText("Maria Santos");
     expect(avatar).toBeVisible();
+    expect(visibleName).toBeVisible();
+    expect(
+      visibleName.compareDocumentPosition(avatar) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
     expect(screen.queryByRole("button", { name: /notifications/i })).not.toBeInTheDocument();
     expect(avatar).toHaveAttribute("src", "https://example.test/avatar.png");
   });

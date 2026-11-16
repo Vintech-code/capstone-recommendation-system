@@ -58,6 +58,26 @@ class ProvisionalRiasecRecommendationEngineTest extends TestCase
         $this->assertSame(['PROFILE_UNAVAILABLE'], array_column($result['exclusions'], 'reason'));
     }
 
+    #[Test]
+    public function it_uses_the_next_consecutive_rank_after_an_exact_tie(): void
+    {
+        $catalogue = $this->catalogue();
+        $catalogue['programmes'][] = [
+            'id' => 'alpha-twin',
+            'short_label' => 'AT',
+            'display_name' => 'Alpha Twin Programme',
+            'riasec_profile' => ['I', 'C', 'E'],
+        ];
+
+        $result = (new ProvisionalRiasecRecommendationEngine)->recommend(
+            $this->scores(),
+            $catalogue,
+        );
+
+        $this->assertSame([1, 1, 2, 3], array_column($result['ranked'], 'rank'));
+        $this->assertSame([true, true, false, false], array_column($result['ranked'], 'is_tied'));
+    }
+
     /** @return array<int, array{area: string, score: int}> */
     private function scores(): array
     {

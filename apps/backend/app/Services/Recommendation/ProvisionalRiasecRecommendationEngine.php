@@ -134,9 +134,9 @@ final class ProvisionalRiasecRecommendationEngine
 
         $previousMatch = null;
         $previousRank = 0;
-        foreach ($ranked as $index => &$programme) {
+        foreach ($ranked as &$programme) {
             if ($previousMatch === null || abs($programme['raw_match'] - $previousMatch) > 0.000001) {
-                $previousRank = $index + 1;
+                $previousRank++;
             }
 
             $programme['rank'] = $previousRank;

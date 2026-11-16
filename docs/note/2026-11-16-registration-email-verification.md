@@ -20,6 +20,7 @@ This slice stores `first_name` and `last_name`, constructs the application displ
 - Resend is throttled and returns the same response for matching and missing accounts to limit account enumeration.
 - The Student registration modal shows a dedicated verification state with resend and return-to-sign-in actions.
 - Google-created accounts remain verified only when Google reports `email_verified`; Google given/family names populate the split fields when available.
+- **2026-11-16 profile-editing extension:** Authenticated Students may subsequently correct both split name fields through My Profile regardless of whether the account originated locally or through Google. The profile workflow keeps email read-only and does not change the email-ownership boundary.
 - The verification notification replaces Laravel's default logo and generic message with a responsive, table-based HTML email aligned to the provisional green-neutral design direction. It includes the Student's first name, exact destination address, primary verification action, configured expiry, security guidance, visible fallback URL, and a complete plain-text alternative.
 - Inline token colors and system-font fallbacks are deliberate email-client compatibility exceptions; they mirror `DESIGN.md` rather than introducing a separate visual system.
 

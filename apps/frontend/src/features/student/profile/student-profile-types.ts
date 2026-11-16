@@ -34,6 +34,8 @@ interface StudentProfileData {
 }
 
 interface StudentProfilePayload {
+  firstName: string
+  lastName: string
   idNumber: string
   birthDate: string | null
   phone: string | null

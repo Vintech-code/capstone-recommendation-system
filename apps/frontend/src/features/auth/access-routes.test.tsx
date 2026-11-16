@@ -20,6 +20,10 @@ describe("access portals and workspace shell", () => {
     expect(
       screen.getByRole("heading", { name: "Welcome back!" }),
     ).toBeVisible();
+    expect(screen.getByText("Sign in to access your")).toBeVisible();
+    expect(
+      screen.queryByText("assessment & recommendations."),
+    ).not.toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "Continue with Google" }),
     ).toBeEnabled();

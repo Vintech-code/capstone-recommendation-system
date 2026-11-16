@@ -209,7 +209,8 @@ class TccProgrammeCatalogueTest extends TestCase
         $this->assertSame('SELF-DECLARED-TCC-ENTRANCE-2026-01', $policy['eligibility']['entrance_examination_rule_reference']);
         $this->assertSame('catalogue_programmes_with_psg_classification', $policy['eligibility']['ranking_scope']);
         $this->assertSame('separate_guidance', $policy['eligibility']['eligibility_applied_as']);
-        $this->assertSame('competition_rank', $policy['tie_break']['rank_policy']);
+        $this->assertSame('PROPOSED-RIASEC-5-DENSE-RANKS', $policy['version']);
+        $this->assertSame('dense_rank', $policy['tie_break']['rank_policy']);
         $this->assertSame('display_name', $policy['tie_break']['field']);
         $this->assertSame('ascending', $policy['tie_break']['direction']);
         $this->assertSame(3, $policy['display']['default_count']);

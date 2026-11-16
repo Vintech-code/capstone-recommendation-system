@@ -40,6 +40,11 @@ This is the index for the surviving TCC course-recommendation documentation. The
 - [Split-name registration and email verification](note/2026-11-16-registration-email-verification.md) records the name-contract migration, strict email validation, signed ownership verification, resend behavior, protected-access boundary, and validation evidence.
 - [Assessment skipped-question recovery](note/2026-11-16-assessment-skipped-question-recovery.md) records the rapid-tap auto-advance race, missing-question navigator, final submission guard, and validation evidence.
 - [Shared assessment result card](note/2026-11-16-shared-assessment-result-card.md) records the Student/Administrator scroll repair, clearer score layout, and full-card PNG download behavior.
+- [Dense programme tie ranking](note/2026-11-16-dense-programme-tie-ranking.md) records consecutive displayed programme positions after exact ties, new-run persistence, legacy-snapshot presentation, and validation evidence.
+- [Student sign-in subtitle alignment](note/2026-11-16-student-sign-in-subtitle-alignment.md) records the simplified supporting copy in the public Student authentication modal.
+- [Editable Student account names](note/2026-11-16-editable-student-account-names.md) records the Student-owned split-name update contract, atomic persistence, authenticated-shell refresh, and historical-evidence boundary.
+- [Shared toast feedback and Student header identity](note/2026-11-16-shared-toast-and-student-header-identity.md) records centralized transient notifications, inline-success removal, and immediate visible name refresh beside the Student profile control.
+- [Selected Administrator recommendation programme routing](note/2026-11-17-admin-recommendation-programme-routing.md) records the recommendation-to-programme detail route repair and validation evidence.
 - [Clone and local setup guide](note/2026-10-28-clone-and-local-setup-guide.md) records the current clone-to-running PowerShell onboarding guide and its verification boundaries.
 - `cmo/` contains locally reviewed CHED programme-standard evidence.
 - `pdf/` contains the capstone paper and historical roadmap sources.

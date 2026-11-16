@@ -32,7 +32,7 @@ function AppProviders({ children, initialAuthUser }: AppProvidersProps) {
       <AuthProvider initialUser={initialAuthUser}>
         <TooltipProvider delayDuration={300}>
           {children}
-          <Toaster theme="light" />
+          <Toaster />
         </TooltipProvider>
       </AuthProvider>
     </QueryClientProvider>

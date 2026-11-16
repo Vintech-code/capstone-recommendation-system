@@ -168,7 +168,13 @@ function StudentWorkspaceShell({
                     aria-label="Open user menu"
                     className="flex h-10 shrink-0 items-center gap-1.5 rounded-full p-1 text-left transition-colors hover:bg-secondary focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30"
                   >
-                    <span className="flex size-9 items-center justify-center overflow-hidden rounded-full bg-primary-fixed text-xs font-bold text-on-primary-fixed">
+                    <span className="max-w-24 truncate text-xs font-semibold text-foreground sm:max-w-40 sm:text-sm">
+                      {studentName}
+                    </span>
+                    <span
+                      data-profile-avatar
+                      className="flex size-9 items-center justify-center overflow-hidden rounded-full bg-primary-fixed text-xs font-bold text-on-primary-fixed"
+                    >
                       {studentPhotoUrl ? (
                         <img
                           src={studentPhotoUrl}

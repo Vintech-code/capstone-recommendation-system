@@ -84,7 +84,16 @@ function resolveContent(
       <AdminStudentsPage onNavigate={navigate} />
     );
   }
-  if (activeId === "programmes") return <AdminProgrammesPage />;
+  if (activeId === "programmes") {
+    return (
+      <AdminProgrammesPage
+        initialProgrammeId={recordId}
+        onProgrammeRouteCleared={() =>
+          navigate("/admin/programmes", { replace: true })
+        }
+      />
+    );
+  }
   if (activeId === "reports") return <AdminReportsPage />;
   if (activeId === "activity") return <AdminActivityPage />;
   if (activeId === "administrators") return <AdminAdministratorsPage />;

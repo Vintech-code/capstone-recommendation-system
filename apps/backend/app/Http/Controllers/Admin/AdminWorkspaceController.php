@@ -14,6 +14,7 @@ use App\Services\Admin\AdminAssessmentPresenter;
 use App\Services\Admin\AdminAuditPresenter;
 use App\Services\Admin\AdminReportService;
 use App\Services\Assessment\ResultCardPresenter;
+use App\Services\Recommendation\ProgrammeRankPresenter;
 use App\Services\Recommendation\TccProgrammeCatalogueRepository;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
@@ -27,6 +28,7 @@ final class AdminWorkspaceController extends Controller
         private readonly AdminAssessmentPresenter $assessmentPresenter,
         private readonly AdminAuditPresenter $auditPresenter,
         private readonly AdminReportService $reportService,
+        private readonly ProgrammeRankPresenter $rankPresenter,
     ) {}
 
     public function overview(): JsonResponse
@@ -199,7 +201,9 @@ final class AdminWorkspaceController extends Controller
                 $this->assessmentPresenter->summary($session),
                 [
                     'dimensions' => $this->assessmentPresenter->dimensions($session),
-                    'recommendations' => $session->recommendationRun?->ranked_courses ?? [],
+                    'recommendations' => $this->rankPresenter->dense(
+                        $session->recommendationRun?->ranked_courses ?? [],
+                    ),
                 ],
             ));
 

@@ -270,7 +270,7 @@ describe("Student recommendation results", () => {
         ...testRecommendationSnapshot.courses[0],
         id: "course-c",
         name: "Course C",
-        rank: 3,
+        rank: 2,
         match: 80,
       },
     ];
@@ -291,7 +291,7 @@ describe("Student recommendation results", () => {
     expect(screen.getAllByText("Rank #1")).toHaveLength(2);
     expect(screen.getAllByText("Tied at #1")).toHaveLength(2);
     expect(screen.getAllByText("85.71%")).toHaveLength(2);
-    expect(screen.getByText("Rank #3")).toBeVisible();
+    expect(screen.getByText("Rank #2")).toBeVisible();
   });
 
   it("does not expose pending programme classification details in the UI", () => {

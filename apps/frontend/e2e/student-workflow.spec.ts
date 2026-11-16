@@ -4,6 +4,8 @@ import axe from 'axe-core'
 const user = {
   id: 1,
   name: 'Browser Test Student',
+  firstName: 'Browser Test',
+  lastName: 'Student',
   email: 'student@example.test',
   roles: ['student'],
 }
@@ -86,6 +88,7 @@ async function installStudentApi(
   initialAnswers: Record<string, number> = {},
 ) {
   let authenticated = false
+  let currentUser = { ...user }
   let submitted = initiallyComplete
   let answers: Record<string, number> = initialAnswers
 
@@ -96,11 +99,11 @@ async function installStudentApi(
     const method = request.method()
 
     if (path === '/api/v1/auth/session') {
-      return json(route, { user: authenticated ? user : null })
+      return json(route, { user: authenticated ? currentUser : null })
     }
     if (path === '/api/v1/auth/login' && method === 'POST') {
       authenticated = true
-      return json(route, { user })
+      return json(route, { user: currentUser })
     }
     if (path === '/api/v1/auth/authorize/student') return json(route, { authorized: true, portal: 'student' })
     if (path === '/api/v1/auth/logout') return json(route, { message: 'Signed out.' })
@@ -115,8 +118,17 @@ async function installStudentApi(
       return json(route, { data })
     }
     if (path === '/api/v1/student/profile') {
+      if (method === 'PUT') {
+        const body = request.postDataJSON() as { firstName: string; lastName: string }
+        currentUser = {
+          ...currentUser,
+          firstName: body.firstName,
+          lastName: body.lastName,
+          name: `${body.firstName} ${body.lastName}`,
+        }
+      }
       return json(route, { data: {
-        student: { ...user, photoUrl: null },
+        student: { ...currentUser, photoUrl: null },
         personalAcademic: { location: { regionId: 1, provinceId: 2, cityMunicipalityId: 3, barangayId: 4 }, complete: true, idNumber: '12345678', birthDate: '2007-04-18', age: 19, phone: '+63 917 842 1928', addressLine: 'Zone 2', barangay: 'Poblacion', municipality: 'Tagoloan', province: 'Misamis Oriental', updatedAt: '2026-09-07T10:00:00+08:00' },
         riasec: null,
       } })
@@ -415,6 +427,8 @@ test('lets the Student manage personal profile information without SHS or GWA fi
 
   await expect(page.getByText('Edit Profile', { exact: true })).toBeVisible()
   await expect(page.getByLabel('ID number *')).toHaveValue('12345678')
+  await expect(page.getByLabel('First Name *')).toHaveValue('Browser Test')
+  await expect(page.getByLabel('Last Name *')).toHaveValue('Student')
   await expect(page.getByLabel(/Mobile number/)).toHaveValue('+63 917 842 1928')
   await expect(page.getByLabel(/Senior high school/)).toHaveCount(0)
   await expect(page.getByLabel(/GWA/i)).toHaveCount(0)
@@ -434,6 +448,9 @@ test('lets the Student manage personal profile information without SHS or GWA fi
     expect(detailsBox!.x).toBeGreaterThan(identityBox!.x)
     expect(Math.abs(detailsBox!.y - identityBox!.y)).toBeLessThanOrEqual(2)
     expect(Math.abs(detailsBox!.height - identityBox!.height)).toBeLessThan(180)
+    const editorBox = await page.locator('section[aria-labelledby="profile-editor-title"]').boundingBox()
+    expect(editorBox).not.toBeNull()
+    expect(editorBox!.y + editorBox!.height).toBeLessThanOrEqual(page.viewportSize()!.height)
   } else {
     expect(detailsBox!.y).toBeGreaterThan(identityBox!.y)
   }
@@ -443,6 +460,22 @@ test('lets the Student manage personal profile information without SHS or GWA fi
   await expect(page.getByText('Learning Profile & Strengths')).toHaveCount(0)
   await expect(page.getByRole('heading', { name: 'Learning profile & preferences' })).toHaveCount(0)
   await expect(page.getByLabel(/GWA/i)).toHaveCount(0)
+  await page.getByLabel('First Name *').fill('Clark')
+  await page.getByLabel('Last Name *').fill('Cabatuan')
+  await page.getByRole('button', { name: 'Save profile' }).click()
+  await expect(page.getByText('Profile updated')).toBeVisible()
+  await expect(page.getByText('Your name and profile details have been saved.')).toBeVisible()
+  await expect(page.locator('[data-sonner-toast]')).toHaveCSS('background-color', 'rgb(251, 255, 247)')
+  await expect(page.getByRole('heading', { name: 'Clark Cabatuan' })).toBeVisible()
+  const headerName = page.locator('header').getByText('Clark Cabatuan', { exact: true })
+  const headerAvatar = page.locator('header [data-profile-avatar]')
+  await expect(headerName).toBeVisible()
+  await expect(headerAvatar).toBeVisible()
+  const headerNameBox = await headerName.boundingBox()
+  const headerAvatarBox = await headerAvatar.boundingBox()
+  expect(headerNameBox).not.toBeNull()
+  expect(headerAvatarBox).not.toBeNull()
+  expect(headerNameBox!.x + headerNameBox!.width).toBeLessThanOrEqual(headerAvatarBox!.x)
   await expectNoHorizontalOverflow(page)
 })
 

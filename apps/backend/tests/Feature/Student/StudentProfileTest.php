@@ -51,6 +51,8 @@ class StudentProfileTest extends TestCase
         $barangay = Barangay::create(['code' => '0100101001', 'name' => 'Test barangay', 'city_municipality_id' => $city->id]);
 
         $payload = [
+            'firstName' => 'Clark',
+            'lastName' => 'Cabatuan',
             'location' => ['regionId' => $region->id, 'provinceId' => $province->id, 'cityMunicipalityId' => $city->id, 'barangayId' => $barangay->id],
             'idNumber' => '12345678',
             'birthDate' => '2007-04-18',
@@ -68,9 +70,9 @@ class StudentProfileTest extends TestCase
             ->assertJsonPath('data.personalAcademic.idNumber', '12345678')
             ->assertJsonMissingPath('data.personalAcademic.shsStrand')
             ->assertJsonPath('data.student.id', $student->getKey())
-            ->assertJsonPath('data.student.firstName', $student->first_name)
-            ->assertJsonPath('data.student.lastName', $student->last_name)
-            ->assertJsonPath('data.student.name', trim($student->first_name.' '.$student->last_name))
+            ->assertJsonPath('data.student.firstName', 'Clark')
+            ->assertJsonPath('data.student.lastName', 'Cabatuan')
+            ->assertJsonPath('data.student.name', 'Clark Cabatuan')
             ->assertJsonPath('data.riasec', null)
             ->assertJsonMissingPath('data.questionnaire')
             ->assertJsonMissingPath('data.options')
@@ -87,6 +89,12 @@ class StudentProfileTest extends TestCase
             ->assertJsonPath('data.student.email', $student->email);
 
         $this->assertDatabaseHas('student_profiles', ['user_id' => $student->getKey()]);
+        $this->assertDatabaseHas('users', [
+            'id' => $student->getKey(),
+            'first_name' => 'Clark',
+            'last_name' => 'Cabatuan',
+            'name' => 'Clark Cabatuan',
+        ]);
         $stored = StudentProfile::query()->where('user_id', $student->getKey())->firstOrFail();
         $this->assertSame('12345678', $stored->id_number);
         $this->assertNotSame('12345678', $stored->getRawOriginal('id_number'));
@@ -111,12 +119,18 @@ class StudentProfileTest extends TestCase
         $first = $this->userWithRole(RoleSlug::Student);
         $second = $this->userWithRole(RoleSlug::Student);
         $payload = [
+            'firstName' => $first->first_name,
+            'lastName' => $first->last_name,
             'idNumber' => '12345678',
         ];
 
         $this->actingAs($first)->putJson('/api/v1/student/profile', $payload)->assertOk();
         $this->actingAs($second)
-            ->putJson('/api/v1/student/profile', $payload)
+            ->putJson('/api/v1/student/profile', [
+                ...$payload,
+                'firstName' => $second->first_name,
+                'lastName' => $second->last_name,
+            ])
             ->assertUnprocessable()
             ->assertJsonValidationErrors('idNumber');
 
@@ -132,11 +146,13 @@ class StudentProfileTest extends TestCase
 
         $this->actingAs($student)
             ->putJson('/api/v1/student/profile', [
+                'firstName' => '   ',
+                'lastName' => '',
                 'idNumber' => '1234ABCD',
                 'strengths' => ['Clinically gifted'],
             ])
             ->assertUnprocessable()
-            ->assertJsonValidationErrors(['idNumber', 'strengths']);
+            ->assertJsonValidationErrors(['firstName', 'lastName', 'idNumber', 'strengths']);
 
         $this->assertDatabaseCount('student_profiles', 0);
     }

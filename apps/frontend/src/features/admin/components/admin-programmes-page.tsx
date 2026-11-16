@@ -119,7 +119,13 @@ const RIASEC_META: Record<
   },
 };
 
-function AdminProgrammesPage() {
+function AdminProgrammesPage({
+  initialProgrammeId,
+  onProgrammeRouteCleared,
+}: {
+  initialProgrammeId?: string;
+  onProgrammeRouteCleared?: () => void;
+}) {
   const resource = useAdminResource<AdminProgrammeCatalogue>("/programmes");
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<"all" | "confirmed" | "review">("all");
@@ -160,6 +166,12 @@ function AdminProgrammesPage() {
     );
 
   const catalogue = resource.data;
+  const routeSelectedProgramme = initialProgrammeId
+    ? catalogue.programmes.find(
+        (programme) => programme.id === initialProgrammeId,
+      ) ?? null
+    : null;
+  const displayedProgramme = selected ?? routeSelectedProgramme;
 
   return (
     <div className="space-y-4">
@@ -237,9 +249,12 @@ function AdminProgrammesPage() {
       )}
 
       <AdminProgrammeSheet
-        programme={selected}
+        programme={displayedProgramme}
         onOpenChange={(open) => {
-          if (!open) setSelected(null);
+          if (!open) {
+            setSelected(null);
+            if (initialProgrammeId) onProgrammeRouteCleared?.();
+          }
         }}
       />
       <ProgrammeEditorSheet

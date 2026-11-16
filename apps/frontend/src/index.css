@@ -40,6 +40,12 @@
   --popover: #fbfff7;
   --popover-foreground: #34402d;
 
+  /* Shared toast surfaces stay light in every workspace theme. */
+  --toast-surface: #fbfff7;
+  --toast-foreground: #34402d;
+  --toast-muted: #65705f;
+  --toast-border: #dce7d4;
+
   /* Primary */
   --primary: #7ed321;
   --primary-foreground: #20340f;

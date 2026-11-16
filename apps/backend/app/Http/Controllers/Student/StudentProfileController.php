@@ -10,6 +10,7 @@ use App\Services\Locations\ProfileLocation;
 use App\Services\Student\StudentProfilePresenter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 
@@ -22,8 +23,15 @@ final class StudentProfileController extends Controller
 
     public function store(Request $request, StudentProfilePresenter $presenter): JsonResponse
     {
+        $request->merge([
+            'firstName' => trim((string) $request->input('firstName')),
+            'lastName' => trim((string) $request->input('lastName')),
+        ]);
+
         $validated = $request->validate(
             [
+                'firstName' => ['required', 'string', 'max:100'],
+                'lastName' => ['required', 'string', 'max:100'],
                 'idNumber' => ['required', 'string', 'regex:/^\d{8}$/'],
                 'lrn' => ['prohibited'],
                 'birthDate' => ['nullable', 'date_format:Y-m-d', 'before_or_equal:today', 'after:1900-01-01'],
@@ -43,6 +51,8 @@ final class StudentProfileController extends Controller
                 'learningPreferences' => ['prohibited'],
             ],
             [
+                'firstName.required' => 'Enter your first name.',
+                'lastName.required' => 'Enter your last name.',
                 'idNumber.required' => 'Enter your eight-digit ID number.',
                 'idNumber.regex' => 'The ID number must contain exactly eight digits.',
             ],
@@ -63,17 +73,23 @@ final class StudentProfileController extends Controller
             ]);
         }
 
-        StudentProfile::query()->updateOrCreate(
-            ['user_id' => $request->user()->getKey()],
-            [
-                'id_number' => $idNumber,
-                'id_number_lookup_hash' => $idNumberLookupHash,
-                'birth_date' => $this->nullableText($validated['birthDate'] ?? null),
-                'phone' => $this->nullableText($validated['phone'] ?? null),
-                'address_line' => $this->nullableText($validated['addressLine'] ?? null),
-                ...$location,
-            ],
-        );
+        DB::transaction(function () use ($idNumber, $idNumberLookupHash, $location, $request, $validated): void {
+            $request->user()->update([
+                'name' => trim($validated['firstName'].' '.$validated['lastName']),
+            ]);
+
+            StudentProfile::query()->updateOrCreate(
+                ['user_id' => $request->user()->getKey()],
+                [
+                    'id_number' => $idNumber,
+                    'id_number_lookup_hash' => $idNumberLookupHash,
+                    'birth_date' => $this->nullableText($validated['birthDate'] ?? null),
+                    'phone' => $this->nullableText($validated['phone'] ?? null),
+                    'address_line' => $this->nullableText($validated['addressLine'] ?? null),
+                    ...$location,
+                ],
+            );
+        });
 
         return response()->json(['data' => $presenter->present($request->user()->fresh())]);
     }

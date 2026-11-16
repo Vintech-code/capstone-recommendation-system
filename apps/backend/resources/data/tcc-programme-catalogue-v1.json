@@ -7,7 +7,7 @@
     "academic_year": "2026-2027",
     "riasec_dimensions": ["R", "I", "A", "S", "E", "C"],
     "matching_policy": {
-        "version": "PROPOSED-RIASEC-4-ORDERED-WEIGHTS",
+        "version": "PROPOSED-RIASEC-5-DENSE-RANKS",
         "method": "ordered_weighted_riasec_profile_matching",
         "percentage_weights_used": true,
         "approval_status": "researcher_proposed_psg_informed_runtime",
@@ -42,7 +42,7 @@
             "eligibility_applied_as": "separate_guidance"
         },
         "tie_break": {
-            "rank_policy": "competition_rank",
+            "rank_policy": "dense_rank",
             "field": "display_name",
             "direction": "ascending"
         },

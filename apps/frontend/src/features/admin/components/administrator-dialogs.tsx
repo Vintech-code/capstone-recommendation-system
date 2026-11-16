@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
-import { toast } from 'sonner'
 
+import { appToast } from '@/components/ui/app-toast'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
@@ -57,7 +57,7 @@ export function InviteAdministratorDialog({
         canManageAdministrators,
         currentPassword,
       })
-      toast.success(`Invitation sent to ${email}`)
+      appToast.success(`Invitation sent to ${email}`)
       reset()
       onOpenChange(false)
       onInvited()
@@ -249,7 +249,7 @@ export function AdministratorActionDialog({
           canManageAdministrators: !selectedAction.administrator.canManageAdministrators,
         })
       }
-      toast.success(`${title} completed.`)
+      appToast.success(`${title} completed.`)
       changeOpen(false)
       onSaved()
     } catch (reasonValue) {

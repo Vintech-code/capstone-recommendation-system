@@ -160,7 +160,7 @@ class StudentRecommendationTest extends TestCase
             ->assertOk()
             ->assertJsonPath('data.status', 'available')
             ->assertJsonPath('data.recommendation.status', 'Proposed methodology')
-            ->assertJsonPath('data.recommendation.ruleReference', 'PROPOSED-RIASEC-4-ORDERED-WEIGHTS')
+            ->assertJsonPath('data.recommendation.ruleReference', 'PROPOSED-RIASEC-5-DENSE-RANKS')
             ->assertJsonPath('data.recommendation.totalEligible', 8)
             ->assertJsonPath('data.recommendation.totalRanked', 12)
             ->assertJsonPath('data.recommendation.canViewAll', false)
@@ -187,7 +187,7 @@ class StudentRecommendationTest extends TestCase
         $this->assertSame($student->getKey(), RecommendationRun::query()->firstOrFail()->user_id);
     }
 
-    public function test_three_code_engine_uses_competition_ranks_for_ties(): void
+    public function test_three_code_engine_uses_dense_ranks_for_ties(): void
     {
         $role = Role::query()->firstOrCreate(
             ['slug' => RoleSlug::Student->value],
@@ -235,7 +235,7 @@ class StudentRecommendationTest extends TestCase
             ->assertJsonPath('data.recommendation.courses.0.isTie', true)
             ->assertJsonPath('data.recommendation.courses.1.rank', 1)
             ->assertJsonPath('data.recommendation.courses.1.isTie', true)
-            ->assertJsonPath('data.recommendation.courses.2.rank', 3)
+            ->assertJsonPath('data.recommendation.courses.2.rank', 2)
             ->assertJsonPath('data.recommendation.courses.0.explanation.assessmentReference', 'ASMT-'.str_pad((string) $session->getKey(), 6, '0', STR_PAD_LEFT))
             ->assertJsonPath('data.recommendation.courses.0.explanation.recordedProfileCode', 'I-E-C')
             ->assertJsonPath('data.recommendation.courses.0.explanation.recordedProgrammeAreas.0.label', 'Investigative')

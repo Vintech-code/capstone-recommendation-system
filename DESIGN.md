@@ -1,8 +1,8 @@
 ---
 name: TCC Course Recommendation Design System
 status: APPROVED working product direction; PROVISIONAL institutional identity
-version: 4.9
-last_updated: 2026-11-16
+version: 5.3
+last_updated: 2026-11-17
 font_family: Nunito Sans headings / Montserrat Alternates body
 font_family: Open Runde headings / Montserrat Alternates body
 theme: light
@@ -273,13 +273,15 @@ Use one sticky light top bar, not a sidebar:
 - Right: authenticated identity and the actions explicitly assigned to that workspace.
 - Keep one row on mobile; use icons with accessible names and tooltips when labels do not fit.
 
-The identity control shows uploaded photo, then verified Google avatar, then recorded-name initials. Student and Administrator workspaces do not include a notification bell or feed.
+The identity control shows uploaded photo, then verified Google avatar, then recorded-name initials. The Student header keeps the current authenticated name visibly to the left of the profile image and refreshes it after a successful identity edit. Student and Administrator workspaces do not include a notification bell or feed.
 
 Authenticated application and authentication routes use no global page footer. Keep route content focused within those shells. The approved public landing page may use its dedicated compact portal-link footer.
 
 ### 4.2 Administrator shell
 
 Administrator governance retains the collapsible desktop sidebar and uses a shadcn Sheet on mobile. Dashboard, Students, Programmes, Reports, and Activity remain in the sidebar; the former Assessments destination redirects to Students and is not listed. Each Administrator has an individual account.
+
+Recommendation review actions in a Student evidence record route to the selected programme identifier and open that programme's detail sheet. They must not discard the selection and stop at the general Programme monitoring list.
 
 Admin content uses one plain continuous light canvas. Thin horizontal and vertical dividers, tables, split analytical regions, timelines, and whitespace define hierarchy. Do not wrap routine metrics, filters, table groups, evidence fields, or audit entries in cards. Reserve rounded clay surfaces for overlays and controls that require them. The sidebar must use a light surface with neutral text and a pale-green active state, never a dark fill. Use the same green, orange, violet, pink, yellow, olive, and neutral system as the Student experience; never copy reference branding, identities, wording, proprietary artwork, or unrelated content.
 
@@ -382,7 +384,7 @@ Display **Strong match**, **Good match**, or **Explore match** only if threshold
 
 Ranking compares all configured catalogue programmes in that recommendation snapshot. It is not an admission guarantee, enrolment decision, ability judgment, or promise of success. Board/non-board entrance grouping remains separate guidance from RIASEC fit and must not remove programmes from the ranked list.
 
-Equal recorded percentages are valid when programme profiles produce the same mean. Use competition ranking for exact ties (`1, 1, 3`), label tied positions explicitly, and use configured alphabetical order only to stabilize display within a tie. Never manufacture score differences to force a unique order.
+Equal recorded percentages are valid when programme profiles produce the same mean. Use dense ranking for exact programme ties (`1, 1, 2` or `1, 2, 3, 3, 4`), label tied positions explicitly, and use configured alphabetical order only to stabilize display within a tie. Never manufacture score differences to force a unique order.
 
 On mobile, place the summary below the title. Do not preserve a desktop shape if it clips text or creates large empty space.
 
@@ -494,6 +496,7 @@ Filters use the existing compact single-open-section accordion. Closed rows expo
 
 - Use a strong identity header with authenticated image fallback.
 - Keep the editor focused on personal and academic identity details in one responsive form.
+- Allow the authenticated Student to edit required first and last names in the profile form, including accounts initially created through Google. Keep email read-only; email ownership changes require a separate verified account-security workflow.
 - Require an eight-digit Student ID number. Present it as **ID number**, accept digits only, and do not describe it as an LRN.
 - RIASEC scores and interests remain read-only.
 - Do not collect or display a separate Learning Profile & Strengths questionnaire, self-reported strengths, growth areas, or learning preferences.
@@ -530,6 +533,8 @@ Transactional email verification extends the same provisional visual direction w
 ## 7. States and language
 
 Every data surface defines Loading, Refreshing, Empty, Error, Offline/timeout, Permission denied, Blocked, Saving, Success, and Disabled states as applicable. Skeletons match final geometry and never show fabricated values. Errors identify the failed task, preserve input, and offer recovery. Permission states reveal no protected data.
+
+Transient success and error notifications use the one shared application toast helper and global toaster design. The toast surface stays light across Student and Administrator workspace themes; it must not inherit a black or dark workspace background. Do not create feature-specific toaster providers, import the toast library directly from feature code, or duplicate a successful form-save message as an inline banner. Keep inline alerts for validation and recoverable errors that must remain near the affected form.
 
 Use calm direct language: `Your result is ready`, `programme recommendation`, `recorded match`, `eligible programme group`, and `may help you explore`. Avoid `perfect course`, `you belong here`, `guaranteed`, `passed`, `officially approved`, and unverified career claims.
 
@@ -658,7 +663,7 @@ Each slice requires affected component/content/accessibility tests, lint, produc
 - **APPROVED:** Minimalist claymorphism, `#7ED321` primary green, no blue UI surface or semantic product tokens, orange/violet/pink/yellow/olive/neutral supporting colors, `shadow-sm` maximum elevation, Nunito Sans/Montserrat Alternates typography, responsive layout, accessibility, and reusable architecture.
 - **APPROVED:** Minimalist claymorphism, `#7ED321` primary green, no blue UI surface or semantic product tokens, orange/violet/pink/yellow/olive/neutral supporting colors, `shadow-sm` maximum elevation, Open Runde/Montserrat Alternates typography, responsive layout, accessibility, and reusable architecture.
 - **APPROVED:** Public Student landing page at `/`, supplied `assets/images/landing-image-bg.png` hero artwork, original project-specific content, full-pill landing actions, and dedicated portal links.
-- **APPROVED:** Current 42-item binary questionnaire UI and server-side 0-7 category-count formula, self-declared examination gate, all-programme RIASEC ranking with separate entrance-group guidance, competition ranks for exact ties, and truthful evidence boundaries. The selected external questionnaire remains PROPOSED for institutional or psychometric adoption.
+- **APPROVED:** Current 42-item binary questionnaire UI and server-side 0-7 category-count formula, self-declared examination gate, all-programme RIASEC ranking with separate entrance-group guidance, dense programme ranks for exact match ties, and truthful evidence boundaries. The selected external questionnaire remains PROPOSED for institutional or psychometric adoption.
 - **PROVISIONAL:** Colors, illustrations, typography, and product identity as institutional branding.
 - **PROPOSED / BLOCKED:** Illustrated activity-comparison questions and three-level enjoyment ratings until an instrument and scoring evidence are approved.
 - **OUT OF SCOPE:** Dark theme, copied reference content/branding, realistic-photo-led design, fabricated qualitative match thresholds, and frontend-only policy enforcement.

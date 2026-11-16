@@ -10,8 +10,8 @@ import {
   User,
   X,
 } from "lucide-react";
-import { toast } from "sonner";
 
+import { appToast } from "@/components/ui/app-toast";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -126,16 +126,17 @@ function StudentResultCard({
       if (navigator.clipboard) {
         await navigator.clipboard.writeText(shareUrl);
         setCopied(true);
-        toast.success("Share link copied to clipboard!", {
-          description:
-            "Anyone with this link can view this recorded result card.",
-        });
+        appToast.success(
+          "Share link copied to clipboard!",
+          "Anyone with this link can view this recorded result card.",
+        );
         setTimeout(() => setCopied(false), 3000);
       }
     } catch {
-      toast.error("Could not generate share link", {
-        description: "Please check your network connection and try again.",
-      });
+      appToast.error(
+        "Could not generate share link",
+        "Please check your network connection and try again.",
+      );
     } finally {
       setSharing(false);
     }
@@ -168,13 +169,15 @@ function StudentResultCard({
       document.body.append(link);
       link.click();
       link.remove();
-      toast.success("Result card downloaded", {
-        description: "The complete assessment card was saved as a PNG image.",
-      });
+      appToast.success(
+        "Result card downloaded",
+        "The complete assessment card was saved as a PNG image.",
+      );
     } catch {
-      toast.error("Could not download the result card", {
-        description: "Please try again after the card finishes loading.",
-      });
+      appToast.error(
+        "Could not download the result card",
+        "Please try again after the card finishes loading.",
+      );
     } finally {
       setDownloading(false);
     }

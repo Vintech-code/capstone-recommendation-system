@@ -13,6 +13,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { ErrorState, LoadingState } from '@/components/shared'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { appToast } from '@/components/ui/app-toast'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -26,6 +27,8 @@ import {
 import type { StudentProfileData, StudentProfilePayload } from '@/features/student/profile/student-profile-types'
 
 const emptyForm: StudentProfilePayload = {
+  firstName: '',
+  lastName: '',
   location: null,
   idNumber: '',
   birthDate: '',
@@ -39,6 +42,8 @@ const emptyForm: StudentProfilePayload = {
 function toForm(profile: StudentProfileData): StudentProfilePayload {
   const details = profile.personalAcademic
   return {
+    firstName: profile.student.firstName ?? '',
+    lastName: profile.student.lastName ?? '',
     location: details.location ?? null,
     idNumber: details.idNumber ?? '',
     birthDate: details.birthDate ?? '',
@@ -50,14 +55,18 @@ function toForm(profile: StudentProfileData): StudentProfilePayload {
   }
 }
 
-function StudentProfilePage({ onBack }: { onBack: () => void }) {
+interface StudentProfilePageProps {
+  onBack: () => void
+  onIdentityUpdated?: () => void
+}
+
+function StudentProfilePage({ onBack, onIdentityUpdated }: StudentProfilePageProps) {
   const [profile, setProfile] = useState<StudentProfileData | null>(null)
   const [form, setForm] = useState<StudentProfilePayload>(emptyForm)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState<string | null>(null)
   const photoInput = useRef<HTMLInputElement>(null)
 
   const load = () => {
@@ -88,7 +97,9 @@ function StudentProfilePage({ onBack }: { onBack: () => void }) {
 
   const personalAcademicComplete = useMemo(() => {
     return Boolean(
-      form.birthDate &&
+      form.firstName.trim() &&
+        form.lastName.trim() &&
+        form.birthDate &&
         /^\d{8}$/.test(form.idNumber) &&
         form.phone &&
         form.location?.barangayId,
@@ -101,13 +112,11 @@ function StudentProfilePage({ onBack }: { onBack: () => void }) {
   ) => {
     setForm((current) => ({ ...current, [key]: value }))
     setError(null)
-    setSuccess(null)
   }
 
   const save = async () => {
     setSaving(true)
     setError(null)
-    setSuccess(null)
     try {
       const data = await saveStudentProfile({
         ...form,
@@ -125,7 +134,11 @@ function StudentProfilePage({ onBack }: { onBack: () => void }) {
       })
       setProfile(data)
       setForm(toForm(data))
-      setSuccess('Your profile has been saved.')
+      onIdentityUpdated?.()
+      appToast.success(
+        'Profile updated',
+        'Your name and profile details have been saved.',
+      )
     } catch (reason) {
       const firstValidationError =
         reason instanceof StudentProfileApiError
@@ -147,7 +160,7 @@ function StudentProfilePage({ onBack }: { onBack: () => void }) {
     try {
       const data = await uploadStudentProfilePhoto(file)
       setProfile(data)
-      setSuccess('Your profile photo has been updated.')
+      appToast.success('Profile photo updated')
     } catch (reason) {
       setError(
         reason instanceof Error ? reason.message : 'Your profile photo could not be uploaded.',
@@ -190,8 +203,8 @@ function StudentProfilePage({ onBack }: { onBack: () => void }) {
     .toUpperCase()
 
   return (
-    <div className="student-grid-page student-dashboard-canvas min-h-[calc(100vh-5rem)] py-4 sm:py-6">
-      <div className="student-page max-w-5xl space-y-5">
+    <div className="student-grid-page student-dashboard-canvas min-h-[calc(100vh-5rem)] py-4 sm:py-3">
+      <div className="student-page max-w-5xl space-y-5 sm:space-y-3">
         {/* Top Header Row with Breadcrumb & Save Button matching reference */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-2 text-sm sm:text-base">
@@ -231,14 +244,6 @@ function StudentProfilePage({ onBack }: { onBack: () => void }) {
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         ) : null}
-        {success ? (
-          <Alert className="rounded-xl border-primary/30 bg-primary/10 text-primary-ink">
-            <Check aria-hidden="true" className="size-4 text-primary-ink" />
-            <AlertTitle className="text-foreground font-bold">Profile updated</AlertTitle>
-            <AlertDescription className="text-muted-foreground">{success}</AlertDescription>
-          </Alert>
-        ) : null}
-
         {/* Main Form Container Card */}
         <section
           aria-labelledby="profile-editor-title"
@@ -330,27 +335,31 @@ function StudentProfilePage({ onBack }: { onBack: () => void }) {
                   {/* First Name & Last Name */}
                   <div className="grid grid-cols-2 gap-3 sm:gap-4">
                     <div>
-                      <Label className="text-xs font-semibold text-foreground/80 mb-1.5 block">
-                        First Name
+                      <Label htmlFor="firstName" className="text-xs font-semibold text-foreground/80 mb-1.5 block">
+                        First Name <span className="text-destructive">*</span>
                       </Label>
                       <Input
-                        value={firstName}
-                        readOnly
-                        disabled
-                        tabIndex={-1}
-                        className="h-10 sm:h-11 rounded-xs bg-muted/30 border-border/80 text-foreground font-medium cursor-not-allowed text-xs sm:text-sm"
+                        id="firstName"
+                        autoComplete="given-name"
+                        required
+                        maxLength={100}
+                        value={form.firstName}
+                        onChange={(event) => setField('firstName', event.target.value)}
+                        className="h-10 sm:h-11 rounded-xs border-border/80 text-foreground font-medium text-xs sm:text-sm"
                       />
                     </div>
                     <div>
-                      <Label className="text-xs font-semibold text-foreground/80 mb-1.5 block">
-                        Last Name
+                      <Label htmlFor="lastName" className="text-xs font-semibold text-foreground/80 mb-1.5 block">
+                        Last Name <span className="text-destructive">*</span>
                       </Label>
                       <Input
-                        value={lastName}
-                        readOnly
-                        disabled
-                        tabIndex={-1}
-                        className="h-10 sm:h-11 rounded-xs bg-muted/30 border-border/80 text-foreground font-medium cursor-not-allowed text-xs sm:text-sm"
+                        id="lastName"
+                        autoComplete="family-name"
+                        required
+                        maxLength={100}
+                        value={form.lastName}
+                        onChange={(event) => setField('lastName', event.target.value)}
+                        className="h-10 sm:h-11 rounded-xs border-border/80 text-foreground font-medium text-xs sm:text-sm"
                       />
                     </div>
                   </div>

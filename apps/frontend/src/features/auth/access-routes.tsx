@@ -42,7 +42,7 @@ const AdminWorkspaceRoute = lazy(() =>
 function WorkspaceRoute({ role }: { role: AccessRole }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { signOut, user } = useAuth();
+  const { refreshSession, signOut, user } = useAuth();
   const restoredStudentId = useRef<number | null>(null);
   const activeModuleId =
     role === "student"
@@ -193,7 +193,12 @@ function WorkspaceRoute({ role }: { role: AccessRole }) {
                   );
                 }
                 if (module.id === "profile") {
-                  return <StudentProfilePage onBack={onBack} />;
+                  return (
+                    <StudentProfilePage
+                      onBack={onBack}
+                      onIdentityUpdated={refreshSession}
+                    />
+                  );
                 }
                 return undefined;
               }
@@ -284,6 +289,10 @@ function AccessRoutes() {
           element={<Navigate to="/admin/students" replace />}
         />
         <Route path="/admin/programmes" element={<AdminWorkspaceRoute />} />
+        <Route
+          path="/admin/programmes/:programmeId"
+          element={<AdminWorkspaceRoute />}
+        />
         <Route
           path="/admin/programmes/sources"
           element={<Navigate to="/admin/programmes" replace />}

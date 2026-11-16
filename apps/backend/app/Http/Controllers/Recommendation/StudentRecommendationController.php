@@ -7,6 +7,7 @@ use App\Models\AssessmentQuestion;
 use App\Models\AssessmentSession;
 use App\Models\RecommendationRun;
 use App\Services\Assessment\RiasecQuestionnaire;
+use App\Services\Recommendation\ProgrammeRankPresenter;
 use App\Services\Recommendation\ProvisionalRiasecRecommendationEngine;
 use App\Services\Recommendation\TccProgrammeCatalogueRepository;
 use DomainException;
@@ -15,6 +16,10 @@ use Illuminate\Http\Request;
 
 final class StudentRecommendationController extends Controller
 {
+    public function __construct(
+        private readonly ProgrammeRankPresenter $rankPresenter,
+    ) {}
+
     public function latest(
         Request $request,
         ProvisionalRiasecRecommendationEngine $engine,
@@ -101,7 +106,7 @@ final class StudentRecommendationController extends Controller
             $run = $session->recommendationRun()->firstOrCreate([], [
                 'user_id' => $request->user()->getKey(),
                 'catalogue_reference' => 'TCC-AY-'.$catalogue['academic_year'].'-V'.$catalogue['catalogue_version'],
-                'rule_reference' => (string) ($catalogue['matching_policy']['version'] ?? 'PROPOSED-RIASEC-4-ORDERED-WEIGHTS'),
+                'rule_reference' => (string) ($catalogue['matching_policy']['version'] ?? 'PROPOSED-RIASEC-5-DENSE-RANKS'),
                 'entrance_examination_snapshot' => $this->entranceExaminationSnapshot($session),
                 'methodology_status' => 'Proposed methodology',
                 'default_count' => $defaultCount,
@@ -194,7 +199,7 @@ final class StudentRecommendationController extends Controller
         array $entries,
         array $catalogue,
     ): array {
-        $courses = $run->ranked_courses ?? [];
+        $courses = $this->rankPresenter->dense($run->ranked_courses ?? []);
         $programmes = collect($catalogue['programmes'] ?? [])->keyBy('id');
         $courses = array_map(static function (array $course) use ($programmes): array {
             $programme = $programmes->get($course['id'], []);

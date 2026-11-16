@@ -176,7 +176,7 @@ function StudentAuthModal({
               {verificationEmail
                 ? "Use the secure link we sent before signing in."
                 : mode === "signin"
-                ? "Sign in to access your assessment & recommendations."
+                ? "Sign in to access your"
                 : "Create your Student Applicant profile to begin."}
             </p>
           </div>
