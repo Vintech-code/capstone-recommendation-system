@@ -61,7 +61,8 @@ test('public landing is compact, responsive, and uses transition-only motion', a
   await expect(page.getByText('Access Portals')).toHaveCount(0)
   await expect(page.getByText(/Capstone Project/i)).toHaveCount(0)
   await expect(page.getByText(/Exclusively built for TCC applicants/i)).toHaveCount(0)
-  await expect(page.getByTestId('footer-logo-watermark')).toBeVisible()
+  await expect(page.getByTestId('footer-wordmark')).toHaveText('TCCHOICE')
+  await expect(page.getByTestId('footer-logo-watermark')).toHaveCount(0)
 
   const layout = await page.evaluate(() => {
     const headerElement = document.querySelector('header')
@@ -90,7 +91,7 @@ test('public landing is compact, responsive, and uses transition-only motion', a
   // Measure final colours, not opacity-composited colours while an offscreen
   // section begins its intersection-triggered reveal during the Axe scan.
   await page.addStyleTag({
-    content: '[data-landing-reveal], .landing-stagger > * { opacity: 1 !important; transform: none !important; transition: none !important; }',
+    content: '[data-landing-reveal], [data-landing-reveal] [data-motion] { opacity: 1 !important; transform: none !important; filter: none !important; clip-path: none !important; transition: none !important; }',
   })
   const accessibility = await page.evaluate(async (source) => {
     eval(source)
@@ -102,7 +103,7 @@ test('public landing is compact, responsive, and uses transition-only motion', a
   await hero.screenshot({ path: testInfo.outputPath('landing-hero.png') })
 })
 
-test('mobile landing uses a burger menu, two RIASEC columns, and no header assessment action', async ({ page }) => {
+test('mobile landing uses a burger menu, two RIASEC columns, and no header assessment action', async ({ page }, testInfo) => {
   await page.setViewportSize({ width: 390, height: 844 })
   await page.goto('/')
 
@@ -128,6 +129,8 @@ test('mobile landing uses a burger menu, two RIASEC columns, and no header asses
 
   const menuTransition = await mobileNavigation.evaluate((element) => getComputedStyle(element).transitionDuration)
   expect(menuTransition).not.toBe('0s')
+  await header.getByRole('button', { name: 'Close navigation menu' }).click()
+  await expect(mobileNavigation).toBeHidden()
 
   const riasecColumns = await page.getByTestId('riasec-grid').evaluate((element) =>
     getComputedStyle(element).gridTemplateColumns.split(' ').length,
@@ -139,6 +142,28 @@ test('mobile landing uses a burger menu, two RIASEC columns, and no header asses
   )
   expect(overflow).toBeLessThanOrEqual(0)
 
+  const guidanceSection = page.locator('#why-guidance')
+  await guidanceSection.scrollIntoViewIfNeeded()
+  await expect(
+    guidanceSection.getByRole('heading', {
+      name: 'Guidance you can understand and revisit',
+    }),
+  ).toBeVisible()
+  const guidanceReveal = guidanceSection.locator('[data-landing-reveal]')
+  await expect(guidanceReveal).toHaveAttribute('data-landing-reveal', 'guidance')
+  await expect(guidanceReveal).toHaveAttribute('data-reveal-duration', '460')
+  await expect(guidanceReveal).toHaveAttribute('data-reveal-fade', 'false')
+  await expect(guidanceSection.locator('.landing-stagger')).toHaveCount(0)
+  await expect(guidanceSection.locator('[data-motion="item"]')).toHaveCount(4)
+  await expect(guidanceSection.locator('[data-motion="art"]')).toHaveCount(4)
+  await expect(guidanceSection.locator('article img')).toHaveCount(4)
+
+  const guidanceColumns = await page.getByTestId('guidance-grid').evaluate((element) =>
+    getComputedStyle(element).gridTemplateColumns.split(' ').length,
+  )
+  expect(guidanceColumns).toBe(2)
+  await guidanceSection.screenshot({ path: testInfo.outputPath('landing-guidance-mobile.png') })
+
   const firstFaq = page.locator('#faq details').first()
   await firstFaq.locator('summary').click()
   await expect(firstFaq).toHaveAttribute('open', '')
@@ -148,15 +173,100 @@ test('mobile landing uses a burger menu, two RIASEC columns, and no header asses
   expect(faqTransition).not.toBe('0s')
 })
 
+test('ready CTA is image-free and responsive', async ({ page }, testInfo) => {
+  await page.goto('/')
+
+  const readyCta = page.getByTestId('landing-ready-cta')
+  await readyCta.scrollIntoViewIfNeeded()
+  await expect(
+    readyCta.getByRole('heading', {
+      name: 'Start building your recorded interest profile',
+    }),
+  ).toBeVisible()
+  await expect(readyCta.locator('img')).toHaveCount(0)
+  await expect(readyCta.getByRole('link', { name: 'Start assessment' })).toBeVisible()
+  await expect(readyCta.getByRole('link', { name: 'Get started now' })).toBeVisible()
+
+  const overflow = await page.evaluate(
+    () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+  )
+  expect(overflow).toBeLessThanOrEqual(0)
+  await readyCta.screenshot({ path: testInfo.outputPath('landing-ready-cta.png') })
+})
+
+test('footer uses the TCCHOICE display wordmark', async ({ page }, testInfo) => {
+  await page.goto('/')
+
+  const footer = page.getByRole('contentinfo', { name: 'Public site footer' })
+  await footer.scrollIntoViewIfNeeded()
+  await expect(footer.getByTestId('footer-wordmark')).toHaveText('TCCHOICE')
+  await expect(footer.getByTestId('footer-logo-watermark')).toHaveCount(0)
+  await expect(footer.getByText('Guidance principles')).toBeVisible()
+  await expect(footer.getByRole('navigation', { name: 'Footer navigation' })).toBeVisible()
+
+  const layout = await footer.getByTestId('footer-wordmark').evaluate((element) => ({
+    fontWeight: getComputedStyle(element).fontWeight,
+    overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    wordmarkOverflow: element.scrollWidth - element.clientWidth,
+  }))
+  expect(Number(layout.fontWeight)).toBeGreaterThanOrEqual(700)
+  expect(layout.overflow).toBeLessThanOrEqual(0)
+  expect(layout.wordmarkOverflow).toBeLessThanOrEqual(0)
+  await footer.screenshot({ path: testInfo.outputPath('landing-footer.png') })
+})
+
+test('home through FAQ use distinct paced section reveals', async ({ page }) => {
+  await page.goto('/')
+  await expect(page.locator('[data-landing-reveal]')).toHaveCount(6)
+
+  const expectedReveals = [
+    { section: 'landing-hero', variant: 'hero', duration: '420' },
+    { section: 'why-guidance', variant: 'guidance', duration: '460' },
+    { section: 'journey', variant: 'journey', duration: '500' },
+    { section: 'riasec', variant: 'riasec', duration: '540' },
+    { section: 'faq', variant: 'faq', duration: '480' },
+  ]
+
+  const reveals = await page.evaluate((expected) =>
+    expected.map(({ section }) => {
+      const element = document.querySelector<HTMLElement>(`#${section} [data-landing-reveal]`)
+      const motionChild = element?.querySelector<HTMLElement>('[data-motion]')
+      return {
+        section,
+        variant: element?.getAttribute('data-landing-reveal'),
+        duration: element?.getAttribute('data-reveal-duration'),
+        fade: element?.getAttribute('data-reveal-fade'),
+        computedDuration: element ? getComputedStyle(element).transitionDuration : null,
+        childTransitionProperty: motionChild
+          ? getComputedStyle(motionChild).transitionProperty
+          : null,
+      }
+    }), expectedReveals)
+
+  expect(reveals.map(({ variant }) => variant)).toEqual(expectedReveals.map(({ variant }) => variant))
+  expect(reveals.map(({ duration }) => duration)).toEqual(expectedReveals.map(({ duration }) => duration))
+  expect(new Set(reveals.map(({ variant }) => variant)).size).toBe(expectedReveals.length)
+  expect(new Set(reveals.map(({ computedDuration }) => computedDuration)).size).toBe(expectedReveals.length)
+  expect(reveals.every(({ fade }) => fade === 'false')).toBe(true)
+  expect(reveals.every(({ childTransitionProperty }) => childTransitionProperty === 'transform')).toBe(true)
+  await expect(page.locator('.landing-stagger')).toHaveCount(0)
+  await expect(page.locator('[data-motion="art"]')).toHaveCount(13)
+  const overflow = await page.evaluate(
+    () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+  )
+  expect(overflow).toBeLessThanOrEqual(0)
+})
+
 test('public landing removes decorative motion when reduced motion is requested', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' })
   await page.goto('/')
 
-  const motion = await page.locator('[data-landing-reveal]').first().evaluate((element) => ({
+  const motion = await page.locator('[data-motion]').first().evaluate((element) => ({
     duration: getComputedStyle(element).transitionDuration,
     transform: getComputedStyle(element).transform,
     opacity: getComputedStyle(element).opacity,
+    clipPath: getComputedStyle(element).clipPath,
   }))
 
-  expect(motion).toEqual({ duration: '0s', transform: 'none', opacity: '1' })
+  expect(motion).toEqual({ duration: '0s', transform: 'none', opacity: '1', clipPath: 'none' })
 })

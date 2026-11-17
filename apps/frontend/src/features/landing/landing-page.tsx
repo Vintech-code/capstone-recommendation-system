@@ -1,8 +1,7 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router";
 import {
   ArrowRight,
-  BookCheck,
   ChartNoAxesCombined,
   Compass,
   FileText,
@@ -14,7 +13,10 @@ import landingHome from "@/assets/images/landing-image-home.png";
 import landingBackground from "@/assets/images/landing-image-bg.png";
 import landingJourney from "@/assets/images/landing-image2.png";
 import landingQuestion from "@/assets/images/landing-image-question.png";
-import landingFooter from "@/assets/images/landing-image-footer.png";
+import guidanceCompass from "@/assets/images/compass.png";
+import guidanceClipboard from "@/assets/images/clipboard.png";
+import guidanceChart from "@/assets/images/chart.png";
+import guidanceFileText from "@/assets/images/filetext.png";
 import logo from "@/assets/logo/header-logo.png";
 import riasecR from "@/assets/images/R.png";
 import riasecI from "@/assets/images/I.png";
@@ -25,27 +27,28 @@ import riasecC from "@/assets/images/C.png";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { StudentAuthModal } from "@/features/auth/components/student-auth-modal";
+import { ScrollReveal } from "@/features/landing/components/scroll-reveal";
 
 const reasons = [
   {
-    icon: Compass,
+    image: guidanceCompass,
     title: "Objective TCC Exploration",
     description: "See how your interests match the programs offered at TCC.",
   },
   {
-    icon: BookCheck,
+    image: guidanceClipboard,
     title: "TCC Entrance Exam",
     description:
       "Use your TCC entrance exam score together with your RIASEC results.",
   },
   {
-    icon: ChartNoAxesCombined,
+    image: guidanceChart,
     title: "Clear Results",
     description:
       "See your RIASEC results and understand why certain TCC programs are recommended.",
   },
   {
-    icon: FileText,
+    image: guidanceFileText,
     title: "Helpful Guidance",
     description:
       "Use your results as a guide when choosing the right program for you at TCC.",
@@ -189,71 +192,6 @@ const landingNavigation = [
   { href: "#faq", label: "FAQ" },
 ] as const;
 
-interface ScrollRevealProps {
-  children: ReactNode;
-  className?: string;
-  delay?: number;
-  variant?: "up" | "left" | "right" | "scale";
-}
-
-const revealOffset = {
-  up: "translate-y-3",
-  left: "-translate-x-3",
-  right: "translate-x-3",
-  scale: "scale-[0.98]",
-} as const;
-
-function ScrollReveal({
-  children,
-  className,
-  delay = 0,
-  variant = "up",
-}: ScrollRevealProps) {
-  const [isVisible, setIsVisible] = useState(
-    () => typeof IntersectionObserver === "undefined",
-  );
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (typeof IntersectionObserver === "undefined") {
-      return;
-    }
-
-    const node = ref.current;
-    if (!node) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        setIsVisible(entry.isIntersecting);
-      },
-      {
-        threshold: 0.1,
-        rootMargin: "0px 0px -40px 0px",
-      },
-    );
-
-    observer.observe(node);
-    return () => observer.disconnect();
-  }, []);
-
-  return (
-    <div
-      ref={ref}
-      data-landing-reveal={variant}
-      style={{ transitionDelay: `${delay}ms` }}
-      className={cn(
-        "transition-all duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)] motion-reduce:transform-none motion-reduce:opacity-100 motion-reduce:transition-none",
-        isVisible
-          ? "landing-reveal-visible translate-x-0 translate-y-0 scale-100 opacity-100"
-          : cn("opacity-0", revealOffset[variant]),
-        className,
-      )}
-    >
-      {children}
-    </div>
-  );
-}
-
 interface LandingPageProps {
   initialAuth?: "signin" | "signup";
 }
@@ -314,7 +252,7 @@ function LandingPage({ initialAuth }: LandingPageProps = {}) {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background text-foreground antialiased selection:bg-primary/20 selection:text-primary-ink">
+    <div className="min-h-screen overflow-x-clip bg-background text-foreground antialiased selection:bg-primary/20 selection:text-primary-ink">
       {/* HEADER NAVIGATION WITH SCROLL TRANSITION */}
       <header
         className={cn(
@@ -468,11 +406,14 @@ function LandingPage({ initialAuth }: LandingPageProps = {}) {
 
           <ScrollReveal
             className="relative z-10 mx-auto max-w-300 text-center"
-            variant="scale"
+            variant="hero"
+            duration={420}
+            fade={false}
           >
             {/* Main Display Headline */}
             <h1
               id="landing-title"
+              data-motion="heading"
               className="mx-auto max-w-3xl font-display text-3xl font-black leading-tight tracking-[-0.03em] text-foreground sm:text-4xl lg:text-[2.75rem]"
             >
               Discover your interests.
@@ -482,14 +423,14 @@ function LandingPage({ initialAuth }: LandingPageProps = {}) {
             </h1>
 
             {/* Supporting Description (minimized to 2 lines) */}
-            <p className="mx-auto mt-2 max-w-xl text-sm font-medium leading-relaxed text-muted-foreground sm:max-w-2xl sm:text-base">
+            <p data-motion="copy" className="mx-auto mt-2 max-w-xl text-sm font-medium leading-relaxed text-muted-foreground sm:max-w-2xl sm:text-base">
               Complete the RIASEC assessment to discover which TCC
               <br className="hidden sm:inline" /> programs best match your
               interests and entrance exam results.
             </p>
 
             {/* Action Buttons */}
-            <div className="landing-stagger mt-4.5 flex items-center justify-center">
+            <div data-motion="action" className="mt-4.5 flex items-center justify-center">
               <div className="relative inline-flex group w-auto shrink-0">
                 <span
                   aria-hidden="true"
@@ -518,7 +459,7 @@ function LandingPage({ initialAuth }: LandingPageProps = {}) {
             </div>
 
             {/* Centerpiece 3D Illustration Avatar (prominently sized and visible above the fold, NO hover effect) */}
-            <div className="relative mx-auto mt-3 max-w-xl sm:mt-4 lg:max-w-2xl">
+            <div data-motion="art" className="relative mx-auto mt-3 max-w-xl sm:mt-4 lg:max-w-2xl">
               <img
                 src={landingHome}
                 alt="Students discovering career interests with laptops"
@@ -528,14 +469,19 @@ function LandingPage({ initialAuth }: LandingPageProps = {}) {
           </ScrollReveal>
         </section>
 
-        {/* SECTION 2: WHAT WE PROVIDE (4-Card Grid) */}
+        {/* SECTION 2: WHAT WE PROVIDE (PNG-led guidance grid) */}
         <section
           id="why-guidance"
           className="scroll-mt-24 px-4 py-14 sm:px-6 lg:px-8 lg:py-20 bg-surface-subtle/50 border-y border-border/60"
           aria-labelledby="why-title"
         >
-          <ScrollReveal className="mx-auto max-w-300" variant="left">
-            <div className="text-center">
+          <ScrollReveal
+            className="mx-auto max-w-300"
+            variant="guidance"
+            duration={460}
+            fade={false}
+          >
+            <div data-motion="heading-group" className="text-center">
               <p className="font-display text-xs font-bold uppercase tracking-[0.2em] text-primary-ink">
                 / WHAT WE PROVIDE /
               </p>
@@ -551,32 +497,36 @@ function LandingPage({ initialAuth }: LandingPageProps = {}) {
               </p>
             </div>
 
-            {/* 4 Cards Grid */}
-            <div className="landing-stagger mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-              {reasons.map(({ icon: Icon, title, description }) => (
+            <div
+              data-testid="guidance-grid"
+              className="mt-10 grid grid-cols-2 gap-x-4 gap-y-10 sm:gap-x-8 sm:gap-y-12 lg:grid-cols-4"
+            >
+              {reasons.map(({ image, title, description }) => (
                 <article
                   key={title}
-                  className="group relative flex flex-col justify-between rounded-3xl border border-border/80 bg-card p-5.5 shadow-xs transition-all duration-300 hover:border-primary/40 hover:shadow-md hover:-translate-y-1"
+                  data-motion="item"
+                  className="group flex flex-col items-center text-center"
                 >
-                  <div>
-                    <span className="inline-flex size-11 items-center justify-center rounded-2xl bg-primary-soft text-primary-ink transition-transform duration-200 group-hover:scale-105">
-                      <Icon
-                        aria-hidden="true"
-                        className="size-5.5 text-primary"
-                      />
-                    </span>
-                    <h3 className="mt-4 font-display text-base sm:text-lg font-bold text-foreground">
-                      {title}
-                    </h3>
-                    <p className="mt-2 text-xs sm:text-sm font-medium leading-relaxed text-muted-foreground">
-                      {description}
-                    </p>
+                  <div data-motion="art" className="flex aspect-square w-full max-w-36 items-center justify-center transition-transform duration-300 ease-out group-hover:-translate-y-2 group-hover:scale-105 sm:max-w-48 lg:max-w-52">
+                    <img
+                      src={image}
+                      alt=""
+                      loading="lazy"
+                      className="size-full object-contain drop-shadow-sm transition-all duration-300 group-hover:drop-shadow-md"
+                    />
                   </div>
+
+                  <h3 className="mt-3 font-display text-sm font-bold leading-snug text-foreground sm:mt-5 sm:text-base lg:text-lg">
+                    {title}
+                  </h3>
+                  <p className="mt-2 max-w-64 text-[11px] font-medium leading-relaxed text-muted-foreground sm:mt-3 sm:text-sm">
+                    {description}
+                  </p>
                 </article>
               ))}
             </div>
 
-            <div className="mt-9 text-center">
+            <div data-motion="action" className="mt-9 text-center">
               <Button
                 asChild
                 size="default"
@@ -600,10 +550,15 @@ function LandingPage({ initialAuth }: LandingPageProps = {}) {
           className="scroll-mt-24 px-4 py-14 sm:px-6 lg:px-8 lg:py-20"
           aria-labelledby="steps-title"
         >
-          <ScrollReveal className="mx-auto max-w-300" variant="right">
+          <ScrollReveal
+            className="mx-auto max-w-300"
+            variant="journey"
+            duration={500}
+            fade={false}
+          >
             <div className="grid gap-10 lg:grid-cols-12 lg:items-center">
               {/* Left Column: 3D Confident Students Illustration */}
-              <div className="lg:col-span-4 flex justify-center order-2 lg:order-1">
+              <div data-motion="art" className="lg:col-span-4 flex justify-center order-2 lg:order-1">
                 <div className="relative max-w-md w-full">
                   <div
                     aria-hidden="true"
@@ -618,7 +573,7 @@ function LandingPage({ initialAuth }: LandingPageProps = {}) {
               </div>
 
               {/* Right Column: Process & Steps */}
-              <div className="lg:col-span-8 order-1 lg:order-2">
+              <div data-motion="panel" className="lg:col-span-8 order-1 lg:order-2">
                 <p className="font-display text-xs font-bold uppercase tracking-[0.2em] text-primary-ink">
                   / HOW IT WORKS /
                 </p>
@@ -633,11 +588,12 @@ function LandingPage({ initialAuth }: LandingPageProps = {}) {
                   TCC programs that match your interests.
                 </p>
 
-                <ol className="landing-stagger mt-6 space-y-3.5">
+                <ol className="mt-6 space-y-3.5">
                   {journeySteps.map(
                     ({ number, icon: Icon, title, description }) => (
                       <li
                         key={number}
+                        data-motion="item"
                         className="group flex items-start gap-4 rounded-2xl border border-border/80 bg-card p-4.5 shadow-2xs transition-all duration-200 hover:border-primary/40 hover:bg-surface"
                       >
                         <div className="flex size-14 shrink-0 items-center justify-center rounded-xl bg-primary-soft text-primary-ink font-mono text-2xl font-black">
@@ -662,7 +618,7 @@ function LandingPage({ initialAuth }: LandingPageProps = {}) {
                   )}
                 </ol>
 
-                <div className="mt-7">
+                <div data-motion="action" className="mt-7">
                   <Button
                     asChild
                     size="default"
@@ -694,8 +650,13 @@ function LandingPage({ initialAuth }: LandingPageProps = {}) {
           className="scroll-mt-32 px-4 py-16 sm:px-6 lg:px-8 lg:py-24 bg-surface-subtle/30 border-y border-border/60"
           aria-labelledby="riasec-title"
         >
-          <ScrollReveal className="mx-auto max-w-300" variant="scale">
-            <div className="mx-auto max-w-3xl text-center">
+          <ScrollReveal
+            className="mx-auto max-w-300"
+            variant="riasec"
+            duration={540}
+            fade={false}
+          >
+            <div data-motion="heading-group" className="mx-auto max-w-3xl text-center">
               <h2
                 id="riasec-title"
                 className="mt-2.5 font-display text-3xl font-black tracking-tight text-foreground sm:text-4xl lg:text-5xl"
@@ -714,15 +675,16 @@ function LandingPage({ initialAuth }: LandingPageProps = {}) {
             {/* 6 RIASEC Category Dimensions without background cards behind PNGs */}
             <div
               data-testid="riasec-grid"
-              className="landing-stagger mt-10 grid grid-cols-2 gap-x-3 gap-y-10 sm:mt-12 sm:gap-x-8 sm:gap-y-12 lg:grid-cols-3"
+              className="mt-10 grid grid-cols-2 gap-x-3 gap-y-10 sm:mt-12 sm:gap-x-8 sm:gap-y-12 lg:grid-cols-3"
             >
               {riasecAreas.map((area) => (
                 <article
                   key={area.code}
+                  data-motion="item"
                   className="group flex flex-col items-center text-center"
                 >
                   {/* 3D Transparent Illustration without any background card */}
-                  <div className="relative flex aspect-square w-full max-w-40 items-center justify-center transition-transform duration-300 ease-out group-hover:-translate-y-2 group-hover:scale-105 sm:max-w-[250px]">
+                  <div data-motion="art" className="relative flex aspect-square w-full max-w-40 items-center justify-center transition-transform duration-300 ease-out group-hover:-translate-y-2 group-hover:scale-105 sm:max-w-[250px]">
                     <img
                       src={area.image}
                       alt={area.alt}
@@ -769,10 +731,15 @@ function LandingPage({ initialAuth }: LandingPageProps = {}) {
           className="scroll-mt-32 px-4 py-16 sm:px-6 lg:px-8 lg:py-24"
           aria-labelledby="questions-title"
         >
-          <ScrollReveal className="mx-auto max-w-300" variant="left">
+          <ScrollReveal
+            className="mx-auto max-w-300"
+            variant="faq"
+            duration={480}
+            fade={false}
+          >
             <div className="grid gap-10 lg:grid-cols-12 lg:items-center">
               {/* Left Column: FAQ Questions Accordion */}
-              <div className="lg:col-span-7">
+              <div data-motion="panel" className="lg:col-span-7">
                 <p className="font-display text-xs font-bold uppercase tracking-[0.2em] text-primary-ink">
                   / FAQ /
                 </p>
@@ -788,10 +755,11 @@ function LandingPage({ initialAuth }: LandingPageProps = {}) {
                   Community College.
                 </p>
 
-                <div className="landing-stagger mt-7 divide-y divide-border/80 overflow-hidden rounded-3xl border border-border/80 bg-card shadow-xs">
+                <div className="mt-7 divide-y divide-border/80 overflow-hidden rounded-3xl border border-border/80 bg-card shadow-xs">
                   {questions.map(({ question, answer }) => (
                     <details
                       key={question}
+                      data-motion="item"
                       className="group px-6 py-1 open:bg-surface-subtle/50 transition-colors"
                     >
                       <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-5 py-3.5 font-display text-base font-bold text-foreground focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-inset focus-visible:ring-ring/35">
@@ -816,7 +784,7 @@ function LandingPage({ initialAuth }: LandingPageProps = {}) {
               </div>
 
               {/* Right Column: 3D Thinking Student Illustration */}
-              <div className="lg:col-span-5 flex justify-center">
+              <div data-motion="art" className="lg:col-span-5 flex justify-center">
                 <div className="relative max-w-sm w-full">
                   <div
                     aria-hidden="true"
@@ -833,74 +801,71 @@ function LandingPage({ initialAuth }: LandingPageProps = {}) {
           </ScrollReveal>
         </section>
 
-        {/* SECTION 6: READY TO BEGIN BANNER (with landingFooter) */}
+        {/* SECTION 6: READY TO BEGIN */}
         <section
-          className="px-4 pb-14 sm:px-6 lg:px-8 lg:pb-20"
+          data-testid="landing-ready-cta"
+          className="border-y border-primary/20 bg-primary-soft/55 px-4 py-14 sm:px-6 sm:py-16 lg:px-8 lg:py-20"
           aria-labelledby="ready-title"
         >
           <ScrollReveal
-            className="mx-auto flex max-w-300 flex-col items-center justify-between gap-8 overflow-hidden rounded-[2.5rem] border border-primary/25 bg-linear-to-r from-primary-soft via-surface to-primary-soft/40 p-7 shadow-sm sm:p-10 lg:flex-row"
-            variant="right"
+            className="mx-auto max-w-3xl text-center"
+            variant="scale"
+            duration={480}
+            fade={false}
           >
-            <div className="max-w-xl text-center lg:text-left">
-              <span className="inline-block font-display text-xs font-bold uppercase tracking-[0.16em] text-primary-ink">
+            <div className="flex items-center justify-center gap-3" aria-hidden="true">
+              <span className="h-px w-10 bg-primary/45 sm:w-16" />
+              <span className="font-display text-xs font-bold uppercase tracking-[0.16em] text-primary-ink">
                 When you are ready
               </span>
-              <h2
-                id="ready-title"
-                className="mt-2 font-display text-2xl font-black tracking-[-0.03em] text-foreground sm:text-3xl lg:text-4xl"
-              >
-                Start building your recorded interest profile
-              </h2>
-              <p className="mt-2 text-sm font-medium leading-relaxed text-muted-foreground sm:text-base">
-                Sign in or create a Student account to discover which TCC
-                programs best match your interests and entrance exam results.
-              </p>
-              <div className="mt-6 flex flex-wrap justify-center lg:justify-start gap-3">
-                <Button
-                  asChild
-                  size="default"
-                  className="rounded-full px-7 font-bold text-white shadow-xs"
-                >
-                  <Link
-                    to="/student/login"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      openAuth("signin");
-                    }}
-                  >
-                    Start assessment
-                    <ArrowRight
-                      aria-hidden="true"
-                      className="size-4 text-white"
-                    />
-                  </Link>
-                </Button>
-                <Button
-                  asChild
-                  size="default"
-                  variant="outline"
-                  className="rounded-full bg-surface/90 px-6 font-semibold"
-                >
-                  <Link
-                    to="/student/register"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      openAuth("signup");
-                    }}
-                  >
-                    Get started now
-                  </Link>
-                </Button>
-              </div>
+              <span className="h-px w-10 bg-primary/45 sm:w-16" />
             </div>
-
-            <div className="relative shrink-0 max-w-xs sm:max-w-sm">
-              <img
-                src={landingFooter}
-                alt="Two smiling students welcoming you to start your course recommendations"
-                className="max-h-64 w-auto object-contain drop-shadow-sm transition-transform duration-300 hover:scale-[1.02]"
-              />
+            <h2
+              id="ready-title"
+              className="mx-auto mt-4 max-w-2xl font-display text-2xl font-black tracking-[-0.03em] text-foreground sm:text-3xl lg:text-4xl"
+            >
+              Start building your recorded interest profile
+            </h2>
+            <p className="mx-auto mt-3 max-w-2xl text-sm font-medium leading-relaxed text-muted-foreground sm:text-base">
+              Sign in or create a Student account to discover which TCC
+              programs best match your interests and entrance exam results.
+            </p>
+            <div className="mt-7 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center">
+              <Button
+                asChild
+                size="default"
+                className="w-full rounded-full px-7 font-bold text-white shadow-xs sm:w-auto"
+              >
+                <Link
+                  to="/student/login"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    openAuth("signin");
+                  }}
+                >
+                  Start assessment
+                  <ArrowRight
+                    aria-hidden="true"
+                    className="size-4 text-white"
+                  />
+                </Link>
+              </Button>
+              <Button
+                asChild
+                size="default"
+                variant="outline"
+                className="w-full rounded-full bg-surface px-6 font-semibold sm:w-auto"
+              >
+                <Link
+                  to="/student/register"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    openAuth("signup");
+                  }}
+                >
+                  Get started now
+                </Link>
+              </Button>
             </div>
           </ScrollReveal>
         </section>
@@ -911,19 +876,19 @@ function LandingPage({ initialAuth }: LandingPageProps = {}) {
         className="relative isolate overflow-hidden bg-primary-ink text-white"
         aria-label="Public site footer"
       >
-        <div className="relative z-10 mx-auto max-w-300 px-4 pb-32 pt-12 sm:px-6 sm:pb-40 lg:px-8 lg:pb-48 lg:pt-16">
-          <div className="grid gap-10 border-b border-white/25 pb-10 sm:grid-cols-2 lg:grid-cols-12 lg:gap-12">
+        <div className="mx-auto max-w-300 px-4 pb-4 pt-10 sm:px-6 sm:pb-5 sm:pt-12 lg:px-8 lg:pt-14">
+          <div className="grid gap-9 pb-10 sm:grid-cols-2 lg:grid-cols-12 lg:gap-12 lg:pb-12">
             {/* Brand Column */}
-            <div className="space-y-3.5 lg:col-span-5">
+            <div className="space-y-3 lg:col-span-5">
               <div className="flex items-center gap-3">
                 <img
                   src={logo}
-                  alt="TCCence"
-                  className="h-11 w-auto object-contain"
+                  alt="TCC"
+                  className="h-10 w-auto object-contain"
                 />
               </div>
-              <p className="text-sm font-semibold text-white">
-                TCCence Recommendation System
+              <p className="font-display text-sm font-black uppercase tracking-[0.08em] text-white">
+                TCCHOICE
               </p>
               <p className="max-w-md text-xs leading-relaxed text-white/90 sm:text-sm">
                 An explainable vocational interest assessment and guidance
@@ -937,7 +902,7 @@ function LandingPage({ initialAuth }: LandingPageProps = {}) {
             </div>
 
             {/* Platform Navigation */}
-            <div className="lg:col-span-3">
+            <nav className="lg:col-span-3" aria-label="Footer navigation">
               <p className="font-display text-xs font-bold uppercase tracking-[0.16em] text-white">
                 Explore
               </p>
@@ -983,7 +948,7 @@ function LandingPage({ initialAuth }: LandingPageProps = {}) {
                   </a>
                 </li>
               </ul>
-            </div>
+            </nav>
 
             {/* Guidance boundaries */}
             <div className="lg:col-span-4">
@@ -1004,15 +969,16 @@ function LandingPage({ initialAuth }: LandingPageProps = {}) {
               </ul>
             </div>
           </div>
-        </div>
 
-        <img
-          src={logo}
-          alt=""
-          aria-hidden="true"
-          data-testid="footer-logo-watermark"
-          className="pointer-events-none absolute -bottom-4 left-1/2 z-0 w-[min(88vw,54rem)] -translate-x-1/2 select-none opacity-10 brightness-0 invert sm:-bottom-8"
-        />
+          <div className="overflow-hidden border-t border-white/25 pt-7 sm:pt-8">
+            <p
+              data-testid="footer-wordmark"
+              className="select-none whitespace-nowrap text-center font-display text-[clamp(3rem,16vw,13rem)] font-black uppercase leading-[0.78] tracking-[-0.07em] text-white"
+            >
+              TCCHOICE
+            </p>
+          </div>
+        </div>
       </footer>
 
       {/* Student Authentication Modal (Glassy / Glossy Card) */}

@@ -5,7 +5,7 @@
 **Basis:** Surviving repository authorities indexed in [docs/README.md](docs/README.md).
 **Owner:** Capstone team.  
 **Last updated:** 2026-09-14.
-**Related approvals:** User-approved role-model replacement on 2026-08-09, purple/pastel visual-system replacement on 2026-08-28, warm coastal palette replacement on 2026-08-30, Nunito Sans/Montserrat typography replacement on 2026-09-01, white line-based Administrator layout with retained sidebar on 2026-09-01, unified reference-derived palette replacement on 2026-09-05, public Student landing page restoration on 2026-09-06, and light-green-primary pastel palette replacement on 2026-09-07.
+**Related approvals:** User-approved role-model replacement on 2026-08-09, purple/pastel visual-system replacement on 2026-08-28, warm coastal palette replacement on 2026-08-30, Nunito Sans/Montserrat typography replacement on 2026-09-01, white line-based Administrator layout with retained sidebar on 2026-09-01, unified reference-derived palette replacement on 2026-09-05, public Student landing page restoration on 2026-09-06, light-green-primary pastel palette replacement on 2026-09-07, public `TCCHOICE` footer wordmark replacement on 2026-11-17, section-specific public landing text/PNG choreography without section-wide fades on 2026-11-17, and transform-only landing motion performance refinement on 2026-11-18.
 
 Before any UI/UX task, read [DESIGN.md](DESIGN.md) in full before proposing or editing the interface. The former controlled `docs/` baseline was intentionally removed by the repository owner and must not be restored unless explicitly requested.
 

@@ -45,6 +45,13 @@ This is the index for the surviving TCC course-recommendation documentation. The
 - [Editable Student account names](note/2026-11-16-editable-student-account-names.md) records the Student-owned split-name update contract, atomic persistence, authenticated-shell refresh, and historical-evidence boundary.
 - [Shared toast feedback and Student header identity](note/2026-11-16-shared-toast-and-student-header-identity.md) records centralized transient notifications, inline-success removal, and immediate visible name refresh beside the Student profile control.
 - [Selected Administrator recommendation programme routing](note/2026-11-17-admin-recommendation-programme-routing.md) records the recommendation-to-programme detail route repair and validation evidence.
+- [Public landing mobile guidance reveal removal](note/2026-11-17-public-landing-mobile-guidance-reveal.md) records the removal of the delayed What We Provide reveal that reserved blank mobile space before its content became visible.
+- [Public landing guidance illustrations](note/2026-11-17-public-landing-guidance-illustrations.md) records the PNG-led, card-free What We Provide presentation aligned with the existing RIASEC section.
+- [Public landing ready CTA redesign](note/2026-11-17-public-landing-ready-cta.md) records removal of the Student avatar artwork and the centered, image-free closing action section.
+- [Public landing TCCHOICE footer](note/2026-11-17-public-landing-tcchoice-footer.md) records the reference-derived compact footer composition and oversized native-text wordmark.
+- [Public landing differentiated motion](note/2026-11-17-public-landing-differentiated-motion.md) records the original distinct one-time choreography subsequently performance-refined on 2026-11-18.
+- [Public landing motion performance refinement](note/2026-11-18-public-landing-motion-performance.md) records the transform-only, shorter-duration revision that removes expensive filters and clipping from the image-heavy landing choreography.
+- [Application recovery open-canvas presentation](note/2026-11-18-application-recovery-open-canvas.md) records removal of the outer recovery card while preserving its content, actions, focus behavior, and responsive spacing.
 - [Clone and local setup guide](note/2026-10-28-clone-and-local-setup-guide.md) records the current clone-to-running PowerShell onboarding guide and its verification boundaries.
 - `cmo/` contains locally reviewed CHED programme-standard evidence.
 - `pdf/` contains the capstone paper and historical roadmap sources.

@@ -31,10 +31,13 @@ describe("public landing page", () => {
       "src",
       expect.stringMatching(/landing-image-question\.png$/),
     );
-    expect(screen.getByAltText(/smiling students welcoming/i)).toHaveAttribute(
-      "src",
-      expect.stringMatching(/landing-image-footer\.png$/),
-    );
+    const readyCta = screen.getByTestId("landing-ready-cta");
+    expect(readyCta.querySelector("img")).not.toBeInTheDocument();
+    expect(
+      within(readyCta).getByRole("heading", {
+        name: "Start building your recorded interest profile",
+      }),
+    ).toBeVisible();
     expect(
       screen.getByRole("heading", { name: "Six ways interests can show up" }),
     ).toBeVisible();
@@ -54,6 +57,34 @@ describe("public landing page", () => {
         name: "Guidance you can understand and revisit",
       }),
     ).toBeVisible();
+    const guidanceSection = document.querySelector("#why-guidance");
+    expect(guidanceSection).not.toBeNull();
+    const guidanceReveal = guidanceSection?.querySelector(
+      "[data-landing-reveal]",
+    );
+    expect(guidanceReveal).toHaveAttribute("data-landing-reveal", "guidance");
+    expect(guidanceReveal).toHaveAttribute("data-reveal-duration", "460");
+    expect(guidanceReveal).toHaveAttribute("data-reveal-fade", "false");
+    expect(
+      guidanceSection?.querySelector(".landing-stagger"),
+    ).not.toBeInTheDocument();
+    expect(
+      guidanceSection?.querySelectorAll('[data-motion="item"]'),
+    ).toHaveLength(4);
+    expect(
+      guidanceSection?.querySelectorAll('[data-motion="art"]'),
+    ).toHaveLength(4);
+    const guidanceImages = Array.from(
+      guidanceSection?.querySelectorAll("article img") ?? [],
+    );
+    expect(guidanceImages).toHaveLength(4);
+    expect(guidanceImages.map((image) => image.getAttribute("src"))).toEqual([
+      expect.stringMatching(/compass\.png$/),
+      expect.stringMatching(/clipboard\.png$/),
+      expect.stringMatching(/chart\.png$/),
+      expect.stringMatching(/filetext\.png$/),
+    ]);
+    guidanceImages.forEach((image) => expect(image).toHaveAttribute("alt", ""));
     expect(
       screen.getByRole("contentinfo", { name: "Public site footer" }),
     ).toBeVisible();
@@ -61,6 +92,29 @@ describe("public landing page", () => {
       "grid-cols-2",
       "lg:grid-cols-3",
     );
+
+    const expectedReveals = [
+      ["landing-hero", "hero", "420", "false"],
+      ["why-guidance", "guidance", "460", "false"],
+      ["journey", "journey", "500", "false"],
+      ["riasec", "riasec", "540", "false"],
+      ["faq", "faq", "480", "false"],
+    ] as const;
+
+    expectedReveals.forEach(([sectionId, variant, duration, fade]) => {
+      const reveal = document.querySelector(
+        `#${sectionId} [data-landing-reveal]`,
+      );
+      expect(reveal).toHaveAttribute("data-landing-reveal", variant);
+      expect(reveal).toHaveAttribute("data-reveal-duration", duration);
+      expect(reveal).toHaveAttribute("data-reveal-fade", fade);
+    });
+
+    expect(document.querySelectorAll(".landing-stagger")).toHaveLength(0);
+    expect(
+      document.querySelectorAll('[data-motion="heading"], [data-motion="heading-group"]'),
+    ).toHaveLength(3);
+    expect(document.querySelectorAll('[data-motion="art"]')).toHaveLength(13);
   });
 
   it("provides an accessible mobile menu and keeps sign-in and unsupported footer copy out", async () => {
@@ -107,10 +161,10 @@ describe("public landing page", () => {
       screen.getByRole("link", { name: "Get started now" }),
     ).toHaveAttribute("href", "/student/register");
     expect(screen.getByText("Guidance principles")).toBeVisible();
-    expect(screen.getByTestId("footer-logo-watermark")).toHaveAttribute(
-      "alt",
-      "",
+    expect(screen.getByTestId("footer-wordmark")).toHaveTextContent(
+      "TCCHOICE",
     );
+    expect(screen.queryByTestId("footer-logo-watermark")).not.toBeInTheDocument();
     expect(screen.queryByText("Access Portals")).not.toBeInTheDocument();
     expect(
       screen.queryByRole("link", { name: "Administrator sign in" }),

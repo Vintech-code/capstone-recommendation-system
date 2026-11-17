@@ -948,37 +948,125 @@
   animation: visual-float 7s ease-in-out infinite;
 }
 
-.landing-stagger > * {
-  opacity: 0;
-  transform: translateY(10px);
-  transition:
-    opacity 300ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    transform 300ms cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-
-.landing-reveal-visible .landing-stagger > * {
+[data-landing-reveal] [data-motion] {
   opacity: 1;
-  transform: translateY(0);
+  transition-property: transform;
+  transition-duration: inherit;
+  transition-timing-function: cubic-bezier(0.2, 0.75, 0.25, 1);
+  backface-visibility: hidden;
 }
 
-.landing-stagger > :nth-child(2) {
-  transition-delay: 60ms;
+[data-landing-reveal="hero"]:not(.landing-reveal-visible) [data-motion="heading"] {
+  transform: translate3d(0, 1.25rem, 0);
 }
 
-.landing-stagger > :nth-child(3) {
-  transition-delay: 120ms;
+[data-landing-reveal="hero"]:not(.landing-reveal-visible) [data-motion="copy"] {
+  transform: translate3d(0, 0.875rem, 0);
 }
 
-.landing-stagger > :nth-child(4) {
-  transition-delay: 180ms;
+[data-landing-reveal="hero"]:not(.landing-reveal-visible) [data-motion="action"] {
+  transform: scale3d(0.94, 0.94, 1);
 }
 
-.landing-stagger > :nth-child(5) {
-  transition-delay: 120ms;
+[data-landing-reveal="hero"]:not(.landing-reveal-visible) [data-motion="art"] {
+  transform: translate3d(0, 1.5rem, 0) scale3d(0.96, 0.96, 1);
 }
 
-.landing-stagger > :nth-child(6) {
-  transition-delay: 180ms;
+[data-landing-reveal="hero"] [data-motion="copy"] {
+  transition-delay: 45ms;
+}
+
+[data-landing-reveal="hero"] [data-motion="action"] {
+  transition-delay: 80ms;
+}
+
+[data-landing-reveal="hero"] [data-motion="art"] {
+  transition-delay: 115ms;
+}
+
+[data-landing-reveal="guidance"]:not(.landing-reveal-visible) [data-motion="heading-group"] {
+  transform: translate3d(0, 1rem, 0);
+}
+
+[data-landing-reveal="guidance"]:not(.landing-reveal-visible) [data-motion="item"] {
+  transform: translate3d(0, 1.25rem, 0) rotate(-1.5deg) scale3d(0.96, 0.96, 1);
+}
+
+[data-landing-reveal="guidance"]:not(.landing-reveal-visible) [data-motion="item"]:nth-child(even) {
+  transform: translate3d(0, 1.25rem, 0) rotate(1.5deg) scale3d(0.96, 0.96, 1);
+}
+
+[data-landing-reveal="guidance"] [data-motion="item"]:nth-child(1) { transition-delay: 35ms; }
+[data-landing-reveal="guidance"] [data-motion="item"]:nth-child(2) { transition-delay: 65ms; }
+[data-landing-reveal="guidance"] [data-motion="item"]:nth-child(3) { transition-delay: 95ms; }
+[data-landing-reveal="guidance"] [data-motion="item"]:nth-child(4) { transition-delay: 125ms; }
+[data-landing-reveal="guidance"] [data-motion="action"] { transition-delay: 150ms; }
+
+[data-landing-reveal="journey"]:not(.landing-reveal-visible) [data-motion="art"] {
+  transform: translate3d(-1.75rem, 0, 0) scale3d(0.97, 0.97, 1);
+}
+
+[data-landing-reveal="journey"]:not(.landing-reveal-visible) [data-motion="panel"] {
+  transform: translate3d(1.75rem, 0, 0);
+}
+
+[data-landing-reveal="journey"]:not(.landing-reveal-visible) [data-motion="item"] {
+  transform: translate3d(1.25rem, 0, 0);
+}
+
+[data-landing-reveal="journey"] [data-motion="item"]:nth-child(1) { transition-delay: 45ms; }
+[data-landing-reveal="journey"] [data-motion="item"]:nth-child(2) { transition-delay: 80ms; }
+[data-landing-reveal="journey"] [data-motion="item"]:nth-child(3) { transition-delay: 115ms; }
+[data-landing-reveal="journey"] [data-motion="action"] { transition-delay: 145ms; }
+
+[data-landing-reveal="riasec"]:not(.landing-reveal-visible) [data-motion="heading-group"] {
+  transform: scale3d(0.97, 0.97, 1);
+}
+
+[data-landing-reveal="riasec"]:not(.landing-reveal-visible) [data-motion="item"] {
+  transform: translate3d(0, 1.25rem, 0) rotate(-1.5deg) scale3d(0.96, 0.96, 1);
+}
+
+[data-landing-reveal="riasec"]:not(.landing-reveal-visible) [data-motion="item"]:nth-child(3n + 2) {
+  transform: translate3d(0, 0.75rem, 0) scale3d(0.95, 0.95, 1);
+}
+
+[data-landing-reveal="riasec"]:not(.landing-reveal-visible) [data-motion="item"]:nth-child(3n) {
+  transform: translate3d(0, 1.25rem, 0) rotate(1.5deg) scale3d(0.96, 0.96, 1);
+}
+
+[data-landing-reveal="riasec"] [data-motion="item"]:nth-child(1) { transition-delay: 30ms; }
+[data-landing-reveal="riasec"] [data-motion="item"]:nth-child(2) { transition-delay: 55ms; }
+[data-landing-reveal="riasec"] [data-motion="item"]:nth-child(3) { transition-delay: 80ms; }
+[data-landing-reveal="riasec"] [data-motion="item"]:nth-child(4) { transition-delay: 105ms; }
+[data-landing-reveal="riasec"] [data-motion="item"]:nth-child(5) { transition-delay: 130ms; }
+[data-landing-reveal="riasec"] [data-motion="item"]:nth-child(6) { transition-delay: 155ms; }
+
+[data-landing-reveal="faq"]:not(.landing-reveal-visible) [data-motion="panel"] {
+  transform: translate3d(-1.5rem, 0, 0);
+}
+
+[data-landing-reveal="faq"]:not(.landing-reveal-visible) [data-motion="item"] {
+  transform: translate3d(-1rem, 0, 0);
+}
+
+[data-landing-reveal="faq"]:not(.landing-reveal-visible) [data-motion="art"] {
+  transform: translate3d(1.75rem, 0, 0) scale3d(0.97, 0.97, 1);
+}
+
+[data-landing-reveal="faq"] [data-motion="item"]:nth-child(1) { transition-delay: 35ms; }
+[data-landing-reveal="faq"] [data-motion="item"]:nth-child(2) { transition-delay: 65ms; }
+[data-landing-reveal="faq"] [data-motion="item"]:nth-child(3) { transition-delay: 95ms; }
+[data-landing-reveal="faq"] [data-motion="item"]:nth-child(4) { transition-delay: 125ms; }
+[data-landing-reveal="faq"] [data-motion="art"] { transition-delay: 80ms; }
+
+.landing-reveal-visible [data-motion] {
+  transform: none;
+}
+
+.landing-reveal-visible[data-landing-reveal="guidance"] [data-motion="item"]:hover [data-motion="art"],
+.landing-reveal-visible[data-landing-reveal="riasec"] [data-motion="item"]:hover [data-motion="art"] {
+  transform: translateY(-0.5rem) scale(1.05);
 }
 
 .guidance-orbit {
@@ -1071,16 +1159,15 @@
     animation: none;
   }
 
-  .landing-stagger > * {
+  [data-landing-reveal],
+  [data-landing-reveal] [data-motion] {
     opacity: 1;
     transform: none;
+    filter: none;
+    clip-path: none;
     transition: none;
-  }
-
-  [data-landing-reveal] {
-    opacity: 1;
-    transform: none;
-    transition: none;
+    transition-delay: 0s !important;
+    transition-duration: 0s !important;
   }
 
   [data-reveal] {

@@ -32,7 +32,14 @@ describe("ApplicationErrorBoundary", () => {
     const heading = screen.getByRole("heading", {
       name: "Let's get you back on track",
     });
+    const recoverySection = heading.closest("section");
     expect(heading).toHaveFocus();
+    expect(recoverySection).not.toHaveClass(
+      "rounded-[1.75rem]",
+      "border",
+      "bg-card",
+      "shadow-sm",
+    );
     expect(screen.getByText(/^APP-/)).toBeVisible();
     expect(
       screen.queryByText("Test-only render failure"),

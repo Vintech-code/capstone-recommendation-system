@@ -1,7 +1,7 @@
 ---
 name: TCC Course Recommendation Design System
 status: APPROVED working product direction; PROVISIONAL institutional identity
-version: 5.3
+version: 5.7
 last_updated: 2026-11-17
 font_family: Nunito Sans headings / Montserrat Alternates body
 font_family: Open Runde headings / Montserrat Alternates body
@@ -96,7 +96,7 @@ The interface should feel like a calm, knowledgeable guide for a high-stakes stu
 6. **Truthfulness:** every result, count, percentage, status, and reason is backed by stored evidence.
 7. **Accessibility:** color never works alone; keyboard, screen reader, zoom, touch, and reduced motion are first-class.
 
-The experience is light-only. Dark navy, dark green, black, and near-black must not be used as page, sidebar, card, hero, or other large-area backgrounds. Darker values are reserved for readable text, icons, and short-lived hover or pressed states where contrast requires them. The public landing footer is the sole approved exception: it may use `primary-ink` as a bounded closing surface with white content and a low-opacity real logo watermark. A dark theme is out of scope for this direction. Existing dark-theme code may be retired only in a separately tested implementation slice; do not expand it or use it to shape new components.
+The experience is light-only. Dark navy, dark green, black, and near-black must not be used as page, sidebar, card, hero, or other large-area backgrounds. Darker values are reserved for readable text, icons, and short-lived hover or pressed states where contrast requires them. The public landing footer is the sole approved exception: it may use `primary-ink` as a bounded closing surface with white content and an oversized `TCCHOICE` text wordmark. A dark theme is out of scope for this direction. Existing dark-theme code may be retired only in a separately tested implementation slice; do not expand it or use it to shape new components.
 
 ## 3. Visual foundation
 
@@ -259,7 +259,7 @@ The public `/` route is an approved Student-oriented introduction. It uses the p
 - Describe the six RIASEC areas factually without presenting them as ability, personality, diagnosis, or destiny labels.
 - Explain the real journey: individual Student account, self-declared entrance result, locally stored assessment, authoritative result processing, and explainable programme recommendations.
 - Do not publish fabricated completion times, prices, participation counts, scientific-validation claims, privacy guarantees, testimonials, or success promises.
-- The public footer uses a bounded dark `primary-ink` surface, factual in-page navigation and guidance principles, plus the real TCCence logo as a low-opacity oversized watermark. Do not include portal sign-in links, fabricated contact/social/legal content, or an institutional copyright claim. The authenticated application remains footer-free.
+- The public footer uses a bounded dark `primary-ink` surface, factual in-page navigation and guidance principles, plus an oversized bold `TCCHOICE` text wordmark spanning its lower edge. Keep the small real TCC mark in the information row, but do not use a giant logo watermark. Do not include portal sign-in links, fabricated contact/social/legal content, or an institutional copyright claim. The authenticated application remains footer-free.
 - The hero artwork is decorative because the adjacent text communicates the page purpose; use an empty alternative description and preserve responsive containment.
 
 ### 4.1 Student top navigation
@@ -447,7 +447,7 @@ Filters use the existing compact single-open-section accordion. Closed rows expo
 - Journey: account and entrance declaration, assessment completion, then programme recommendation review.
 - Trust section: local content ownership, versioned evidence, explainable comparison, and an explicit guidance-not-guarantee boundary.
 - FAQ: answer only from implemented contracts and approved project rules.
-- Footer: a bounded `primary-ink` closing surface with platform section navigation, concise factual guidance principles, and the real logo as a low-opacity oversized watermark; do not repeat an **Access portals** account-link column, Student sign-in link, copyright claim, or fabricated contact, policy, social, or institutional links.
+- Footer: a bounded `primary-ink` closing surface with a compact information row, platform section navigation, concise factual guidance principles, and a native oversized bold `TCCHOICE` text wordmark across the lower edge. Keep the small real TCC mark in the information row; do not restore the former giant logo watermark or repeat an **Access portals** account-link column, Student sign-in link, copyright claim, or fabricated contact, policy, social, or institutional links.
 
 ### 6.1 Student dashboard
 
@@ -546,8 +546,8 @@ Use calm direct language: `Your result is ready`, `programme recommendation`, `r
 - Easing: `cubic-bezier(0.2, 0.8, 0.2, 1)`.
 - Hover lift: maximum 2px.
 - Known progress fill: 400–600ms once on entry.
-- Section entry: 8–12px rise with fade; no long-list staggering.
-- Public landing sections may alternate the same restrained 8–12px entry distance across vertical, horizontal, and slight-scale variants. Short groups of up to six items may use delays no longer than 180ms. Keep the landing background and `landing-image-home.png` static; use transitions rather than continuous decorative animation.
+- Section entry outside the public landing page: 8–12px rise with fade; no long-list staggering.
+- Public landing sections from Home through FAQ use distinct one-time, transform-only child choreography with no section-wide opacity fade. Home uses a compact vertical settle and button/PNG scale at 420ms. What We Provide alternates a restrained rotation and rise across its four PNG-led items at 460ms. How It Works sends the PNG from the left while the text panel and ordered steps arrive from the right at 500ms. RIASEC fans its six PNG-led interests into place at 540ms. FAQ cascades question rows from the left while its PNG enters separately from the right at 480ms. Do not animate blur, filter, clip-path, or large travel distances on these image-heavy sections; keep stagger delays at or below 155ms to avoid visible lag on mobile hardware. All content remains visible in document flow before reveal, preserving the mobile blank-space fix. Keep the landing background static and do not replay a section after its first reveal.
 
 Under `prefers-reduced-motion: reduce`, remove transforms, progress animation, decorative motion, and nonessential fades. Animation never delays content.
 

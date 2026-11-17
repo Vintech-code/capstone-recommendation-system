@@ -66,7 +66,7 @@ class ApplicationErrorBoundary extends Component<
       <main className="flex min-h-svh items-center justify-center bg-background px-4 py-12">
         <section
           aria-labelledby="application-error-title"
-          className="w-full max-w-2xl rounded-[1.75rem] border border-border bg-card px-6 py-8 text-center shadow-sm sm:px-10 sm:py-10"
+          className="w-full max-w-2xl px-6 py-8 text-center sm:px-10 sm:py-10"
         >
           <ErrorAnimation />
 
