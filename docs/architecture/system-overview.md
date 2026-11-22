@@ -35,15 +35,15 @@ File-placement, dependency-direction, clean-code, contract-change, and validatio
 3. Feature API adapters use the shared `src/services/api-client.ts` transport for credentials, JSON headers, CSRF headers, response parsing, and network errors.
 4. Laravel routes in `routes/api.php` apply authentication, active-account, role, ownership, validation, and throttling middleware before controllers run.
 5. Controllers delegate scoring, catalogue, location, privacy, reliability, and Administrator presentation/reporting work to services.
-6. Eloquent models persist owned records. Versioned JSON snapshots preserve assessment, entrance, catalogue, and recommendation evidence.
+6. Eloquent models persist owned records. Versioned JSON snapshots preserve assessment, entrance, catalogue, and recommendation evidence; mutable Student feedback remains in a separate owned relation.
 
 ## Domain modules
 
 - **Authentication:** split-name local Student registration with signed-link email verification and non-enumerating resend, invitation-based individual Administrator activation, individual Administrator login, role-aware Google OAuth, password recovery, session restoration, suspension, and revocation. Unverified local accounts cannot sign in or enter protected APIs. Google may create or link a Student account only from a provider-verified email, but it may only link an already-provisioned active Administrator whose email matches; it never grants the Administrator role.
 - **Assessment:** versioned questionnaire, entrance declaration prerequisite, answer persistence, immutable completion, retryable result processing, and retakes.
-- **Recommendation:** locally versioned programme catalogue, deterministic RIASEC engine, ties, pending classifications, saved programmes, and historical snapshots.
+- **Recommendation:** locally versioned programme catalogue, deterministic RIASEC engine, ties, pending classifications, saved programmes, historical snapshots, and private Student-owned per-programme accuracy feedback that cannot alter those snapshots.
 - **Student profile:** encrypted/self-owned personal and academic fields, a required unique eight-digit ID number, structured PSGC location references, profile media, and derived read-only RIASEC result content. The former self-reported strengths, growth areas, learning preferences, and derived learning-profile summary are removed.
-- **Administrator:** operational overview, Student directory/detail, catalogue enrichment, ESCO lookup, aggregate reports, sanitized audit records, and capability-gated Administrator account governance.
+- **Administrator:** operational overview, Student directory/detail, catalogue enrichment, ESCO lookup, aggregate reports, a separate first-response recommendation-feedback review workflow without Student account identity, sanitized audit records, and capability-gated Administrator account governance.
 - **Governance and reliability:** retention, audit records, account-security email delivery, and encrypted SQLite backup support. The Student and Administrator panels do not provide an in-app notification feed.
 
 ## External integrations

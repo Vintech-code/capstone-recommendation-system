@@ -97,6 +97,12 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(RecommendationRun::class);
     }
 
+    /** @return HasMany<RecommendationFeedback, $this> */
+    public function recommendationFeedback(): HasMany
+    {
+        return $this->hasMany(RecommendationFeedback::class);
+    }
+
     /** @return HasMany<StudentSavedProgramme, $this> */
     public function savedProgrammes(): HasMany
     {

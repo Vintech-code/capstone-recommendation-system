@@ -201,6 +201,10 @@ async function defaultFetch(
     return Response.json({ data: { generatedAt: '2026-08-08T12:00:00+08:00', from: null, to: null, scope: 'institution', studentCount: 2, eligibilityDistribution: { board: 1, nonBoard: 1 }, completedAssessments: 2, assessmentCompletionRate: 100, assessmentFunnel: { started: 2, inProgress: 0, processing: 0, resultAvailable: 2 }, recommendationRuns: 2, programmeSaves: 1, assessmentCompletionsByMonth: [{ month: '2026-08', count: 2 }], retakeMetrics: { totalAssessmentAttempts: 3, totalCompletedAttempts: 2, studentsWithRetakes: 1, totalRetakeAttempts: 1 } } })
   }
 
+  if (url.startsWith('/api/v1/admin/feedback')) {
+    return Response.json({ data: { generatedAt: '2026-08-08T12:00:00+08:00', from: null, to: null, publishedResponseCount: 1, publishedRespondentCount: 1, eligibleProgrammeCount: 1, commentCount: 1, programmes: [{ programmeId: 'bs-information-technology', programmeName: 'BS Information Technology', respondentCount: 1, averageRating: 4, ratingDistribution: { '1': 0, '2': 0, '3': 0, '4': 1, '5': 0 } }], comments: [{ programmeId: 'bs-information-technology', programmeName: 'BS Information Technology', rating: 4, comment: 'This recommendation reflects my interests in technology.', updatedAt: '2026-08-08T11:00:00+08:00' }] } })
+  }
+
   if (url.startsWith('/api/v1/admin/activity')) {
     return Response.json({ data: { items: [{ id: 1, actorId: 1, actor: 'Authenticated User', action: 'configuration.published', createdAt: '2026-08-08T12:00:00+08:00' }], pagination: { currentPage: 1, lastPage: 1, perPage: 25, total: 1, from: 1, to: 1 }, filters: { actors: [{ id: 1, name: 'Authenticated User' }], actions: ['configuration.published'] } } })
   }

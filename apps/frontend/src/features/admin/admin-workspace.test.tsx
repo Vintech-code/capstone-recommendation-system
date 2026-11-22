@@ -11,6 +11,7 @@ describe("Administration workspace", () => {
     expect(
       await screen.findByRole("heading", { name: "System overview" }),
     ).toBeVisible();
+    expect(screen.getByRole("button", { name: "Feedback" })).toBeVisible();
     expect(
       screen.getByRole("heading", { name: "Student journey" }),
     ).toBeVisible();
@@ -162,6 +163,37 @@ describe("Administration workspace", () => {
     ).toBeVisible();
     expect(screen.getByRole("button", { name: "Date range" })).toBeVisible();
     expect(screen.getByText("Saves per 100 recommendation runs")).toBeVisible();
+    expect(
+      screen.queryByRole("heading", {
+        name: "Recommendation interest-match feedback",
+      }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows Student ratings and comments on a separate feedback page", async () => {
+    await renderAppAt("/admin/feedback");
+
+    expect(
+      await screen.findByRole("heading", { name: "Student feedback" }),
+    ).toBeVisible();
+    expect(
+      screen.getByRole("heading", {
+        name: "Recommendation interest-match feedback",
+      }),
+    ).toBeVisible();
+    expect(screen.getAllByText("BS Information Technology")).toHaveLength(2);
+    expect(screen.getByText("4.0")).toBeVisible();
+    expect(
+      screen.getByText(/Available from the first Student response/i),
+    ).toBeVisible();
+    expect(screen.getByText("Student comments")).toBeVisible();
+    expect(
+      screen.getByText(/This recommendation reflects my interests in technology/i),
+    ).toBeVisible();
+    expect(
+      screen.getByText(/without Student names or account identifiers/i),
+    ).toBeVisible();
+    expect(screen.getByRole("button", { name: "Date range" })).toBeVisible();
   });
 
   it("shows a concise activity timeline without raw record metadata", async () => {

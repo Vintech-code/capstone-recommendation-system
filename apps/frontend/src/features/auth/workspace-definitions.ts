@@ -5,6 +5,7 @@ import {
   FileText,
   History,
   LibraryBig,
+  MessageSquareText,
   Settings,
   ShieldCheck,
   Target,
@@ -115,6 +116,12 @@ const dashboards: Record<AccessRole, DashboardDefinition> = {
         title: 'Reports',
         description: 'Review aggregate assessment and programme-match activity.',
         icon: FileText,
+      },
+      {
+        id: 'feedback',
+        title: 'Feedback',
+        description: 'Review Student ratings and comments on programme recommendations.',
+        icon: MessageSquareText,
       },
       {
         id: 'activity',

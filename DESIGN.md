@@ -1,8 +1,8 @@
 ---
 name: TCC Course Recommendation Design System
 status: APPROVED working product direction; PROVISIONAL institutional identity
-version: 5.7
-last_updated: 2026-11-17
+version: 6.3
+last_updated: 2026-11-23
 font_family: Nunito Sans headings / Montserrat Alternates body
 font_family: Open Runde headings / Montserrat Alternates body
 theme: light
@@ -379,6 +379,7 @@ Use the reference-inspired split composition:
 - Summary region: exact match percentage, accessible bar, and disclosure action. Keep the eligibility label in the detailed programme flow rather than repeating it in every ranked row.
 - Only ranks 1–3 use the broad pastel shape. Its desktop width steps down from rank 1 to rank 3 to establish the reference-inspired hierarchy; later ranks remain plain compact rows. The shape must remain readable and must not encode an unofficial threshold.
 - Expanded details show recorded scores, configured programme areas, catalogue learning areas, generation date, and rule version.
+- In the detailed programme view, explain each configured RIASEC area through its own collapsed disclosure. The closed row shows the code, full area name, and exact recorded score. The expanded region explains how that score was formed under the stored assessment version, repeats the versioned neutral area description, and states why the area contributes to the programme match. Keep disclosures keyboard-operable, independently expandable, and collapsed by default so the page does not become one long explanation card.
 
 Display **Strong match**, **Good match**, or **Explore match** only if thresholds exist in a versioned approved backend configuration. Otherwise use **Recorded match** with the exact percentage. Never invent thresholds in frontend code.
 
@@ -476,6 +477,7 @@ Filters use the existing compact single-open-section accordion. Closed rows expo
 - Student and Administrator result-card actions open the same recorded assessment card in a viewport-bounded, vertically scrollable dialog. Keep the action bar reachable, use the semantic RIASEC colors and exact scores, and preserve the complete card at mobile and desktop widths. **Download card** exports the full card as a high-resolution PNG image with action controls omitted; do not label the action as PDF or invoke the browser print dialog. Keep the card focused on identity, record reference/date, recorded interest pattern, ranked dimensions, and the six-score breakdown; do not append a separate interpretation/version-details panel.
 - Place the recommended-career-path guidance below that composition as one full-width, open-canvas section. Use divided opportunity rows and an inline explanation rail; do not wrap the section or individual opportunities in cards.
 - Present ranked recommendations as one spacious list of broad split rows. The top three use restrained pastel programme fields whose desktop widths descend by rank, paired with a compact white recorded-match rail; later ranks use plain compact divided rows. Use the exact recorded percentage and `Recorded match`; do not invent qualitative thresholds. Stack the match rail below the programme field on mobile.
+- Place one compact accuracy-feedback footer inside every ranked programme row. Keep the 1â€“5 star control visible, use native radio semantics with at least 44px pointer targets and a clear keyboard focus state, and reveal the optional comment editor only after a rating is selected or when the Student chooses to edit an existing response. Show saving, saved, validation, and retry states without lengthening every closed card. State that Administrators can review the rating and comment without the Student's name or account identifier, warn the Student not to enter personal information, and clarify that feedback does not change the recorded result or rank. Do not show public ratings.
 - Follow with an open-canvas heading and ranked list at 20–24px gaps.
 - Explain eligibility and RIASEC evidence as separate concepts.
 - Explanations contain only assessment reference, stored scores/code, configured programme areas, catalogue learning areas, and versioned rules.
@@ -524,6 +526,7 @@ Transactional email verification extends the same provisional visual direction w
 - Programme management uses a focused sheet with autosave state, failure recovery, required change review, explicit full-catalogue publication confirmation, and immutable history. The sheet must not imply that publishing affects only the programme currently open when the stored draft spans the full catalogue.
 - Programme identity, recorded majors, CMO-grounded descriptions and learning content, CMO career directions, source metadata, admission grouping, and RIASEC profiles remain visibly and programmatically read-only in the ordinary programme workflow. Administrators may manage external career mappings and programme media; source-controlled corrections require an updated authoritative source and a new controlled catalogue version. SHS fields and recommended-strand guidance are not part of the active Student or Administrator interface.
 - Reports are privacy-aware and limited to Student totals, assessment progress, completion history, entrance-group distribution, recommendations, and programme saves. Present these as one compact aggregate snapshot with a date filter, completion trend, exact lifecycle counts, and clearly separated engagement context. Do not expose CSV export or catalogue-governance sections in the Admin interface.
+- Student recommendation feedback uses a dedicated **Feedback** navigation destination and `/admin/feedback` page instead of appearing inside **Reports**. Feedback appears from the first saved response; show the latest response per Student/programme, the average, the 1â€“5 distribution, and submitted comment text with its programme, rating, and saved date. Do not return or display Student names, emails, IDs, or account identifiers. Warn Administrators that free text may contain self-identifying information and is limited to authorized review. Describe feedback as perceived interest match rather than outcome validation, and never use it to change rankings automatically.
 - Activity rows show the recorded action, responsible Administrator, and date without raw metadata, internal subject references, or generated summaries.
 - Do not expose a separate catalogue-evidence page or entry point.
 - Administrator account governance uses a dedicated, capability-gated **Administrators** destination. Present active accounts and invitation history as compact divided ledgers on desktop and stacked divided records on mobile. Invitations never ask the inviter to create the recipient's password; sensitive actions use focused confirmation dialogs and expose pending, accepted, expired, revoked, active, and suspended states with text as well as color.

@@ -1,6 +1,7 @@
 import { ArrowRight } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { RecommendationFeedback } from "@/features/student/recommendations/components/recommendation-feedback";
 import type { StudentRecommendedCourse } from "@/features/student/recommendations/recommendation-types";
 import { cn } from "@/lib/utils";
 
@@ -12,12 +13,14 @@ const rankedHighlightStyles = [
 
 interface RecommendationMatchCardProps {
   course: StudentRecommendedCourse;
+  recommendationId: string;
   position: number;
   onViewDetails: () => void;
 }
 
 function RecommendationMatchCard({
   course,
+  recommendationId,
   position,
   onViewDetails,
 }: RecommendationMatchCardProps) {
@@ -121,6 +124,12 @@ function RecommendationMatchCard({
           </Button>
         </div>
       </div>
+      <RecommendationFeedback
+        recommendationId={recommendationId}
+        programmeId={course.id}
+        programmeName={course.name}
+        initialFeedback={course.feedback}
+      />
     </article>
   );
 }

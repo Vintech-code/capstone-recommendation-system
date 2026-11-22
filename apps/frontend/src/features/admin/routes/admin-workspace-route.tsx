@@ -15,11 +15,13 @@ import { useAuth } from "@/features/auth/auth-context";
 import { ProtectedRoute } from "@/features/auth/components/protected-route";
 import { WorkspacePreview } from "@/features/auth/components/workspace-preview";
 import { AdminThemeProvider } from "@/features/admin/theme/admin-theme-context";
+import { AdminFeedbackPage } from "@/features/admin/feedback/components/admin-feedback-page";
 
 const sections = [
   "students",
   "programmes",
   "reports",
+  "feedback",
   "activity",
   "administrators",
   "profile",
@@ -95,6 +97,7 @@ function resolveContent(
     );
   }
   if (activeId === "reports") return <AdminReportsPage />;
+  if (activeId === "feedback") return <AdminFeedbackPage />;
   if (activeId === "activity") return <AdminActivityPage />;
   if (activeId === "administrators") return <AdminAdministratorsPage />;
   if (activeId === "profile") return <AdminProfilePage />;

@@ -12,6 +12,7 @@ use App\Models\StudentSavedProgramme;
 use App\Models\User;
 use App\Services\Admin\AdminAssessmentPresenter;
 use App\Services\Admin\AdminAuditPresenter;
+use App\Services\Admin\AdminRecommendationFeedbackService;
 use App\Services\Admin\AdminReportService;
 use App\Services\Assessment\ResultCardPresenter;
 use App\Services\Recommendation\ProgrammeRankPresenter;
@@ -27,6 +28,7 @@ final class AdminWorkspaceController extends Controller
     public function __construct(
         private readonly AdminAssessmentPresenter $assessmentPresenter,
         private readonly AdminAuditPresenter $auditPresenter,
+        private readonly AdminRecommendationFeedbackService $feedbackService,
         private readonly AdminReportService $reportService,
         private readonly ProgrammeRankPresenter $rankPresenter,
     ) {}
@@ -312,6 +314,21 @@ final class AdminWorkspaceController extends Controller
 
         return response()->json([
             'data' => $this->reportService->generate(
+                $validated['from'] ?? null,
+                $validated['to'] ?? null,
+            ),
+        ]);
+    }
+
+    public function feedback(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'from' => ['nullable', 'date_format:Y-m-d'],
+            'to' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:from'],
+        ]);
+
+        return response()->json([
+            'data' => $this->feedbackService->generate(
                 $validated['from'] ?? null,
                 $validated['to'] ?? null,
             ),

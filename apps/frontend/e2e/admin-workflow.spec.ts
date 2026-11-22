@@ -30,6 +30,7 @@ async function installAdminApi(page: Page, initiallyAuthenticated = false) {
     if (path === '/api/v1/admin/programmes') return json(route, { data: { academicYear: '2026-2027', catalogueVersion: 2, catalogueStatus: 'approved_current_scope', programmes: [{ id: 'bs-information-technology', code: 'BSIT', name: 'BS Information Technology', profile: ['I', 'R', 'C'], profileStatus: 'psg_informed_analytical_classification', profileVersion: 'PSG-MATRIX-2026-09-10', eligibilityGroup: 'board', majors: [], description: 'Applies computing technologies to organisational needs.', learningAreas: ['Software development'], learningAreaDescriptions: { 'Software development': 'Design and maintain applications.' }, learningAreaTopics: { 'Software development': ['Programming'] }, careerDirections: ['Software development'], requirements: ['Meet published admission requirements.'], readinessPrompt: 'Discuss your interest in technology.', contentVersion: 'GUIDANCE-1', degreeType: "Bachelor's degree", duration: { status: 'ched_psg', display: '4 years', source_name: 'CHED source', source_url: 'https://ched.gov.ph/' }, salary: { status: 'not_published', display: 'Not published' }, jobGrowth: { status: 'not_published', display: 'Not published' }, outlookVersion: 'PH-1', coverImageUrl: null, logoImageUrl: null, monitoring: { savedByStudents: 1 } }] } })
     if (path === '/api/v1/admin/configurations/catalogue') return json(route, { data: { kind: 'catalogue', runtime: { programmes: [catalogueProgramme] }, versions: [{ id: 7, kind: 'catalogue', version: 3, status: 'draft', academicYear: '2026-2027', payload: { programmes: [catalogueProgramme] }, createdBy: 'Admin User', publishedBy: null, createdAt: '2026-09-12T12:00:00+08:00', publishedAt: null }] } })
     if (path === '/api/v1/admin/reports') return json(route, { data: { generatedAt: '2026-08-08T12:00:00+08:00', from: null, to: null, scope: 'institution', studentCount: 1, eligibilityDistribution: { board: 1, nonBoard: 0 }, completedAssessments: 1, assessmentCompletionRate: 100, assessmentFunnel: { started: 1, inProgress: 0, processing: 0, resultAvailable: 1 }, recommendationRuns: 1, programmeSaves: 0, assessmentCompletionsByMonth: [{ month: '2026-08', count: 1 }] } })
+    if (path === '/api/v1/admin/feedback') return json(route, { data: { generatedAt: '2026-08-08T12:00:00+08:00', from: null, to: null, publishedResponseCount: 1, publishedRespondentCount: 1, eligibleProgrammeCount: 1, commentCount: 1, programmes: [{ programmeId: 'bs-information-technology', programmeName: 'BS Information Technology', respondentCount: 1, averageRating: 4, ratingDistribution: { '1': 0, '2': 0, '3': 0, '4': 1, '5': 0 } }], comments: [{ programmeId: 'bs-information-technology', programmeName: 'BS Information Technology', rating: 4, comment: 'This recommendation reflects my interests in technology.', updatedAt: '2026-08-08T11:00:00+08:00' }] } })
     if (path === '/api/v1/admin/activity') return json(route, { data: { items: [{ id: 1, actorId: 2, actor: 'Admin User', action: 'configuration.published', createdAt: '2026-08-08T12:00:00+08:00' }], pagination: { currentPage: 1, lastPage: 1, perPage: 25, total: 1, from: 1, to: 1 }, filters: { actors: [{ id: 2, name: 'Admin User' }], actions: ['configuration.published'] } } })
     if (path === '/api/v1/admin/administrators') return json(route, { data: { administrators: [{ id: 2, name: 'Admin User', email: 'admin@example.test', accountStatus: 'active', canManageAdministrators: true, lastActiveAt: '2026-09-14T08:00:00Z', createdAt: '2026-09-01T08:00:00Z' }, { id: 3, name: 'Records Administrator', email: 'records@example.test', accountStatus: 'suspended', canManageAdministrators: false, lastActiveAt: null, createdAt: '2026-09-02T08:00:00Z' }], invitations: [{ id: 7, name: 'Pending Administrator', email: 'pending@example.test', status: 'pending', canManageAdministrators: false, invitedBy: 'Admin User', expiresAt: '2026-09-15T08:00:00Z', sentAt: '2026-09-14T08:00:00Z', createdAt: '2026-09-14T08:00:00Z' }] } })
     return json(route, { data: [] })
@@ -224,6 +225,7 @@ test('Admin workspace is responsive, accessible, and navigable', async ({ page }
     ['/admin/students', 'Student records'],
     ['/admin/programmes', 'Programme monitoring'],
     ['/admin/reports', 'System reports'],
+    ['/admin/feedback', 'Student feedback'],
     ['/admin/activity', 'Admin activity'],
   ] as const) {
     await page.goto(path)
@@ -236,6 +238,7 @@ test('Admin workspace is responsive, accessible, and navigable', async ({ page }
       await expect(page.getByRole('heading', { name: 'Assessment and recommendation activity' })).toBeVisible()
       await expect(page.getByRole('heading', { name: 'Completed results over time' })).toBeVisible()
       await expect(page.getByRole('heading', { name: 'Current stage distribution' })).toBeVisible()
+      await expect(page.getByRole('heading', { name: 'Recommendation interest-match feedback' })).toHaveCount(0)
       await page.screenshot({ path: testInfo.outputPath('admin-report-redesign.png'), fullPage: true })
     }
     const overflow = await page.evaluate(() => ({
@@ -255,6 +258,46 @@ test('Admin workspace is responsive, accessible, and navigable', async ({ page }
   }, axe.source)
   expect(accessibility.violations.filter((violation) => ['serious', 'critical'].includes(violation.impact ?? ''))).toEqual([])
   expect(consoleErrors).toEqual([])
+})
+
+test('Admin feedback page publishes ratings and comments from the first response', async ({ page }, testInfo) => {
+  const consoleErrors: string[] = []
+  page.on('console', (message) => {
+    if (message.type() === 'error') consoleErrors.push(message.text())
+  })
+
+  await installAdminApi(page, true)
+  await page.goto('/admin/feedback', { waitUntil: 'domcontentloaded' })
+
+  await expect(page.getByRole('heading', { name: 'Student feedback' })).toBeVisible()
+
+  const feedback = page.getByRole('region', { name: 'Recommendation interest-match feedback' })
+  await expect(feedback).toBeVisible()
+  await expect(feedback.getByText('BS Information Technology')).toHaveCount(2)
+  await expect(feedback.getByText('4.0')).toBeVisible()
+  await expect(feedback.getByText(/Available from the first Student response/)).toBeVisible()
+  await expect(feedback.getByText('1 distinct Student response')).toBeVisible()
+  await expect(feedback.getByText('Student comments')).toBeVisible()
+  await expect(feedback.getByText(/This recommendation reflects my interests in technology/)).toBeVisible()
+  await expect(feedback.getByText(/without Student names or account identifiers/)).toBeVisible()
+
+  const overflow = await page.evaluate(() => ({
+    clientWidth: document.documentElement.clientWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+    offenders: Array.from(document.querySelectorAll<HTMLElement>('body *'))
+      .filter((element) => element.getBoundingClientRect().right > document.documentElement.clientWidth + 1)
+      .slice(0, 8)
+      .map((element) => ({ tag: element.tagName, className: element.className, right: Math.round(element.getBoundingClientRect().right) })),
+  }))
+  expect(overflow.scrollWidth, JSON.stringify(overflow.offenders)).toBeLessThanOrEqual(overflow.clientWidth)
+
+  const accessibility = await feedback.evaluate(async (element, source) => {
+    eval(source)
+    return window.axe.run(element, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa'] } })
+  }, axe.source)
+  expect(accessibility.violations.filter((violation) => ['serious', 'critical'].includes(violation.impact ?? ''))).toEqual([])
+  expect(consoleErrors).toEqual([])
+  await feedback.screenshot({ path: testInfo.outputPath('admin-recommendation-feedback.png') })
 })
 
 test('Admin Student detail follows the evidence dossier layout', async ({ page }) => {

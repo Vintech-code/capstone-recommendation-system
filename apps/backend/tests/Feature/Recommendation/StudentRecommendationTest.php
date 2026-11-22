@@ -4,10 +4,12 @@ namespace Tests\Feature\Recommendation;
 
 use App\Models\AssessmentSession;
 use App\Models\EntranceExaminationResult;
+use App\Models\RecommendationFeedback;
 use App\Models\RecommendationRun;
 use App\Models\Role;
 use App\Models\RoleSlug;
 use App\Models\User;
+use App\Services\Privacy\StudentRetentionService;
 use App\Services\Recommendation\TccProgrammeCatalogueRepository;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -118,6 +120,105 @@ class StudentRecommendationTest extends TestCase
         $this->getJson('/api/v1/student/saved-programmes')
             ->assertOk()
             ->assertExactJson(['data' => ['programmeIds' => []]]);
+    }
+
+    public function test_student_can_create_and_update_private_feedback_for_an_owned_programme_match(): void
+    {
+        $student = $this->student();
+        $completed = $this->completedAssessment($student, 1, false);
+
+        $this->actingAs($student)
+            ->getJson('/api/v1/student/recommendations/latest')
+            ->assertOk();
+
+        $run = RecommendationRun::query()
+            ->where('assessment_session_id', $completed->getKey())
+            ->firstOrFail();
+        $programme = $run->ranked_courses[0]['id'];
+        $reference = 'REC-'.str_pad((string) $run->getKey(), 6, '0', STR_PAD_LEFT);
+
+        $this->putJson("/api/v1/student/recommendations/{$reference}/programmes/{$programme}/feedback", [
+            'rating' => 4,
+            'comment' => '  This recommendation matches my experience.  ',
+        ])
+            ->assertCreated()
+            ->assertJsonPath('data.rating', 4)
+            ->assertJsonPath('data.comment', 'This recommendation matches my experience.');
+
+        $this->assertDatabaseHas('recommendation_feedback', [
+            'user_id' => $student->getKey(),
+            'recommendation_run_id' => $run->getKey(),
+            'programme_id' => $programme,
+            'rating' => 4,
+            'comment' => 'This recommendation matches my experience.',
+        ]);
+        $storedSnapshot = $run->ranked_courses;
+        $this->assertSame($storedSnapshot, $run->refresh()->ranked_courses);
+
+        $this->getJson('/api/v1/student/recommendations/latest')
+            ->assertOk()
+            ->assertJsonPath('data.recommendation.courses.0.feedback.rating', 4)
+            ->assertJsonPath(
+                'data.recommendation.courses.0.feedback.comment',
+                'This recommendation matches my experience.',
+            );
+
+        $this->putJson("/api/v1/student/recommendations/{$reference}/programmes/{$programme}/feedback", [
+            'rating' => 5,
+            'comment' => '   ',
+        ])
+            ->assertOk()
+            ->assertJsonPath('data.rating', 5)
+            ->assertJsonPath('data.comment', null);
+
+        $this->assertDatabaseCount('recommendation_feedback', 1);
+        $this->assertSame(5, RecommendationFeedback::query()->firstOrFail()->rating);
+
+        RecommendationFeedback::query()->firstOrFail()->update([
+            'comment' => 'Remove this personal experience during anonymization.',
+        ]);
+        app(StudentRetentionService::class)->anonymize($student->fresh());
+
+        $anonymizedFeedback = RecommendationFeedback::query()->firstOrFail();
+        $this->assertSame(5, $anonymizedFeedback->rating);
+        $this->assertNull($anonymizedFeedback->comment);
+        $this->assertSame($storedSnapshot, $run->refresh()->ranked_courses);
+    }
+
+    public function test_recommendation_feedback_enforces_ownership_programme_membership_and_validation(): void
+    {
+        $student = $this->student();
+        $otherStudent = $this->student();
+        $completed = $this->completedAssessment($student, 1, false);
+
+        $this->actingAs($student)
+            ->getJson('/api/v1/student/recommendations/latest')
+            ->assertOk();
+
+        $run = RecommendationRun::query()
+            ->where('assessment_session_id', $completed->getKey())
+            ->firstOrFail();
+        $programme = $run->ranked_courses[0]['id'];
+        $reference = 'REC-'.str_pad((string) $run->getKey(), 6, '0', STR_PAD_LEFT);
+        $path = "/api/v1/student/recommendations/{$reference}/programmes/{$programme}/feedback";
+
+        $this->putJson($path, ['rating' => 0, 'comment' => null])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('rating');
+
+        $this->putJson($path, ['rating' => 4, 'comment' => str_repeat('a', 1001)])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('comment');
+
+        $this->putJson("/api/v1/student/recommendations/{$reference}/programmes/not-in-this-run/feedback", [
+            'rating' => 4,
+        ])->assertNotFound();
+
+        $this->actingAs($otherStudent)
+            ->putJson($path, ['rating' => 4])
+            ->assertNotFound();
+
+        $this->assertDatabaseCount('recommendation_feedback', 0);
     }
 
     public function test_configured_psg_informed_catalogue_ranks_classified_programmes_and_preserves_the_pending_programme(): void

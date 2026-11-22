@@ -9,6 +9,7 @@ Laravel owns schema evolution under `apps/api/database/migrations`; factories an
 - entrance examination declarations with supersession history;
 - versioned assessment instruments/questions and Student assessment sessions;
 - recommendation runs with catalogue, rule, entrance, ranked, and pending-programme snapshots;
+- Student-owned recommendation feedback with one mutable 1â€“5 rating and optional comment per recommendation run and programme;
 - saved programmes;
 - catalogue configuration versions and Administrator audit events;
 - Laravel queue/cache infrastructure.
@@ -27,6 +28,7 @@ The later 2026-11-16 user-name migration adds `first_name` and `last_name` and d
 - Exactly two role slugs are valid: `student` and `admin`; each user can hold only one role assignment.
 - Local Student accounts remain unverified until a signed email link marks `email_verified_at`; password login and protected APIs require that timestamp. Verification resend is throttled and non-enumerating.
 - Completed assessment evidence and recommendation snapshots are immutable.
+- Recommendation feedback is stored outside the snapshot and is unique by Student, recommendation run, and programme. Updating feedback never rewrites historical recommendation evidence. Retention activity includes feedback updates, and Student anonymization clears the optional free-text comment while retaining the numeric rating.
 - Student-owned operations require server-side ownership checks.
 - Profile updates require an exactly eight-digit ID number. Its encrypted value is never used for lookup; uniqueness uses the separate SHA-256 lookup hash.
 - Administrator invitations store only a token hash and separate expiry, acceptance, revocation, sender, and delivery timestamps. Acceptance creates the individual account transactionally; suspension revokes existing sessions.

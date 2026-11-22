@@ -7,17 +7,22 @@ import {
   ExternalLink,
   GraduationCap,
   ShieldCheck,
-  Target,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import type { AssessmentDisplayResult } from "@/features/student/assessment/assessment-types";
 import { getProgrammeImages } from "@/features/student/programmes/programme-images";
 import { programmeMediaStyle } from "@/features/student/programmes/programme-media-position";
 import { CareerDirectionsSection } from "@/features/student/programmes/components/career-directions-section";
-import type { StudentRecommendedCourse } from "@/features/student/recommendations/recommendation-types";
+import { RecommendationFitExplanations } from "@/features/student/recommendations/components/recommendation-fit-explanations";
+import type {
+  StudentRecommendationProfile,
+  StudentRecommendedCourse,
+} from "@/features/student/recommendations/recommendation-types";
 
 interface StudentRecommendationDetailPageProps {
   course: StudentRecommendedCourse;
+  profile: StudentRecommendationProfile | AssessmentDisplayResult | null;
   generatedAt: string;
   onBack: () => void;
   onExploreProgrammes: () => void;
@@ -32,17 +37,9 @@ const interestAreaNames: Record<string, string> = {
   C: "Conventional",
 };
 
-function describeFactor(factor: string) {
-  const match = factor.match(/^Profile includes ([RIASEC])$/);
-  if (!match) return factor;
-
-  const code = match[1];
-  const name = interestAreaNames[code] ?? code;
-  return `${name} is one of the interest areas in this programme's recorded profile.`;
-}
-
 function StudentRecommendationDetailPage({
   course,
+  profile,
   generatedAt,
   onBack,
   onExploreProgrammes,
@@ -66,21 +63,6 @@ function StudentRecommendationDetailPage({
   const logoStyle = course.logoImageUrl
     ? programmeMediaStyle(course.logoImagePosition)
     : undefined;
-  const fitReasons = course.explanation
-    ? [
-        ...course.explanation.recordedProgrammeAreas.map(
-          (area) => `${area.label} recorded score: ${area.score}`,
-        ),
-        ...(course.explanation.learningAreas.length > 0
-          ? [
-              `Catalogue learning areas: ${course.explanation.learningAreas.join(", ")}`,
-            ]
-          : []),
-      ]
-    : course.factors.length > 0
-      ? course.factors
-      : course.interestAreas.map((area) => `Profile includes ${area}`);
-
   const programmeTypeLabel =
     course.eligibilityGroup === "non_board"
       ? "Non-board programme"
@@ -278,44 +260,11 @@ function StudentRecommendationDetailPage({
             )}
           </section>
 
-          <section aria-labelledby="fit-reasons-title" className="space-y-3.5">
-            <div className="flex items-center gap-2.5">
-              <Target aria-hidden="true" className="size-5 text-primary-ink" />
-              <div>
-                <p className="font-label text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
-                  Assessment connection
-                </p>
-                <h2
-                  id="fit-reasons-title"
-                  className="font-display text-lg font-bold tracking-tight text-foreground sm:text-xl"
-                >
-                  Why this fits you
-                </h2>
-              </div>
-            </div>
-            {fitReasons.length > 0 ? (
-              <ol className="overflow-hidden rounded-2xl border border-border/70 bg-card/60 shadow-sm divide-y divide-border/60">
-                {fitReasons.map((reason, index) => (
-                  <li
-                    key={`${reason}-${index}`}
-                    className="flex items-start gap-4 p-4.5 sm:p-5 transition-colors hover:bg-card"
-                  >
-                    <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-secondary font-label text-xs font-bold text-foreground/80">
-                      {String(index + 1).padStart(2, "0")}
-                    </span>
-                    <p className="pt-0.5 text-xs leading-relaxed text-foreground sm:text-sm sm:leading-6">
-                      {describeFactor(reason)}
-                    </p>
-                  </li>
-                ))}
-              </ol>
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                No additional match factors were supplied for this
-                recommendation.
-              </p>
-            )}
-          </section>
+          <RecommendationFitExplanations
+            courseName={course.name}
+            areas={course.explanation?.recordedProgrammeAreas ?? []}
+            profile={profile}
+          />
         </div>
 
         <aside className="space-y-6">

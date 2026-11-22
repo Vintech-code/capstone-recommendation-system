@@ -47,6 +47,9 @@ final class StudentRetentionService
             ]);
 
             DB::table('sessions')->where('user_id', $student->getKey())->delete();
+            DB::table('recommendation_feedback')
+                ->where('user_id', $student->getKey())
+                ->update(['comment' => null, 'updated_at' => now()]);
 
             $student->forceFill([
                 'first_name' => 'Archived',
@@ -65,7 +68,7 @@ final class StudentRetentionService
     private function lastActivityAt(User $student): CarbonImmutable
     {
         $timestamps = collect([$student->updated_at, $student->created_at]);
-        foreach (['assessment_sessions' => 'user_id', 'recommendation_runs' => 'user_id', 'student_saved_programmes' => 'user_id', 'student_profiles' => 'user_id'] as $table => $column) {
+        foreach (['assessment_sessions' => 'user_id', 'recommendation_runs' => 'user_id', 'recommendation_feedback' => 'user_id', 'student_saved_programmes' => 'user_id', 'student_profiles' => 'user_id'] as $table => $column) {
             $timestamps->push(DB::table($table)->where($column, $student->getKey())->max('updated_at'));
         }
 

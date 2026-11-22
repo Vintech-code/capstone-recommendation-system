@@ -11,12 +11,12 @@ const user = {
 }
 
 const resultEntries = [
-  { area: 'Realistic', score: 15 },
-  { area: 'Investigative', score: 19 },
-  { area: 'Artistic', score: 15 },
-  { area: 'Social', score: 18 },
-  { area: 'Enterprising', score: 17 },
-  { area: 'Conventional', score: 19 },
+  { area: 'Realistic', score: 4 },
+  { area: 'Investigative', score: 6 },
+  { area: 'Artistic', score: 2 },
+  { area: 'Social', score: 5 },
+  { area: 'Enterprising', score: 3 },
+  { area: 'Conventional', score: 7 },
 ]
 
 const recommendation = {
@@ -33,13 +33,28 @@ const recommendation = {
   profile: {
     sessionReference: 'ASMT-000001',
     availableAt: '2026-08-08T00:00:00Z',
-    topCode: 'I-C-S',
-    topLabels: ['Investigative', 'Conventional', 'Social'],
+    topCode: 'C-I-S',
+    topLabels: ['Conventional', 'Investigative', 'Social'],
     dimensions: resultEntries.map((entry) => ({
       code: entry.area[0],
       label: entry.area,
       value: entry.score,
+      minimum: 0,
+      maximum: 7,
     })),
+    guidance: {
+      status: 'proposed',
+      version: 'TEST-GUIDANCE-V1',
+      notice: 'Proposed guidance for browser testing.',
+      explanations: {
+        R: 'You may enjoy practical activities and producing visible results.',
+        I: 'You may enjoy exploring questions, analysing information, and solving problems.',
+        A: 'You may enjoy creating and expressing ideas.',
+        S: 'You may enjoy helping, teaching, and supporting other people.',
+        E: 'You may enjoy leading, persuading, and organising initiatives.',
+        C: 'You may enjoy organising information and following clear procedures.',
+      },
+    },
   },
   courses: [{
     id: 'bs-information-technology',
@@ -70,6 +85,15 @@ const recommendation = {
       reviewStatus: 'proposed',
     }],
     reviewNotes: [],
+    feedback: null,
+    explanation: {
+      assessmentReference: 'ASMT-000001',
+      recordedProfileCode: 'C-I-S',
+      programmeInterestAreas: ['I', 'R', 'C'],
+      sharedTopAreas: [{ code: 'I', label: 'Investigative', score: 6 }, { code: 'C', label: 'Conventional', score: 7 }],
+      recordedProgrammeAreas: [{ code: 'I', label: 'Investigative', score: 6 }, { code: 'R', label: 'Realistic', score: 4 }, { code: 'C', label: 'Conventional', score: 7 }],
+      learningAreas: ['Software development', 'Information management'],
+    },
   }],
 }
 
@@ -175,6 +199,16 @@ async function installStudentApi(
         data: submitted
           ? { status: 'available', recommendation }
           : { status: 'not_available', recommendation: null },
+      })
+    }
+    if (path === '/api/v1/student/recommendations/REC-000001/programmes/bs-information-technology/feedback' && method === 'PUT') {
+      const body = request.postDataJSON() as { rating: number; comment?: string }
+      return json(route, {
+        data: {
+          rating: body.rating,
+          comment: body.comment?.trim() || null,
+          updatedAt: '2026-11-23T09:00:00+08:00',
+        },
       })
     }
     if (path === '/api/v1/student/programmes') {
@@ -283,7 +317,7 @@ function programmeCatalogue() {
 }
 
 async function signIn(page: Page) {
-  await page.goto('/student/login')
+  await page.goto('/student/login', { waitUntil: 'domcontentloaded' })
   await page.getByRole('textbox', { name: 'Email address' }).fill('student@example.test')
   await page.getByRole('textbox', { name: 'Password' }).fill('browser-test-password')
   await page.getByRole('button', { name: 'Sign in' }).click()
@@ -488,17 +522,21 @@ test('completes the student assessment and opens a recommendation detail', async
   })
 
   await expect(page.getByRole('heading', { name: 'Interest assessment' })).toBeVisible()
-  await expect(page.getByRole('img', { name: 'Student working on a car' })).toBeVisible()
-  await page.getByRole('img', { name: 'Student working on a car' }).evaluate((image: HTMLImageElement) => {
+  await expect(page.getByRole('img', { name: 'Illustration for question 1' })).toBeVisible()
+  await page.getByRole('img', { name: 'Illustration for question 1' }).evaluate((image: HTMLImageElement) => {
     if (image.complete) return
     return new Promise<void>((resolve) => image.addEventListener('load', () => resolve(), { once: true }))
   })
-  await expect(page.getByRole('navigation', { name: 'Question navigation' })).toBeInViewport()
+  const questionNavigation = page.getByRole('navigation', { name: 'Question navigation' })
+  await questionNavigation.scrollIntoViewIfNeeded()
+  await expect(questionNavigation).toBeVisible()
   await page.screenshot({ path: testInfo.outputPath('assessment-progress-desktop-or-mobile.png') })
 
   for (let index = 1; index <= 6; index += 1) {
-    await expect(page.getByRole('group', { name: `Response for question ${index}` })).toBeVisible()
-    await page.getByText('Agree', { exact: true }).click()
+    const responseGroup = page.getByRole('group', { name: `Response for question ${index}` })
+    await expect(responseGroup).toBeVisible()
+    const agreeChoice = responseGroup.locator('label:has(input[value="1"])')
+    await agreeChoice.click({ position: { x: 8, y: 8 } })
     if (index === 6) {
       await page.getByRole('button', { name: 'Finish assessment' }).click()
     } else {
@@ -514,6 +552,19 @@ test('completes the student assessment and opens a recommendation detail', async
 
   await expect(page.getByRole('heading', { name: 'All ranked matches' })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'RIASEC scores' })).toBeVisible()
+  const programmeFeedback = page.getByRole('region', { name: 'Feedback for BS Information Technology' })
+  await programmeFeedback.getByRole('radio', { name: '4 stars for BS Information Technology' }).click()
+  await programmeFeedback.getByRole('textbox', { name: /Comment/ }).fill('This reflects the technology work I enjoy.')
+  await programmeFeedback.getByRole('button', { name: 'Save feedback' }).click()
+  await expect(programmeFeedback.getByText('Saved rating: 4 of 5.')).toBeVisible()
+  await expect(page.getByText('Feedback saved')).toBeVisible()
+  const resultSummary = page.getByRole('heading', { level: 1 }).locator('xpath=ancestor::section[1]')
+  const careerPaths = page.getByRole('heading', { name: 'Recommended career paths' }).locator('xpath=ancestor::section[1]')
+  await expect(resultSummary.getByText('Why it fits you')).toBeVisible()
+  await expect(careerPaths.getByText('Why it fits you')).toHaveCount(0)
+  await expect(careerPaths.getByText(/do not predict employment/i)).toHaveCount(0)
+  await expectNoHorizontalOverflow(page)
+  await page.screenshot({ path: testInfo.outputPath('recommendation-result-layout.png') })
   const topMatch = page.getByRole('heading', { level: 3, name: 'BS Information Technology' }).locator('xpath=ancestor::article')
   await expect(topMatch).toHaveClass(/rounded-3xl/)
   await expect(topMatch.getByText('Strong match')).toBeVisible()
@@ -524,6 +575,27 @@ test('completes the student assessment and opens a recommendation detail', async
   await page.getByRole('button', { name: 'View programme' }).click()
   await expect(page.getByRole('navigation', { name: 'Breadcrumb' })).toHaveCount(0)
   await expect(page.getByRole('heading', { level: 1, name: 'BS Information Technology' })).toBeVisible()
+  const investigativeExplanation = page.getByRole('button', { name: 'Explain Investigative result' })
+  await expect(investigativeExplanation).toHaveAttribute('aria-expanded', 'false')
+  await expect(page.getByText('Recorded score: 6 of 7')).toBeVisible()
+  await investigativeExplanation.focus()
+  await expect(investigativeExplanation).toBeFocused()
+  await page.keyboard.press('Enter')
+  await expect(investigativeExplanation).toHaveAttribute('aria-expanded', 'true')
+  const investigativeDetails = page.getByRole('region', { name: 'Investigative result explanation' })
+  await expect(investigativeDetails.getByText(/selected Agree on 6 of the 7 assessment statements/)).toBeVisible()
+  await expect(investigativeDetails.getByText(/exploring questions, analysing information/)).toBeVisible()
+  await expect(investigativeDetails.getByText(/contributes to the programme match/)).toBeVisible()
+  await page.addScriptTag({ content: axe.source })
+  const fitExplanationAccessibility = await page.evaluate(async () => {
+    const runner = (window as typeof window & { axe: typeof axe }).axe
+    const results = await runner.run('section[aria-labelledby="fit-reasons-title"]', {
+      runOnly: ['color-contrast', 'aria-valid-attr', 'button-name'],
+    })
+    return results.violations
+  })
+  expect(fitExplanationAccessibility).toEqual([])
+  await page.screenshot({ path: testInfo.outputPath('recommendation-fit-explanation.png'), fullPage: true })
   await expect(page.getByRole('heading', { name: 'Possible career directions' })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'software developer' })).toBeVisible()
   await expect(page.getByText('analyse software specifications')).toBeVisible()

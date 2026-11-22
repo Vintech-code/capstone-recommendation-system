@@ -32,6 +32,7 @@ function RecommendationRankedList({
           <li key={course.id}>
             <RecommendationMatchCard
               course={course}
+              recommendationId={snapshot.id}
               position={index + 1}
               onViewDetails={() => onSelectCourse(course)}
             />

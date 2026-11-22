@@ -37,16 +37,6 @@ function RecommendationCareerPaths({
           <p className="mt-2 max-w-6xl font-display text-lg font-extrabold leading-7 text-primary-ink sm:text-xl sm:leading-8">
             {careerPaths.join(", ")}
           </p>
-          <div className="mt-6 border-t border-border pt-5">
-            <p className="font-label text-xs font-bold uppercase tracking-[0.12em] text-primary-ink sm:text-sm">
-              Why it fits you
-            </p>
-            <p className="mt-2 text-sm font-medium leading-6 text-muted-foreground sm:text-base sm:leading-7">
-              These directions come from the catalogue entries attached to your
-              recommended programmes. They do not predict employment or
-              guarantee that a career will suit you.
-            </p>
-          </div>
         </div>
       ) : (
         <p className="mt-7 text-sm font-medium leading-6 text-muted-foreground sm:text-base">

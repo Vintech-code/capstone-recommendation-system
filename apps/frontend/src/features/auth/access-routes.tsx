@@ -298,6 +298,7 @@ function AccessRoutes() {
           element={<Navigate to="/admin/programmes" replace />}
         />
         <Route path="/admin/reports" element={<AdminWorkspaceRoute />} />
+        <Route path="/admin/feedback" element={<AdminWorkspaceRoute />} />
         <Route path="/admin/activity" element={<AdminWorkspaceRoute />} />
         <Route path="/admin/administrators" element={<AdminWorkspaceRoute />} />
         <Route path="/admin/profile" element={<AdminWorkspaceRoute />} />

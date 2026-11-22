@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Recommendation;
 use App\Http\Controllers\Controller;
 use App\Models\AssessmentQuestion;
 use App\Models\AssessmentSession;
+use App\Models\RecommendationFeedback;
 use App\Models\RecommendationRun;
 use App\Services\Assessment\RiasecQuestionnaire;
 use App\Services\Recommendation\ProgrammeRankPresenter;
@@ -36,7 +37,7 @@ final class StudentRecommendationController extends Controller
             ->whereBelongsTo($request->user())
             ->whereIn('instrument_code', RiasecQuestionnaire::supportedInstrumentCodes())
             ->where('status', 'result_available')
-            ->with(['recommendationRun', 'entranceExaminationResult'])
+            ->with(['recommendationRun.feedback', 'entranceExaminationResult'])
             ->latest('result_available_at')
             ->first();
 
@@ -54,7 +55,7 @@ final class StudentRecommendationController extends Controller
         TccProgrammeCatalogueRepository $catalogues,
     ): JsonResponse {
         abort_unless($assessmentSession->user_id === $request->user()->getKey(), 404);
-        $assessmentSession->load(['recommendationRun', 'entranceExaminationResult']);
+        $assessmentSession->load(['recommendationRun.feedback', 'entranceExaminationResult']);
 
         return $this->forSession($request, $assessmentSession, $engine, $catalogues);
     }
@@ -199,6 +200,8 @@ final class StudentRecommendationController extends Controller
         array $entries,
         array $catalogue,
     ): array {
+        $run->loadMissing('feedback');
+        $feedbackByProgramme = $run->feedback->keyBy('programme_id');
         $courses = $this->rankPresenter->dense($run->ranked_courses ?? []);
         $programmes = collect($catalogue['programmes'] ?? [])->keyBy('id');
         $courses = array_map(static function (array $course) use ($programmes): array {
@@ -234,6 +237,9 @@ final class StudentRecommendationController extends Controller
         $visibleCourses = array_map(
             fn (array $course): array => array_merge($course, [
                 'explanation' => $this->explanationPayload($course, $profile),
+                'feedback' => $this->feedbackPayload(
+                    $feedbackByProgramme->get($course['id']),
+                ),
             ]),
             $visibleCourses,
         );
@@ -255,6 +261,20 @@ final class StudentRecommendationController extends Controller
             'entranceExamination' => $run->entrance_examination_snapshot,
             'profile' => $profile,
             'courses' => $visibleCourses,
+        ];
+    }
+
+    /** @return array{rating: int, comment: string|null, updatedAt: string|null}|null */
+    private function feedbackPayload(?RecommendationFeedback $feedback): ?array
+    {
+        if ($feedback === null) {
+            return null;
+        }
+
+        return [
+            'rating' => $feedback->rating,
+            'comment' => $feedback->comment,
+            'updatedAt' => $feedback->updated_at?->toAtomString(),
         ];
     }
 

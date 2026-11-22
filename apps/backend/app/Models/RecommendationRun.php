@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable([
     'user_id',
@@ -31,6 +32,12 @@ class RecommendationRun extends Model
     public function assessmentSession(): BelongsTo
     {
         return $this->belongsTo(AssessmentSession::class);
+    }
+
+    /** @return HasMany<RecommendationFeedback, $this> */
+    public function feedback(): HasMany
+    {
+        return $this->hasMany(RecommendationFeedback::class);
     }
 
     /** @return array<string, string> */

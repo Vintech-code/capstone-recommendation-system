@@ -52,6 +52,10 @@ This is the index for the surviving TCC course-recommendation documentation. The
 - [Public landing differentiated motion](note/2026-11-17-public-landing-differentiated-motion.md) records the original distinct one-time choreography subsequently performance-refined on 2026-11-18.
 - [Public landing motion performance refinement](note/2026-11-18-public-landing-motion-performance.md) records the transform-only, shorter-duration revision that removes expensive filters and clipping from the image-heavy landing choreography.
 - [Application recovery open-canvas presentation](note/2026-11-18-application-recovery-open-canvas.md) records removal of the outer recovery card while preserving its content, actions, focus behavior, and responsive spacing.
+- [Recommendation result explanation label](note/2026-11-22-recommendation-result-explanation-label.md) records moving **Why it fits you** from the career-path card to the result-profile explanation, with automated and desktop/mobile browser evidence.
+- [Expandable programme-match explanations](note/2026-11-23-expandable-programme-match-explanations.md) records the adviser-directed, per-area RIASEC disclosures backed by stored scores and versioned guidance, plus automated and desktop/mobile browser evidence.
+- [Student recommendation feedback](note/2026-11-23-student-recommendation-feedback.md) records the private per-programme 1â€“5-star rating and optional comment workflow, its immutable-snapshot boundary, and validation evidence.
+- [Administrator recommendation-feedback page](note/2026-11-23-admin-recommendation-feedback-aggregates.md) records the owner-approved dedicated Feedback destination, first-response visibility rule, latest-response aggregation, identity-free Admin comment review, and validation evidence.
 - [Clone and local setup guide](note/2026-10-28-clone-and-local-setup-guide.md) records the current clone-to-running PowerShell onboarding guide and its verification boundaries.
 - `cmo/` contains locally reviewed CHED programme-standard evidence.
 - `pdf/` contains the capstone paper and historical roadmap sources.

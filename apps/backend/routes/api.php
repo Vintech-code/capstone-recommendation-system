@@ -20,6 +20,7 @@ use App\Http\Controllers\Auth\RegisteredStudentController;
 use App\Http\Controllers\LocationController;
 use App\Http\Controllers\Recommendation\StudentProgrammeController;
 use App\Http\Controllers\Recommendation\StudentRecommendationController;
+use App\Http\Controllers\Recommendation\StudentRecommendationFeedbackController;
 use App\Http\Controllers\Recommendation\StudentSavedProgrammeController;
 use App\Http\Controllers\Student\StudentProfileController;
 use App\Models\RoleSlug;
@@ -85,6 +86,8 @@ Route::prefix('v1/student/recommendations')
     ->group(function (): void {
         Route::get('/latest', [StudentRecommendationController::class, 'latest']);
         Route::get('/attempts/{assessmentSession}', [StudentRecommendationController::class, 'show']);
+        Route::put('/{recommendationReference}/programmes/{programme}/feedback', [StudentRecommendationFeedbackController::class, 'store'])
+            ->middleware('throttle:30,1');
     });
 
 Route::prefix('v1/student/programmes')
@@ -125,6 +128,7 @@ Route::prefix('v1/admin')
         Route::get('/esco/occupation', [AdminEscoOccupationController::class, 'show'])->middleware('throttle:30,1');
         Route::post('/programmes/{programme}/media', [AdminProgrammeMediaController::class, 'store']);
         Route::get('/reports', [AdminWorkspaceController::class, 'reports']);
+        Route::get('/feedback', [AdminWorkspaceController::class, 'feedback']);
         Route::get('/activity', [AdminWorkspaceController::class, 'activity']);
         Route::get('/configurations/{kind}', [AdminConfigurationController::class, 'index']);
         Route::post('/configurations/{kind}', [AdminConfigurationController::class, 'store']);

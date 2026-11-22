@@ -201,20 +201,28 @@ function StudentProgrammeCataloguePage({ initialCatalogue, matchContext = [] }: 
 
   return (
     <div className="pb-16">
-      <header className="relative isolate min-h-[25rem] overflow-hidden bg-primary text-primary-foreground shadow-sm lg:min-h-[30rem]">
+      <header className="relative isolate min-h-[25rem] overflow-hidden bg-stone-900 text-white shadow-sm lg:min-h-[30rem]">
         <img
           src={tccBanner}
           alt=""
           className="absolute inset-0 -z-20 size-full object-cover object-center"
         />
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 -z-10 bg-gradient-to-r from-black/85 via-black/60 to-black/30"
+        />
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 -z-10 bg-gradient-to-t from-black/75 via-transparent to-black/25"
+        />
         <div className="student-page py-12 sm:py-16 lg:py-20">
           <div className="max-w-2xl">
-          <p className="flex items-center gap-3 font-label text-xs font-semibold uppercase tracking-[0.16em] text-secondary-fixed sm:text-sm">
-            <span className="h-9 w-1 rounded-full bg-secondary-container" />
+          <p className="flex items-center gap-2.5 font-label text-xs font-bold uppercase tracking-[0.16em] text-amber-300 sm:text-sm">
+            <span className="h-5 w-1 rounded-full bg-amber-400" />
             Academic catalogue
           </p>
-          <h1 id="catalogue-title" className="mt-6 font-display text-4xl font-bold tracking-[-0.04em] text-white sm:text-5xl lg:text-6xl">Explore TCC programmes</h1>
-          <p className="mt-5 max-w-xl text-base leading-7 text-white/85 sm:text-lg">
+          <h1 id="catalogue-title" className="mt-6 font-display text-4xl font-bold tracking-[-0.04em] text-white drop-shadow-sm sm:text-5xl lg:text-6xl">Explore TCC programmes</h1>
+          <p className="mt-5 max-w-xl text-base leading-7 text-white/90 drop-shadow-xs sm:text-lg">
             Search and filter the {catalogue.programmes.length} degree programmes covered for Academic Year {catalogue.academicYear}.
           </p>
           </div>

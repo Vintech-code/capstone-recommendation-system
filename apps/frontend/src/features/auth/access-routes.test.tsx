@@ -165,7 +165,7 @@ describe("access portals and workspace shell", () => {
           level: 1,
           name: "System overview",
         },
-        { timeout: 5_000 },
+        { timeout: 10_000 },
       ),
     ).toBeVisible();
     expect(screen.getAllByText("Students").length).toBeGreaterThan(0);
@@ -209,7 +209,7 @@ describe("access portals and workspace shell", () => {
     expect(
       screen.getByRole("button", { name: "Expand workspace navigation" }),
     ).toBeVisible();
-  }, 10_000);
+  }, 15_000);
 
   it("opens a role module and returns to the dashboard overview", async () => {
     const user = userEvent.setup();

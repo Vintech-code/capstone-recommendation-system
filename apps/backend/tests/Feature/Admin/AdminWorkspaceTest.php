@@ -5,6 +5,7 @@ namespace Tests\Feature\Admin;
 use App\Models\AdminAuditEvent;
 use App\Models\AssessmentSession;
 use App\Models\EntranceExaminationResult;
+use App\Models\RecommendationFeedback;
 use App\Models\RecommendationRun;
 use App\Models\Role;
 use App\Models\RoleSlug;
@@ -73,6 +74,7 @@ class AdminWorkspaceTest extends TestCase
             ->assertJsonPath('data.eligibilityDistribution.board', 1)
             ->assertJsonPath('data.recommendationRuns', 1)
             ->assertJsonPath('data.programmeSaves', 1)
+            ->assertJsonMissingPath('data.recommendationFeedback')
             ->assertJsonStructure(['data' => ['assessmentFunnel', 'retakeMetrics']]);
     }
 
@@ -82,8 +84,74 @@ class AdminWorkspaceTest extends TestCase
         $student = $this->userWithRole(RoleSlug::Student);
 
         $this->getJson('/api/v1/admin/overview')->assertUnauthorized();
+        $this->getJson('/api/v1/admin/feedback')->assertUnauthorized();
         $this->actingAs($student)->getJson('/api/v1/admin/overview')->assertForbidden();
+        $this->actingAs($student)->getJson('/api/v1/admin/feedback')->assertForbidden();
         $this->actingAs($admin)->getJson("/api/v1/admin/students/{$admin->getKey()}")->assertNotFound();
+    }
+
+    public function test_recommendation_feedback_report_publishes_the_latest_comment_without_student_identity(): void
+    {
+        $admin = $this->userWithRole(RoleSlug::Admin);
+        $student = $this->userWithRole(RoleSlug::Student);
+        $run = $this->createRecommendation($student, $this->completedSession($student));
+        RecommendationFeedback::query()->create([
+            'user_id' => $student->getKey(),
+            'recommendation_run_id' => $run->getKey(),
+            'programme_id' => 'bs-information-technology',
+            'rating' => 5,
+            'comment' => 'Private Student comment',
+        ]);
+
+        RecommendationFeedback::query()
+            ->where('user_id', $student->getKey())
+            ->update(['updated_at' => now()->subDay()]);
+        $latestRun = $this->createRecommendation($student, $this->completedSession($student, 2));
+        RecommendationFeedback::query()->create([
+            'user_id' => $student->getKey(),
+            'recommendation_run_id' => $latestRun->getKey(),
+            'programme_id' => 'bs-information-technology',
+            'rating' => 1,
+            'comment' => 'A newer private response replaces the earlier aggregate input.',
+        ]);
+
+        $response = $this->actingAs($admin)->getJson('/api/v1/admin/feedback');
+
+        $response
+            ->assertOk()
+            ->assertJsonPath('data.publishedResponseCount', 1)
+            ->assertJsonPath('data.publishedRespondentCount', 1)
+            ->assertJsonPath('data.eligibleProgrammeCount', 1)
+            ->assertJsonPath('data.programmes.0.programmeId', 'bs-information-technology')
+            ->assertJsonPath('data.programmes.0.programmeName', 'BS Information Technology')
+            ->assertJsonPath('data.programmes.0.respondentCount', 1)
+            ->assertJsonPath('data.programmes.0.averageRating', 1)
+            ->assertJsonPath('data.programmes.0.ratingDistribution.1', 1)
+            ->assertJsonPath('data.programmes.0.ratingDistribution.5', 0)
+            ->assertJsonMissingPath('data.programmes.0.comment')
+            ->assertJsonPath('data.commentCount', 1)
+            ->assertJsonPath('data.comments.0.programmeId', 'bs-information-technology')
+            ->assertJsonPath('data.comments.0.programmeName', 'BS Information Technology')
+            ->assertJsonPath('data.comments.0.rating', 1)
+            ->assertJsonPath('data.comments.0.comment', 'A newer private response replaces the earlier aggregate input.')
+            ->assertJsonPath('data.comments.0.updatedAt', fn (mixed $value): bool => is_string($value) && $value !== '');
+
+        $this->assertStringNotContainsString('Private Student comment', $response->getContent());
+        $this->assertStringNotContainsString('user_id', $response->getContent());
+    }
+
+    public function test_recommendation_feedback_report_has_a_truthful_empty_state_without_responses(): void
+    {
+        $admin = $this->userWithRole(RoleSlug::Admin);
+
+        $this->actingAs($admin)->getJson('/api/v1/admin/feedback')
+            ->assertOk()
+            ->assertJsonPath('data.publishedResponseCount', 0)
+            ->assertJsonPath('data.publishedRespondentCount', 0)
+            ->assertJsonPath('data.eligibleProgrammeCount', 0)
+            ->assertJsonPath('data.commentCount', 0)
+            ->assertJsonCount(0, 'data.programmes')
+            ->assertJsonCount(0, 'data.comments');
     }
 
     public function test_activity_is_filterable_and_exposes_only_safe_summary_metadata(): void
@@ -114,7 +182,7 @@ class AdminWorkspaceTest extends TestCase
         return $user;
     }
 
-    private function completedSession(User $student): AssessmentSession
+    private function completedSession(User $student, int $attemptNumber = 1): AssessmentSession
     {
         $entrance = EntranceExaminationResult::query()->create([
             'user_id' => $student->getKey(),
@@ -128,7 +196,7 @@ class AdminWorkspaceTest extends TestCase
             'user_id' => $student->getKey(),
             'entrance_examination_result_id' => $entrance->getKey(),
             'instrument_code' => 'tcc-uhcc-riasec-42-v1',
-            'attempt_number' => 1,
+            'attempt_number' => $attemptNumber,
             'status' => 'result_available',
             'is_current' => true,
             'answers' => array_combine(range(1, 42), array_fill(0, 42, 1)),
@@ -149,9 +217,9 @@ class AdminWorkspaceTest extends TestCase
         ]);
     }
 
-    private function createRecommendation(User $student, AssessmentSession $session): void
+    private function createRecommendation(User $student, AssessmentSession $session): RecommendationRun
     {
-        RecommendationRun::query()->create([
+        return RecommendationRun::query()->create([
             'user_id' => $student->getKey(),
             'assessment_session_id' => $session->getKey(),
             'catalogue_reference' => 'TCC-AY-2026-2027-V1',

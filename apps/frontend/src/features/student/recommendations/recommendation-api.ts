@@ -1,4 +1,4 @@
-import type { StudentRecommendationState } from '@/features/student/recommendations/recommendation-types'
+import type { StudentRecommendationFeedback, StudentRecommendationState } from '@/features/student/recommendations/recommendation-types'
 import { getCachedStudentResource } from '@/features/student/student-resource-cache'
 import { apiDataRequest } from '@/services/api-client'
 
@@ -21,4 +21,20 @@ function getRecommendationForAttempt(assessmentSessionId: number, viewAll = fals
   )
 }
 
-export { getLatestRecommendation, getRecommendationForAttempt }
+function saveRecommendationFeedback(
+  recommendationId: string,
+  programmeId: string,
+  rating: number,
+  comment: string,
+) {
+  return apiDataRequest<StudentRecommendationFeedback>(
+    `/api/v1/student/recommendations/${encodeURIComponent(recommendationId)}/programmes/${encodeURIComponent(programmeId)}/feedback`,
+    {
+      method: 'PUT',
+      body: JSON.stringify({ rating, comment }),
+    },
+    { fallbackMessage: 'Your recommendation feedback could not be saved.' },
+  )
+}
+
+export { getLatestRecommendation, getRecommendationForAttempt, saveRecommendationFeedback }

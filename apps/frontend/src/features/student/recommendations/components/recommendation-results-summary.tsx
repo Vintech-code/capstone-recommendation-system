@@ -70,7 +70,10 @@ function RecommendationResultsSummary({
               .join(" AND ")}{" "}
             · {profile.topCode}
           </p>
-          <p className="mt-5 max-w-xl text-base font-medium leading-7 text-foreground/90 sm:text-lg sm:leading-8">
+          <p className="mt-5 font-label text-xs font-bold uppercase tracking-[0.14em] text-primary-ink sm:text-sm">
+            Why it fits you
+          </p>
+          <p className="mt-2 max-w-xl text-base font-medium leading-7 text-foreground/90 sm:text-lg sm:leading-8">
             {profileCopy
               ? formatRiasecProfileDescription(profileCopy)
               : leadingDimensions.length === 3

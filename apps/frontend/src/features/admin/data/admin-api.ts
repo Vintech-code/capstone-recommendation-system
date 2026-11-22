@@ -53,6 +53,7 @@ export type {
   AdminPagination,
   AdminProgramme,
   AdminProgrammeCatalogue,
+  AdminRecommendationFeedback,
   AdminReport,
   AdminStudent,
   AdminStudentDirectory,

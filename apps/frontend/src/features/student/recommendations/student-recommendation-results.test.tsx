@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import axe from "axe-core";
 import { describe, expect, it, vi } from "vitest";
@@ -44,8 +44,11 @@ describe("Student recommendation results", () => {
     const resultSummary = screen.getByText(
       /you value careful inquiry and problem-solving/i,
     );
+    const resultSection = resultHeading.closest("section");
     expect(resultSummary).toBeVisible();
     expect(resultSummary).toHaveClass("text-base", "font-medium");
+    expect(resultSection).not.toBeNull();
+    expect(within(resultSection!).getByText("Why it fits you")).toBeVisible();
     expect(screen.getByText("Your leading areas")).toBeVisible();
     expect(screen.getAllByText("Investigative").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Conventional").length).toBeGreaterThan(0);
@@ -65,7 +68,12 @@ describe("Student recommendation results", () => {
     ).toBeVisible();
     expect(screen.getByText("Career directions")).toBeVisible();
     expect(screen.getByText("Systems and business analysis")).toBeVisible();
-    expect(screen.getByText("Why it fits you")).toBeVisible();
+    expect(
+      within(careerSection!).queryByText("Why it fits you"),
+    ).not.toBeInTheDocument();
+    expect(
+      within(careerSection!).queryByText(/do not predict employment/i),
+    ).not.toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "RIASEC scores" })).toHaveClass(
       "text-2xl",
       "font-extrabold",
@@ -136,6 +144,55 @@ describe("Student recommendation results", () => {
         "You enjoy understanding how systems work and fixing problems through logical, hands-on action. You often thrive with technology, structured processes, and tasks that reward accuracy and persistence.",
       ),
     ).toBeVisible();
+  });
+
+  it("lets the Student rate and comment on an individual programme recommendation", async () => {
+    const user = userEvent.setup();
+    const fetchMock = vi.mocked(fetch);
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        data: {
+          rating: 4,
+          comment: "This reflects the work I enjoy.",
+          updatedAt: "2026-11-23T09:00:00+08:00",
+        },
+      }),
+    } as Response);
+
+    render(
+      <StudentRecommendationResultsPage
+        onBack={vi.fn()}
+        initialSnapshot={testRecommendationSnapshot}
+      />,
+    );
+
+    const rating = screen.getByRole("radio", {
+      name: "4 stars for Test Course",
+    });
+    expect(rating).not.toBeChecked();
+
+    await user.click(rating);
+
+    expect(rating).toBeChecked();
+    const comment = screen.getByRole("textbox", { name: /Comment/ });
+    await user.type(comment, "This reflects the work I enjoy.");
+    await user.click(screen.getByRole("button", { name: "Save feedback" }));
+
+    expect(fetchMock).toHaveBeenLastCalledWith(
+      "/api/v1/student/recommendations/TEST-REC-001/programmes/test-course/feedback",
+      expect.objectContaining({
+        method: "PUT",
+        body: JSON.stringify({
+          rating: 4,
+          comment: "This reflects the work I enjoy.",
+        }),
+      }),
+    );
+    expect(screen.getByText("Saved rating: 4 of 5.")).toBeVisible();
+    expect(
+      screen.queryByRole("textbox", { name: /Comment/ }),
+    ).not.toBeInTheDocument();
   });
 
   it("explains the self-declared entrance group used before interest matching", () => {
@@ -455,6 +512,20 @@ describe("Student recommendation results", () => {
         },
       ],
       reviewNotes: ["Review the published programme guidance before deciding."],
+      explanation: {
+        ...testRecommendationSnapshot.courses[0].explanation!,
+        recordedProfileCode: "C-I-S",
+        sharedTopAreas: [
+          { code: "C", label: "Conventional", score: 7 },
+          { code: "I", label: "Investigative", score: 6 },
+          { code: "S", label: "Social", score: 5 },
+        ],
+        recordedProgrammeAreas: [
+          { code: "C", label: "Conventional", score: 7 },
+          { code: "I", label: "Investigative", score: 6 },
+          { code: "S", label: "Social", score: 5 },
+        ],
+      },
     };
 
     render(
@@ -462,6 +533,26 @@ describe("Student recommendation results", () => {
         onBack={vi.fn()}
         initialSnapshot={{
           ...testRecommendationSnapshot,
+          profile: {
+            ...testRecommendationSnapshot.profile!,
+            topCode: "C-I-S",
+            topLabels: ["Conventional", "Investigative", "Social"],
+            dimensions: testRecommendationSnapshot.profile!.dimensions.map(
+              (dimension) => ({
+                ...dimension,
+                value:
+                  dimension.code === "C"
+                    ? 7
+                    : dimension.code === "I"
+                      ? 6
+                      : dimension.code === "S"
+                        ? 5
+                        : dimension.value,
+                minimum: 0,
+                maximum: 7,
+              }),
+            ),
+          },
           courses: [detailedCourse],
         }}
       />,
@@ -488,10 +579,47 @@ describe("Student recommendation results", () => {
     expect(
       screen.getByRole("heading", { name: "Why this fits you" }),
     ).toBeVisible();
-    expect(screen.getByText("Investigative recorded score: 19")).toBeVisible();
+    const conventionalExplanation = screen.getByRole("button", {
+      name: "Explain Conventional result",
+    });
+    expect(conventionalExplanation).toHaveAttribute("aria-expanded", "false");
+    expect(screen.getByText("Recorded score: 7 of 7")).toBeVisible();
     expect(
-      screen.getByText("Catalogue learning areas: Software development"),
+      screen.getByRole("button", { name: "Explain Investigative result" }),
     ).toBeVisible();
+    expect(
+      screen.getByRole("button", { name: "Explain Social result" }),
+    ).toBeVisible();
+    expect(
+      screen.queryByRole("region", {
+        name: "Conventional result explanation",
+      }),
+    ).not.toBeInTheDocument();
+
+    await user.click(conventionalExplanation);
+
+    expect(conventionalExplanation).toHaveAttribute("aria-expanded", "true");
+    expect(
+      screen.getByRole("region", {
+        name: "Conventional result explanation",
+      }),
+    ).toBeVisible();
+    expect(
+      screen.getByText(
+        "You selected Agree on 7 of the 7 assessment statements mapped to Conventional.",
+      ),
+    ).toBeVisible();
+    expect(
+      screen.getByText(
+        "You may enjoy organising information and following clear procedures.",
+      ),
+    ).toBeVisible();
+    expect(
+      screen.getByText(/Conventional is one of Test Course's configured RIASEC areas/),
+    ).toBeVisible();
+    expect(
+      screen.queryByText("Catalogue learning areas: Software development"),
+    ).not.toBeInTheDocument();
     expect(
       screen.getByRole("heading", { name: "Core learning areas" }),
     ).toBeVisible();

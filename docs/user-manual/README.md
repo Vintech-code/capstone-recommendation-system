@@ -6,7 +6,7 @@
 2. Complete the personal profile as needed.
 3. Self-declare the entrance examination result before starting or continuing the assessment.
 4. Answer all 42 binary RIASEC statements and finish the assessment. If a question was missed, use the numbered **You skipped** alert to jump directly to it. The final action changes to **Review n unanswered** until every statement has a response.
-5. Review the recorded result, all ranked classified programmes, and the separately listed pending programme. Open the result card through **Share result**; the card scrolls inside the dialog on desktop and mobile. Select **Download card** to save the complete card as a PNG image. Administrators receive the same card and download behavior from the Student record.
+5. Review the recorded result, all ranked classified programmes, and the separately listed pending programme. For any ranked programme, choose a 1â€“5-star accuracy rating, optionally add a comment about how the recommendation compares with your experience, and save it. Administrators can review the rating and comment without the Student name or account identifier, so do not include personal information in free text. The response can be edited later and does not change the recorded match or rank. Open the result card through **Share result**; the card scrolls inside the dialog on desktop and mobile. Select **Download card** to save the complete card as a PNG image. Administrators receive the same card and download behavior from the Student record.
 6. Explore programme details, compare programmes, save options, and review assessment history.
 
 Recommendations are guidance, not admission decisions or guarantees.
@@ -27,6 +27,8 @@ The authenticated Student sections use protected URLs: `/student`, `/student/pro
 6. If your account has Administrator-management access, use Administrators to send a single-use setup invitation, review invitation state, suspend/reactivate accounts, manage account-management access, or revoke sessions. Confirm each sensitive action with your own password; never create or send another Administrator's password.
 
 Administrators cannot alter completed Student answers, historical recommendations, protected CMO facts, entrance groups, or RIASEC profiles through the ordinary editor.
+
+The separate **Feedback** page includes recommendation interest-match feedback beginning with the first saved response in the selected date range. Each Student contributes only their latest response for that programme. Administrators see the respondent count, average, 1â€“5 distribution, and every nonblank latest comment with its programme, rating, and date. Student names and account identifiers are not shown, but free text may contain details entered by the Student and must be handled only for authorized review. Feedback describes perceived relevance and does not validate outcomes or change recommendation rankings. **System reports** remains focused on assessment and engagement metrics.
 
 An already-provisioned active Administrator may also use **Continue with Google** in the separate sign-in window when the selected Google email exactly matches that Administrator account. Google sign-in does not create Administrators or grant the Administrator role. Google shows the account picker on every attempt so a previously rejected account can be changed.
 

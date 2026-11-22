@@ -42,7 +42,7 @@ function WorkspaceNavigation({
   if (tone === "staff") {
     const mainIds = ["overview", "students", "programmes"];
     const mainItems = allItems.filter((item) => mainIds.includes(item.id));
-    const governanceIds = ["reports", "activity", "administrators"];
+    const governanceIds = ["reports", "feedback", "activity", "administrators"];
     const governanceItems = allItems.filter((item) =>
       governanceIds.includes(item.id),
     );

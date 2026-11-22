@@ -135,6 +135,7 @@ export function AssessmentHistorySummary({
             previousCompletedAttempt={previousCompletedAttempt}
             recommendation={selectedRecommendation}
             recommendationState={selectedRecommendationState}
+            latestCompletedId={latestCompletedId}
             onViewResultCard={(attempt) => void handleOpenResultCard(attempt)}
             onSelectAttempt={onSelectAttempt}
             onExploreMatches={onExploreMatches}
@@ -154,23 +155,54 @@ export function AssessmentHistorySummary({
   );
 }
 
-function HistoryHeader({ attemptCount, retakeLabel, starting, canRetake, onRetake }: { attemptCount: number; retakeLabel: string; starting: boolean; canRetake: boolean; onRetake: () => void }) {
+function HistoryHeader({
+  attemptCount,
+  retakeLabel,
+  starting,
+  canRetake,
+  onRetake,
+}: {
+  attemptCount: number;
+  retakeLabel: string;
+  starting: boolean;
+  canRetake: boolean;
+  onRetake: () => void;
+}) {
   return (
-    <div className="flex flex-col gap-4 border-b border-border/70 bg-muted/20 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+    <div className="flex flex-col gap-4 border-b border-border/70 bg-gradient-to-r from-muted/30 via-muted/15 to-card p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
       <div className="flex items-start gap-3.5">
-        <span className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-border/70 bg-background text-primary-ink shadow-2xs"><History className="size-5" aria-hidden="true" /></span>
+        <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl border border-border/80 bg-background text-primary-ink shadow-xs">
+          <History className="size-5" aria-hidden="true" />
+        </span>
         <div>
           <div className="flex items-center gap-2">
-            <span className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-primary-ink">Recorded attempts</span>
-            <span className="rounded-full bg-secondary/80 px-2.5 py-0.5 text-[10px] font-bold text-muted-foreground">{attemptCount} recorded</span>
+            <span className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-primary-ink">
+              Recorded attempts
+            </span>
+            <span className="rounded-full bg-secondary/80 px-2.5 py-0.5 text-[10px] font-bold text-muted-foreground">
+              {attemptCount} recorded
+            </span>
           </div>
-          <h3 id="assessment-history-title" className="mt-0.5 font-display text-xl font-black text-foreground sm:text-2xl">Your assessment timeline</h3>
-          <p className="mt-1 text-xs text-muted-foreground">Choose a completed attempt to open its interest profile and saved programme matches.</p>
+          <h3
+            id="assessment-history-title"
+            className="mt-0.5 font-display text-xl font-black text-foreground sm:text-2xl"
+          >
+            Your assessment timeline
+          </h3>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Choose a completed attempt to open its interest profile and saved programme matches.
+          </p>
         </div>
       </div>
-      <Button type="button" variant="outline" className="shrink-0 rounded-full bg-background px-4 text-xs font-bold shadow-2xs hover:bg-muted" disabled={!canRetake || starting} onClick={onRetake}>
+      <Button
+        type="button"
+        variant={canRetake ? "default" : "outline"}
+        className="shrink-0 gap-2 rounded-xl px-4 text-xs font-bold shadow-2xs hover:shadow-xs"
+        disabled={!canRetake || starting}
+        onClick={onRetake}
+      >
         <RotateCcw aria-hidden="true" className="size-3.5" />
-        {starting ? "Starting retakeâ€¦" : retakeLabel}
+        {starting ? "Starting retake..." : retakeLabel}
       </Button>
     </div>
   );

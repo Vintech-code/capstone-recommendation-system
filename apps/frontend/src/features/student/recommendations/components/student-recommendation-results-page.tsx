@@ -115,6 +115,7 @@ function StudentRecommendationResultsPage({
     return (
       <StudentRecommendationDetailPage
         course={selectedCourse}
+        profile={profile}
         generatedAt={formatAssessmentDate(snapshot.generatedAt)}
         onBack={() => setSelectedCourse(null)}
         onExploreProgrammes={exploreProgrammes}

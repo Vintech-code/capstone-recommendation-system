@@ -139,6 +139,30 @@ interface AdminReport {
   retakeMetrics?: { totalAssessmentAttempts: number; totalCompletedAttempts: number; studentsWithRetakes: number; totalRetakeAttempts: number }
 }
 
+interface AdminRecommendationFeedback {
+  generatedAt: string
+  from: string | null
+  to: string | null
+  publishedResponseCount: number
+  publishedRespondentCount: number
+  eligibleProgrammeCount: number
+  commentCount: number
+  programmes: Array<{
+    programmeId: string
+    programmeName: string
+    respondentCount: number
+    averageRating: number
+    ratingDistribution: Record<'1' | '2' | '3' | '4' | '5', number>
+  }>
+  comments: Array<{
+    programmeId: string
+    programmeName: string
+    rating: number
+    comment: string
+    updatedAt: string | null
+  }>
+}
+
 interface ConfigurationVersion {
   id: number
   kind: 'catalogue'
@@ -176,6 +200,7 @@ export type {
   AdminPagination,
   AdminProgramme,
   AdminProgrammeCatalogue,
+  AdminRecommendationFeedback,
   AdminReport,
   AdminStudent,
   AdminStudentDirectory,

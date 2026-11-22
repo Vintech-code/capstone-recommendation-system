@@ -44,6 +44,13 @@ interface StudentRecommendedCourse {
   coverImagePosition?: ProgrammeMediaPosition | null
   logoImagePosition?: ProgrammeMediaPosition | null
   explanation?: StudentRecommendationExplanation
+  feedback?: StudentRecommendationFeedback | null
+}
+
+interface StudentRecommendationFeedback {
+  rating: number
+  comment: string | null
+  updatedAt: string | null
 }
 
 interface StudentRecommendationExplanation {
@@ -124,4 +131,4 @@ interface StudentRecommendationState {
   recommendation: StudentRecommendationSnapshot | null
 }
 
-export type { PhilippineSourceFact, StudentRecommendationEligibility, StudentRecommendationEvidenceArea, StudentRecommendationExplanation, StudentRecommendationProfile, StudentRecommendedCourse, StudentRecommendationSnapshot, StudentRecommendationState }
+export type { PhilippineSourceFact, StudentRecommendationEligibility, StudentRecommendationEvidenceArea, StudentRecommendationExplanation, StudentRecommendationFeedback, StudentRecommendationProfile, StudentRecommendedCourse, StudentRecommendationSnapshot, StudentRecommendationState }
