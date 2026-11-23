@@ -6,7 +6,7 @@
 
 ## Implemented slice
 
-Each ranked programme row now includes a compact 1â€“5-star accuracy control. Selecting a rating opens an optional comment editor instead of permanently extending every recommendation card. A Student may save and later revise one response for each programme in a recommendation run.
+Each ranked programme row now includes a compact 1â€“5-star interest-match control that asks **How well does this recommendation match your interests?** Each star retains an accessible label from **Does not match** to **Matches very well**, while the separate visible scale-label line is intentionally omitted to keep the closed feedback row compact. This avoids an unsupported claim that the Student is validating recommendation accuracy. Selecting a rating opens an optional comment editor instead of permanently extending every recommendation card. A Student may save and later revise one response for each programme in a recommendation run.
 
 Laravel verifies the authenticated Student owns the referenced recommendation run and that the programme belongs to its stored ranked snapshot. Ratings are limited to 1 through 5 and comments to 1,000 characters. The response is persisted in `recommendation_feedback`, separately from the immutable recommendation snapshot, so saving feedback cannot alter a programme's recorded percentage, position, evidence, or rule version.
 
@@ -21,7 +21,7 @@ This response records the Student's perceived interest match; it is not psychome
 ## Validation evidence
 
 - Backend recommendation feature suite: 12 tests and 143 assertions passed, including create/update, ownership, programme membership, input validation, response presentation, snapshot immutability, and retention anonymization of free-text feedback.
-- Frontend recommendation results suite: 16 tests passed, including selecting four stars, entering a comment, saving, and rendering the saved state.
-- Desktop and mobile Playwright Student workflows passed, including the visible star control, expandable comment editor, save request, and success feedback.
+- Frontend recommendation results suite: 16 tests passed, including the interest-match question and scale labels, selecting four stars, entering a comment, saving, and rendering the labelled saved state.
+- Desktop and mobile Playwright Student workflows passed, including the visible star control, interest-match wording, labelled saved state, expandable comment editor, save request, and success feedback. The focused desktop and mobile captures were visually reviewed without feedback-row overflow.
 - The local forward migration was applied successfully through Artisan.
-- Final formatting, lint, architecture, production-build, and complete backend-suite results are recorded in the task handoff.
+- Changed-file ESLint, architecture validation, the production build, and the complete backend suite pass. Full frontend lint remains blocked only by the pre-existing Fast Refresh violations in `configuration-diff-preview.tsx` and `admin-theme-context.tsx`.

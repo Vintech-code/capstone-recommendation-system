@@ -16,6 +16,13 @@ interface RecommendationFeedbackProps {
 }
 
 const commentLimit = 1000;
+const ratingLabels = {
+  1: "Does not match",
+  2: "Matches slightly",
+  3: "Somewhat matches",
+  4: "Matches well",
+  5: "Matches very well",
+} as const;
 
 function RecommendationFeedback({
   recommendationId,
@@ -66,7 +73,7 @@ function RecommendationFeedback({
       setExpanded(false);
       appToast.success(
         "Feedback saved",
-        `Your rating for ${programmeName} has been recorded.`,
+        `Your interest-match rating for ${programmeName} has been recorded.`,
       );
     } catch (feedbackError) {
       const message =
@@ -88,16 +95,16 @@ function RecommendationFeedback({
       <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
         <div className="min-w-52 flex-1">
           <p className="font-label text-sm font-bold text-foreground">
-            Was this recommendation accurate?
+            How well does this recommendation match your interests?
           </p>
           <p className="mt-0.5 text-xs leading-5 text-muted-foreground">
-            Rate it based on your own experience.
+            Choose one to five stars based on your own experience.
           </p>
         </div>
 
         <fieldset>
           <legend className="sr-only">
-            Accuracy rating for {programmeName}
+            Interest-match rating for {programmeName}
           </legend>
           <div className="flex items-center gap-0.5">
             {[1, 2, 3, 4, 5].map((value) => (
@@ -110,11 +117,11 @@ function RecommendationFeedback({
                   checked={rating === value}
                   onChange={() => selectRating(value)}
                   className="peer absolute inset-0 z-10 size-full cursor-pointer opacity-0"
-                  aria-label={`${value} ${value === 1 ? "star" : "stars"} for ${programmeName}`}
+                  aria-label={`${value} ${value === 1 ? "star" : "stars"} — ${ratingLabels[value as keyof typeof ratingLabels]} for ${programmeName}`}
                 />
                 <label
                   htmlFor={`recommendation-rating-${programmeId}-${value}`}
-                  title={`${value} out of 5`}
+                  title={`${value} out of 5 — ${ratingLabels[value as keyof typeof ratingLabels]}`}
                   className="pointer-events-none flex size-11 items-center justify-center rounded-xl text-muted-foreground transition-colors peer-hover:bg-warning/15 peer-hover:text-warning-ink peer-focus-visible:outline-none peer-focus-visible:ring-3 peer-focus-visible:ring-ring/40"
                 >
                   <Star
@@ -140,11 +147,12 @@ function RecommendationFeedback({
         </Button>
       </div>
 
-      <p className="mt-2 text-xs text-muted-foreground">
-        {savedFeedback
-          ? `Saved rating: ${savedFeedback.rating} of 5.`
-          : "1 means not accurate; 5 means very accurate."}
-      </p>
+      {savedFeedback ? (
+        <p className="mt-2 text-xs text-muted-foreground">
+          Saved interest match: {savedFeedback.rating} of 5 —{" "}
+          {ratingLabels[savedFeedback.rating as keyof typeof ratingLabels]}.
+        </p>
+      ) : null}
 
       {expanded ? (
         <form

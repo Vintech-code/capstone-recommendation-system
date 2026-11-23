@@ -7,7 +7,7 @@ The authoritative API is Laravel under `/api/v1`. Browser authentication uses st
 | `/auth` | split-name Student registration, email verification/resend, login, session, logout, password recovery/change, Administrator invitation preview/acceptance, portal authorization | mixed public/authenticated; throttled where sensitive |
 | `/student/assessments/riasec` | questionnaire, current session, save, submit, retry, history | active Student |
 | `/student/entrance-examination` | read/create self-declaration | active Student |
-| `/student/recommendations` | latest and historical attempt snapshots; private per-programme accuracy feedback | owning active Student |
+| `/student/recommendations` | latest and historical attempt snapshots; private per-programme interest-match feedback | owning active Student |
 | `/student/programmes` | catalogue and programme detail | active Student |
 | `/student/saved-programmes` | list, save, remove | owning active Student |
 | `/student/profile` | personal and academic profile, required eight-digit ID number, read-only RIASEC summary, and profile photo | owning active Student |

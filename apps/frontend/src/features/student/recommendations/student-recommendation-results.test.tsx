@@ -167,8 +167,18 @@ describe("Student recommendation results", () => {
       />,
     );
 
+    expect(
+      screen.getByText(
+        "How well does this recommendation match your interests?",
+      ),
+    ).toBeVisible();
+    expect(
+      screen.queryByText(
+        "1 — Does not match; 3 — Somewhat matches; 5 — Matches very well.",
+      ),
+    ).not.toBeInTheDocument();
     const rating = screen.getByRole("radio", {
-      name: "4 stars for Test Course",
+      name: "4 stars — Matches well for Test Course",
     });
     expect(rating).not.toBeChecked();
 
@@ -189,7 +199,9 @@ describe("Student recommendation results", () => {
         }),
       }),
     );
-    expect(screen.getByText("Saved rating: 4 of 5.")).toBeVisible();
+    expect(
+      screen.getByText("Saved interest match: 4 of 5 — Matches well."),
+    ).toBeVisible();
     expect(
       screen.queryByRole("textbox", { name: /Comment/ }),
     ).not.toBeInTheDocument();
