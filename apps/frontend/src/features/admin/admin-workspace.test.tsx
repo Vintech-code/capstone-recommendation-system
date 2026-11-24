@@ -170,7 +170,8 @@ describe("Administration workspace", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("shows Student ratings and comments on a separate feedback page", async () => {
+  it("lists anonymous respondents and opens their complete programme feedback", async () => {
+    const user = userEvent.setup();
     await renderAppAt("/admin/feedback");
 
     expect(
@@ -178,22 +179,36 @@ describe("Administration workspace", () => {
     ).toBeVisible();
     expect(
       screen.getByRole("heading", {
-        name: "Recommendation interest-match feedback",
+        name: "Feedback respondents",
       }),
     ).toBeVisible();
-    expect(screen.getAllByText("BS Information Technology")).toHaveLength(2);
-    expect(screen.getByText("4.0")).toBeVisible();
-    expect(
-      screen.getByText(/Available from the first Student response/i),
-    ).toBeVisible();
-    expect(screen.getByText("Student comments")).toBeVisible();
-    expect(
-      screen.getByText(/This recommendation reflects my interests in technology/i),
-    ).toBeVisible();
-    expect(
-      screen.getByText(/without Student names or account identifiers/i),
-    ).toBeVisible();
+    expect(screen.getByRole("table")).toBeVisible();
+    expect(screen.getByText("Anonymous respondent #1")).toBeVisible();
+    expect(screen.getByText(/not Student numbers or account identifiers/i)).toBeVisible();
     expect(screen.getByRole("button", { name: "Date range" })).toBeVisible();
+
+    await user.click(screen.getByRole("button", { name: "View feedback" }));
+
+    const details = await screen.findByRole("dialog");
+    expect(
+      within(details).getByRole("heading", { name: "Anonymous respondent #1" }),
+    ).toBeVisible();
+    expect(within(details).getByText("BS Information Technology")).toBeVisible();
+    expect(
+      within(details).getByText("Bachelor of Library and Information Science"),
+    ).toBeVisible();
+    expect(
+      within(details).getByText("BS Business Administration - Financial Management"),
+    ).toBeVisible();
+    expect(within(details).getByText("Complete programme ranking")).toBeVisible();
+    expect(within(details).getByText("90%")).toBeVisible();
+    expect(within(details).getByText("88.57%")).toBeVisible();
+    expect(within(details).getByText("82.86%")).toBeVisible();
+    expect(
+      within(details).getByText(/This recommendation reflects my interests in technology/i),
+    ).toBeVisible();
+    expect(within(details).getByText("No comment submitted.")).toBeVisible();
+    expect(within(details).getByText("No feedback submitted")).toBeVisible();
   });
 
   it("shows a concise activity timeline without raw record metadata", async () => {

@@ -46,7 +46,7 @@ function AdminFeedbackPage() {
     <div className="mx-auto w-full min-w-0 max-w-[1500px] pb-10">
       <AdminPageHeader
         title="Student feedback"
-        description="Review how Students rated programme recommendations and read their submitted comments."
+        description="Review anonymous Student ratings and comments for each recommended programme."
       />
       <div className="mt-0.5 flex items-center gap-2 text-xs font-semibold text-muted-foreground">
         <CalendarDays aria-hidden="true" className="size-3.5 text-primary-ink" />

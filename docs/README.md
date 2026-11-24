@@ -56,6 +56,7 @@ This is the index for the surviving TCC course-recommendation documentation. The
 - [Expandable programme-match explanations](note/2026-11-23-expandable-programme-match-explanations.md) records the adviser-directed, per-area RIASEC disclosures backed by stored scores and versioned guidance, plus automated and desktop/mobile browser evidence.
 - [Student recommendation feedback](note/2026-11-23-student-recommendation-feedback.md) records the private per-programme 1â€“5-star rating and optional comment workflow, its immutable-snapshot boundary, and validation evidence.
 - [Administrator recommendation-feedback page](note/2026-11-23-admin-recommendation-feedback-aggregates.md) records the owner-approved dedicated Feedback destination, first-response visibility rule, latest-response aggregation, identity-free Admin comment review, and validation evidence.
+- [Entrance-group guidance on ranked programmes](note/2026-11-24-entrance-group-ranking-guidance.md) records the owner-approved visible warning for ranked programmes outside the Student's declared entrance group without filtering or changing the RIASEC ranking.
 - [Clone and local setup guide](note/2026-10-28-clone-and-local-setup-guide.md) records the current clone-to-running PowerShell onboarding guide and its verification boundaries.
 - `cmo/` contains locally reviewed CHED programme-standard evidence.
 - `pdf/` contains the capstone paper and historical roadmap sources.

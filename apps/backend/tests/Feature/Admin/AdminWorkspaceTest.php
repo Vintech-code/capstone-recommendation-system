@@ -114,14 +114,44 @@ class AdminWorkspaceTest extends TestCase
             'rating' => 1,
             'comment' => 'A newer private response replaces the earlier aggregate input.',
         ]);
+        RecommendationFeedback::query()->create([
+            'user_id' => $student->getKey(),
+            'recommendation_run_id' => $latestRun->getKey(),
+            'programme_id' => 'bachelor-library-information-science',
+            'rating' => 5,
+            'comment' => null,
+        ]);
 
         $response = $this->actingAs($admin)->getJson('/api/v1/admin/feedback');
 
         $response
             ->assertOk()
-            ->assertJsonPath('data.publishedResponseCount', 1)
+            ->assertJsonPath('data.publishedResponseCount', 2)
             ->assertJsonPath('data.publishedRespondentCount', 1)
-            ->assertJsonPath('data.eligibleProgrammeCount', 1)
+            ->assertJsonPath('data.eligibleProgrammeCount', 2)
+            ->assertJsonPath('data.respondents.0.respondentNumber', 1)
+            ->assertJsonPath('data.respondents.0.responseCount', 2)
+            ->assertJsonPath('data.respondents.0.commentCount', 1)
+            ->assertJsonPath('data.respondents.0.averageRating', 3)
+            ->assertJsonCount(2, 'data.respondents.0.programmeFeedback')
+            ->assertJsonCount(1, 'data.respondents.0.resultSets')
+            ->assertJsonPath('data.respondents.0.resultSets.0.resultSetNumber', 1)
+            ->assertJsonPath('data.respondents.0.resultSets.0.recommendationCount', 3)
+            ->assertJsonPath('data.respondents.0.resultSets.0.feedbackCount', 2)
+            ->assertJsonCount(3, 'data.respondents.0.resultSets.0.recommendations')
+            ->assertJsonPath('data.respondents.0.resultSets.0.recommendations.0.rank', 1)
+            ->assertJsonPath('data.respondents.0.resultSets.0.recommendations.0.programmeName', 'BS Information Technology')
+            ->assertJsonPath('data.respondents.0.resultSets.0.recommendations.0.match', 90)
+            ->assertJsonPath('data.respondents.0.resultSets.0.recommendations.0.feedback.rating', 1)
+            ->assertJsonPath('data.respondents.0.resultSets.0.recommendations.1.programmeName', 'Bachelor of Library and Information Science')
+            ->assertJsonPath('data.respondents.0.resultSets.0.recommendations.1.feedback.rating', 5)
+            ->assertJsonPath('data.respondents.0.resultSets.0.recommendations.2.programmeName', 'BS Business Administration - Financial Management')
+            ->assertJsonPath('data.respondents.0.resultSets.0.recommendations.2.feedback', null)
+            ->assertJsonFragment([
+                'programmeId' => 'bachelor-library-information-science',
+                'rating' => 5,
+                'comment' => null,
+            ])
             ->assertJsonPath('data.programmes.0.programmeId', 'bs-information-technology')
             ->assertJsonPath('data.programmes.0.programmeName', 'BS Information Technology')
             ->assertJsonPath('data.programmes.0.respondentCount', 1)
@@ -138,6 +168,8 @@ class AdminWorkspaceTest extends TestCase
 
         $this->assertStringNotContainsString('Private Student comment', $response->getContent());
         $this->assertStringNotContainsString('user_id', $response->getContent());
+        $this->assertStringNotContainsString($student->email, $response->getContent());
+        $this->assertStringNotContainsString($student->name, $response->getContent());
     }
 
     public function test_recommendation_feedback_report_has_a_truthful_empty_state_without_responses(): void
@@ -150,6 +182,7 @@ class AdminWorkspaceTest extends TestCase
             ->assertJsonPath('data.publishedRespondentCount', 0)
             ->assertJsonPath('data.eligibleProgrammeCount', 0)
             ->assertJsonPath('data.commentCount', 0)
+            ->assertJsonCount(0, 'data.respondents')
             ->assertJsonCount(0, 'data.programmes')
             ->assertJsonCount(0, 'data.comments');
     }
@@ -235,6 +268,20 @@ class AdminWorkspaceTest extends TestCase
                     'code' => 'BSIT',
                     'name' => 'BS Information Technology',
                     'match' => 90,
+                ],
+                [
+                    'id' => 'bachelor-library-information-science',
+                    'rank' => 2,
+                    'code' => 'BLIS',
+                    'name' => 'Bachelor of Library and Information Science',
+                    'match' => 88.57,
+                ],
+                [
+                    'id' => 'bs-business-administration-financial-management',
+                    'rank' => 3,
+                    'code' => 'BSBA-FM',
+                    'name' => 'BS Business Administration - Financial Management',
+                    'match' => 82.86,
                 ],
             ],
             'generated_at' => now(),

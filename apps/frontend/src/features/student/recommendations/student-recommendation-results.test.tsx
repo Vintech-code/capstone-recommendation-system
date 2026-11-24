@@ -229,6 +229,54 @@ describe("Student recommendation results", () => {
     expect(screen.getByText("Board programmes")).toBeVisible();
   });
 
+  it("keeps a top-ranked board programme visible and labels the entrance-group mismatch", async () => {
+    const user = userEvent.setup();
+    render(
+      <StudentRecommendationResultsPage
+        onBack={vi.fn()}
+        initialAssessment={testAssessmentLifecycle}
+        initialSnapshot={{
+          ...testRecommendationSnapshot,
+          entranceExamination: {
+            resultId: 5,
+            score: 3,
+            eligibilityGroup: "non_board",
+            ruleReference: "SELF-DECLARED-TCC-ENTRANCE-2026-01",
+            source: "student_self_declared",
+            declaredAt: "2026-11-24T09:00:00+08:00",
+          },
+          courses: [
+            {
+              ...testRecommendationSnapshot.courses[0],
+              rank: 1,
+              name: "Bachelor of Science in Accountancy",
+              eligibilityGroup: "board",
+              eligibleForDeclaredGroup: false,
+            },
+          ],
+        }}
+      />,
+    );
+
+    expect(screen.getByText("Bachelor of Science in Accountancy")).toBeVisible();
+    expect(screen.getByText("Rank #1")).toBeVisible();
+    expect(
+      screen.getByText(/Board programme · admission review needed/i),
+    ).toBeVisible();
+    expect(
+      screen.getByText(/entrance-exam result is assigned to a different programme group/i),
+    ).toBeVisible();
+
+    await user.click(screen.getByRole("button", { name: "View programme" }));
+
+    expect(
+      screen.getByRole("heading", { name: "Bachelor of Science in Accountancy" }),
+    ).toBeVisible();
+    expect(
+      screen.getByText(/Board programme · admission review needed/i),
+    ).toBeVisible();
+  });
+
   it("uses the reference-inspired pastel row without repeating catalogue photography", () => {
     const picturedCourse = {
       ...testRecommendationSnapshot.courses[0],

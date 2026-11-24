@@ -147,6 +147,38 @@ interface AdminRecommendationFeedback {
   publishedRespondentCount: number
   eligibleProgrammeCount: number
   commentCount: number
+  respondents: Array<{
+    respondentNumber: number
+    responseCount: number
+    commentCount: number
+    averageRating: number
+    latestUpdatedAt: string | null
+    programmeFeedback: Array<{
+      programmeId: string
+      programmeName: string
+      rating: number
+      comment: string | null
+      updatedAt: string | null
+    }>
+    resultSets: Array<{
+      resultSetNumber: number
+      resultDate: string | null
+      recommendationCount: number
+      feedbackCount: number
+      recommendations: Array<{
+        programmeId: string
+        programmeCode: string
+        programmeName: string
+        rank: number
+        match: number
+        feedback: {
+          rating: number
+          comment: string | null
+          updatedAt: string | null
+        } | null
+      }>
+    }>
+  }>
   programmes: Array<{
     programmeId: string
     programmeName: string

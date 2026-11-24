@@ -1,6 +1,7 @@
 import { ArrowRight } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { ProgrammeEntranceGroupGuidance } from "@/features/student/recommendations/components/programme-entrance-group-guidance";
 import { RecommendationFeedback } from "@/features/student/recommendations/components/recommendation-feedback";
 import type { StudentRecommendedCourse } from "@/features/student/recommendations/recommendation-types";
 import { cn } from "@/lib/utils";
@@ -87,6 +88,7 @@ function RecommendationMatchCard({
                 {course.summary}
               </p>
             ) : null}
+            <ProgrammeEntranceGroupGuidance course={course} className="mt-3" />
           </div>
         </div>
 

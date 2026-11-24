@@ -30,6 +30,14 @@ const recommendation = {
   totalEligible: 1,
   canViewAll: false,
   showingAll: false,
+  entranceExamination: {
+    resultId: 1,
+    score: 3,
+    eligibilityGroup: 'non_board',
+    ruleReference: 'SELF-DECLARED-TCC-ENTRANCE-2026-01',
+    source: 'student_self_declared',
+    declaredAt: '2026-08-08T00:00:00Z',
+  },
   profile: {
     sessionReference: 'ASMT-000001',
     availableAt: '2026-08-08T00:00:00Z',
@@ -61,6 +69,8 @@ const recommendation = {
     rank: 1,
     code: 'BSIT',
     name: 'BS Information Technology',
+    eligibilityGroup: 'board',
+    eligibleForDeclaredGroup: false,
     department: '',
     duration: '4 years',
     level: 'Undergraduate',
@@ -570,6 +580,8 @@ test('completes the student assessment and opens a recommendation detail', async
   const topMatch = page.getByRole('heading', { level: 3, name: 'BS Information Technology' }).locator('xpath=ancestor::article')
   await expect(topMatch).toHaveClass(/rounded-3xl/)
   await expect(topMatch.getByText('Strong match')).toBeVisible()
+  await expect(topMatch.getByText(/Board programme · admission review needed/)).toBeVisible()
+  await expect(topMatch.getByText(/entrance-exam result is assigned to a different programme group/)).toBeVisible()
   await expect(topMatch.getByRole('progressbar', { name: 'BS Information Technology strong match' })).toHaveAttribute('aria-valuenow', '90')
   const programmeSummary = topMatch.getByText(/Focuses on applying computing/)
   expect(await programmeSummary.evaluate((element) => window.getComputedStyle(element).fontFamily)).toContain('Montserrat Alternates')
@@ -577,6 +589,7 @@ test('completes the student assessment and opens a recommendation detail', async
   await page.getByRole('button', { name: 'View programme' }).click()
   await expect(page.getByRole('navigation', { name: 'Breadcrumb' })).toHaveCount(0)
   await expect(page.getByRole('heading', { level: 1, name: 'BS Information Technology' })).toBeVisible()
+  await expect(page.getByText(/Board programme · admission review needed/)).toBeVisible()
   const investigativeExplanation = page.getByRole('button', { name: 'Explain Investigative result' })
   await expect(investigativeExplanation).toHaveAttribute('aria-expanded', 'false')
   await expect(page.getByText('Recorded score: 6 of 7')).toBeVisible()

@@ -1,38 +1,40 @@
 # Administrator recommendation-feedback page
 
-**Status:** IN PROGRESS for the owner-approved dedicated Feedback page.  
-**Date:** 2026-11-23.  
+**Status:** IN PROGRESS for the owner-approved anonymous respondent table; clean browser-runner exit remains pending.
+**Date:** 2026-11-24.
 **Owner:** Administrator reporting and Recommendation domains.
 
 ## Approved rule
 
-The repository owner initially approved a five-Student publication minimum, then explicitly replaced it on 2026-11-23 with first-response visibility: a programme-level aggregate appears as soon as one Student response exists. For Students with feedback across multiple recommendation runs, only their latest response for that programme contributes to the aggregate. This prevents retakes from giving one Student additional weight.
+The repository owner initially approved a five-Student publication minimum, then explicitly replaced it on 2026-11-23 with first-response visibility: feedback appears as soon as one Student response exists. For Students with feedback across multiple recommendation runs, only their latest response for that programme contributes. This prevents retakes from giving one Student additional weight.
 
-The selected report dates apply to the feedback's latest saved date. The report returns respondent counts, averages, and distributions from the first response onward. The repository owner then explicitly required submitted comments to be visible to Administrators. Each nonblank latest comment is therefore returned with its programme, rating, and saved date, but without the Student's name, email, ID, or account identifier.
+The selected dates apply to each feedback record's latest saved date. The repository owner explicitly required submitted comments to be visible to Administrators and, on 2026-11-24, required the page to group each Student's programme responses into a numbered anonymous row whose complete feedback can be opened. The owner then approved showing every programme from each relevant recorded recommendation result—not only programmes that received feedback. The Admin contract and interface still exclude the Student's name, email, Student ID, account identifier, recommendation-run ID, and assessment reference.
 
 ## Implemented presentation
 
-The repository owner subsequently directed that Student feedback must not remain inside **System reports**. The protected `/admin/feedback` route now has its own **Feedback** navigation item, date filter, loading/error flow, and open-canvas **Recommendation interest-match feedback** section. It shows response and respondent totals, the number of programmes with feedback, and one divided row per programme with the distinct respondent count, one-decimal average, and exact 1â€“5 distribution. A separate divided **Student comments** subsection shows every nonblank latest comment with programme, rating, and saved date. It remains visible even when only one response exists.
+Student feedback does not appear inside **System reports**. The protected `/admin/feedback` route has its own **Feedback** navigation item, date filter, loading/error flow, and open-canvas **Feedback respondents** section. It shows compact response totals and a semantic table with one current-view numbered **Anonymous respondent** row per Student.
 
-**System reports** remains focused on assessment, recommendation-run, and programme-save activity and no longer receives or renders recommendation feedback.
+Selecting **View feedback** opens a right-side sheet grouped by relevant recorded result. Each group lists every programme from the immutable recommendation snapshot with its stored dense display rank and exact match. The latest published rating and optional comment appear beside the matching programme; programmes without published feedback remain visible with an explicit **No feedback submitted** state. Rating-only entries use a separate **No comment submitted** state. The table remains available when only one response exists.
 
-The copy describes the measure as perceived interest match. It does not call the aggregate model validation, predict Student success, expose public ratings, or automatically modify recommendation scores, weights, or ranks.
+**System reports** remains focused on assessment, recommendation-run, and programme-save activity. Feedback copy describes perceived interest match; it does not claim outcome validation, predict success, expose public ratings, or automatically modify recommendation scores, weights, or ranks.
 
 ## Contract and privacy boundaries
 
-- Laravel exposes feedback through the dedicated protected `GET /api/v1/admin/feedback` contract and returns nonblank comment text without any Student identifier. `GET /api/v1/admin/reports` no longer contains feedback.
+- Laravel exposes feedback through protected `GET /api/v1/admin/feedback`. The `respondents` collection groups latest programme responses by the internal owner only long enough to create a temporary sequence number and never serializes that owner key.
 - One latest response per Student/programme is included, even when the Student has multiple recommendation runs.
-- One saved Student response is sufficient to publish a programme row.
-- Because a Student may type identifying details into free text, the Student form warns against personal information and the Admin report marks comments for authorized review only.
+- One saved Student response is sufficient to publish a row.
+- Anonymous numbers are regenerated for the current filtered result and are not Student numbers, stable pseudonyms, or account identifiers.
+- Result-set numbers are also presentation-only. The API does not return recommendation-run IDs or assessment references.
+- Complete rankings come directly from stored immutable `ranked_courses` evidence and are presented through the existing dense-rank presenter; the feedback service does not recalculate matches or rewrite ranks.
+- Because a Student may type identifying details into free text, the Student form warns against personal information and the Admin detail sheet marks comments for authorized review only.
+- Existing programme aggregates and flat nonblank comments remain in the response for compatible aggregate consumers; the Admin page uses the grouped respondent view.
 - Research export, public ratings, moderation, and automatic recommendation tuning remain **DEFERRED**.
 
 ## Validation evidence
 
-- Focused Admin backend tests passed: 5 tests and 69 assertions cover the dedicated endpoint, first-response publication, truthful no-feedback state, latest-response de-duplication, rating distributions, visible latest comments, report-payload separation, authorization, and absence of Student identifiers.
-- The complete backend suite passed: 143 tests and 1,265 assertions.
-- Focused Admin workspace and access-route tests passed: 17 tests cover the separate Feedback route and navigation item, the absence of feedback from Reports, visible aggregate and comment content, and protected Admin workspace access.
-- Changed-file ESLint, focused Pint formatting, frontend architecture validation, and the production build passed.
-- The focused Playwright case passed separately in desktop and mobile Chrome with assertions for the dedicated page, comment content, first-response visibility, privacy copy, horizontal containment, feature-section WCAG checks, and console errors. Focused desktop and mobile captures were visually reviewed.
-- The full frontend lint command retains the pre-existing Fast Refresh violations in `configuration-diff-preview.tsx` and `admin-theme-context.tsx`; changed-file lint passes.
-- The full frontend lint command remains blocked by the pre-existing Fast Refresh violations in `configuration-diff-preview.tsx` and `admin-theme-context.tsx`; changed-file lint passes.
+- Focused Admin backend tests passed: 5 tests and 93 assertions cover the dedicated endpoint, first-response publication, truthful no-feedback state, latest-response de-duplication, anonymous respondent grouping, complete immutable ranking rows, exact stored matches, unrated programmes, nullable comments, authorization, and absence of Student names, emails, and owner keys.
+- The updated focused Admin workspace test now covers complete ranking, exact matches, rated/commented, rated/no-comment, and unrated programme states. Its current Vitest run is **BLOCKED** before test import because the fork worker times out during startup; no frontend assertion executed in that attempt.
+- Focused Pint, changed-file ESLint, frontend architecture validation, and the production build passed.
+- The focused Playwright case reported passing assertions in desktop and mobile Chrome for the anonymous table, detail sheet, two programme entries, comment and no-comment states, horizontal containment, detail-sheet WCAG checks, and console errors. Both captures were visually reviewed. The runner retained its known clean-exit hang after both passes and was manually terminated, so this slice remains **IN PROGRESS**.
+- The complete backend suite and full frontend lint were not rerun for this slice. The last full frontend lint retained pre-existing Fast Refresh violations in `configuration-diff-preview.tsx` and `admin-theme-context.tsx`.
 - The older broad Admin Playwright scenario remains blocked before reaching Reports by its unrelated stale **Journey stage detail** dashboard expectation.

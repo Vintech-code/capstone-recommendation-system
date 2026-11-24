@@ -15,6 +15,7 @@ import { getProgrammeImages } from "@/features/student/programmes/programme-imag
 import { programmeMediaStyle } from "@/features/student/programmes/programme-media-position";
 import { CareerDirectionsSection } from "@/features/student/programmes/components/career-directions-section";
 import { RecommendationFitExplanations } from "@/features/student/recommendations/components/recommendation-fit-explanations";
+import { ProgrammeEntranceGroupGuidance } from "@/features/student/recommendations/components/programme-entrance-group-guidance";
 import type {
   StudentRecommendationProfile,
   StudentRecommendedCourse,
@@ -143,6 +144,7 @@ function StudentRecommendationDetailPage({
                     {course.summary}
                   </p>
                 ) : null}
+                <ProgrammeEntranceGroupGuidance course={course} className="mt-5 max-w-3xl" />
                 <p className="mt-5 font-label text-xs text-muted-foreground">
                   Recommendation generated {generatedAt}
                 </p>
