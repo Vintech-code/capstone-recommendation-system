@@ -32,6 +32,13 @@ interface AssessmentDimensionResult {
   surfaceClass: string
 }
 
+interface RiasecProfileVariant {
+  code: string
+  compactCode: string
+  codes: AssessmentDimensionResult['code'][]
+  labels: string[]
+}
+
 interface AssessmentDisplayResult {
   id: string
   sessionReference: string
@@ -40,6 +47,8 @@ interface AssessmentDisplayResult {
   status: string
   topCode: string
   topLabels: string[]
+  profileVariantVersion?: string
+  profileVariants?: RiasecProfileVariant[]
   dimensions: AssessmentDimensionResult[]
   guidance?: {
     status: 'proposed'
@@ -53,6 +62,7 @@ export type {
   AssessmentDimensionResult,
   AssessmentDisplayResult,
   AssessmentQuestion,
+  RiasecProfileVariant,
   AssessmentResponseOption,
   AssessmentResponseValue,
   AssessmentSessionContent,

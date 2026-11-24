@@ -7,9 +7,16 @@ import { AuthProvider } from "@/features/auth/auth-provider";
 import { useAuth } from "@/features/auth/auth-context";
 
 function SessionProbe() {
-  const { status, user } = useAuth();
+  const { refreshSession, status, user } = useAuth();
 
-  return <p>{status}:{user?.email ?? "guest"}</p>;
+  return (
+    <div>
+      <p>{status}:{user?.email ?? "guest"}:{user?.photoUrl ?? "no-photo"}</p>
+      <button type="button" onClick={() => void refreshSession()}>
+        Refresh session
+      </button>
+    </div>
+  );
 }
 
 describe("server-backed authentication", () => {
@@ -24,12 +31,53 @@ describe("server-backed authentication", () => {
 
     render(<AuthProvider><SessionProbe /></AuthProvider>);
 
-    expect(await screen.findByText("ready:guest")).toBeVisible();
+    expect(await screen.findByText("ready:guest:no-photo")).toBeVisible();
     expect(fetch).toHaveBeenCalledWith(
       "/api/v1/auth/session",
       expect.objectContaining({ credentials: "include" }),
     );
     expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("refreshes a preloaded user after an identity update", async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(
+      Response.json({
+        user: {
+          id: 7,
+          name: "Admin User",
+          email: "admin@example.test",
+          roles: ["admin"],
+          photoUrl: "/api/v1/admin/profile/photo?v=new-photo",
+        },
+      }),
+    );
+
+    const user = userEvent.setup();
+    render(
+      <AuthProvider
+        initialUser={{
+          id: 7,
+          name: "Admin User",
+          email: "admin@example.test",
+          roles: ["admin"],
+          photoUrl: null,
+        }}
+      >
+        <SessionProbe />
+      </AuthProvider>,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Refresh session" }));
+
+    expect(
+      await screen.findByText(
+        "ready:admin@example.test:/api/v1/admin/profile/photo?v=new-photo",
+      ),
+    ).toBeVisible();
+    expect(fetch).toHaveBeenCalledWith(
+      "/api/v1/auth/session",
+      expect.objectContaining({ credentials: "include" }),
+    );
   });
 
   it("requests password recovery without exposing whether the account exists", async () => {

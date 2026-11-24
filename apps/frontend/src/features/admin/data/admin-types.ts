@@ -135,7 +135,14 @@ interface AdminReport {
   assessmentFunnel: { started: number; inProgress: number; processing: number; resultAvailable: number }
   recommendationRuns: number
   programmeSaves: number
-  assessmentCompletionsByMonth: Array<{ month: string; count: number; volume?: number }>
+  assessmentCompletionsByMonth: Array<{
+    month: string
+    count: number
+    completed?: number
+    started?: number
+    saved?: number
+    volume?: number
+  }>
   retakeMetrics?: { totalAssessmentAttempts: number; totalCompletedAttempts: number; studentsWithRetakes: number; totalRetakeAttempts: number }
 }
 

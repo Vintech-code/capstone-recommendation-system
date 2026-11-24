@@ -278,45 +278,33 @@ function AdminActivityPage() {
       <AdminPageHeader title="Admin activity" />
       <section
         aria-label="Activity filters"
-        className="grid gap-3 border-y border-border p-4 md:grid-cols-2 xl:grid-cols-4"
+        className="flex flex-wrap items-end gap-3 rounded-xl border border-border/70 bg-card/60 p-3.5 shadow-2xs"
       >
-        <FilterSelect
-          label="Administrator"
-          value={actor}
-          onChange={(value) => {
-            setActor(value);
-            setPage(1);
-          }}
-          options={[
-            ["", "All Administrators"],
-            ...data.filters.actors.map(
-              (item) => [String(item.id), item.name] as [string, string],
-            ),
-          ]}
-        />
-        <FilterSelect
-          label="Action"
-          value={action}
-          onChange={(value) => {
-            setAction(value);
-            setPage(1);
-          }}
-          options={[
-            ["", "All actions"],
-            ...data.filters.actions.map(
-              (item) => [item, humanize(item)] as [string, string],
-            ),
-          ]}
-        />
-        <AdminDateRangePicker
-          from={from}
-          to={to}
-          onChange={({ from: nextFrom, to: nextTo }) => {
-            setFrom(nextFrom);
-            setTo(nextTo);
-            setPage(1);
-          }}
-        />
+        <div className="min-w-48 flex-1">
+          <FilterSelect
+            label="Administrator"
+            showLabel
+            value={actor}
+            onChange={(val) => { setActor(val); setPage(1); }}
+            options={[["", "All Administrators"], ...data.filters.actors.map((item) => [String(item.id), item.name] as [string, string])]}
+          />
+        </div>
+        <div className="min-w-48 flex-1">
+          <FilterSelect
+            label="Action"
+            showLabel
+            value={action}
+            onChange={(val) => { setAction(val); setPage(1); }}
+            options={[["", "All actions"], ...data.filters.actions.map((item) => [item, humanize(item)] as [string, string])]}
+          />
+        </div>
+        <div className="min-w-64 flex-1">
+          <AdminDateRangePicker
+            from={from}
+            to={to}
+            onChange={({ from: nextFrom, to: nextTo }) => { setFrom(nextFrom); setTo(nextTo); setPage(1); }}
+          />
+        </div>
       </section>
       {data.items.length ? (
         <section>
@@ -431,32 +419,34 @@ function FilterSelect({
   value,
   onChange,
   options,
+  showLabel = false,
 }: {
   label: string;
   value: string;
   onChange: (value: string) => void;
   options: Array<[string, string]>;
+  showLabel?: boolean;
 }) {
   const allValue = "__all__";
   return (
-    <Select
-      value={value || allValue}
-      onValueChange={(next) => onChange(next === allValue ? "" : next)}
-    >
-      <SelectTrigger
-        aria-label={label}
-        className="w-full border-0 border-b border-border bg-transparent shadow-none"
-      >
-        <SelectValue />
-      </SelectTrigger>
-      <SelectContent>
-        {options.map(([option, labelText]) => (
-          <SelectItem key={option || allValue} value={option || allValue}>
-            {labelText}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
+    <div className="grid min-w-0 gap-1.5">
+      {showLabel ? (
+        <span className="font-label text-xs font-bold uppercase tracking-wider text-muted-foreground">{label}</span>
+      ) : null}
+      <Select value={value || allValue} onValueChange={(next) => onChange(next === allValue ? "" : next)}>
+        <SelectTrigger
+          aria-label={label}
+          className="h-9 w-full rounded-lg border border-border/80 bg-background px-3 text-xs font-medium text-foreground shadow-2xs hover:bg-secondary/50 focus-visible:ring-2"
+        >
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {options.map(([opt, txt]) => (
+            <SelectItem key={opt || allValue} value={opt || allValue}>{txt}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
   );
 }
 

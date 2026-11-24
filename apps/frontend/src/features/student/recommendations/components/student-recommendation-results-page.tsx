@@ -157,6 +157,7 @@ function StudentRecommendationResultsPage({
           {profile ? (
             <RecommendationCareerPaths
               profileCode={profile.topCode}
+              profileCount={profile.profileVariants?.length}
               careerPaths={topCareerPaths}
             />
           ) : null}

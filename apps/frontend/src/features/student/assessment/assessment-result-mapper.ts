@@ -24,6 +24,15 @@ function mapAssessmentResult(lifecycle: AssessmentLifecycle): AssessmentDisplayR
 
   const completeDimensions = dimensions as AssessmentDimensionResult[]
   const leading = [...completeDimensions].sort((a, b) => b.value - a.value).slice(0, 3)
+  const profileVariants = payload.profile_variants?.length
+    ? payload.profile_variants
+    : [{
+        code: leading.map((dimension) => dimension.code).join('-'),
+        compactCode: leading.map((dimension) => dimension.code).join(''),
+        codes: leading.map((dimension) => dimension.code),
+        labels: leading.map((dimension) => dimension.label),
+      }]
+  const firstVariant = profileVariants[0]
 
   return {
     id: `result-${lifecycle.reference ?? lifecycle.id ?? 'current'}`,
@@ -31,8 +40,10 @@ function mapAssessmentResult(lifecycle: AssessmentLifecycle): AssessmentDisplayR
     assessmentVersion: payload.scoring_source ?? payload.instrument_code,
     availableAt: formatAssessmentDate(lifecycle.result_available_at),
     status: 'Available',
-    topCode: leading.map((dimension) => dimension.code).join('-'),
-    topLabels: leading.map((dimension) => dimension.label),
+    topCode: firstVariant.code,
+    topLabels: firstVariant.labels,
+    profileVariantVersion: payload.profile_variant_version,
+    profileVariants,
     dimensions: completeDimensions,
     guidance: payload.guidance ?? null,
   }

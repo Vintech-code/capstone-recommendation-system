@@ -183,7 +183,7 @@ describe("Administration workspace", () => {
       }),
     ).toBeVisible();
     expect(screen.getByRole("table")).toBeVisible();
-    expect(screen.getByText("Anonymous respondent #1")).toBeVisible();
+    expect(screen.getByText("Student Applicant")).toBeVisible();
     expect(screen.getByText(/not Student numbers or account identifiers/i)).toBeVisible();
     expect(screen.getByRole("button", { name: "Date range" })).toBeVisible();
 
@@ -191,7 +191,7 @@ describe("Administration workspace", () => {
 
     const details = await screen.findByRole("dialog");
     expect(
-      within(details).getByRole("heading", { name: "Anonymous respondent #1" }),
+      within(details).getByRole("heading", { name: "Student Applicant #1" }),
     ).toBeVisible();
     expect(within(details).getByText("BS Information Technology")).toBeVisible();
     expect(

@@ -1,4 +1,3 @@
-import { CalendarDays } from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -35,65 +34,60 @@ function AdminFeedbackPage() {
 
   const feedback = resource.data;
   const invalid = Boolean(from && to && to < from);
-  const dateScope =
-    feedback.from || feedback.to
-      ? `${feedback.from ? formatDate(feedback.from) : "First response"} – ${
-          feedback.to ? formatDate(feedback.to) : "Latest response"
-        }`
-      : "All recorded feedback";
 
   return (
     <div className="mx-auto w-full min-w-0 max-w-[1500px] pb-10">
-      <AdminPageHeader
-        title="Student feedback"
-        description="Review anonymous Student ratings and comments for each recommended programme."
-      />
-      <div className="mt-0.5 flex items-center gap-2 text-xs font-semibold text-muted-foreground">
-        <CalendarDays aria-hidden="true" className="size-3.5 text-primary-ink" />
-        <span>{dateScope}</span>
-      </div>
+      <AdminPageHeader title="Student feedback" />
 
-      <form
-        className="mt-5 flex flex-wrap items-center gap-3 border-y border-border py-4"
-        onSubmit={(event) => {
-          event.preventDefault();
-          if (invalid) return;
-          setQuery(
-            from || to
-              ? `?${new URLSearchParams({ ...(from ? { from } : {}), ...(to ? { to } : {}) })}`
-              : "",
-          );
-        }}
-      >
-        <AdminDateRangePicker
-          from={from}
-          to={to}
-          onChange={({ from: nextFrom, to: nextTo }) => {
-            setFrom(nextFrom);
-            setTo(nextTo);
-          }}
-        />
-        <Button type="submit" size="sm" disabled={invalid}>
-          Apply dates
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={() => {
-            setFrom("");
-            setTo("");
-            setQuery("");
+      <div className="mt-4 rounded-xl border border-border/70 bg-card/60 p-3.5 shadow-2xs">
+        <form
+          className="flex flex-wrap items-end gap-2.5"
+          onSubmit={(event) => {
+            event.preventDefault();
+            if (invalid) return;
+            setQuery(
+              from || to
+                ? `?${new URLSearchParams({ ...(from ? { from } : {}), ...(to ? { to } : {}) })}`
+                : "",
+            );
           }}
         >
-          Clear
-        </Button>
-        {invalid ? (
-          <span role="alert" className="text-xs font-bold text-destructive-ink">
-            The end date must be on or after the start date.
-          </span>
-        ) : null}
-      </form>
+          <AdminDateRangePicker
+            from={from}
+            to={to}
+            onChange={({ from: nextFrom, to: nextTo }) => {
+              setFrom(nextFrom);
+              setTo(nextTo);
+            }}
+          />
+          <Button
+            type="submit"
+            size="sm"
+            disabled={invalid}
+            className="h-9 rounded-lg px-4 text-xs font-bold"
+          >
+            Apply dates
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="h-9 rounded-lg px-3 text-xs font-medium text-muted-foreground hover:text-foreground"
+            onClick={() => {
+              setFrom("");
+              setTo("");
+              setQuery("");
+            }}
+          >
+            Clear
+          </Button>
+          {invalid ? (
+            <span role="alert" className="pb-2 text-xs font-bold text-destructive-ink">
+              The end date must be on or after the start date.
+            </span>
+          ) : null}
+        </form>
+      </div>
 
       <div className="mt-6">
         <RecommendationFeedbackSummary feedback={feedback} />

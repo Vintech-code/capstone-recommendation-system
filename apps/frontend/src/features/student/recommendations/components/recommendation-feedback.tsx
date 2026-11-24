@@ -92,8 +92,8 @@ function RecommendationFeedback({
       aria-label={`Feedback for ${programmeName}`}
       className="relative border-t border-border bg-card/80 px-5 py-4 sm:px-7"
     >
-      <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
-        <div className="min-w-52 flex-1">
+      <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-5 sm:gap-y-3 sm:text-left">
+        <div className="w-full sm:min-w-52 sm:flex-1">
           <p className="font-label text-sm font-bold text-foreground">
             How well does this recommendation match your interests?
           </p>
@@ -102,7 +102,7 @@ function RecommendationFeedback({
           </p>
         </div>
 
-        <fieldset>
+        <fieldset className="shrink-0">
           <legend className="sr-only">
             Interest-match rating for {programmeName}
           </legend>
@@ -140,7 +140,7 @@ function RecommendationFeedback({
           size="sm"
           aria-expanded={expanded}
           onClick={() => setExpanded((current) => ! current)}
-          className="gap-2 text-primary-ink"
+          className="gap-2 text-primary-ink sm:self-auto"
         >
           <MessageSquareText aria-hidden="true" className="size-4" />
           {savedFeedback?.comment ? "Edit comment" : "Add comment"}
@@ -148,7 +148,7 @@ function RecommendationFeedback({
       </div>
 
       {savedFeedback ? (
-        <p className="mt-2 text-xs text-muted-foreground">
+        <p className="mt-3 text-center text-xs text-muted-foreground sm:text-left">
           Saved interest match: {savedFeedback.rating} of 5 —{" "}
           {ratingLabels[savedFeedback.rating as keyof typeof ratingLabels]}.
         </p>

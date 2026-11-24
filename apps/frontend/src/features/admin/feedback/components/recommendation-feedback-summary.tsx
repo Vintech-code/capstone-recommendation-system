@@ -33,10 +33,6 @@ function RecommendationFeedbackSummary({ feedback }: RecommendationFeedbackSumma
           <h2 id="anonymous-feedback-heading" className="mt-1 font-display text-2xl font-black text-foreground">
             Feedback respondents
           </h2>
-          <p className="mt-2 text-sm leading-6 text-muted-foreground">
-            Select an anonymous respondent to review their latest rating and comment for every programme they evaluated.
-            Feedback does not change programme rankings.
-          </p>
         </div>
         <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
           <ShieldCheck aria-hidden="true" className="size-4 text-primary-ink" />
@@ -77,7 +73,7 @@ function RecommendationFeedbackSummary({ feedback }: RecommendationFeedbackSumma
                   </td>
                   <th scope="row" className="px-4 py-4">
                     <span className="font-display font-bold text-foreground">
-                      Anonymous respondent #{respondent.respondentNumber}
+                      Student Applicant
                     </span>
                     <span className="mt-1 block text-xs font-normal text-muted-foreground">
                       {respondent.commentCount} comment{respondent.commentCount === 1 ? "" : "s"} submitted
@@ -135,7 +131,7 @@ function AnonymousRespondentDetails({ respondent }: { respondent: AnonymousRespo
       <SheetHeader className="border-b border-border pb-5">
         <p className="font-label text-xs font-bold uppercase tracking-wider text-primary-ink">Anonymous feedback record</p>
         <SheetTitle className="font-display text-2xl font-black">
-          Anonymous respondent #{respondent.respondentNumber}
+          Student Applicant #{respondent.respondentNumber}
         </SheetTitle>
         <SheetDescription>
           Review each complete recorded recommendation ranking and the latest published feedback attached to its

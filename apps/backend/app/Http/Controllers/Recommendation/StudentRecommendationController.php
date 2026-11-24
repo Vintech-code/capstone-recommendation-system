@@ -7,6 +7,7 @@ use App\Models\AssessmentQuestion;
 use App\Models\AssessmentSession;
 use App\Models\RecommendationFeedback;
 use App\Models\RecommendationRun;
+use App\Services\Assessment\RiasecProfileVariantGenerator;
 use App\Services\Assessment\RiasecQuestionnaire;
 use App\Services\Recommendation\ProgrammeRankPresenter;
 use App\Services\Recommendation\ProvisionalRiasecRecommendationEngine;
@@ -19,6 +20,7 @@ final class StudentRecommendationController extends Controller
 {
     public function __construct(
         private readonly ProgrammeRankPresenter $rankPresenter,
+        private readonly RiasecProfileVariantGenerator $profileVariantGenerator,
     ) {}
 
     public function latest(
@@ -307,18 +309,38 @@ final class StudentRecommendationController extends Controller
             ->filter()
             ->values()
             ->all();
-        $topCodes = collect(explode('-', (string) ($profile['topCode'] ?? '')))
-            ->filter();
+        $topCodes = collect($profile['profileVariants'] ?? [])
+            ->flatMap(static fn (array $variant): array => $variant['codes'] ?? [])
+            ->filter()
+            ->unique();
+        if ($topCodes->isEmpty() && ! empty($profile['topCode'])) {
+            $topCodes = collect(explode('-', (string) $profile['topCode']));
+        }
+        $recordedResultAreas = $topCodes
+            ->map(function (string $code) use ($dimensions): ?array {
+                $dimension = $dimensions->get($code);
+
+                return is_array($dimension) ? [
+                    'code' => $code,
+                    'label' => $dimension['label'],
+                    'score' => $dimension['value'],
+                ] : null;
+            })
+            ->filter()
+            ->values()
+            ->all();
 
         return [
             'assessmentReference' => $profile['sessionReference'] ?? null,
             'recordedProfileCode' => $profile['topCode'] ?? '',
+            'recordedProfileCodes' => array_column($profile['profileVariants'] ?? [], 'code'),
             'programmeInterestAreas' => $programmeAreas,
             'sharedTopAreas' => collect($recordedProgrammeAreas)
                 ->filter(fn (array $area): bool => $topCodes->contains($area['code']))
                 ->values()
                 ->all(),
             'recordedProgrammeAreas' => $recordedProgrammeAreas,
+            'recordedResultAreas' => $recordedResultAreas,
             'learningAreas' => array_values(array_filter(
                 $course['learningAreas'] ?? [],
                 static fn (mixed $area): bool => is_string($area) && $area !== '',
@@ -379,18 +401,24 @@ final class StudentRecommendationController extends Controller
             'rank' => $rankedByCode->get($dimension['code'])['rank'],
             'isTied' => $rankedByCode->get($dimension['code'])['isTied'],
         ], $dimensions);
-        $leading = array_values(array_filter(
-            $leading,
-            static fn (array $dimension): bool => $dimension['rank'] <= 3,
-        ));
+        $profileVariants = $this->profileVariantGenerator->generate($leading);
+        $leading = $profileVariants['leadingDimensions'];
+        $firstVariant = $profileVariants['variants'][0] ?? ['code' => '', 'labels' => []];
 
         $guidance = $session->result_payload['guidance'] ?? null;
 
         return [
             'sessionReference' => 'ASMT-'.str_pad((string) $session->getKey(), 6, '0', STR_PAD_LEFT),
             'availableAt' => $session->result_available_at?->toAtomString(),
-            'topCode' => implode('-', array_column($leading, 'code')),
-            'topLabels' => array_column($leading, 'label'),
+            'topCode' => $firstVariant['code'],
+            'topLabels' => $firstVariant['labels'],
+            'profileVariantVersion' => $profileVariants['version'],
+            'profileVariants' => $profileVariants['variants'],
+            'leadingAreas' => array_map(static fn (array $dimension): array => [
+                'code' => $dimension['code'],
+                'label' => $dimension['label'],
+                'value' => $dimension['value'],
+            ], $leading),
             'dimensions' => array_map(static fn (array $dimension): array => [
                 'code' => $dimension['code'],
                 'label' => $dimension['label'],

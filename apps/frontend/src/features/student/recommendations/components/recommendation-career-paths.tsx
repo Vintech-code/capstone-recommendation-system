@@ -2,11 +2,13 @@ import { Compass } from "lucide-react";
 
 interface RecommendationCareerPathsProps {
   profileCode: string;
+  profileCount?: number;
   careerPaths: string[];
 }
 
 function RecommendationCareerPaths({
   profileCode,
+  profileCount = 1,
   careerPaths,
 }: RecommendationCareerPathsProps) {
   return (
@@ -24,7 +26,9 @@ function RecommendationCareerPaths({
             Recommended career paths
           </h2>
           <p className="mt-2 text-sm font-medium leading-6 text-muted-foreground sm:text-base">
-            Built from your recorded pattern: {profileCode}
+            {profileCount > 1
+              ? `Built from ${profileCount} generated three-code results.`
+              : `Built from your recorded pattern: ${profileCode}`}
           </p>
         </div>
       </div>

@@ -1,8 +1,8 @@
 ---
 name: TCC Course Recommendation Design System
 status: APPROVED working product direction; PROVISIONAL institutional identity
-version: 6.7
-last_updated: 2026-11-24
+version: 6.9
+last_updated: 2026-11-25
 font_family: Nunito Sans headings / Montserrat Alternates body
 font_family: Open Runde headings / Montserrat Alternates body
 theme: light
@@ -273,7 +273,7 @@ Use one sticky light top bar, not a sidebar:
 - Right: authenticated identity and the actions explicitly assigned to that workspace.
 - Keep one row on mobile; use icons with accessible names and tooltips when labels do not fit.
 
-The identity control shows uploaded photo, then verified Google avatar, then recorded-name initials. The Student header keeps the current authenticated name visibly to the left of the profile image and refreshes it after a successful identity edit. Student and Administrator workspaces do not include a notification bell or feed.
+The identity control shows uploaded photo, then verified Google avatar, then recorded-name initials. A successful profile-photo replacement must display the returned image immediately and refresh the shared authenticated identity so the profile card, top navigation, sidebar, and account menu stay synchronized; a previously failed image URL must not permanently lock the avatar into its initials fallback. The Student header keeps the current authenticated name visibly to the left of the profile image and refreshes it after a successful identity edit. Student and Administrator workspaces do not include a notification bell or feed.
 
 Authenticated application and authentication routes use no global page footer. Keep route content focused within those shells. The approved public landing page may use its dedicated compact portal-link footer.
 
@@ -286,6 +286,8 @@ Recommendation review actions in a Student evidence record route to the selected
 Admin content uses one plain continuous light canvas. Thin horizontal and vertical dividers, tables, split analytical regions, timelines, and whitespace define hierarchy. Do not wrap routine metrics, filters, table groups, evidence fields, or audit entries in cards. Reserve rounded clay surfaces for overlays and controls that require them. The sidebar must use a light surface with neutral text and a pale-green active state, never a dark fill. Use the same green, orange, violet, pink, yellow, olive, and neutral system as the Student experience; never copy reference branding, identities, wording, proprietary artwork, or unrelated content.
 
 Administrator screens use a compact information-density exception. Page titles are 20px on mobile and 24px from `sm`; section titles are normally 18â€“20px; operational body text is 12â€“14px with readable line height. Use 12â€“24px section spacing and 10â€“16px row padding instead of large marketing-page gaps. Routine Administrator controls, active-navigation fields, data surfaces, and status labels use the 2px `rounded-xs` radius; identity avatars and icon-only circular controls may remain round. Shared overlays may retain the minimum radius needed by their primitive, but must not introduce card-like rounding into the Admin canvas.
+
+Administrator Profile Settings uses the full content width available inside the workspace padding instead of applying an additional centered maximum-width container. Its responsive columns may stack on mobile, but must not create redundant desktop side gutters inside the main Admin canvas.
 
 ### 4.3 Breakpoints
 
@@ -356,6 +358,7 @@ The result hero gives a calm summary before detail.
 
 - Desktop uses a 7/5 or 8/4 split.
 - Narrative region: overline, large recorded result heading, short evidence-based description, code badge, and at most three evidence pills.
+- When tied highest scores generate more than one valid three-code result, replace the single profile-name claim with **Multiple three-code interest profiles**. Keep the complete variant list behind one keyboard-operable disclosure labelled with the exact result count. Each row shows a three-code badge, its versioned presentation name, and its two-sentence explanation. Cap the expanded list height and allow internal vertical scrolling so 60- or 120-result cases do not make the main page unbounded. Keep the six exact score bars visible and unchanged.
 - Illustration region: bounded to roughly 280–360px and never obscures content.
 - A quiet inset may list recommended paths or next actions from actual records.
 - The Score Breakdown may sit beside the narrative as its own card.
@@ -377,7 +380,7 @@ Use the reference-inspired split composition:
 
 - Main region: rank overline, one rank badge, programme name, and configured summary. Keep programme codes and detailed RIASEC evidence out of this compact ranked list.
 - Summary region: exact match percentage, accessible bar, and disclosure action. Keep the eligibility label in the detailed programme flow rather than repeating it in every ranked row.
-- Only ranks 1–3 use the broad pastel shape. Its desktop width steps down from rank 1 to rank 3 to establish the reference-inspired hierarchy; later ranks remain plain compact rows. The shape must remain readable and must not encode an unofficial threshold.
+- Only ranks 1–3 use the broad pastel shape. Its width steps down from rank 1 to rank 3 at every responsive size to establish the reference-inspired hierarchy; later ranks remain plain compact rows. On mobile, keep it as a partial left-side shape instead of coloring the complete information region. The shape must remain readable and must not encode an unofficial threshold.
 - Expanded details show recorded scores, configured programme areas, catalogue learning areas, generation date, and rule version.
 - In the detailed programme view, explain each configured RIASEC area through its own collapsed disclosure. The closed row shows the code, full area name, and exact recorded score. The expanded region explains how that score was formed under the stored assessment version, repeats the versioned neutral area description, and states why the area contributes to the programme match. Keep disclosures keyboard-operable, independently expandable, and collapsed by default so the page does not become one long explanation card.
 
@@ -387,7 +390,7 @@ Ranking compares all configured catalogue programmes in that recommendation snap
 
 Equal recorded percentages are valid when programme profiles produce the same mean. Use dense ranking for exact programme ties (`1, 1, 2` or `1, 2, 3, 3, 4`), label tied positions explicitly, and use configured alphabetical order only to stabilize display within a tie. Never manufacture score differences to force a unique order.
 
-On mobile, place the summary below the title. Do not preserve a desktop shape if it clips text or creates large empty space.
+On mobile, place the match summary below the title on the neutral card surface and center it. Stack the feedback question, five-star control, comment action, and saved state in a calm centered order, then return to the compact horizontal feedback arrangement from the `sm` breakpoint upward. Center the result-summary narrative, evidence chips, metadata, and actions on mobile, while preserving the left-aligned desktop composition beside the score panel. Keep the partial pastel shape only when it does not clip text or create large empty space.
 
 ### 5.9 Assessment Question Card
 

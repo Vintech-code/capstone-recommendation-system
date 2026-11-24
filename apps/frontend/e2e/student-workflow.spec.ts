@@ -11,12 +11,12 @@ const user = {
 }
 
 const resultEntries = [
-  { area: 'Realistic', score: 4 },
+  { area: 'Realistic', score: 6 },
   { area: 'Investigative', score: 6 },
-  { area: 'Artistic', score: 2 },
-  { area: 'Social', score: 5 },
+  { area: 'Artistic', score: 5 },
+  { area: 'Social', score: 4 },
   { area: 'Enterprising', score: 3 },
-  { area: 'Conventional', score: 7 },
+  { area: 'Conventional', score: 1 },
 ]
 
 const recommendation = {
@@ -41,8 +41,15 @@ const recommendation = {
   profile: {
     sessionReference: 'ASMT-000001',
     availableAt: '2026-08-08T00:00:00Z',
-    topCode: 'C-I-S',
-    topLabels: ['Conventional', 'Investigative', 'Social'],
+    topCode: 'R-A-S',
+    topLabels: ['Realistic', 'Artistic', 'Social'],
+    profileVariantVersion: 'PROPOSED-RIASEC-PROFILE-VARIANTS-2026-11-24',
+    profileVariants: [
+      { code: 'R-A-S', compactCode: 'RAS', codes: ['R', 'A', 'S'], labels: ['Realistic', 'Artistic', 'Social'] },
+      { code: 'R-S-A', compactCode: 'RSA', codes: ['R', 'S', 'A'], labels: ['Realistic', 'Social', 'Artistic'] },
+      { code: 'I-A-S', compactCode: 'IAS', codes: ['I', 'A', 'S'], labels: ['Investigative', 'Artistic', 'Social'] },
+      { code: 'I-S-A', compactCode: 'ISA', codes: ['I', 'S', 'A'], labels: ['Investigative', 'Social', 'Artistic'] },
+    ],
     dimensions: resultEntries.map((entry) => ({
       code: entry.area[0],
       label: entry.area,
@@ -98,7 +105,8 @@ const recommendation = {
     feedback: null,
     explanation: {
       assessmentReference: 'ASMT-000001',
-      recordedProfileCode: 'C-I-S',
+      recordedProfileCode: 'R-A-S',
+      recordedProfileCodes: ['R-A-S', 'R-S-A', 'I-A-S', 'I-S-A'],
       programmeInterestAreas: ['I', 'R', 'C'],
       sharedTopAreas: [{ code: 'I', label: 'Investigative', score: 6 }, { code: 'C', label: 'Conventional', score: 7 }],
       recordedProgrammeAreas: [{ code: 'I', label: 'Investigative', score: 6 }, { code: 'R', label: 'Realistic', score: 4 }, { code: 'C', label: 'Conventional', score: 7 }],
@@ -573,6 +581,14 @@ test('completes the student assessment and opens a recommendation detail', async
   const resultSummary = page.getByRole('heading', { level: 1 }).locator('xpath=ancestor::section[1]')
   const careerPaths = page.getByRole('heading', { name: 'Recommended career paths' }).locator('xpath=ancestor::section[1]')
   await expect(resultSummary.getByText('Why it fits you')).toBeVisible()
+  const profileVariants = resultSummary.getByRole('button', { name: /View all 4 three-code results/ })
+  await expect(profileVariants).toHaveAttribute('aria-expanded', 'false')
+  await profileVariants.focus()
+  await page.keyboard.press('Enter')
+  await expect(profileVariants).toHaveAttribute('aria-expanded', 'true')
+  await expect(resultSummary.getByRole('region', { name: 'Three-code result explanations' })).toContainText('R-A-S')
+  await expect(resultSummary.getByRole('region', { name: 'Three-code result explanations' })).toContainText('I-S-A')
+  await resultSummary.getByRole('region', { name: 'Three-code result explanations' }).screenshot({ path: testInfo.outputPath('profile-variants.png') })
   await expect(careerPaths.getByText('Why it fits you')).toHaveCount(0)
   await expect(careerPaths.getByText(/do not predict employment/i)).toHaveCount(0)
   await expectNoHorizontalOverflow(page)
@@ -592,7 +608,7 @@ test('completes the student assessment and opens a recommendation detail', async
   await expect(page.getByText(/Board programme · admission review needed/)).toBeVisible()
   const investigativeExplanation = page.getByRole('button', { name: 'Explain Investigative result' })
   await expect(investigativeExplanation).toHaveAttribute('aria-expanded', 'false')
-  await expect(page.getByText('Recorded score: 6 of 7')).toBeVisible()
+  await expect(investigativeExplanation.getByText('Recorded score: 6 of 7')).toBeVisible()
   await investigativeExplanation.focus()
   await expect(investigativeExplanation).toBeFocused()
   await page.keyboard.press('Enter')

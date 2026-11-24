@@ -53,17 +53,22 @@ function AdminDateRangePicker({
     : "Pick a date range";
 
   return (
-    <Field className="min-w-0">
-      <FieldLabel htmlFor="admin-date-range">Date range</FieldLabel>
+    <Field className="min-w-0 gap-1.5">
+      <FieldLabel
+        htmlFor="admin-date-range"
+        className="font-label text-xs font-bold uppercase tracking-wider text-muted-foreground"
+      >
+        Date range
+      </FieldLabel>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
             variant="outline"
             id="admin-date-range"
-            className="h-9 min-w-64 justify-start gap-2 px-2.5 text-left font-normal"
+            className="h-9 min-w-64 justify-start gap-2 rounded-lg border-border/80 bg-background px-3 text-left font-normal shadow-2xs transition-colors hover:bg-secondary/50 focus-visible:ring-2"
           >
-            <CalendarIcon className="size-4 shrink-0" aria-hidden="true" />
-            <span className="truncate">{label}</span>
+            <CalendarIcon className="size-4 shrink-0 text-primary-ink" aria-hidden="true" />
+            <span className="truncate text-xs font-medium text-foreground">{label}</span>
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">

@@ -1,8 +1,12 @@
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { apiDataRequest } from './api-client'
+import { apiBlobRequest, apiDataRequest } from './api-client'
 
 describe('api client', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs()
+  })
+
   it('sends the shared JSON, session, and CSRF request contract', async () => {
     document.cookie = 'XSRF-TOKEN=token%20value; path=/'
     vi.mocked(fetch).mockResolvedValueOnce(Response.json({ data: { saved: true } }))
@@ -35,5 +39,35 @@ describe('api client', () => {
       status: 422,
       fieldErrors: { email: ['The email field is required.'] },
     })
+  })
+
+  it('resolves relative media paths against the configured API origin', async () => {
+    vi.stubEnv('VITE_API_ORIGIN', 'https://api.example.test/')
+    vi.resetModules()
+    const { apiUrl } = await import('./api-client')
+
+    expect(apiUrl('/api/v1/admin/profile/photo?v=2')).toBe(
+      'https://api.example.test/api/v1/admin/profile/photo?v=2',
+    )
+    expect(apiUrl('https://images.example.test/avatar.png')).toBe(
+      'https://images.example.test/avatar.png',
+    )
+  })
+
+  it('loads protected images using the authenticated request contract', async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(
+      new Response('profile', { headers: { 'Content-Type': 'image/png' } }),
+    )
+
+    const result = await apiBlobRequest('/api/v1/admin/profile/photo?v=3')
+
+    expect(result).toMatchObject({ size: 7, type: 'image/png' })
+    expect(fetch).toHaveBeenCalledWith(
+      '/api/v1/admin/profile/photo?v=3',
+      expect.objectContaining({
+        credentials: 'include',
+        headers: { Accept: 'image/*' },
+      }),
+    )
   })
 })

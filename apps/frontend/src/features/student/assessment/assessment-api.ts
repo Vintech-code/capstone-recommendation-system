@@ -17,6 +17,13 @@ interface AssessmentResultEntry {
   score: number
 }
 
+interface AssessmentProfileVariant {
+  code: string
+  compactCode: string
+  codes: Array<'R' | 'I' | 'A' | 'S' | 'E' | 'C'>
+  labels: string[]
+}
+
 interface ProposedRiasecGuidance {
   status: 'proposed'
   version: string
@@ -51,6 +58,8 @@ interface AssessmentLifecycle {
     answer_count: number
     scoring_source?: string
     result: AssessmentResultEntry[]
+    profile_variant_version?: string
+    profile_variants?: AssessmentProfileVariant[]
     guidance?: ProposedRiasecGuidance
   } | null
   entrance_examination?: {
@@ -89,6 +98,8 @@ interface ResultCardData {
   topCode: string
   formattedTopCode: string
   topDimensions: ResultDimension[]
+  profileVariantVersion?: string
+  profileVariants?: AssessmentProfileVariant[]
   dimensions: ResultDimension[]
   scoringVersion: string
   guidanceVersion: string

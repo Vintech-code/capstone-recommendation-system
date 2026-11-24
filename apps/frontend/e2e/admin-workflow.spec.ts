@@ -15,12 +15,28 @@ function json(route: Route, body: unknown, status = 200) {
 
 async function installAdminApi(page: Page, initiallyAuthenticated = false) {
   let authenticated = initiallyAuthenticated
+  let adminPhotoUrl: string | null = null
   await page.route('**/sanctum/csrf-cookie', (route) => route.fulfill({ status: 204 }))
   await page.route('**/api/v1/**', (route) => {
     const path = new URL(route.request().url()).pathname
-    if (path === '/api/v1/auth/session') return json(route, { user: authenticated ? adminUser : null })
+    if (path === '/api/v1/auth/session') return json(route, { user: authenticated ? { ...adminUser, photoUrl: adminPhotoUrl } : null })
     if (path === '/api/v1/auth/login') { authenticated = true; return json(route, { user: adminUser }) }
     if (path === '/api/v1/auth/authorize/admin') return json(route, { authorized: true, portal: 'admin' })
+    if (path === '/api/v1/admin/profile/photo' && route.request().method() === 'POST') {
+      adminPhotoUrl = '/api/v1/admin/profile/photo?v=replacement'
+      return json(route, { data: { photoUrl: adminPhotoUrl } }, 201)
+    }
+    if (path === '/api/v1/admin/profile/photo' && route.request().method() === 'GET') {
+      return route.fulfill({
+        status: 200,
+        contentType: 'image/svg+xml',
+        body: '<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160"><rect width="160" height="160" fill="#7ED321"/><circle cx="80" cy="62" r="30" fill="#34402D"/><path d="M32 150c8-38 88-38 96 0" fill="#34402D"/></svg>',
+      })
+    }
+    if (path === '/api/v1/admin/profile/photo' && route.request().method() === 'DELETE') {
+      adminPhotoUrl = null
+      return json(route, { data: { photoUrl: null } })
+    }
     if (path === '/api/v1/auth/admin-invitation/preview') return json(route, { data: { name: 'Invited Administrator', maskedEmail: 'i••••••@example.test', expiresAt: '2026-09-15T12:00:00Z' } })
     if (path === '/api/v1/auth/admin-invitation/accept') return json(route, { data: { accepted: true }, message: 'Your Administrator account is ready.' })
     if (path === '/api/v1/admin/overview') return json(route, { data: { students: 1, assessments: 1, completed: 1, inProgress: 0, needsAttention: 0, recommendations: 1, funnel: { registered: 1, entranceDeclared: 1, assessmentStarted: 1, inProgress: 0, processing: 0, resultAvailable: 1 }, operationalAttention: { processingFailures: 0 }, recentActivity: [assessment] } })
@@ -41,6 +57,31 @@ const assessment = { id: 1, reference: 'ASMT-000001', studentId: 10, studentName
 const resultCard = { id: 1, reference: 'ASMT-000001', studentName: 'Ana Santos', attemptNumber: 1, isCurrent: true, instrumentCode: 'tcc-uhcc-riasec-42-v1', status: 'result_available', resultAvailableAt: '2026-08-08T08:20:01+08:00', topCode: 'ICR', formattedTopCode: 'I-C-R', topDimensions: [{ code: 'I', label: 'Investigative', value: 7 }, { code: 'C', label: 'Conventional', value: 6 }, { code: 'R', label: 'Realistic', value: 5 }], dimensions: [{ code: 'R', label: 'Realistic', value: 5 }, { code: 'I', label: 'Investigative', value: 7 }, { code: 'A', label: 'Artistic', value: 2 }, { code: 'S', label: 'Social', value: 3 }, { code: 'E', label: 'Enterprising', value: 4 }, { code: 'C', label: 'Conventional', value: 6 }], scoringVersion: 'RIASEC-OQ42-2026-01', guidanceVersion: 'PSG-PROFILE-NAMES-2026-09-21', disclaimer: 'This result reflects self-reported vocational interests.' }
 const student = { id: 10, name: 'Ana Santos', email: 'ana@example.test', accountStatus: 'active', attemptCount: 1, latestResultAt: '2026-08-08T08:20:01+08:00', latestTopCode: 'I-C-R', declarationStatus: 'declared', selfDeclaredScore: 2.5, eligibilityGroup: 'board', currentAssessmentStatus: 'result_available', currentAssessmentReference: 'ASMT-000001', recommendationAvailable: true, savedProgrammeCount: 1, lastActivityAt: '2026-08-08T08:20:01+08:00' }
 const catalogueProgramme = { id: 'bs-information-technology', display_name: 'BS Information Technology', short_label: 'BSIT', majors: [], riasec_profile: ['I', 'R', 'C'], riasec_profile_status: 'psg_informed_analytical_classification', eligibility_group: 'non_board', description: 'Studies computing infrastructure and solutions for organisational needs.', learning_areas: ['IT infrastructure', 'Computing solutions'], learning_area_descriptions: {}, learning_area_topics: {}, career_directions: ['Web and applications developer'], career_opportunities: [], content_status: 'ched_psg_sourced', content_source: { source_name: 'CHED CMO No. 25, series of 2015', source_url: 'https://ched.gov.ph/', reference: 'Article IV, Sections 5 and 6' }, cover_image_url: null, logo_image_url: null }
+
+test('shows an uploaded Administrator photo and uses the full profile canvas', async ({ page }, testInfo) => {
+  await installAdminApi(page, true)
+  await page.goto('/admin/profile')
+
+  await expect(page.getByRole('heading', { name: 'Profile settings' })).toBeVisible()
+  await page.locator('input[type="file"]').setInputFiles({
+    name: 'profile.png',
+    mimeType: 'image/png',
+    buffer: Buffer.from('browser-test-profile'),
+  })
+
+  await expect(page.getByText('Profile photo updated successfully.')).toBeVisible()
+  const profilePhoto = page.getByRole('img', { name: 'Admin User' }).last()
+  await expect(profilePhoto).toBeVisible()
+  await expect(profilePhoto).toHaveAttribute('src', /^blob:/)
+
+  const profileCanvas = page.getByRole('heading', { name: 'Profile settings' }).locator('xpath=ancestor::div[contains(@class,"w-full")][1]')
+  const canvasBox = await profileCanvas.boundingBox()
+  const mainBox = await page.locator('main').boundingBox()
+  expect(canvasBox).not.toBeNull()
+  expect(mainBox).not.toBeNull()
+  expect(canvasBox!.width).toBeGreaterThan(mainBox!.width * 0.9)
+  await page.screenshot({ path: testInfo.outputPath('admin-profile-full-width.png'), fullPage: true })
+})
 
 test('scrolls and downloads the complete Administrator result card as an image', async ({ page }, testInfo) => {
   await installAdminApi(page, true)
@@ -274,12 +315,12 @@ test('Admin feedback page lists anonymous respondents and opens complete program
   const feedback = page.getByRole('region', { name: 'Feedback respondents' })
   await expect(feedback).toBeVisible()
   await expect(feedback.getByRole('table')).toBeVisible()
-  await expect(feedback.getByText('Anonymous respondent #1')).toBeVisible()
+  await expect(feedback.getByText('Student Applicant')).toBeVisible()
   await expect(feedback.getByText(/not Student numbers or account identifiers/)).toBeVisible()
 
   await feedback.getByRole('button', { name: 'View feedback' }).click()
   const details = page.getByRole('dialog')
-  await expect(details.getByRole('heading', { name: 'Anonymous respondent #1' })).toBeVisible()
+  await expect(details.getByRole('heading', { name: 'Student Applicant #1' })).toBeVisible()
   await expect(details.getByText('BS Information Technology')).toBeVisible()
   await expect(details.getByText('Bachelor of Library and Information Science')).toBeVisible()
   await expect(details.getByText('BS Business Administration - Financial Management')).toBeVisible()

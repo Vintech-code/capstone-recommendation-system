@@ -4,11 +4,14 @@ namespace App\Services\Student;
 
 use App\Models\AssessmentSession;
 use App\Models\User;
+use App\Services\Assessment\RiasecProfileVariantGenerator;
 use App\Services\Assessment\RiasecQuestionnaire;
 use Carbon\CarbonImmutable;
 
 final class StudentProfilePresenter
 {
+    public function __construct(private readonly RiasecProfileVariantGenerator $profileVariantGenerator) {}
+
     /** @return array<string, mixed> */
     public function present(User $student): array
     {
@@ -89,24 +92,30 @@ final class StudentProfilePresenter
             $dimension['isTied'] = ($rankCounts[$dimension['rank']] ?? 0) > 1;
         }
         unset($dimension);
-        $leading = array_values(array_filter(
-            $leading,
-            static fn (array $dimension): bool => $dimension['rank'] <= 3,
-        ));
+        $profileVariants = $this->profileVariantGenerator->generate($leading);
+        $leading = $profileVariants['leadingDimensions'];
+        $firstVariant = $profileVariants['variants'][0] ?? ['code' => '', 'codes' => []];
+        $byCode = collect($dimensions)->keyBy('code');
+        $orderedFirstVariant = array_map(
+            static fn (string $code): array => $byCode->get($code),
+            $firstVariant['codes'],
+        );
 
         return [
             'sessionReference' => 'ASMT-'.str_pad((string) $assessment->getKey(), 6, '0', STR_PAD_LEFT),
             'availableAt' => $assessment->result_available_at?->toAtomString(),
-            'primary' => isset($leading[0]) ? ['code' => $leading[0]['code'], 'label' => $leading[0]['label']] : null,
-            'secondary' => isset($leading[1]) ? ['code' => $leading[1]['code'], 'label' => $leading[1]['label']] : null,
-            'tertiary' => isset($leading[2]) ? ['code' => $leading[2]['code'], 'label' => $leading[2]['label']] : null,
+            'primary' => isset($orderedFirstVariant[0]) ? ['code' => $orderedFirstVariant[0]['code'], 'label' => $orderedFirstVariant[0]['label']] : null,
+            'secondary' => isset($orderedFirstVariant[1]) ? ['code' => $orderedFirstVariant[1]['code'], 'label' => $orderedFirstVariant[1]['label']] : null,
+            'tertiary' => isset($orderedFirstVariant[2]) ? ['code' => $orderedFirstVariant[2]['code'], 'label' => $orderedFirstVariant[2]['label']] : null,
             'leadingAreas' => array_map(static fn (array $dimension): array => [
                 'code' => $dimension['code'],
                 'label' => $dimension['label'],
                 'rank' => $dimension['rank'],
                 'isTied' => $dimension['isTied'],
             ], $leading),
-            'code' => implode('-', array_column($leading, 'code')),
+            'code' => $firstVariant['code'],
+            'profileVariantVersion' => $profileVariants['version'],
+            'profileVariants' => $profileVariants['variants'],
             'dimensions' => array_map(static fn (array $dimension): array => [
                 'code' => $dimension['code'], 'label' => $dimension['label'], 'value' => $dimension['value'],
             ], $dimensions),

@@ -146,6 +146,53 @@ describe("Student recommendation results", () => {
     ).toBeVisible();
   });
 
+  it("shows every three-code result generated from tied primary scores", async () => {
+    const user = userEvent.setup();
+    render(
+      <StudentRecommendationResultsPage
+        onBack={vi.fn()}
+        initialAssessment={testAssessmentLifecycle}
+        initialSnapshot={{
+          ...testRecommendationSnapshot,
+          profile: {
+            ...testRecommendationSnapshot.profile!,
+            topCode: "R-A-S",
+            topLabels: ["Realistic", "Artistic", "Social"],
+            profileVariantVersion:
+              "PROPOSED-RIASEC-PROFILE-VARIANTS-2026-11-24",
+            profileVariants: [
+              { code: "R-A-S", compactCode: "RAS", codes: ["R", "A", "S"], labels: ["Realistic", "Artistic", "Social"] },
+              { code: "R-S-A", compactCode: "RSA", codes: ["R", "S", "A"], labels: ["Realistic", "Social", "Artistic"] },
+              { code: "I-A-S", compactCode: "IAS", codes: ["I", "A", "S"], labels: ["Investigative", "Artistic", "Social"] },
+              { code: "I-S-A", compactCode: "ISA", codes: ["I", "S", "A"], labels: ["Investigative", "Social", "Artistic"] },
+            ],
+          },
+        }}
+      />,
+    );
+
+    expect(
+      screen.getByRole("heading", {
+        level: 1,
+        name: "Multiple three-code interest profiles",
+      }),
+    ).toBeVisible();
+    expect(screen.getByText("4 generated three-code results")).toBeVisible();
+    expect(screen.getByText(/Built from 4 generated/)).toBeVisible();
+
+    await user.click(
+      screen.getByRole("button", { name: /View all 4 three-code results/i }),
+    );
+
+    expect(screen.getByText("R-A-S")).toBeVisible();
+    expect(screen.getByText("R-S-A")).toBeVisible();
+    expect(screen.getByText("I-A-S")).toBeVisible();
+    expect(screen.getByText("I-S-A")).toBeVisible();
+    expect(
+      screen.getByRole("region", { name: "Three-code result explanations" }),
+    ).toBeVisible();
+  });
+
   it("lets the Student rate and comment on an individual programme recommendation", async () => {
     const user = userEvent.setup();
     const fetchMock = vi.mocked(fetch);
@@ -327,12 +374,15 @@ describe("Student recommendation results", () => {
     );
 
     expect(document.querySelector('[data-rank-highlight="1"]')).toHaveClass(
+      "w-[88%]",
       "lg:w-[68%]",
     );
     expect(document.querySelector('[data-rank-highlight="2"]')).toHaveClass(
+      "w-[72%]",
       "lg:w-[58%]",
     );
     expect(document.querySelector('[data-rank-highlight="3"]')).toHaveClass(
+      "w-[58%]",
       "lg:w-[48%]",
     );
     expect(
@@ -774,6 +824,69 @@ describe("Student recommendation results", () => {
       }),
     );
     expect(onOpenAssessment).toHaveBeenCalledOnce();
+  });
+
+  it("shows student result codes in Why this fits you instead of course codes when they differ", async () => {
+    const user = userEvent.setup();
+    const courseWithDifferentCodes = {
+      ...testRecommendationSnapshot.courses[0],
+      name: "Hospitality Management",
+      interestAreas: ["E", "S", "C"],
+      explanation: {
+        ...testRecommendationSnapshot.courses[0].explanation!,
+        recordedProfileCode: "E-R-S",
+        recordedProgrammeAreas: [
+          { code: "E", label: "Enterprising", score: 6 },
+          { code: "S", label: "Social", score: 5 },
+          { code: "C", label: "Conventional", score: 4 },
+        ],
+      },
+    };
+
+    render(
+      <StudentRecommendationResultsPage
+        onBack={vi.fn()}
+        initialSnapshot={{
+          ...testRecommendationSnapshot,
+          profile: {
+            ...testRecommendationSnapshot.profile!,
+            topCode: "E-R-S",
+            topLabels: ["Enterprising", "Realistic", "Social"],
+            dimensions: [
+              { code: "E", label: "Enterprising", value: 6, minimum: 0, maximum: 7 },
+              { code: "R", label: "Realistic", value: 5, minimum: 0, maximum: 7 },
+              { code: "S", label: "Social", value: 5, minimum: 0, maximum: 7 },
+              { code: "C", label: "Conventional", value: 4, minimum: 0, maximum: 7 },
+              { code: "I", label: "Investigative", value: 4, minimum: 0, maximum: 7 },
+              { code: "A", label: "Artistic", value: 3, minimum: 0, maximum: 7 },
+            ],
+          },
+          courses: [courseWithDifferentCodes],
+        }}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: "View programme" }));
+
+    expect(
+      screen.getByRole("button", { name: "Explain Enterprising result" }),
+    ).toBeVisible();
+    expect(
+      screen.getByRole("button", { name: "Explain Realistic result" }),
+    ).toBeVisible();
+    expect(
+      screen.getByRole("button", { name: "Explain Social result" }),
+    ).toBeVisible();
+    expect(
+      screen.queryByRole("button", { name: "Explain Conventional result" }),
+    ).not.toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole("button", { name: "Explain Realistic result" }),
+    );
+    expect(
+      screen.getByText(/Realistic is one of your leading assessment results/),
+    ).toBeVisible();
   });
 
   it("has no automatically detectable accessibility violations", async () => {

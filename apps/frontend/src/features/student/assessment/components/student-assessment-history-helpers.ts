@@ -27,8 +27,11 @@ export function toResultCardData(
   const rankCounts = new Map<number, number>();
   ranked.forEach((dimension) => rankCounts.set(dimension.rank, (rankCounts.get(dimension.rank) ?? 0) + 1));
   const rankedWithTies = ranked.map((dimension) => ({ ...dimension, isTied: (rankCounts.get(dimension.rank) ?? 0) > 1 }));
-  const topDimensions = rankedWithTies.filter((dimension) => dimension.rank <= 3);
-  const topCodes = topDimensions.map((dimension) => dimension.code);
+  const profileVariantCodes = new Set(result.profileVariants?.flatMap((variant) => variant.codes) ?? []);
+  const topDimensions = profileVariantCodes.size > 0
+    ? rankedWithTies.filter((dimension) => profileVariantCodes.has(dimension.code))
+    : rankedWithTies.filter((dimension) => dimension.rank <= 3);
+  const topCodes = result.topCode.split("-");
 
   return {
     id: attempt.id,
@@ -44,6 +47,8 @@ export function toResultCardData(
     topCode: topCodes.join(""),
     formattedTopCode: topCodes.join("-"),
     topDimensions,
+    profileVariantVersion: result.profileVariantVersion,
+    profileVariants: result.profileVariants,
     dimensions: dimensions.map((dimension) => rankedWithTies.find((rankedDimension) => rankedDimension.code === dimension.code) ?? dimension),
     scoringVersion:
       attempt.result?.scoring_source ??

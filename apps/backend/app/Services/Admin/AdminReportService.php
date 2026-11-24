@@ -51,16 +51,38 @@ final class AdminReportService
         $savedProgrammeQuery = StudentSavedProgramme::query();
         $period($savedProgrammeQuery, 'created_at');
 
-        $completionMonths = (clone $completionEventQuery)
+        $completionSessionsByMonth = (clone $completionEventQuery)
             ->get(['user_id', 'result_available_at'])
-            ->groupBy(static fn (AssessmentSession $session): string => $session->result_available_at->format('Y-m'))
-            ->sortKeys()
-            ->map(static fn ($sessions, string $month): array => [
+            ->groupBy(static fn (AssessmentSession $session): string => $session->result_available_at->format('Y-m'));
+
+        $startedSessionsByMonth = (clone $assessmentActivityQuery)
+            ->get(['user_id', 'started_at'])
+            ->groupBy(static fn (AssessmentSession $session): string => $session->started_at->format('Y-m'));
+
+        $savedByMonth = (clone $savedProgrammeQuery)
+            ->get(['user_id', 'created_at'])
+            ->groupBy(static fn (StudentSavedProgramme $save): string => $save->created_at->format('Y-m'));
+
+        $allMonths = $completionSessionsByMonth->keys()
+            ->merge($startedSessionsByMonth->keys())
+            ->merge($savedByMonth->keys())
+            ->unique()
+            ->sort()
+            ->values();
+
+        $completionMonths = $allMonths->map(static function (string $month) use ($completionSessionsByMonth, $startedSessionsByMonth, $savedByMonth): array {
+            $completedCount = isset($completionSessionsByMonth[$month]) ? $completionSessionsByMonth[$month]->pluck('user_id')->unique()->count() : 0;
+            $startedCount = isset($startedSessionsByMonth[$month]) ? $startedSessionsByMonth[$month]->pluck('user_id')->unique()->count() : 0;
+            $savedCount = isset($savedByMonth[$month]) ? $savedByMonth[$month]->count() : 0;
+
+            return [
                 'month' => $month,
-                'count' => $sessions->pluck('user_id')->unique()->count(),
-            ])
-            ->values()
-            ->all();
+                'count' => $completedCount,
+                'completed' => $completedCount,
+                'started' => $startedCount,
+                'saved' => $savedCount,
+            ];
+        })->all();
 
         return [
             'generatedAt' => now()->toAtomString(),

@@ -20,6 +20,8 @@ The 2026-11-03 forward migration removes the legacy `shs_school_name`, `shs_stra
 
 The 2026-11-16 forward migration replaces the optional encrypted LRN and lookup hash with an encrypted eight-digit `id_number` and uniqueness hash. Existing LRN values are not reinterpreted as ID numbers. The same migration removes the active `strengths`, `growth_areas`, and `learning_preferences` columns; assessment and recommendation history remain unchanged.
 
+The 2026-11-24 three-code tie-variant rule requires no schema or data migration. APIs derive the versioned variant list from each immutable assessment's stored six-score result. Existing assessment and recommendation records are not rewritten.
+
 The later 2026-11-16 user-name migration adds `first_name` and `last_name` and deterministically backfills legacy display names by keeping the first whitespace-delimited part as the first name and the remainder as the last name. New Student registrations and Google-created users write both fields. The legacy `name` column remains a compatibility mirror for existing query/sort contracts, while application display access is constructed from the split fields.
 
 ## Integrity rules

@@ -22,7 +22,7 @@ class ResultCardPresenterTest extends TestCase
         $this->assertSame([1, 1, 3, 4], array_column($ranked, 'rank'));
         $this->assertSame([true, true, false, false], array_column($ranked, 'isTied'));
         $this->assertSame(
-            ['code' => 'RIA', 'formatted' => 'R-I-A'],
+            ['code' => 'RAS', 'formatted' => 'R-A-S'],
             $presenter->topCode($ranked),
         );
     }

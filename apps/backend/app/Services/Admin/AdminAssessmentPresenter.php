@@ -12,6 +12,7 @@ final class AdminAssessmentPresenter
     {
         $declaration = $session->entranceExaminationResult;
         $recommendation = $session->recommendationRun;
+        $resultCard = $this->resultCard($session);
 
         return [
             'id' => $session->getKey(),
@@ -27,6 +28,8 @@ final class AdminAssessmentPresenter
             'answerCount' => count($session->answers ?? []),
             'questionCount' => (int) ($session->result_payload['answer_count'] ?? count($session->answers ?? [])),
             'topCode' => $this->topCode($session),
+            'profileVariantVersion' => $resultCard['profileVariantVersion'],
+            'profileVariants' => $resultCard['profileVariants'],
             'startedAt' => $session->started_at?->toAtomString(),
             'savedAt' => $session->saved_at?->toAtomString(),
             'submittedAt' => $session->submitted_at?->toAtomString(),

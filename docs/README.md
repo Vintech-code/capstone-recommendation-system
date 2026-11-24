@@ -57,6 +57,9 @@ This is the index for the surviving TCC course-recommendation documentation. The
 - [Student recommendation feedback](note/2026-11-23-student-recommendation-feedback.md) records the private per-programme 1â€“5-star rating and optional comment workflow, its immutable-snapshot boundary, and validation evidence.
 - [Administrator recommendation-feedback page](note/2026-11-23-admin-recommendation-feedback-aggregates.md) records the owner-approved dedicated Feedback destination, first-response visibility rule, latest-response aggregation, identity-free Admin comment review, and validation evidence.
 - [Entrance-group guidance on ranked programmes](note/2026-11-24-entrance-group-ranking-guidance.md) records the owner-approved visible warning for ranked programmes outside the Student's declared entrance group without filtering or changing the RIASEC ranking.
+- [Three-code RIASEC tie variants](note/2026-11-24-three-code-riasec-tie-variants.md) records the owner-confirmed expansion of tied results into named three-code variants without changing stored scores or programme matching.
+- [Mobile recommendation-card composition](note/2026-11-25-mobile-recommendation-card-composition.md) records the partial pastel ranked-card treatment, centered mobile result summary, and reorganized feedback controls.
+- [Administrator profile photo and full-width layout](note/2026-11-25-admin-profile-photo-and-layout.md) records immediate uploaded-photo synchronization, avatar retry behavior, and removal of the redundant Profile Settings width cap.
 - [Clone and local setup guide](note/2026-10-28-clone-and-local-setup-guide.md) records the current clone-to-running PowerShell onboarding guide and its verification boundaries.
 - `cmo/` contains locally reviewed CHED programme-standard evidence.
 - `pdf/` contains the capstone paper and historical roadmap sources.

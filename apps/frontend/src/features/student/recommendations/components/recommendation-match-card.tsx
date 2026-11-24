@@ -7,9 +7,9 @@ import type { StudentRecommendedCourse } from "@/features/student/recommendation
 import { cn } from "@/lib/utils";
 
 const rankedHighlightStyles = [
-  { color: "bg-info/28", width: "lg:w-[68%]" },
-  { color: "bg-primary/28", width: "lg:w-[58%]" },
-  { color: "bg-warning/38", width: "lg:w-[48%]" },
+  { color: "bg-info/28", width: "w-[88%] sm:w-[76%] lg:w-[68%]" },
+  { color: "bg-primary/28", width: "w-[72%] sm:w-[65%] lg:w-[58%]" },
+  { color: "bg-warning/38", width: "w-[58%] sm:w-[54%] lg:w-[48%]" },
 ] as const;
 
 interface RecommendationMatchCardProps {
@@ -39,25 +39,21 @@ function RecommendationMatchCard({
         "group relative overflow-hidden rounded-3xl border border-border bg-card shadow-sm transition-shadow",
       )}
     >
-      {highlightStyle ? (
-        <span
-          data-rank-highlight={position}
-          aria-hidden="true"
-          className={cn(
-            "absolute inset-y-0 left-0 hidden rounded-r-[6rem] lg:block",
-            highlightStyle.color,
-            highlightStyle.width,
-          )}
-        />
-      ) : null}
-
       <div className="relative grid lg:grid-cols-[minmax(0,1fr)_17rem]">
         <div
-          className={cn(
-            "relative px-5 py-4 sm:px-7 sm:py-5 lg:bg-transparent lg:pr-20",
-            highlightStyle?.color,
-          )}
+          className="relative overflow-hidden px-5 py-4 sm:px-7 sm:py-5 lg:pr-20"
         >
+          {highlightStyle ? (
+            <span
+              data-rank-highlight={position}
+              aria-hidden="true"
+              className={cn(
+                "absolute inset-y-0 left-0 rounded-r-[6rem]",
+                highlightStyle.color,
+                highlightStyle.width,
+              )}
+            />
+          ) : null}
           <div className="relative z-10">
             <div className="flex flex-wrap items-center gap-2">
               <span className="font-label text-xs font-bold uppercase tracking-[0.12em] text-foreground">
@@ -92,8 +88,8 @@ function RecommendationMatchCard({
           </div>
         </div>
 
-        <div className="relative z-10 flex min-w-0 flex-col justify-between gap-3 border-t border-border bg-card px-5 py-4 sm:px-7 sm:py-5 lg:border-l lg:border-t-0">
-          <div>
+        <div className="relative z-10 flex min-w-0 flex-col justify-between gap-3 border-t border-border bg-card px-5 py-4 text-center sm:px-7 sm:py-5 lg:border-l lg:border-t-0 lg:text-left">
+          <div className="w-full">
             <p className="font-label text-sm font-bold text-primary-ink">
               {matchLabel}
             </p>

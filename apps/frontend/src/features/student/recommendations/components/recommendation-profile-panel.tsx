@@ -46,6 +46,8 @@ function RecommendationProfilePanel({
     );
   }
 
+  const profileVariantCount = result.profileVariants?.length ?? 0;
+
   return (
     <aside
       style={{ alignSelf: "start" }}
@@ -122,9 +124,19 @@ function RecommendationProfilePanel({
           Recorded pattern
         </p>
         <p className="mt-2 text-sm font-medium leading-6 text-foreground sm:text-base sm:leading-7">
-          <strong>{result.topCode}</strong> represents the three categories stored
-          as your leading areas. Programme matching compares the recorded RIASEC
-          scores with each programme's configured profile.
+          {profileVariantCount > 1 ? (
+            <>
+              Your tied scores support <strong>{profileVariantCount}</strong>{" "}
+              three-code results. Programme matching still compares all six
+              recorded scores with each programme&apos;s configured profile.
+            </>
+          ) : (
+            <>
+              <strong>{result.topCode}</strong> represents the three categories
+              stored as your leading areas. Programme matching compares the
+              recorded RIASEC scores with each programme&apos;s configured profile.
+            </>
+          )}
         </p>
       </div>
     </aside>

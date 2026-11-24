@@ -1,4 +1,5 @@
 import type { CareerOpportunity, ProgrammeContentSource, ProgrammeMediaPosition } from '@/features/student/programmes/programme-types'
+import type { RiasecProfileVariant } from '@/features/student/assessment/assessment-types'
 
 type StudentRecommendationEligibility = 'Eligible' | 'Needs review' | 'Provisional'
 
@@ -56,9 +57,11 @@ interface StudentRecommendationFeedback {
 interface StudentRecommendationExplanation {
   assessmentReference: string | null
   recordedProfileCode: string
+  recordedProfileCodes?: string[]
   programmeInterestAreas: string[]
   sharedTopAreas: StudentRecommendationEvidenceArea[]
   recordedProgrammeAreas: StudentRecommendationEvidenceArea[]
+  recordedResultAreas?: StudentRecommendationEvidenceArea[]
   learningAreas: string[]
 }
 
@@ -73,6 +76,13 @@ interface StudentRecommendationProfile {
   availableAt: string
   topCode: string
   topLabels: string[]
+  profileVariantVersion?: string
+  profileVariants?: RiasecProfileVariant[]
+  leadingAreas?: Array<{
+    code: 'R' | 'I' | 'A' | 'S' | 'E' | 'C'
+    label: string
+    value: number
+  }>
   dimensions: Array<{
     code: 'R' | 'I' | 'A' | 'S' | 'E' | 'C'
     label: string

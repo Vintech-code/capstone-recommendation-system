@@ -12,10 +12,12 @@ final class ResultCardPresenter
         $session->loadMissing(['user:id,name,email', 'entranceExaminationResult']);
 
         $dimensions = $this->rankDimensions($this->dimensions($session));
+        $profileVariants = $this->profileVariants($session);
         $topCodeInfo = $this->topCode($dimensions);
-        $topDimensions = array_values(array_filter(
-            $this->sortDimensions($dimensions),
-            static fn (array $dimension): bool => ($dimension['rank'] ?? 99) <= 3,
+        $dimensionsByCode = collect($dimensions)->keyBy('code');
+        $topDimensions = array_values(array_map(
+            static fn (array $dimension): array => $dimensionsByCode->get($dimension['code'], $dimension),
+            $profileVariants['leadingDimensions'],
         ));
 
         $scoringVersion = $session->result_payload['instrument']['content_version']
@@ -40,6 +42,8 @@ final class ResultCardPresenter
             'topCode' => $topCodeInfo['code'],
             'formattedTopCode' => $topCodeInfo['formatted'],
             'topDimensions' => $topDimensions,
+            'profileVariantVersion' => $profileVariants['version'],
+            'profileVariants' => $profileVariants['variants'],
             'dimensions' => $dimensions,
             'scoringVersion' => $scoringVersion,
             'guidanceVersion' => $guidanceVersion,
@@ -169,16 +173,18 @@ final class ResultCardPresenter
             return ['code' => '', 'formatted' => ''];
         }
 
-        $ranked = isset($dimensions[0]['rank']) ? $dimensions : $this->rankDimensions($dimensions);
-        $top = array_values(array_filter(
-            $this->sortDimensions($ranked),
-            static fn (array $dimension): bool => ($dimension['rank'] ?? 99) <= 3,
-        ));
-        $codes = array_column($top, 'code');
+        $result = (new RiasecProfileVariantGenerator)->generate($dimensions);
+        $first = $result['variants'][0] ?? null;
 
         return [
-            'code' => implode('', $codes),
-            'formatted' => implode('-', $codes),
+            'code' => $first['compactCode'] ?? '',
+            'formatted' => $first['code'] ?? '',
         ];
+    }
+
+    /** @return array{version: string, leadingDimensions: array<int, array<string, mixed>>, variants: array<int, array<string, mixed>>} */
+    public function profileVariants(AssessmentSession $session): array
+    {
+        return (new RiasecProfileVariantGenerator)->generate($this->dimensions($session));
     }
 }

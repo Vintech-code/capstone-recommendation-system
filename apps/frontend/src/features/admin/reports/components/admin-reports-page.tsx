@@ -1,12 +1,10 @@
 import {
   Activity,
   Bookmark,
-  CalendarDays,
   CheckCircle2,
   Compass,
   Layers,
   Printer,
-  TrendingUp,
   Users,
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
@@ -59,13 +57,6 @@ export function AdminReportsPage() {
     ? Math.round((data.programmeSaves / data.recommendationRuns) * 100)
     : 0;
 
-  const dateScope =
-    data.from || data.to
-      ? `${data.from ? formatDate(data.from) : "First record"} – ${
-          data.to ? formatDate(data.to) : "Latest record"
-        }`
-      : "All recorded dates";
-
   const lifecycleStages = [
     {
       label: "Started",
@@ -102,14 +93,8 @@ export function AdminReportsPage() {
       className="mx-auto w-full min-w-0 max-w-[1500px] space-y-6 pb-10"
       data-report-print
     >
-      {/* 1. Header & Controls */}
-      <div>
-        <AdminPageHeader title="System reports" />
-        <div className="mt-0.5 flex items-center gap-2 text-xs font-semibold text-muted-foreground">
-          <CalendarDays className="size-3.5 text-primary-ink" />
-          <span>{dateScope}</span>
-        </div>
-      </div>
+      {/* 1. Header */}
+      <AdminPageHeader title="System reports" />
 
       {/* Date Filters Ribbon */}
       <ReportFilterBar
@@ -138,62 +123,48 @@ export function AdminReportsPage() {
         <div className="flex flex-col gap-6 lg:col-span-7 xl:col-span-8">
           {/* 4 KPI Cards (2x2 grid) */}
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-            {/* Card 1: Top Left - Solid Vibrant Featured Card in System Primary Green */}
-            <div className="relative overflow-hidden rounded-xl bg-primary p-6 text-primary-foreground shadow-md shadow-primary/20 transition-all hover:shadow-lg">
-              <div className="flex items-center justify-between">
-                <div className="flex size-12 items-center justify-center rounded-xl bg-primary-foreground/15 backdrop-blur-md">
-                  <Users className="size-6 text-primary-foreground" />
-                </div>
-                <span className="flex items-center gap-1 rounded-full bg-primary-foreground/15 px-3 py-1 text-xs font-extrabold text-primary-foreground backdrop-blur-md">
-                  <TrendingUp className="size-3" />
-                  +2.08%
-                </span>
-              </div>
-
-              <div className="mt-6">
-                <span className="block text-xs font-bold uppercase tracking-wider text-primary-foreground/80">
-                  Total Students
-                </span>
-                <strong className="mt-1 block font-display text-4xl font-black tracking-tight text-primary-foreground">
-                  {data.studentCount.toLocaleString()}
-                </strong>
-                <p className="mt-1 text-xs font-medium text-primary-foreground/75">
-                  Registered accounts vs previous period
-                </p>
-              </div>
-            </div>
-
-            {/* Card 2: Top Right - White Card with System Green accent */}
+            {/* Card 1: Total Students */}
             <KpiMetricCard
-              icon={<CheckCircle2 className="size-6 text-primary-ink" />}
+              icon={<Users className="size-5 text-primary-ink" />}
               iconBg="bg-primary/10"
-              badge="+12.4%"
-              badgeColor="bg-primary/15 text-primary-ink"
+              badge="Applicant pool"
+              badgeColor="bg-primary/10 text-primary-ink"
+              label="Total Students"
+              value={data.studentCount.toLocaleString()}
+              detail="Active registered student accounts"
+            />
+
+            {/* Card 2: Completed Assessments */}
+            <KpiMetricCard
+              icon={<CheckCircle2 className="size-5 text-primary-ink" />}
+              iconBg="bg-primary/10"
+              badge={`${completionRate}% rate`}
+              badgeColor="bg-primary/10 text-primary-ink"
               label="Completed Assessments"
               value={data.completedAssessments.toLocaleString()}
-              detail={`${completionRate}% completion rate`}
+              detail="Finalized RIASEC assessment sessions"
             />
 
-            {/* Card 3: Bottom Left - White Card with System Warning/Sun accent */}
+            {/* Card 3: Students with Matches */}
             <KpiMetricCard
-              icon={<Compass className="size-6 text-warning-ink" />}
+              icon={<Compass className="size-5 text-warning-ink" />}
               iconBg="bg-warning/15"
-              badge="+8.6%"
+              badge="Results ready"
               badgeColor="bg-warning/15 text-warning-ink"
-              label="Recommendation Runs"
+              label="Students with Matches"
               value={data.recommendationRuns.toLocaleString()}
-              detail="Generated match recommendations"
+              detail="Generated course recommendation sets"
             />
 
-            {/* Card 4: Bottom Right - White Card with System Info/Mauve accent */}
+            {/* Card 4: Saved Programmes */}
             <KpiMetricCard
-              icon={<Bookmark className="size-6 text-info-ink" />}
+              icon={<Bookmark className="size-5 text-info-ink" />}
               iconBg="bg-info/15"
-              badge="+12.1%"
+              badge="Shortlisted"
               badgeColor="bg-info/15 text-info-ink"
-              label="Programme Saves"
+              label="Saved Programmes"
               value={data.programmeSaves.toLocaleString()}
-              detail="Recorded student bookmark saves"
+              detail="Course bookmarks saved by students"
             />
           </div>
 
@@ -253,30 +224,31 @@ function KpiMetricCard({
   detail: string;
 }) {
   return (
-    <div className="rounded-xl border border-border/80 bg-card p-6 shadow-xs transition-all hover:shadow-sm">
-      <div className="flex items-center justify-between">
+    <div className="flex flex-col justify-between rounded-xl border border-border/80 bg-card p-5 sm:p-6 shadow-2xs transition-all duration-200 hover:border-border hover:shadow-xs">
+      <div className="flex items-center justify-between gap-3">
+        <span className="font-label text-xs font-bold uppercase tracking-wider text-muted-foreground">
+          {label}
+        </span>
         <div
-          className={`flex size-12 items-center justify-center rounded-xl ${iconBg}`}
+          className={`flex size-10 items-center justify-center rounded-xl transition-transform duration-200 ${iconBg}`}
         >
           {icon}
         </div>
+      </div>
+
+      <div className="mt-3">
+        <strong className="block font-display text-3xl font-black tracking-tight text-foreground sm:text-4xl">
+          {value}
+        </strong>
+      </div>
+
+      <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-border/50 pt-3 text-xs text-muted-foreground">
         <span
-          className={`flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-extrabold ${badgeColor}`}
+          className={`inline-flex items-center rounded-md px-2 py-0.5 font-label text-[11px] font-bold ${badgeColor}`}
         >
           {badge}
         </span>
-      </div>
-
-      <div className="mt-6">
-        <span className="block text-xs font-bold uppercase tracking-wider text-muted-foreground">
-          {label}
-        </span>
-        <strong className="mt-1 block font-display text-3xl font-black tracking-tight text-foreground sm:text-4xl">
-          {value}
-        </strong>
-        <p className="mt-1 text-xs font-medium text-muted-foreground">
-          {detail}
-        </p>
+        <span className="font-medium text-muted-foreground">{detail}</span>
       </div>
     </div>
   );
@@ -300,9 +272,9 @@ function ReportFilterBar({
   onClear: () => void;
 }) {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border/80 bg-card p-3.5 shadow-2xs">
+    <div className="flex flex-wrap items-end justify-between gap-3 rounded-xl border border-border/70 bg-card/60 p-3.5 shadow-2xs">
       <form
-        className="flex flex-wrap items-center gap-3"
+        className="flex flex-wrap items-end gap-2.5"
         onSubmit={(event) => {
           event.preventDefault();
           if (!invalid) onApply();
@@ -321,23 +293,23 @@ function ReportFilterBar({
           type="submit"
           size="sm"
           disabled={invalid}
-          className="h-8 rounded-lg px-4 text-xs font-bold"
+          className="h-9 rounded-lg px-4 text-xs font-bold"
         >
           Apply dates
         </Button>
 
         <Button
           type="button"
-          variant="ghost"
+          variant="outline"
           size="sm"
-          className="h-8 rounded-lg text-xs"
+          className="h-9 rounded-lg px-3 text-xs font-medium text-muted-foreground hover:text-foreground"
           onClick={onClear}
         >
           Clear
         </Button>
 
         {invalid ? (
-          <span role="alert" className="text-xs font-bold text-destructive-ink">
+          <span role="alert" className="pb-2 text-xs font-bold text-destructive-ink">
             The end date must be on or after the start date.
           </span>
         ) : null}
@@ -348,7 +320,7 @@ function ReportFilterBar({
         variant="outline"
         size="sm"
         onClick={() => window.print()}
-        className="h-8 rounded-lg gap-2 px-3.5 text-xs font-bold shadow-2xs hover:bg-secondary"
+        className="h-9 rounded-lg gap-2 px-3.5 text-xs font-bold shadow-2xs hover:bg-secondary"
       >
         <Printer className="size-3.5 text-primary-ink" /> Print report
       </Button>

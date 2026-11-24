@@ -17,7 +17,10 @@ use Throwable;
 
 class AssessmentSessionController extends Controller
 {
-    public function __construct(private ProposedGuidanceContentRepository $guidance) {}
+    public function __construct(
+        private ProposedGuidanceContentRepository $guidance,
+        private ResultCardPresenter $resultPresenter,
+    ) {}
 
     public function current(Request $request, RiasecQuestionnaire $questionnaire): JsonResponse
     {
@@ -309,6 +312,9 @@ class AssessmentSessionController extends Controller
                     'explanations' => $content['riasec_explanations'],
                 ];
             }
+            $profileVariants = $this->resultPresenter->profileVariants($session);
+            $resultPayload['profile_variant_version'] = $profileVariants['version'];
+            $resultPayload['profile_variants'] = $profileVariants['variants'];
         }
 
         return [

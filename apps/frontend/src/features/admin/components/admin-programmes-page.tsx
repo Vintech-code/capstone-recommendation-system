@@ -177,41 +177,41 @@ function AdminProgrammesPage({
     <div className="space-y-4">
       <AdminPageHeader title="Programme monitoring" />
 
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:gap-4">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+      <div className="flex flex-col gap-3 rounded-xl border border-border/70 bg-card/60 p-3.5 shadow-2xs lg:flex-row lg:items-center lg:gap-4">
+        <div className="shrink-0 pr-1">
+          <p className="font-label text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
             Active catalogue
           </p>
-          <p className="mt-1 font-display text-lg font-bold">
+          <p className="font-display text-base font-bold text-foreground">
             {catalogue.programmes.length} programmes
           </p>
-          <p className="mt-0.5 text-xs text-muted-foreground">
+          <p className="text-[11px] text-muted-foreground">
             For Explore and My Matches
           </p>
         </div>
-        <div className="h-px bg-border lg:h-10 lg:w-px" />
+        <div className="hidden h-10 w-px bg-border/80 lg:block" />
         <label className="flex-1 min-w-0">
           <span className="sr-only">Search programme catalogue</span>
           <div className="relative">
             <Search
               aria-hidden="true"
-              className="absolute left-3 top-1/2 size-5 -translate-y-1/2 text-muted-foreground"
+              className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
             />
             <Input
               type="search"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Search by name, code, areas, or careers"
-              className="min-h-11 rounded-xs pl-10 text-xs"
+              className="h-10 rounded-lg border-border/80 bg-background pl-9 pr-3 text-xs shadow-2xs focus-visible:ring-2"
             />
           </div>
         </label>
-        <label className="min-w-48">
+        <label className="min-w-48 shrink-0">
           <span className="sr-only">Filter by source status</span>
           <select
             value={filter}
             onChange={(event) => setFilter(event.target.value as typeof filter)}
-            className="min-h-11 w-full rounded-xs border border-input bg-background px-3 text-xs font-semibold text-foreground"
+            className="h-10 w-full rounded-lg border border-border/80 bg-background px-3 text-xs font-semibold text-foreground shadow-2xs transition-colors hover:bg-secondary/40 focus:outline-none focus:ring-2 focus:ring-ring"
           >
             <option value="all">All programmes</option>
             <option value="confirmed">CHED confirmed</option>

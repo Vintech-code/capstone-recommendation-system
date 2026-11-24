@@ -13,6 +13,7 @@ interface RecommendationFitExplanationsProps {
   courseName: string;
   areas: StudentRecommendationEvidenceArea[];
   profile: ResultProfile | null;
+  courseInterestAreas?: string[];
 }
 
 const dimensionColors: Record<string, string> = {
@@ -44,6 +45,7 @@ function RecommendationFitExplanations({
   courseName,
   areas,
   profile,
+  courseInterestAreas,
 }: RecommendationFitExplanationsProps) {
   const [expandedCodes, setExpandedCodes] = useState<Set<string>>(new Set());
 
@@ -158,9 +160,11 @@ function RecommendationFitExplanations({
                           Why it affects this match
                         </dt>
                         <dd className="mt-1.5 text-sm leading-6 text-foreground/90">
-                          {area.label} is one of {courseName}&apos;s configured
-                          RIASEC areas, so this recorded score contributes to
-                          the programme match.
+                          {!courseInterestAreas ||
+                          courseInterestAreas.length === 0 ||
+                          courseInterestAreas.includes(area.code)
+                            ? `${area.label} is one of ${courseName}'s configured RIASEC areas, so this recorded score contributes to the programme match.`
+                            : `${area.label} is one of your leading assessment results. Although not one of ${courseName}'s primary configured areas, all recorded interest scores are compared across the programme catalogue.`}
                         </dd>
                       </div>
                     </dl>

@@ -8,6 +8,7 @@ import {
   GraduationCap,
   ShieldCheck,
 } from "lucide-react";
+import { useMemo } from "react";
 
 import { Button } from "@/components/ui/button";
 import type { AssessmentDisplayResult } from "@/features/student/assessment/assessment-types";
@@ -16,7 +17,9 @@ import { programmeMediaStyle } from "@/features/student/programmes/programme-med
 import { CareerDirectionsSection } from "@/features/student/programmes/components/career-directions-section";
 import { RecommendationFitExplanations } from "@/features/student/recommendations/components/recommendation-fit-explanations";
 import { ProgrammeEntranceGroupGuidance } from "@/features/student/recommendations/components/programme-entrance-group-guidance";
+import { getLeadingDimensions } from "@/features/student/recommendations/utils/recommendation-result-utils";
 import type {
+  StudentRecommendationEvidenceArea,
   StudentRecommendationProfile,
   StudentRecommendedCourse,
 } from "@/features/student/recommendations/recommendation-types";
@@ -68,6 +71,34 @@ function StudentRecommendationDetailPage({
     course.eligibilityGroup === "non_board"
       ? "Non-board programme"
       : "Board programme";
+
+  const fitExplanationAreas: StudentRecommendationEvidenceArea[] = useMemo(() => {
+    if (profile) {
+      const leading = getLeadingDimensions(profile);
+      if (leading.length > 0) {
+        return leading.map((dimension) => {
+          const value =
+            "value" in dimension && typeof dimension.value === "number"
+              ? dimension.value
+              : 0;
+          return {
+            code: dimension.code,
+            label: dimension.label,
+            score: value,
+          };
+        });
+      }
+    }
+
+    if (
+      course.explanation?.recordedResultAreas &&
+      course.explanation.recordedResultAreas.length > 0
+    ) {
+      return course.explanation.recordedResultAreas;
+    }
+
+    return course.explanation?.recordedProgrammeAreas ?? [];
+  }, [profile, course.explanation]);
 
   const facts = [
     {
@@ -264,7 +295,8 @@ function StudentRecommendationDetailPage({
 
           <RecommendationFitExplanations
             courseName={course.name}
-            areas={course.explanation?.recordedProgrammeAreas ?? []}
+            courseInterestAreas={course.interestAreas}
+            areas={fitExplanationAreas}
             profile={profile}
           />
         </div>

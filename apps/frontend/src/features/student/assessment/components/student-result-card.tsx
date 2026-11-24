@@ -25,6 +25,7 @@ import {
   formatRiasecProfileDescription,
   getRiasecProfileCopy,
 } from "@/features/student/assessment/riasec-profile-copy";
+import { RiasecProfileVariants } from "@/features/student/assessment/components/riasec-profile-variants";
 
 interface StudentResultCardProps {
   card: ResultCardData;
@@ -341,7 +342,7 @@ function StudentResultCard({
             <span className="inline-block text-[10px] font-black uppercase tracking-[0.14em] text-primary-ink">
               Recorded interest pattern
             </span>
-            {profileCopy ? (
+            {profileCopy && (card.profileVariants?.length ?? 0) <= 1 ? (
               <h3 className="mt-1 font-display text-2xl font-black text-foreground sm:text-3xl">
                 {profileCopy.name}
               </h3>
@@ -356,7 +357,9 @@ function StudentResultCard({
             </div>
             <p className="mt-3 max-w-xl text-sm leading-6 text-muted-foreground">
               {profileCopy
-                ? formatRiasecProfileDescription(profileCopy)
+                ? (card.profileVariants?.length ?? 0) > 1
+                  ? `${card.profileVariants?.length} three-code results were generated from the tied highest scores.`
+                  : formatRiasecProfileDescription(profileCopy)
                 : "Your highest reported interest alignment in order of statement agreement."}
             </p>
           </div>
@@ -394,6 +397,10 @@ function StudentResultCard({
             })}
           </div>
         </div>
+        <RiasecProfileVariants
+          variants={card.profileVariants ?? []}
+          className="mt-3"
+        />
 
         {/* 6 Dimensions Breakdown */}
         <div className="mt-6">

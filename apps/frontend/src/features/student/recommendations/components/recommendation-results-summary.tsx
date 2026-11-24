@@ -14,6 +14,7 @@ import type {
 } from "@/features/student/recommendations/recommendation-types";
 import { getLeadingDimensions } from "@/features/student/recommendations/utils/recommendation-result-utils";
 import { formatAreaList } from "@/features/student/utils/format-area-list";
+import { RiasecProfileVariants } from "@/features/student/assessment/components/riasec-profile-variants";
 
 type ResultProfile = StudentRecommendationProfile | AssessmentDisplayResult;
 
@@ -37,11 +38,13 @@ function RecommendationResultsSummary({
   onExploreProgrammes,
 }: RecommendationResultsSummaryProps) {
   const leadingDimensions = profile ? getLeadingDimensions(profile) : [];
-  const profileCopy = profile ? getRiasecProfileCopy(profile.topCode) : null;
+  const profileVariants = profile?.profileVariants ?? [];
+  const hasMultipleProfiles = profileVariants.length > 1;
+  const profileCopy = profile && !hasMultipleProfiles ? getRiasecProfileCopy(profile.topCode) : null;
 
   return (
     <section
-      className="flex min-w-0 flex-col"
+      className="flex min-w-0 flex-col items-center text-center lg:items-start lg:text-left"
       aria-labelledby="recommendation-result-title"
     >
       <div className="relative mx-auto aspect-square w-52 overflow-hidden rounded-[2rem] border-2 border-primary/20 bg-primary-fixed/30 p-3 shadow-sm sm:w-60">
@@ -62,30 +65,39 @@ function RecommendationResultsSummary({
             id="recommendation-result-title"
             className="mt-5 max-w-2xl font-display text-3xl font-black leading-[0.98] tracking-[-0.045em] text-primary-ink sm:text-4xl lg:text-5xl"
           >
-            {profileCopy?.name ?? formatAreaList(profile.topLabels)}
+            {hasMultipleProfiles
+              ? "Multiple three-code interest profiles"
+              : profileCopy?.name ?? formatAreaList(profile.topLabels)}
           </h1>
           <p className="mt-3 font-label text-xs font-bold uppercase tracking-[0.14em] text-muted-foreground sm:text-sm">
-            {leadingDimensions
-              .map((dimension) => dimension.label.toUpperCase())
-              .join(" AND ")}{" "}
-            · {profile.topCode}
+            {hasMultipleProfiles
+              ? `${profileVariants.length} generated three-code results`
+              : `${leadingDimensions
+                  .map((dimension) => dimension.label.toUpperCase())
+                  .join(" AND ")} · ${profile.topCode}`}
           </p>
           <p className="mt-5 font-label text-xs font-bold uppercase tracking-[0.14em] text-primary-ink sm:text-sm">
             Why it fits you
           </p>
           <p className="mt-2 max-w-xl text-base font-medium leading-7 text-foreground/90 sm:text-lg sm:leading-8">
-            {profileCopy
+            {hasMultipleProfiles
+              ? "Two or more interest areas share your highest recorded score. The result applies the recorded tie-expansion rule and lists every generated three-code ordering instead of showing one long code."
+              : profileCopy
               ? formatRiasecProfileDescription(profileCopy)
               : leadingDimensions.length === 3
               ? `Your three leading recorded areas are ${leadingDimensions[0].label.toLowerCase()}, ${leadingDimensions[1].label.toLowerCase()}, and ${leadingDimensions[2].label.toLowerCase()}. Programme matches compare all six recorded scores with each programme's three-area profile.`
               : "These are the interest areas with the highest recorded counts in your completed assessment."}
           </p>
+          <RiasecProfileVariants
+            variants={profileVariants}
+            className="mt-5 w-full max-w-2xl text-left"
+          />
           {leadingDimensions.length > 0 ? (
-            <div className="mt-6">
+            <div className="mt-6 w-full">
               <p className="font-label text-xs font-bold uppercase tracking-[0.14em] text-muted-foreground sm:text-sm">
                 Your leading areas
               </p>
-              <div className="mt-2.5 flex flex-wrap gap-2">
+              <div className="mt-2.5 flex flex-wrap justify-center gap-2 lg:justify-start">
                 {leadingDimensions.map((dimension) => (
                   <span
                     key={dimension.code}
@@ -112,7 +124,7 @@ function RecommendationResultsSummary({
         </>
       )}
 
-      <div className="mt-7 flex flex-wrap items-center gap-x-6 gap-y-3 text-sm font-medium text-muted-foreground sm:text-base">
+      <div className="mt-7 flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-sm font-medium text-muted-foreground sm:text-base lg:justify-start">
         <span className="flex items-center gap-2">
           <CalendarDays aria-hidden="true" className="size-4" />
           Generated {formatAssessmentDate(snapshot.generatedAt)}
@@ -129,7 +141,7 @@ function RecommendationResultsSummary({
         ) : null}
       </div>
 
-      <div className="mt-6 flex flex-wrap gap-3">
+      <div className="mt-6 flex flex-wrap justify-center gap-3 lg:justify-start">
         {canRetake ? (
           <Button
             type="button"

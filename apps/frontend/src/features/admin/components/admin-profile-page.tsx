@@ -12,6 +12,7 @@ import { useRef, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useAuthenticatedImageUrl } from "@/components/shared/use-authenticated-image-url";
 import { AdminPageHeader } from "@/features/admin/components/admin-shared";
 import { AdminProfilePasswordCard } from "@/features/admin/components/admin-profile-password-card";
 import { AdminProfileAppearanceCard } from "@/features/admin/components/admin-profile-appearance-card";
@@ -25,7 +26,7 @@ export function AdminProfilePage() {
   const { user, refreshSession } = useAuth();
 
   return (
-    <div className="mx-auto w-full min-w-0 max-w-300 space-y-6 pb-12">
+    <div className="w-full min-w-0 space-y-6 pb-12">
       <AdminPageHeader title="Profile settings" />
 
       <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
@@ -57,19 +58,37 @@ function ProfilePhotoCard({
 }: {
   userName: string;
   currentPhotoUrl: string | null;
-  onUpdated: () => void;
+  onUpdated: () => Promise<void>;
 }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [removing, setRemoving] = useState(false);
-  const [imageError, setImageError] = useState(false);
+  const [failedPhotoUrl, setFailedPhotoUrl] = useState<string | null>(null);
+  const [photoOverride, setPhotoOverride] = useState<{
+    url: string | null;
+  } | null>(null);
   const [feedback, setFeedback] = useState<{
     type: "success" | "error";
     message: string;
   } | null>(null);
 
+  const displayPhotoUrl =
+    photoOverride === null ? currentPhotoUrl : photoOverride.url;
+  const {
+    imageUrl: loadedPhotoUrl,
+    error: photoLoadError,
+    loading: photoLoading,
+  } = useAuthenticatedImageUrl(displayPhotoUrl);
   const initials = userName.slice(0, 2).toUpperCase();
-  const showImage = Boolean(currentPhotoUrl && !imageError);
+  const showImage = Boolean(
+    displayPhotoUrl && loadedPhotoUrl && displayPhotoUrl !== failedPhotoUrl,
+  );
+  const visibleFeedback = photoLoadError
+    ? {
+        type: "error" as const,
+        message: photoLoadError.message,
+      }
+    : feedback;
 
   async function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
@@ -92,11 +111,12 @@ function ProfilePhotoCard({
 
     setUploading(true);
     setFeedback(null);
-    setImageError(false);
+    setFailedPhotoUrl(null);
 
     try {
-      await uploadAdminProfilePhoto(file);
-      onUpdated();
+      const response = await uploadAdminProfilePhoto(file);
+      setPhotoOverride({ url: response.data.photoUrl });
+      await onUpdated();
       setFeedback({
         type: "success",
         message: "Profile photo updated successfully.",
@@ -119,9 +139,10 @@ function ProfilePhotoCard({
     setRemoving(true);
     setFeedback(null);
     try {
-      await removeAdminProfilePhoto();
-      setImageError(false);
-      onUpdated();
+      const response = await removeAdminProfilePhoto();
+      setPhotoOverride({ url: response.data.photoUrl });
+      setFailedPhotoUrl(null);
+      await onUpdated();
       setFeedback({
         type: "success",
         message: "Custom photo removed. Restored account default avatar.",
@@ -155,10 +176,10 @@ function ProfilePhotoCard({
         <div className="relative shrink-0">
           {showImage ? (
             <img
-              src={currentPhotoUrl!}
+              src={loadedPhotoUrl!}
               alt={userName}
               referrerPolicy="no-referrer"
-              onError={() => setImageError(true)}
+              onError={() => setFailedPhotoUrl(displayPhotoUrl)}
               className="size-24 rounded-full border-2 border-primary/20 object-cover shadow-sm ring-4 ring-primary/5"
             />
           ) : (
@@ -177,6 +198,8 @@ function ProfilePhotoCard({
             <p className="text-xs text-muted-foreground">
               {showImage
                 ? "Custom or Google-linked avatar is active."
+                : photoLoading
+                  ? "Loading your profile photo…"
                 : "Displaying standard initials avatar."}
             </p>
           </div>
@@ -198,7 +221,7 @@ function ProfilePhotoCard({
               {uploading ? "Uploading…" : "Upload new photo"}
             </Button>
 
-            {currentPhotoUrl ? (
+            {displayPhotoUrl ? (
               <Button
                 type="button"
                 variant="ghost"
@@ -231,21 +254,21 @@ function ProfilePhotoCard({
         onChange={(event) => void handleFileChange(event)}
       />
 
-      {feedback ? (
+      {visibleFeedback ? (
         <div
           role="alert"
           className={`mt-4 flex items-center gap-2 rounded-lg p-3 text-xs font-semibold ${
-            feedback.type === "success"
+            visibleFeedback.type === "success"
               ? "border border-primary/30 bg-primary/10 text-primary-ink"
               : "border border-destructive/30 bg-destructive/10 text-destructive-ink"
           }`}
         >
-          {feedback.type === "success" ? (
+          {visibleFeedback.type === "success" ? (
             <CheckCircle2 className="size-4 shrink-0" />
           ) : (
             <AlertCircle className="size-4 shrink-0" />
           )}
-          <span>{feedback.message}</span>
+          <span>{visibleFeedback.message}</span>
         </div>
       ) : null}
     </div>

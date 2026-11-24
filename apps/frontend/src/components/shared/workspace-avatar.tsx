@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { useAuthenticatedImageUrl } from "@/components/shared/use-authenticated-image-url";
 
 export interface WorkspaceAvatarProps {
   photoUrl?: string | null;
@@ -14,7 +15,9 @@ export function WorkspaceAvatar({
   className = "size-9",
   fallbackClassName,
 }: WorkspaceAvatarProps) {
-  const [hasError, setHasError] = useState(false);
+  const [failedPhotoUrl, setFailedPhotoUrl] = useState<string | null>(null);
+  const { imageUrl } = useAuthenticatedImageUrl(photoUrl);
+
   const initials = (name ?? "AD")
     .split(/\s+/)
     .filter(Boolean)
@@ -22,13 +25,13 @@ export function WorkspaceAvatar({
     .map((p) => p[0]?.toUpperCase())
     .join("") || "AD";
 
-  if (photoUrl && !hasError) {
+  if (photoUrl && imageUrl && photoUrl !== failedPhotoUrl) {
     return (
       <img
-        src={photoUrl}
+        src={imageUrl}
         alt={name ?? "User avatar"}
         referrerPolicy="no-referrer"
-        onError={() => setHasError(true)}
+        onError={() => setFailedPhotoUrl(photoUrl)}
         className={cn("rounded-full object-cover", className)}
       />
     );

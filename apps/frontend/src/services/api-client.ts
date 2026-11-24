@@ -18,7 +18,7 @@ interface ApiRequestOptions {
 const apiOrigin = (import.meta.env.VITE_API_ORIGIN ?? '').replace(/\/$/, '')
 
 function apiUrl(path: string) {
-  return apiOrigin ? `${apiOrigin}${path}` : path
+  return apiOrigin && path.startsWith('/') ? `${apiOrigin}${path}` : path
 }
 
 class ApiClientError extends Error {
@@ -122,5 +122,37 @@ async function apiDataRequest<T>(
   return payload.data
 }
 
-export { ApiClientError, apiDataRequest, apiRequest, apiUrl, csrfToken }
+async function apiBlobRequest(
+  path: string,
+  options: ApiRequestOptions = {},
+): Promise<Blob> {
+  let response: Response
+
+  try {
+    response = await fetch(apiUrl(path), {
+      credentials: 'include',
+      headers: { Accept: 'image/*' },
+    })
+  } catch {
+    throw createError(
+      options,
+      options.networkMessage ?? 'Unable to load the image from the server.',
+      0,
+    )
+  }
+
+  if (!response.ok) {
+    const payload = (await response.json().catch(() => ({}))) as ApiErrorPayload
+    throw createError(
+      options,
+      payload.message ?? options.fallbackMessage ?? 'The image could not be loaded.',
+      response.status,
+      payload.errors,
+    )
+  }
+
+  return response.blob()
+}
+
+export { ApiClientError, apiBlobRequest, apiDataRequest, apiRequest, apiUrl, csrfToken }
 export type { ApiErrorFactory, ApiRequestOptions }

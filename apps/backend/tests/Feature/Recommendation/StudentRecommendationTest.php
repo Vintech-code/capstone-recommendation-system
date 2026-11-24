@@ -324,6 +324,9 @@ class StudentRecommendationTest extends TestCase
             ->assertJsonPath('data.status', 'available')
             ->assertJsonPath('data.recommendation.assessmentResultReference', 'ASMT-'.str_pad((string) $session->getKey(), 6, '0', STR_PAD_LEFT))
             ->assertJsonPath('data.recommendation.profile.topCode', 'I-E-C')
+            ->assertJsonPath('data.recommendation.profile.profileVariantVersion', 'PROPOSED-RIASEC-PROFILE-VARIANTS-2026-11-24')
+            ->assertJsonCount(1, 'data.recommendation.profile.profileVariants')
+            ->assertJsonPath('data.recommendation.profile.profileVariants.0.code', 'I-E-C')
             ->assertJsonPath('data.recommendation.profile.dimensions.1.label', 'Investigative')
             ->assertJsonPath('data.recommendation.profile.dimensions.1.value', 7)
             ->assertJsonPath('data.recommendation.totalEligible', 4)
@@ -345,6 +348,8 @@ class StudentRecommendationTest extends TestCase
             ->assertJsonPath('data.recommendation.courses.0.explanation.recordedProgrammeAreas.1.score', 6)
             ->assertJsonPath('data.recommendation.courses.0.explanation.recordedProgrammeAreas.2.label', 'Conventional')
             ->assertJsonPath('data.recommendation.courses.0.explanation.recordedProgrammeAreas.2.score', 5)
+            ->assertJsonPath('data.recommendation.courses.0.explanation.recordedResultAreas.0.label', 'Investigative')
+            ->assertJsonPath('data.recommendation.courses.0.explanation.recordedResultAreas.0.score', 7)
             ->assertJsonCount(3, 'data.recommendation.courses.0.explanation.sharedTopAreas');
 
         $this->getJson('/api/v1/student/recommendations/latest?view=all')
