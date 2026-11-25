@@ -9,6 +9,7 @@ use App\Models\EntranceExaminationResult;
 use App\Models\ProgrammeAvailability;
 use App\Models\RecommendationRun;
 use App\Models\RoleSlug;
+use App\Models\StudentEnrollment;
 use App\Models\StudentSavedProgramme;
 use App\Models\User;
 use App\Services\Admin\AdminAssessmentPresenter;
@@ -68,6 +69,7 @@ final class AdminWorkspaceController extends Controller
                 'completed' => (int) ($statusCounts['result_available'] ?? 0),
                 'inProgress' => (int) ($statusCounts['in_progress'] ?? 0),
                 'needsAttention' => (int) ($statusCounts['result_failed'] ?? 0),
+                'pendingCorCount' => StudentEnrollment::query()->where('verification_status', 'pending')->count(),
                 'recommendations' => RecommendationRun::query()->distinct()->count('user_id'),
                 'funnel' => [
                     'registered' => $students,
@@ -93,6 +95,7 @@ final class AdminWorkspaceController extends Controller
             'search' => ['nullable', 'string', 'max:120'],
             'status' => ['nullable', 'in:not_started,in_progress,preparing_result,result_available,result_failed'],
             'eligibility' => ['nullable', 'in:not_declared,board,non_board'],
+            'corStatus' => ['nullable', 'in:pending,verified,rejected,none'],
             'sort' => ['nullable', 'in:name,attempt_count,last_activity'],
             'direction' => ['nullable', 'in:asc,desc'],
             'page' => ['nullable', 'integer', 'min:1'],
@@ -101,6 +104,7 @@ final class AdminWorkspaceController extends Controller
         $search = trim((string) ($validated['search'] ?? ''));
         $status = $validated['status'] ?? null;
         $eligibility = $validated['eligibility'] ?? null;
+        $corStatus = $validated['corStatus'] ?? null;
         $sort = $validated['sort'] ?? 'name';
         $direction = $validated['direction'] ?? 'asc';
         $perPage = (int) ($validated['perPage'] ?? 25);
@@ -127,6 +131,7 @@ final class AdminWorkspaceController extends Controller
                 'latestAssessmentSession.recommendationRun',
                 'currentEntranceExaminationResult',
                 'studentProfile',
+                'enrollment',
             ])
             ->when($status === 'not_started', fn (Builder $query) => $query->whereDoesntHave('assessmentSessions'))
             ->when($status !== null && $status !== 'not_started', fn (Builder $query) => $query->whereHas(
@@ -137,6 +142,11 @@ final class AdminWorkspaceController extends Controller
             ->when(in_array($eligibility, ['board', 'non_board'], true), fn (Builder $query) => $query->whereHas(
                 'currentEntranceExaminationResult',
                 fn (Builder $result) => $result->where('eligibility_group', $eligibility),
+            ))
+            ->when($corStatus === 'none', fn (Builder $query) => $query->whereDoesntHave('enrollment'))
+            ->when(in_array($corStatus, ['pending', 'verified', 'rejected'], true), fn (Builder $query) => $query->whereHas(
+                'enrollment',
+                fn (Builder $enrollment) => $enrollment->where('verification_status', $corStatus),
             ));
 
         match ($sort) {
@@ -187,6 +197,8 @@ final class AdminWorkspaceController extends Controller
                     'currentAssessmentReference' => $latest ? $this->assessmentPresenter->reference($latest) : null,
                     'recommendationAvailable' => $latest?->recommendationRun !== null,
                     'savedProgrammeCount' => (int) $student->saved_programmes_count,
+                    'corStatus' => $student->enrollment?->verification_status,
+                    'enrolledProgrammeId' => $student->enrollment?->enrolled_programme_id,
                     'lastActivityAt' => $latest?->updated_at?->toAtomString() ?? $declaration?->declared_at?->toAtomString(),
                 ];
             });

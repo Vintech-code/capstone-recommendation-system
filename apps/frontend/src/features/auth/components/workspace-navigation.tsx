@@ -14,6 +14,7 @@ interface WorkspaceNavigationProps {
   onSelect: (id: string) => void;
   collapsed?: boolean;
   tone?: "default" | "staff";
+  badges?: Record<string, number>;
 }
 
 interface NavSection {
@@ -31,6 +32,7 @@ function WorkspaceNavigation({
   onSelect,
   collapsed = false,
   tone = "default",
+  badges = {},
 }: WorkspaceNavigationProps) {
   const allItems = [
     { id: "overview", title: "Dashboard", icon: LayoutDashboard },
@@ -136,6 +138,11 @@ function WorkspaceNavigation({
                           >
                             {item.title}
                           </span>
+                          {!collapsed && (badges[item.id] ?? 0) > 0 ? (
+                            <span className="ml-auto inline-flex min-w-5 items-center justify-center rounded-full bg-warning px-1.5 py-0.5 text-[10px] font-extrabold leading-none text-warning-ink">
+                              {badges[item.id]}
+                            </span>
+                          ) : null}
                         </button>
                       </TooltipTrigger>
                       {collapsed ? (

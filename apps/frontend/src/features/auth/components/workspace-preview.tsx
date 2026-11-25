@@ -27,6 +27,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import type { AccessRole } from "@/features/auth/access-types";
+import { AdminCorNotificationBanner, useAdminPendingCorCount } from "@/features/admin/components/admin-cor-notification-banner";
 import { useAuth } from "@/features/auth/auth-context";
 import { roleOptions } from "@/features/auth/access-types";
 import {
@@ -105,10 +106,8 @@ function WorkspacePreview({
     [definition.modules, user?.canManageAdministrators],
   );
 
-  useEffect(() => {
-    if (role !== "student") return;
-    void prefetchStudentWorkspace();
-  }, [role]);
+  useEffect(() => { if (role === "student") void prefetchStudentWorkspace(); }, [role]);
+  const pendingCorCount = useAdminPendingCorCount(role === "admin");
 
   const activeModule = availableModules.find(
     (module) => module.id === activeId,
@@ -296,6 +295,7 @@ function WorkspacePreview({
             onSelect={selectModule}
             collapsed={!desktopNavigationExpanded}
             tone={isStaff ? "staff" : "default"}
+            badges={role === "admin" ? { students: pendingCorCount } : undefined}
           />
         </div>
 
@@ -624,7 +624,7 @@ function WorkspacePreview({
             </div>
           </div>
         </header>
-
+        {role === "admin" && <AdminCorNotificationBanner pendingCount={pendingCorCount} onReviewStudents={() => selectModule("students")} />}
         <main
           className={cn(
             "px-4 py-4 sm:px-5 lg:px-6 lg:py-5",

@@ -24,13 +24,14 @@ function AdminStudentGrid({ students, onOpenStudent }: AdminStudentGridProps) {
 
     const grid = new Grid({
       columns: [
-        { name: "No.", width: "6%" },
-        { name: "Student", width: "22%" },
-        { name: "Journey state", width: "17%" },
-        { name: "Assessment evidence", width: "20%" },
-        { name: "Recommendation", width: "14%" },
-        { name: "Last activity", width: "13%" },
-        { name: "Action", width: "8%" },
+        { name: "No.", width: "5%" },
+        { name: "Student", width: "21%" },
+        { name: "Journey state", width: "16%" },
+        { name: "Assessment evidence", width: "17%" },
+        { name: "Recommendation", width: "13%" },
+        { name: "COR status", width: "12%" },
+        { name: "Last activity", width: "10%" },
+        { name: "Action", width: "6%" },
       ],
       data: rows,
       search: false,
@@ -74,6 +75,7 @@ function toGridRow(student: AdminStudent) {
     html(renderJourneyState(student)),
     html(renderAssessmentEvidence(student)),
     html(renderRecommendationEvidence(student)),
+    html(renderCorStatus(student)),
     formatDate(student.lastActivityAt),
     html(
       `<button type="button" class="admin-grid-open" data-open-student="${student.id}">Open<span aria-hidden="true">→</span></button>`,
@@ -114,6 +116,27 @@ function renderRecommendationEvidence(student: AdminStudent) {
   const label = student.recommendationAvailable ? "Available" : "Pending";
   const tone = student.recommendationAvailable ? "success" : "neutral";
   return `<div><span class="admin-grid-badge admin-grid-badge-${tone}">${label}</span><span class="admin-grid-detail">${student.savedProgrammeCount} saved</span></div>`;
+}
+
+function renderCorStatus(student: AdminStudent) {
+  const status = student.corStatus;
+  const label =
+    status === "verified"
+      ? "Verified"
+      : status === "rejected"
+        ? "Rejected"
+        : status === "pending"
+          ? "Pending"
+          : "Not submitted";
+  const tone =
+    status === "verified"
+      ? "success"
+      : status === "rejected"
+        ? "danger"
+        : status === "pending"
+          ? "warning"
+          : "neutral";
+  return `<div><span class="admin-grid-badge admin-grid-badge-${tone}">${label}</span></div>`;
 }
 
 function getStatusLabel(status: AdminStudent["currentAssessmentStatus"]) {

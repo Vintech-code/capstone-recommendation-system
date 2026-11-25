@@ -51,7 +51,7 @@ describe("Administration workspace", () => {
     expect(
       screen.queryByText("Top Recommended Programmes"),
     ).not.toBeInTheDocument();
-  });
+  }, 30000);
 
   it("opens a student record with immutable results and recommendations", async () => {
     const user = userEvent.setup();

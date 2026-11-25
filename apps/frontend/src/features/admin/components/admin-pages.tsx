@@ -37,6 +37,7 @@ function AdminStudentsPage({ onNavigate }: NavigateProps) {
   const [applied, setApplied] = useState("");
   const [status, setStatus] = useState("all");
   const [eligibility, setEligibility] = useState("all");
+  const [corStatus, setCorStatus] = useState("all");
   const [sort, setSort] = useState("last_activity");
   const [page, setPage] = useState(1);
   const params = new URLSearchParams({
@@ -48,6 +49,7 @@ function AdminStudentsPage({ onNavigate }: NavigateProps) {
   if (applied) params.set("search", applied);
   if (status !== "all") params.set("status", status);
   if (eligibility !== "all") params.set("eligibility", eligibility);
+  if (corStatus !== "all") params.set("corStatus", corStatus);
   const resource = useAdminResource<AdminStudentDirectory>(
     `/students?${params}`,
   );
@@ -65,7 +67,7 @@ function AdminStudentsPage({ onNavigate }: NavigateProps) {
       <AdminPageHeader title="Student records" />
       <section data-student-records className="min-w-0">
         <form
-          className="grid gap-2 border-y border-border py-3 md:grid-cols-2 xl:grid-cols-[minmax(16rem,1fr)_11rem_11rem_10rem_auto]"
+          className="grid gap-2 border-y border-border py-3 md:grid-cols-2 xl:grid-cols-[minmax(14rem,1fr)_10rem_10rem_9.5rem_9.5rem_auto]"
           onSubmit={(event) => {
             event.preventDefault();
             setPage(1);
@@ -100,6 +102,15 @@ function AdminStudentsPage({ onNavigate }: NavigateProps) {
               setPage(1);
             }}
             options={eligibilityOptions}
+          />
+          <FilterSelect
+            label="Filter by COR status"
+            value={corStatus}
+            onChange={(value) => {
+              setCorStatus(value);
+              setPage(1);
+            }}
+            options={[["all", "All COR"], ["pending", "Pending COR"], ["verified", "Verified COR"], ["rejected", "Rejected COR"], ["none", "Not submitted"]]}
           />
           <FilterSelect
             label="Sort student records"

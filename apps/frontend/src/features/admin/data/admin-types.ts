@@ -6,6 +6,7 @@ interface AdminOverview {
   completed: number
   inProgress: number
   needsAttention: number
+  pendingCorCount?: number
   recommendations: number
   funnel: { registered: number; entranceDeclared: number; assessmentStarted: number; inProgress: number; processing: number; resultAvailable: number }
   operationalAttention: { processingFailures: number }
@@ -32,6 +33,8 @@ interface AdminStudent {
   currentAssessmentReference: string | null
   recommendationAvailable: boolean
   savedProgrammeCount: number
+  corStatus?: 'pending' | 'verified' | 'rejected' | null
+  enrolledProgrammeId?: string | null
   lastActivityAt: string | null
 }
 
