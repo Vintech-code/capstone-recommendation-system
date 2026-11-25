@@ -148,21 +148,11 @@ describe("Administration workspace", () => {
     ).not.toBeInTheDocument();
     expect(screen.queryByText("Catalogue governance")).not.toBeInTheDocument();
     expect(
-      screen.getByRole("heading", {
-        name: "Assessment and recommendation activity",
-      }),
+      screen.getByRole("heading", { name: "Program Enrollment Alignment" }),
     ).toBeVisible();
-    expect(
-      screen.getByRole("heading", { name: "Completed results over time" }),
-    ).toBeVisible();
-    expect(
-      screen.getByRole("heading", { name: "Current stage distribution" }),
-    ).toBeVisible();
-    expect(
-      screen.getByRole("img", { name: /Board eligible: 1/ }),
-    ).toBeVisible();
+    expect(screen.getByText("BSIT")).toBeVisible();
+    expect(screen.getByText("Overall")).toBeVisible();
     expect(screen.getByRole("button", { name: "Date range" })).toBeVisible();
-    expect(screen.getByText("Saves per 100 recommendation runs")).toBeVisible();
     expect(
       screen.queryByRole("heading", {
         name: "Recommendation interest-match feedback",

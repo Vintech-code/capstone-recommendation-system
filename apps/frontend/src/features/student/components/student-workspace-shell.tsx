@@ -12,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import type { DashboardModule } from "@/features/auth/workspace-definitions";
+import { StudentEnrollmentBanner } from "@/features/student/recommendations/components/student-enrollment-banner";
 import { cn } from "@/lib/utils";
 
 interface StudentWorkspaceShellProps {
@@ -229,6 +230,8 @@ function StudentWorkspaceShell({
           ) : null}
         </div>
       </header>
+
+      <StudentEnrollmentBanner />
 
       <main>{children}</main>
     </div>

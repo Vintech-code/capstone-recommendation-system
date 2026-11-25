@@ -356,10 +356,10 @@ function StudentResultCard({
               </span>
             </div>
             <p className="mt-3 max-w-xl text-sm leading-6 text-muted-foreground">
-              {profileCopy
-                ? (card.profileVariants?.length ?? 0) > 1
-                  ? `${card.profileVariants?.length} three-code results were generated from the tied highest scores.`
-                  : formatRiasecProfileDescription(profileCopy)
+              {(card.profileVariants?.length ?? 0) > 1
+                ? `${card.profileVariants?.length} result variants were generated from the tied score tiers.`
+                : profileCopy
+                  ? formatRiasecProfileDescription(profileCopy)
                 : "Your highest reported interest alignment in order of statement agreement."}
             </p>
           </div>

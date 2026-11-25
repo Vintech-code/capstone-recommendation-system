@@ -316,7 +316,7 @@ function LandingPage({ initialAuth }: LandingPageProps = {}) {
                 asChild
                 size="sm"
                 className={cn(
-                  "relative inline-flex rounded-full border border-[#62ad19]/40 bg-primary font-bold text-white shadow-xs transition-all duration-150 hover:bg-[#70c21d] active:translate-y-1",
+                  "relative inline-flex rounded-full border border-[#62ad19]/40 bg-primary font-bold text-primary-foreground shadow-xs transition-all duration-150 hover:bg-[#70c21d] active:translate-y-1",
                   isScrolled
                     ? "px-3.5 py-1 text-xs sm:text-sm sm:px-4"
                     : "px-3.5 sm:px-4.5",
@@ -388,7 +388,7 @@ function LandingPage({ initialAuth }: LandingPageProps = {}) {
           id="landing-hero"
           aria-labelledby="landing-title"
           data-testid="landing-hero"
-          className="relative isolate overflow-hidden px-4 pb-10 pt-24 sm:px-6 sm:pb-12 sm:pt-28 lg:px-8 lg:pb-14 lg:pt-32"
+          className="relative isolate overflow-hidden px-4 pb-10 pt-20 sm:px-6 sm:pb-12 sm:pt-24 lg:px-8 lg:pb-14 lg:pt-22"
         >
           <div
             aria-hidden="true"
@@ -439,7 +439,7 @@ function LandingPage({ initialAuth }: LandingPageProps = {}) {
                 <Button
                   asChild
                   size="default"
-                  className="relative inline-flex w-auto rounded-full border border-[#62ad19]/40 bg-primary px-6 font-bold text-white shadow-xs transition-all duration-150 hover:bg-[#70c21d] active:translate-y-1 sm:active:translate-y-1.5"
+                  className="relative inline-flex w-auto rounded-full border border-[#62ad19]/40 bg-primary px-6 font-bold text-primary-foreground shadow-xs transition-all duration-150 hover:bg-[#70c21d] active:translate-y-1 sm:active:translate-y-1.5"
                 >
                   <Link
                     to="/student/login"
@@ -451,7 +451,7 @@ function LandingPage({ initialAuth }: LandingPageProps = {}) {
                     Start assessment
                     <ArrowRight
                       aria-hidden="true"
-                      className="size-4 text-white"
+                      className="size-4 text-primary-foreground"
                     />
                   </Link>
                 </Button>
@@ -530,13 +530,13 @@ function LandingPage({ initialAuth }: LandingPageProps = {}) {
               <Button
                 asChild
                 size="default"
-                className="rounded-full px-7 font-bold text-white shadow-xs"
+                className="rounded-full px-7 font-bold text-primary-foreground shadow-xs"
               >
                 <a href="#journey">
                   Learn more about the journey
                   <ArrowRight
                     aria-hidden="true"
-                    className="size-4 text-white"
+                    className="size-4 text-primary-foreground"
                   />
                 </a>
               </Button>
@@ -622,7 +622,7 @@ function LandingPage({ initialAuth }: LandingPageProps = {}) {
                   <Button
                     asChild
                     size="default"
-                    className="rounded-full px-7 font-bold text-white shadow-xs"
+                    className="rounded-full px-7 font-bold text-primary-foreground shadow-xs"
                   >
                     <Link
                       to="/student/login"
@@ -634,7 +634,7 @@ function LandingPage({ initialAuth }: LandingPageProps = {}) {
                       Begin your assessment
                       <ArrowRight
                         aria-hidden="true"
-                        className="size-4 text-white"
+                        className="size-4 text-primary-foreground"
                       />
                     </Link>
                   </Button>
@@ -834,7 +834,7 @@ function LandingPage({ initialAuth }: LandingPageProps = {}) {
               <Button
                 asChild
                 size="default"
-                className="w-full rounded-full px-7 font-bold text-white shadow-xs sm:w-auto"
+                className="w-full rounded-full px-7 font-bold text-primary-foreground shadow-xs sm:w-auto"
               >
                 <Link
                   to="/student/login"
@@ -846,7 +846,7 @@ function LandingPage({ initialAuth }: LandingPageProps = {}) {
                   Start assessment
                   <ArrowRight
                     aria-hidden="true"
-                    className="size-4 text-white"
+                    className="size-4 text-primary-foreground"
                   />
                 </Link>
               </Button>

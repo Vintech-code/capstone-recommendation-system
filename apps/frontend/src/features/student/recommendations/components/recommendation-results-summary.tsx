@@ -66,12 +66,12 @@ function RecommendationResultsSummary({
             className="mt-5 max-w-2xl font-display text-3xl font-black leading-[0.98] tracking-[-0.045em] text-primary-ink sm:text-4xl lg:text-5xl"
           >
             {hasMultipleProfiles
-              ? "Multiple three-code interest profiles"
+              ? "Multiple tied-score interest profiles"
               : profileCopy?.name ?? formatAreaList(profile.topLabels)}
           </h1>
           <p className="mt-3 font-label text-xs font-bold uppercase tracking-[0.14em] text-muted-foreground sm:text-sm">
             {hasMultipleProfiles
-              ? `${profileVariants.length} generated three-code results`
+              ? `${profileVariants.length} generated RIASEC results`
               : `${leadingDimensions
                   .map((dimension) => dimension.label.toUpperCase())
                   .join(" AND ")} · ${profile.topCode}`}
@@ -81,7 +81,7 @@ function RecommendationResultsSummary({
           </p>
           <p className="mt-2 max-w-xl text-base font-medium leading-7 text-foreground/90 sm:text-lg sm:leading-8">
             {hasMultipleProfiles
-              ? "Two or more interest areas share your highest recorded score. The result applies the recorded tie-expansion rule and lists every generated three-code ordering instead of showing one long code."
+              ? "Two or more interest areas share a leading score tier. Higher-score tiers stay ahead of lower tiers, while tied primary and secondary areas are reordered and tied tertiary areas appear as alternative third codes."
               : profileCopy
               ? formatRiasecProfileDescription(profileCopy)
               : leadingDimensions.length === 3

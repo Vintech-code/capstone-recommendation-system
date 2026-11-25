@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Recommendation;
 use App\Http\Controllers\Controller;
 use App\Models\AssessmentQuestion;
 use App\Models\AssessmentSession;
+use App\Models\ProgrammeAvailability;
 use App\Models\RecommendationFeedback;
 use App\Models\RecommendationRun;
 use App\Services\Assessment\RiasecProfileVariantGenerator;
@@ -206,10 +207,14 @@ final class StudentRecommendationController extends Controller
         $feedbackByProgramme = $run->feedback->keyBy('programme_id');
         $courses = $this->rankPresenter->dense($run->ranked_courses ?? []);
         $programmes = collect($catalogue['programmes'] ?? [])->keyBy('id');
-        $courses = array_map(static function (array $course) use ($programmes): array {
+        $availabilities = ProgrammeAvailability::query()->get()->keyBy('programme_id');
+        $courses = array_map(static function (array $course) use ($programmes, $availabilities): array {
             $programme = $programmes->get($course['id'], []);
+            $availability = $availabilities->get($course['id']);
 
             return array_merge($course, [
+                'isEnrollmentOpen' => $availability?->is_enrollment_open ?? true,
+                'availabilityNote' => $availability?->status_note,
                 'summary' => $programme['description'] ?? '',
                 'learningAreas' => $programme['learning_areas'] ?? [],
                 'learningAreaDescriptions' => $programme['learning_area_descriptions'] ?? [],

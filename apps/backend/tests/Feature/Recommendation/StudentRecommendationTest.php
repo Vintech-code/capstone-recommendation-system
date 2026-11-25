@@ -324,7 +324,7 @@ class StudentRecommendationTest extends TestCase
             ->assertJsonPath('data.status', 'available')
             ->assertJsonPath('data.recommendation.assessmentResultReference', 'ASMT-'.str_pad((string) $session->getKey(), 6, '0', STR_PAD_LEFT))
             ->assertJsonPath('data.recommendation.profile.topCode', 'I-E-C')
-            ->assertJsonPath('data.recommendation.profile.profileVariantVersion', 'PROPOSED-RIASEC-PROFILE-VARIANTS-2026-11-24')
+            ->assertJsonPath('data.recommendation.profile.profileVariantVersion', 'PROPOSED-RIASEC-TIED-TIERS-2026-11-26')
             ->assertJsonCount(1, 'data.recommendation.profile.profileVariants')
             ->assertJsonPath('data.recommendation.profile.profileVariants.0.code', 'I-E-C')
             ->assertJsonPath('data.recommendation.profile.dimensions.1.label', 'Investigative')

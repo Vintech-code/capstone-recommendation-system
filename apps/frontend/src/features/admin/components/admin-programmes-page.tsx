@@ -28,6 +28,7 @@ import {
   EmptyPanel,
 } from "@/features/admin/components/admin-shared";
 import { ConfigurationWorkflow } from "@/features/admin/components/configuration-workflow";
+import { ProgrammeAvailabilityToggle } from "@/features/admin/components/programme-availability-toggle";
 import {
   useAdminResource,
   type AdminProgramme,
@@ -238,6 +239,7 @@ function AdminProgrammesPage({
               programme={programme}
               onInspect={() => setSelected(programme)}
               onEdit={() => setEditing(programme)}
+              onAvailabilityUpdated={resource.retry}
             />
           ))}
         </section>
@@ -272,10 +274,12 @@ function AdminProgrammeCard({
   programme,
   onInspect,
   onEdit,
+  onAvailabilityUpdated,
 }: {
   programme: AdminProgramme;
   onInspect: () => void;
   onEdit: () => void;
+  onAvailabilityUpdated: () => void;
 }) {
   const fallback = getProgrammeImages(programme.id);
   const cover = programme.coverImageUrl || fallback.cover;
@@ -381,7 +385,12 @@ function AdminProgrammeCard({
               No duration source published
             </span>
           )}
-          <div className="flex items-center gap-1.5 ml-auto">
+          <div className="flex flex-wrap items-center gap-1.5 ml-auto">
+            <ProgrammeAvailabilityToggle
+              programmeId={programme.id}
+              isOpen={programme.isEnrollmentOpen !== false}
+              onUpdated={onAvailabilityUpdated}
+            />
             <Button
               type="button"
               variant="outline"

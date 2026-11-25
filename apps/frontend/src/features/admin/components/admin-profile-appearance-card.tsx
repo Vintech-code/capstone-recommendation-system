@@ -2,7 +2,7 @@ import { Check, Laptop, Moon, Sun } from "lucide-react";
 import {
   useAdminTheme,
   type AdminThemeMode,
-} from "@/features/admin/theme/admin-theme-context";
+} from "@/features/admin/theme/admin-theme-state";
 import { cn } from "@/lib/utils";
 
 const options: Array<{

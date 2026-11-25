@@ -70,12 +70,8 @@ class AdminWorkspaceTest extends TestCase
         $this->getJson('/api/v1/admin/reports')
             ->assertOk()
             ->assertJsonPath('data.scope', 'institution')
-            ->assertJsonPath('data.completedAssessments', 1)
-            ->assertJsonPath('data.eligibilityDistribution.board', 1)
-            ->assertJsonPath('data.recommendationRuns', 1)
-            ->assertJsonPath('data.programmeSaves', 1)
             ->assertJsonMissingPath('data.recommendationFeedback')
-            ->assertJsonStructure(['data' => ['assessmentFunnel', 'retakeMetrics']]);
+            ->assertJsonStructure(['data' => ['enrollmentAlignment' => ['programs', 'overall']]]);
     }
 
     public function test_student_and_guest_cannot_access_admin_data(): void
@@ -170,6 +166,49 @@ class AdminWorkspaceTest extends TestCase
         $this->assertStringNotContainsString('user_id', $response->getContent());
         $this->assertStringNotContainsString($student->email, $response->getContent());
         $this->assertStringNotContainsString($student->name, $response->getContent());
+    }
+
+    public function test_recommendation_feedback_respondent_number_follows_student_registration_order(): void
+    {
+        $admin = $this->userWithRole(RoleSlug::Admin);
+        $studentOne = $this->userWithRole(RoleSlug::Student);
+        $studentOne->forceFill(['created_at' => now()->subDays(3)])->save();
+
+        $studentTwo = $this->userWithRole(RoleSlug::Student);
+        $studentTwo->forceFill(['created_at' => now()->subDays(2)])->save();
+
+        $runTwo = $this->createRecommendation($studentTwo, $this->completedSession($studentTwo, 1));
+        RecommendationFeedback::query()->create([
+            'user_id' => $studentTwo->getKey(),
+            'recommendation_run_id' => $runTwo->getKey(),
+            'programme_id' => 'bs-information-technology',
+            'rating' => 5,
+            'comment' => 'Student two submitted first.',
+        ]);
+
+        // Only student 2 submitted feedback: must still be respondentNumber 2, not 1
+        $this->actingAs($admin)->getJson('/api/v1/admin/feedback')
+            ->assertOk()
+            ->assertJsonCount(1, 'data.respondents')
+            ->assertJsonPath('data.respondents.0.respondentNumber', 2);
+
+        // Now student 1 submits feedback later (newest)
+        $runOne = $this->createRecommendation($studentOne, $this->completedSession($studentOne, 1));
+        $feedbackOne = RecommendationFeedback::query()->create([
+            'user_id' => $studentOne->getKey(),
+            'recommendation_run_id' => $runOne->getKey(),
+            'programme_id' => 'bs-information-technology',
+            'rating' => 4,
+            'comment' => 'Student one submitted later.',
+        ]);
+        $feedbackOne->forceFill(['updated_at' => now()->addMinute()])->save();
+
+        // Newest feedback (student 1) is on top with respondentNumber 1; student 2 stays respondentNumber 2
+        $this->actingAs($admin)->getJson('/api/v1/admin/feedback')
+            ->assertOk()
+            ->assertJsonCount(2, 'data.respondents')
+            ->assertJsonPath('data.respondents.0.respondentNumber', 1)
+            ->assertJsonPath('data.respondents.1.respondentNumber', 2);
     }
 
     public function test_recommendation_feedback_report_has_a_truthful_empty_state_without_responses(): void

@@ -154,5 +154,22 @@ async function apiBlobRequest(
   return response.blob()
 }
 
-export { ApiClientError, apiBlobRequest, apiDataRequest, apiRequest, apiUrl, csrfToken }
+async function openProtectedFile(path: string, filename = 'document'): Promise<void> {
+  const blob = await apiBlobRequest(path, {
+    fallbackMessage: 'The requested document could not be opened.',
+  })
+  const objectUrl = URL.createObjectURL(blob)
+  const opened = window.open(objectUrl, '_blank', 'noopener,noreferrer')
+  if (!opened) {
+    const link = document.createElement('a')
+    link.href = objectUrl
+    link.download = filename
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+  }
+  window.setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000)
+}
+
+export { ApiClientError, apiBlobRequest, apiDataRequest, apiRequest, apiUrl, csrfToken, openProtectedFile }
 export type { ApiErrorFactory, ApiRequestOptions }

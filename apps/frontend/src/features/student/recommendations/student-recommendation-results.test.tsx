@@ -146,7 +146,7 @@ describe("Student recommendation results", () => {
     ).toBeVisible();
   });
 
-  it("shows every three-code result generated from tied primary scores", async () => {
+  it("shows every variable-length result generated from tied secondary scores", async () => {
     const user = userEvent.setup();
     render(
       <StudentRecommendationResultsPage
@@ -156,15 +156,17 @@ describe("Student recommendation results", () => {
           ...testRecommendationSnapshot,
           profile: {
             ...testRecommendationSnapshot.profile!,
-            topCode: "R-A-S",
-            topLabels: ["Realistic", "Artistic", "Social"],
+            topCode: "R-I-A-S",
+            topLabels: ["Realistic", "Investigative", "Artistic", "Social"],
             profileVariantVersion:
-              "PROPOSED-RIASEC-PROFILE-VARIANTS-2026-11-24",
+              "PROPOSED-RIASEC-TIED-TIERS-2026-11-26",
             profileVariants: [
-              { code: "R-A-S", compactCode: "RAS", codes: ["R", "A", "S"], labels: ["Realistic", "Artistic", "Social"] },
-              { code: "R-S-A", compactCode: "RSA", codes: ["R", "S", "A"], labels: ["Realistic", "Social", "Artistic"] },
-              { code: "I-A-S", compactCode: "IAS", codes: ["I", "A", "S"], labels: ["Investigative", "Artistic", "Social"] },
-              { code: "I-S-A", compactCode: "ISA", codes: ["I", "S", "A"], labels: ["Investigative", "Social", "Artistic"] },
+              { code: "R-I-A-S", compactCode: "RIAS", codes: ["R", "I", "A", "S"], labels: ["Realistic", "Investigative", "Artistic", "Social"] },
+              { code: "R-I-S-A", compactCode: "RISA", codes: ["R", "I", "S", "A"], labels: ["Realistic", "Investigative", "Social", "Artistic"] },
+              { code: "R-A-I-S", compactCode: "RAIS", codes: ["R", "A", "I", "S"], labels: ["Realistic", "Artistic", "Investigative", "Social"] },
+              { code: "R-A-S-I", compactCode: "RASI", codes: ["R", "A", "S", "I"], labels: ["Realistic", "Artistic", "Social", "Investigative"] },
+              { code: "R-S-I-A", compactCode: "RSIA", codes: ["R", "S", "I", "A"], labels: ["Realistic", "Social", "Investigative", "Artistic"] },
+              { code: "R-S-A-I", compactCode: "RSAI", codes: ["R", "S", "A", "I"], labels: ["Realistic", "Social", "Artistic", "Investigative"] },
             ],
           },
         }}
@@ -174,22 +176,22 @@ describe("Student recommendation results", () => {
     expect(
       screen.getByRole("heading", {
         level: 1,
-        name: "Multiple three-code interest profiles",
+        name: "Multiple tied-score interest profiles",
       }),
     ).toBeVisible();
-    expect(screen.getByText("4 generated three-code results")).toBeVisible();
-    expect(screen.getByText(/Built from 4 generated/)).toBeVisible();
+    expect(screen.getByText("6 generated RIASEC results")).toBeVisible();
+    expect(screen.getByText(/Built from 6 generated/)).toBeVisible();
 
     await user.click(
-      screen.getByRole("button", { name: /View all 4 three-code results/i }),
+      screen.getByRole("button", { name: /View all 6 tied-score results/i }),
     );
 
-    expect(screen.getByText("R-A-S")).toBeVisible();
-    expect(screen.getByText("R-S-A")).toBeVisible();
-    expect(screen.getByText("I-A-S")).toBeVisible();
-    expect(screen.getByText("I-S-A")).toBeVisible();
+    expect(screen.getByText("R-I-A-S")).toBeVisible();
+    expect(screen.getByText("R-I-S-A")).toBeVisible();
+    expect(screen.getByText("R-A-I-S")).toBeVisible();
+    expect(screen.getByText("R-S-A-I")).toBeVisible();
     expect(
-      screen.getByRole("region", { name: "Three-code result explanations" }),
+      screen.getByRole("region", { name: "Tied-score result explanations" }),
     ).toBeVisible();
   });
 

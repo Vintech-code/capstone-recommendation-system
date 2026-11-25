@@ -115,6 +115,12 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasOne(StudentProfile::class);
     }
 
+    /** @return HasOne<StudentEnrollment, $this> */
+    public function enrollment(): HasOne
+    {
+        return $this->hasOne(StudentEnrollment::class);
+    }
+
     public function hasRole(RoleSlug $role): bool
     {
         return $this->roles->contains('slug', $role->value);

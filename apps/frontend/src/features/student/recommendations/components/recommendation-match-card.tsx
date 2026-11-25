@@ -32,11 +32,13 @@ function RecommendationMatchCard({
     ? match.toFixed(0)
     : match.toFixed(2).replace(/0+$/, "").replace(/\.$/, "");
   const highlightStyle = rankedHighlightStyles[position - 1];
+  const isClosed = course.isEnrollmentOpen === false;
 
   return (
     <article
       className={cn(
         "group relative overflow-hidden rounded-3xl border border-border bg-card shadow-sm transition-shadow",
+        isClosed && "border-warning/40 opacity-90",
       )}
     >
       <div className="relative grid lg:grid-cols-[minmax(0,1fr)_17rem]">
@@ -73,11 +75,21 @@ function RecommendationMatchCard({
                     ? "Top fit"
                     : `Rank ${course.rank}`}
               </span>
+              {isClosed ? (
+                <span className="inline-flex min-h-7 items-center rounded-full bg-warning/20 px-3 font-label text-xs font-bold uppercase tracking-[0.04em] text-warning-ink">
+                  Slots Full · Closed
+                </span>
+              ) : null}
             </div>
 
             <h3 className="mt-2.5 max-w-3xl font-display text-xl font-extrabold leading-tight tracking-[-0.02em] text-foreground sm:text-2xl">
               {course.name}
             </h3>
+            {isClosed ? (
+              <p className="mt-1.5 text-xs font-semibold text-warning-ink">
+                {course.availabilityNote ?? "Slots full for the current academic period. Consider your next recommended matches."}
+              </p>
+            ) : null}
 
             {course.summary ? (
               <p className="mt-1.5 max-w-4xl text-sm font-medium leading-6 text-foreground sm:text-base">

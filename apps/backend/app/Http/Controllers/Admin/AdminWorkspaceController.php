@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\AdminAuditEvent;
 use App\Models\AssessmentSession;
 use App\Models\EntranceExaminationResult;
+use App\Models\ProgrammeAvailability;
 use App\Models\RecommendationRun;
 use App\Models\RoleSlug;
 use App\Models\StudentSavedProgramme;
@@ -151,15 +152,23 @@ final class AdminWorkspaceController extends Controller
             default => $query->orderBy('name', $direction),
         };
 
+        $studentOrderMap = $this->studentQuery()
+            ->orderBy('created_at')
+            ->orderBy('id')
+            ->pluck('id')
+            ->flip()
+            ->map(static fn (int $index): int => $index + 1);
+
         $students = $query->paginate($perPage)->withQueryString();
         $items = $students->getCollection()
-            ->map(function (User $student): array {
+            ->map(function (User $student) use ($studentOrderMap): array {
                 $latest = $student->latestAssessmentSession;
                 $declaration = $student->currentEntranceExaminationResult;
                 $completedCount = (int) $student->completed_assessment_sessions_count;
 
                 return [
                     'id' => $student->getKey(),
+                    'studentNumber' => (int) ($studentOrderMap->get((int) $student->getKey()) ?? $student->getKey()),
                     'name' => $student->name,
                     'email' => $student->email,
                     'accountStatus' => $student->account_status,
@@ -193,7 +202,7 @@ final class AdminWorkspaceController extends Controller
     public function student(User $student): JsonResponse
     {
         abort_unless($student->roles()->where('slug', RoleSlug::Student->value)->exists(), 404);
-        $student->loadMissing('studentProfile');
+        $student->loadMissing(['studentProfile', 'enrollment']);
 
         $attempts = $student->assessmentSessions()
             ->with(['recommendationRun', 'entranceExaminationResult'])
@@ -219,6 +228,19 @@ final class AdminWorkspaceController extends Controller
                     : $student->google_avatar_url,
                 'accountStatus' => $student->account_status,
                 'savedProgrammeCount' => $student->savedProgrammes()->count(),
+                'enrollment' => $student->enrollment ? [
+                    'enrolledProgrammeId' => $student->enrollment->enrolled_programme_id,
+                    'corReference' => $student->enrollment->cor_reference,
+                    'hasCorFile' => $student->enrollment->cor_file_path !== null,
+                    'corOriginalName' => $student->enrollment->cor_original_name,
+                    'corFileUrl' => $student->enrollment->cor_file_path !== null
+                        ? '/api/v1/enrollment-cor/'.$student->getKey().'?v='.$student->enrollment->updated_at?->getTimestamp()
+                        : null,
+                    'declaredAt' => $student->enrollment->declared_at->toAtomString(),
+                    'verificationStatus' => $student->enrollment->verification_status ?? 'pending',
+                    'verificationNote' => $student->enrollment->verification_note,
+                    'verifiedAt' => $student->enrollment->verified_at?->toAtomString(),
+                ] : null,
                 'profile' => $student->studentProfile ? [
                     'photoUrl' => $student->studentProfile->photo_path
                         ? '/api/v1/profile-photos/'.$student->getKey().'?v='.$student->studentProfile->updated_at?->getTimestamp()
@@ -246,6 +268,56 @@ final class AdminWorkspaceController extends Controller
         ]);
     }
 
+    public function verifyEnrollment(Request $request, User $student): JsonResponse
+    {
+        abort_unless($student->roles()->where('slug', RoleSlug::Student->value)->exists(), 404);
+        $enrollment = $student->enrollment;
+        abort_unless($enrollment !== null, 404, 'No enrollment declaration found for this student.');
+
+        $validated = $request->validate([
+            'status' => ['required', 'in:verified,rejected'],
+            'note' => ['nullable', 'string', 'max:500', 'required_if:status,rejected'],
+        ]);
+
+        $note = isset($validated['note']) && trim($validated['note']) !== ''
+            ? trim($validated['note'])
+            : null;
+
+        $enrollment->update([
+            'verification_status' => $validated['status'],
+            'verification_note' => $note,
+            'verified_at' => now(),
+            'verified_by' => $request->user()->getKey(),
+        ]);
+
+        AdminAuditEvent::query()->create([
+            'actor_id' => $request->user()->getKey(),
+            'action' => 'enrollment.'.$validated['status'],
+            'subject_type' => 'student_enrollment',
+            'subject_reference' => (string) $student->getKey(),
+            'metadata' => [
+                'enrolledProgrammeId' => $enrollment->enrolled_programme_id,
+                'status' => $validated['status'],
+            ],
+        ]);
+
+        return response()->json([
+            'data' => [
+                'enrolledProgrammeId' => $enrollment->enrolled_programme_id,
+                'corReference' => $enrollment->cor_reference,
+                'hasCorFile' => $enrollment->cor_file_path !== null,
+                'corOriginalName' => $enrollment->cor_original_name,
+                'corFileUrl' => $enrollment->cor_file_path !== null
+                    ? '/api/v1/enrollment-cor/'.$student->getKey().'?v='.$enrollment->updated_at?->getTimestamp()
+                    : null,
+                'declaredAt' => $enrollment->declared_at->toAtomString(),
+                'verificationStatus' => $enrollment->verification_status,
+                'verificationNote' => $enrollment->verification_note,
+                'verifiedAt' => $enrollment->verified_at?->toAtomString(),
+            ],
+        ]);
+    }
+
     public function studentResultCard(User $student, AssessmentSession $assessmentSession, ResultCardPresenter $presenter): JsonResponse
     {
         abort_unless($student->roles()->where('slug', RoleSlug::Student->value)->exists(), 404);
@@ -264,16 +336,22 @@ final class AdminWorkspaceController extends Controller
             ->selectRaw('programme_id, count(*) as aggregate')
             ->groupBy('programme_id')
             ->pluck('aggregate', 'programme_id');
+        $availabilities = ProgrammeAvailability::query()->get()->keyBy('programme_id');
 
         return response()->json([
             'data' => [
                 'academicYear' => $catalogue['academic_year'],
                 'catalogueVersion' => $catalogue['catalogue_version'],
                 'catalogueStatus' => $catalogue['catalogue_status'],
-                'programmes' => array_map(static fn (array $programme): array => [
-                    'id' => $programme['id'],
-                    'code' => $programme['short_label'],
-                    'name' => $programme['display_name'],
+                'programmes' => array_map(static function (array $programme) use ($savedCounts, $availabilities): array {
+                    $availability = $availabilities->get($programme['id']);
+
+                    return [
+                        'id' => $programme['id'],
+                        'code' => $programme['short_label'],
+                        'name' => $programme['display_name'],
+                        'isEnrollmentOpen' => $availability?->is_enrollment_open ?? true,
+                        'availabilityNote' => $availability?->status_note,
                     'profile' => $programme['riasec_profile'] ?? [],
                     'profileStatus' => $programme['riasec_profile_status'] ?? 'unknown',
                     'profileVersion' => $programme['profile_version'] ?? null,
@@ -300,7 +378,55 @@ final class AdminWorkspaceController extends Controller
                     'monitoring' => [
                         'savedByStudents' => (int) ($savedCounts[$programme['id']] ?? 0),
                     ],
-                ], $catalogue['programmes'] ?? []),
+                ];
+                }, $catalogue['programmes'] ?? []),
+            ],
+        ]);
+    }
+
+    public function updateProgrammeAvailability(
+        Request $request,
+        string $programme,
+        TccProgrammeCatalogueRepository $catalogues,
+    ): JsonResponse {
+        $catalogue = $catalogues->current();
+        $record = collect($catalogue['programmes'] ?? [])->firstWhere('id', $programme);
+        abort_unless(is_array($record), 404, 'Programme not found.');
+
+        $validated = $request->validate([
+            'isEnrollmentOpen' => ['required', 'boolean'],
+            'statusNote' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $note = isset($validated['statusNote']) && trim($validated['statusNote']) !== ''
+            ? trim($validated['statusNote'])
+            : ($validated['isEnrollmentOpen'] ? null : 'Slots full for the current academic period.');
+
+        $availability = ProgrammeAvailability::query()->updateOrCreate(
+            ['programme_id' => $programme],
+            [
+                'is_enrollment_open' => (bool) $validated['isEnrollmentOpen'],
+                'status_note' => $note,
+                'updated_by' => $request->user()->getKey(),
+            ],
+        );
+
+        AdminAuditEvent::query()->create([
+            'actor_id' => $request->user()->getKey(),
+            'action' => $availability->is_enrollment_open ? 'programme.opened' : 'programme.closed',
+            'subject_type' => 'programme',
+            'subject_reference' => $programme,
+            'metadata' => [
+                'isEnrollmentOpen' => $availability->is_enrollment_open,
+                'statusNote' => $availability->status_note,
+            ],
+        ]);
+
+        return response()->json([
+            'data' => [
+                'id' => $programme,
+                'isEnrollmentOpen' => $availability->is_enrollment_open,
+                'availabilityNote' => $availability->status_note,
             ],
         ]);
     }

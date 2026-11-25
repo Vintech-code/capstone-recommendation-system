@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Recommendation;
 
 use App\Http\Controllers\Controller;
+use App\Models\ProgrammeAvailability;
 use App\Services\Recommendation\TccProgrammeCatalogueRepository;
 use Illuminate\Http\JsonResponse;
 
@@ -11,6 +12,7 @@ class StudentProgrammeController extends Controller
     public function index(TccProgrammeCatalogueRepository $catalogues): JsonResponse
     {
         $catalogue = $catalogues->current();
+        $availabilities = ProgrammeAvailability::query()->get()->keyBy('programme_id');
 
         return response()->json([
             'data' => [
@@ -19,7 +21,13 @@ class StudentProgrammeController extends Controller
                 'guidanceContentStatus' => $catalogue['guidance_content_status'] ?? 'proposed',
                 'guidanceContentVersion' => $catalogue['guidance_content_version'] ?? null,
                 'guidanceContentNotice' => $catalogue['guidance_content_notice'] ?? null,
-                'programmes' => array_map([$this, 'programmePayload'], $catalogue['programmes'] ?? []),
+                'programmes' => array_map(
+                    fn (array $programme): array => $this->programmePayload(
+                        $programme,
+                        $availabilities->get((string) $programme['id']),
+                    ),
+                    $catalogue['programmes'] ?? [],
+                ),
             ],
         ]);
     }
@@ -30,17 +38,20 @@ class StudentProgrammeController extends Controller
         $record = collect($catalogue['programmes'] ?? [])->firstWhere('id', $programme);
 
         abort_unless(is_array($record), 404, 'Programme not found.');
+        $availability = ProgrammeAvailability::query()->where('programme_id', $programme)->first();
 
-        return response()->json(['data' => $this->programmePayload($record)]);
+        return response()->json(['data' => $this->programmePayload($record, $availability)]);
     }
 
     /** @param array<string, mixed> $programme */
-    private function programmePayload(array $programme): array
+    private function programmePayload(array $programme, ?ProgrammeAvailability $availability = null): array
     {
         return [
             'id' => $programme['id'],
             'name' => $programme['display_name'],
             'code' => $programme['short_label'],
+            'isEnrollmentOpen' => $availability?->is_enrollment_open ?? true,
+            'availabilityNote' => $availability?->status_note,
             'majors' => $programme['majors'] ?? [],
             'riasecProfile' => $programme['riasec_profile'] ?? [],
             'description' => $programme['description'] ?? '',

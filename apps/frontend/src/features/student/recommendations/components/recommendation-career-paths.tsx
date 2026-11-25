@@ -27,7 +27,7 @@ function RecommendationCareerPaths({
           </h2>
           <p className="mt-2 text-sm font-medium leading-6 text-muted-foreground sm:text-base">
             {profileCount > 1
-              ? `Built from ${profileCount} generated three-code results.`
+              ? `Built from ${profileCount} generated tied-score results.`
               : `Built from your recorded pattern: ${profileCode}`}
           </p>
         </div>

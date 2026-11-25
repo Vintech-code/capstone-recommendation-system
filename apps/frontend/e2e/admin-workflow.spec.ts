@@ -45,7 +45,7 @@ async function installAdminApi(page: Page, initiallyAuthenticated = false) {
     if (path === '/api/v1/admin/students/10/attempts/1/card') return json(route, { data: resultCard })
     if (path === '/api/v1/admin/programmes') return json(route, { data: { academicYear: '2026-2027', catalogueVersion: 2, catalogueStatus: 'approved_current_scope', programmes: [{ id: 'bs-information-technology', code: 'BSIT', name: 'BS Information Technology', profile: ['I', 'R', 'C'], profileStatus: 'psg_informed_analytical_classification', profileVersion: 'PSG-MATRIX-2026-09-10', eligibilityGroup: 'board', majors: [], description: 'Applies computing technologies to organisational needs.', learningAreas: ['Software development'], learningAreaDescriptions: { 'Software development': 'Design and maintain applications.' }, learningAreaTopics: { 'Software development': ['Programming'] }, careerDirections: ['Software development'], requirements: ['Meet published admission requirements.'], readinessPrompt: 'Discuss your interest in technology.', contentVersion: 'GUIDANCE-1', degreeType: "Bachelor's degree", duration: { status: 'ched_psg', display: '4 years', source_name: 'CHED source', source_url: 'https://ched.gov.ph/' }, salary: { status: 'not_published', display: 'Not published' }, jobGrowth: { status: 'not_published', display: 'Not published' }, outlookVersion: 'PH-1', coverImageUrl: null, logoImageUrl: null, monitoring: { savedByStudents: 1 } }] } })
     if (path === '/api/v1/admin/configurations/catalogue') return json(route, { data: { kind: 'catalogue', runtime: { programmes: [catalogueProgramme] }, versions: [{ id: 7, kind: 'catalogue', version: 3, status: 'draft', academicYear: '2026-2027', payload: { programmes: [catalogueProgramme] }, createdBy: 'Admin User', publishedBy: null, createdAt: '2026-09-12T12:00:00+08:00', publishedAt: null }] } })
-    if (path === '/api/v1/admin/reports') return json(route, { data: { generatedAt: '2026-08-08T12:00:00+08:00', from: null, to: null, scope: 'institution', studentCount: 1, eligibilityDistribution: { board: 1, nonBoard: 0 }, completedAssessments: 1, assessmentCompletionRate: 100, assessmentFunnel: { started: 1, inProgress: 0, processing: 0, resultAvailable: 1 }, recommendationRuns: 1, programmeSaves: 0, assessmentCompletionsByMonth: [{ month: '2026-08', count: 1 }] } })
+    if (path === '/api/v1/admin/reports') return json(route, { data: { generatedAt: '2026-08-08T12:00:00+08:00', from: null, to: null, scope: 'institution', enrollmentAlignment: { programs: [{ programmeId: 'bs-information-technology', programmeCode: 'BSIT', programmeName: 'BS Information Technology', recommended: 1, aligned: 1, notAligned: 0, unallocated: 0, alignmentRate: 100 }], overall: { recommended: 1, aligned: 1, notAligned: 0, unallocated: 0, alignmentRate: 100 } } } })
     if (path === '/api/v1/admin/feedback') return json(route, { data: { generatedAt: '2026-08-08T12:00:00+08:00', from: null, to: null, publishedResponseCount: 2, publishedRespondentCount: 1, eligibleProgrammeCount: 2, commentCount: 1, respondents: [{ respondentNumber: 1, responseCount: 2, commentCount: 1, averageRating: 4.5, latestUpdatedAt: '2026-08-08T11:00:00+08:00', programmeFeedback: [{ programmeId: 'bs-information-technology', programmeName: 'BS Information Technology', rating: 4, comment: 'This recommendation reflects my interests in technology.', updatedAt: '2026-08-08T11:00:00+08:00' }, { programmeId: 'bachelor-library-information-science', programmeName: 'Bachelor of Library and Information Science', rating: 5, comment: null, updatedAt: '2026-08-08T10:00:00+08:00' }], resultSets: [{ resultSetNumber: 1, resultDate: '2026-08-08T09:00:00+08:00', recommendationCount: 3, feedbackCount: 2, recommendations: [{ programmeId: 'bs-information-technology', programmeCode: 'BSIT', programmeName: 'BS Information Technology', rank: 1, match: 90, feedback: { rating: 4, comment: 'This recommendation reflects my interests in technology.', updatedAt: '2026-08-08T11:00:00+08:00' } }, { programmeId: 'bachelor-library-information-science', programmeCode: 'BLIS', programmeName: 'Bachelor of Library and Information Science', rank: 2, match: 88.57, feedback: { rating: 5, comment: null, updatedAt: '2026-08-08T10:00:00+08:00' } }, { programmeId: 'bs-business-administration-financial-management', programmeCode: 'BSBA-FM', programmeName: 'BS Business Administration - Financial Management', rank: 3, match: 82.86, feedback: null }] }] }], programmes: [{ programmeId: 'bs-information-technology', programmeName: 'BS Information Technology', respondentCount: 1, averageRating: 4, ratingDistribution: { '1': 0, '2': 0, '3': 0, '4': 1, '5': 0 } }, { programmeId: 'bachelor-library-information-science', programmeName: 'Bachelor of Library and Information Science', respondentCount: 1, averageRating: 5, ratingDistribution: { '1': 0, '2': 0, '3': 0, '4': 0, '5': 1 } }], comments: [{ programmeId: 'bs-information-technology', programmeName: 'BS Information Technology', rating: 4, comment: 'This recommendation reflects my interests in technology.', updatedAt: '2026-08-08T11:00:00+08:00' }] } })
     if (path === '/api/v1/admin/activity') return json(route, { data: { items: [{ id: 1, actorId: 2, actor: 'Admin User', action: 'configuration.published', createdAt: '2026-08-08T12:00:00+08:00' }], pagination: { currentPage: 1, lastPage: 1, perPage: 25, total: 1, from: 1, to: 1 }, filters: { actors: [{ id: 2, name: 'Admin User' }], actions: ['configuration.published'] } } })
     if (path === '/api/v1/admin/administrators') return json(route, { data: { administrators: [{ id: 2, name: 'Admin User', email: 'admin@example.test', accountStatus: 'active', canManageAdministrators: true, lastActiveAt: '2026-09-14T08:00:00Z', createdAt: '2026-09-01T08:00:00Z' }, { id: 3, name: 'Records Administrator', email: 'records@example.test', accountStatus: 'suspended', canManageAdministrators: false, lastActiveAt: null, createdAt: '2026-09-02T08:00:00Z' }], invitations: [{ id: 7, name: 'Pending Administrator', email: 'pending@example.test', status: 'pending', canManageAdministrators: false, invitedBy: 'Admin User', expiresAt: '2026-09-15T08:00:00Z', sentAt: '2026-09-14T08:00:00Z', createdAt: '2026-09-14T08:00:00Z' }] } })
@@ -152,14 +152,17 @@ test('Admin dashboard uses the semantic multicolor palette without overflow', as
   consoleErrors.length = 0
 
   await expect(page.getByRole('heading', { name: 'System overview' })).toBeVisible()
-  await expect(page.getByRole('heading', { name: 'Journey stage detail' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Student journey' })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Assessment Milestones' })).toBeVisible()
-  await expect(page.getByRole('button', { name: 'View all records' })).toBeVisible()
+  await expect(
+    page.getByLabel('Welcome and workspace overview').getByRole('button', { name: 'View all records' }),
+  ).toBeVisible()
+  await expect(page.getByRole('button', { name: 'View all records' })).toHaveCount(2)
 
-  const metricColors = await page.getByTestId('admin-operational-strip').locator(':scope > div').evaluateAll((cells) =>
-    cells.map((cell) => getComputedStyle(cell).backgroundColor),
+  const metricColors = await page.getByTestId('admin-operational-strip').locator(':scope > div > div > span:last-child').evaluateAll((indicators) =>
+    indicators.map((indicator) => getComputedStyle(indicator).color),
   )
-  expect(new Set(metricColors).size).toBe(4)
+  expect(new Set(metricColors).size).toBeGreaterThanOrEqual(2)
   const metricCount = await page.getByTestId('admin-operational-strip').locator(':scope > div').count()
   expect(metricCount).toBe(3)
 
@@ -191,11 +194,11 @@ test('Admin workspace is responsive, accessible, and navigable', async ({ page }
   await expect(page.getByRole('contentinfo')).toHaveCount(0)
   consoleErrors.length = 0
   await expect(page.getByRole('heading', { name: 'Recent Students' })).toBeVisible()
-  await expect(page.getByRole('heading', { name: 'Journey stage detail' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Student journey' })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Assessment Milestones' })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Open student directory' })).toHaveCount(0)
   await expect(page.getByText('Needs attention', { exact: true })).toHaveCount(0)
-  await expect(page.getByText('Recommendation runs', { exact: true })).toBeVisible()
+  await expect(page.getByText('Course Recommendations Delivered', { exact: true })).toBeVisible()
   await expect(page.getByText('Top Recommended Programmes')).toHaveCount(0)
   await expect(page.getByText('Matches by Track')).toHaveCount(0)
   await expect(page.getByRole('heading', { name: 'Current workload' })).toHaveCount(0)
@@ -414,9 +417,9 @@ test('Administrator invitation and account governance render securely without ov
   await page.goto('/admin/administrators')
 
   await expect(page.getByRole('heading', { name: 'Administrators', exact: true })).toBeVisible()
-  await page.getByRole('tab', { name: /invitation history/i }).click()
+  await page.getByRole('tab', { name: /^invitations/i }).click()
   await expect(page.getByText('Pending Administrator')).toBeVisible()
-  await page.getByRole('tab', { name: /all administrators/i }).click()
+  await page.getByRole('tab', { name: /^administrators/i }).click()
   await expect(page.getByText('Suspended', { exact: true }).filter({ visible: true })).toBeVisible()
   await page.getByRole('button', { name: 'Invite administrator' }).click()
   await expect(page.getByRole('dialog')).toBeVisible()

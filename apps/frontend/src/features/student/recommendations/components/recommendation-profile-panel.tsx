@@ -127,7 +127,7 @@ function RecommendationProfilePanel({
           {profileVariantCount > 1 ? (
             <>
               Your tied scores support <strong>{profileVariantCount}</strong>{" "}
-              three-code results. Programme matching still compares all six
+              result variants. Programme matching still compares all six
               recorded scores with each programme&apos;s configured profile.
             </>
           ) : (

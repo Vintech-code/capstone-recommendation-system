@@ -4,8 +4,8 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import {
   AdminThemeProvider,
-  useAdminTheme,
 } from "@/features/admin/theme/admin-theme-context";
+import { useAdminTheme } from "@/features/admin/theme/admin-theme-state";
 import {
   AdminThemeToggle,
   AdminThemeDropdownItem,

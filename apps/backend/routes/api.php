@@ -22,6 +22,7 @@ use App\Http\Controllers\Recommendation\StudentProgrammeController;
 use App\Http\Controllers\Recommendation\StudentRecommendationController;
 use App\Http\Controllers\Recommendation\StudentRecommendationFeedbackController;
 use App\Http\Controllers\Recommendation\StudentSavedProgrammeController;
+use App\Http\Controllers\Student\StudentEnrollmentController;
 use App\Http\Controllers\Student\StudentProfileController;
 use App\Models\RoleSlug;
 use Illuminate\Support\Facades\Route;
@@ -113,7 +114,17 @@ Route::prefix('v1/student/profile')
         Route::post('/photo', [StudentProfileController::class, 'storePhoto']);
     });
 
+Route::prefix('v1/student/enrollment')
+    ->middleware(['auth:sanctum', 'active', 'verified', 'role:student'])
+    ->group(function (): void {
+        Route::get('/', [StudentEnrollmentController::class, 'show']);
+        Route::post('/', [StudentEnrollmentController::class, 'store']);
+    });
+
 Route::get('v1/profile-photos/{student}', [StudentProfileController::class, 'showPhoto'])
+    ->middleware(['auth:sanctum', 'active', 'verified']);
+
+Route::get('v1/enrollment-cor/{student}', [StudentEnrollmentController::class, 'showFile'])
     ->middleware(['auth:sanctum', 'active', 'verified']);
 
 Route::prefix('v1/admin')
@@ -122,8 +133,10 @@ Route::prefix('v1/admin')
         Route::get('/overview', [AdminWorkspaceController::class, 'overview']);
         Route::get('/students', [AdminWorkspaceController::class, 'students']);
         Route::get('/students/{student}', [AdminWorkspaceController::class, 'student']);
+        Route::put('/students/{student}/enrollment/verification', [AdminWorkspaceController::class, 'verifyEnrollment']);
         Route::get('/students/{student}/attempts/{assessmentSession}/card', [AdminWorkspaceController::class, 'studentResultCard']);
         Route::get('/programmes', [AdminWorkspaceController::class, 'programmes']);
+        Route::put('/programmes/{programme}/availability', [AdminWorkspaceController::class, 'updateProgrammeAvailability']);
         Route::get('/esco/occupations', [AdminEscoOccupationController::class, 'index'])->middleware('throttle:30,1');
         Route::get('/esco/occupation', [AdminEscoOccupationController::class, 'show'])->middleware('throttle:30,1');
         Route::post('/programmes/{programme}/media', [AdminProgrammeMediaController::class, 'store']);

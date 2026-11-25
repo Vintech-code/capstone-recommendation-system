@@ -27,7 +27,8 @@ import {
 } from "@/features/admin/data/admin-api";
 import { formatDate, humanize } from "@/features/admin/data/admin-formatters";
 import { CatalogueProfileEditor } from "@/features/admin/components/catalogue-profile-editor";
-import { ConfigurationDiffPreview, programmeChangeScope } from "@/features/admin/components/configuration-diff-preview";
+import { ConfigurationDiffPreview } from "@/features/admin/components/configuration-diff-preview";
+import { programmeChangeScope } from "@/features/admin/data/configuration-diff";
 
 function ConfigurationWorkflow({
   programmeId,

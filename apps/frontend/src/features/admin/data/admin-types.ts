@@ -15,6 +15,7 @@ interface AdminOverview {
 
 interface AdminStudent {
   id: number
+  studentNumber?: number
   name: string
   email: string
   photoUrl?: string | null
@@ -73,6 +74,17 @@ interface AdminStudentRecord {
   photoUrl?: string | null
   accountStatus: string
   savedProgrammeCount: number
+  enrollment?: {
+    enrolledProgrammeId: string
+    corReference: string | null
+    hasCorFile: boolean
+    corOriginalName: string | null
+    corFileUrl: string | null
+    declaredAt: string
+    verificationStatus?: 'pending' | 'verified' | 'rejected'
+    verificationNote?: string | null
+    verifiedAt?: string | null
+  } | null
   profile: {
     photoUrl?: string | null
     idNumber: string | null
@@ -119,31 +131,40 @@ interface AdminProgramme {
   logoImageUrl: string | null
   monitoring: { savedByStudents: number }
   eligibilityGroup: 'board' | 'non_board' | null
+  isEnrollmentOpen?: boolean
+  availabilityNote?: string | null
 }
 
 interface AdminProgrammeCatalogue { academicYear: string; catalogueVersion: number; catalogueStatus: string; programmes: AdminProgramme[] }
+
+interface AdminEnrollmentAlignmentProgram {
+  programmeId: string
+  programmeCode: string
+  programmeName: string
+  recommended: number
+  aligned: number
+  notAligned: number
+  unallocated: number
+  alignmentRate: number
+}
+
+interface AdminEnrollmentAlignment {
+  programs: AdminEnrollmentAlignmentProgram[]
+  overall: {
+    recommended: number
+    aligned: number
+    notAligned: number
+    unallocated: number
+    alignmentRate: number
+  }
+}
 
 interface AdminReport {
   generatedAt: string
   from: string | null
   to: string | null
   scope: 'institution'
-  studentCount: number
-  eligibilityDistribution: { board: number; nonBoard: number }
-  completedAssessments: number
-  assessmentCompletionRate: number
-  assessmentFunnel: { started: number; inProgress: number; processing: number; resultAvailable: number }
-  recommendationRuns: number
-  programmeSaves: number
-  assessmentCompletionsByMonth: Array<{
-    month: string
-    count: number
-    completed?: number
-    started?: number
-    saved?: number
-    volume?: number
-  }>
-  retakeMetrics?: { totalAssessmentAttempts: number; totalCompletedAttempts: number; studentsWithRetakes: number; totalRetakeAttempts: number }
+  enrollmentAlignment?: AdminEnrollmentAlignment
 }
 
 interface AdminRecommendationFeedback {
@@ -235,6 +256,8 @@ export type {
   AdminActivity,
   AdminActivityResponse,
   AdminAssessment,
+  AdminEnrollmentAlignment,
+  AdminEnrollmentAlignmentProgram,
   AdminOverview,
   AdminPagination,
   AdminProgramme,

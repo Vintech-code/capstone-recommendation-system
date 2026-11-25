@@ -2,128 +2,110 @@
 
 namespace App\Services\Admin;
 
-use App\Models\AssessmentSession;
-use App\Models\EntranceExaminationResult;
 use App\Models\RecommendationRun;
-use App\Models\RoleSlug;
-use App\Models\StudentSavedProgramme;
-use App\Models\User;
+use App\Models\StudentEnrollment;
+use App\Services\Recommendation\TccProgrammeCatalogueRepository;
 use Illuminate\Database\Eloquent\Builder;
 
 final class AdminReportService
 {
+    public function __construct(
+        private readonly TccProgrammeCatalogueRepository $catalogues,
+    ) {}
+
     /** @return array<string, mixed> */
     public function generate(?string $from, ?string $to): array
     {
-        $period = static function (Builder $query, string $column) use ($from, $to): Builder {
-            return $query
-                ->when($from, fn (Builder $builder) => $builder->whereDate($column, '>=', $from))
-                ->when($to, fn (Builder $builder) => $builder->whereDate($column, '<=', $to));
-        };
-
-        $assessmentActivityQuery = AssessmentSession::query();
-        $period($assessmentActivityQuery, 'started_at');
-        $completedStudents = (clone $assessmentActivityQuery)
-            ->where('status', 'result_available')
-            ->distinct()
-            ->count('user_id');
-        $assessmentActivity = (clone $assessmentActivityQuery)->distinct()->count('user_id');
-        $assessmentStatusCounts = (clone $assessmentActivityQuery)
-            ->selectRaw('status, count(distinct user_id) as aggregate')
-            ->groupBy('status')
-            ->pluck('aggregate', 'status');
-
-        $declarationQuery = EntranceExaminationResult::query()->whereNull('superseded_at');
-        $period($declarationQuery, 'declared_at');
-        $eligibility = (clone $declarationQuery)
-            ->selectRaw('eligibility_group, count(distinct user_id) as aggregate')
-            ->groupBy('eligibility_group')
-            ->pluck('aggregate', 'eligibility_group');
-
-        $completionEventQuery = AssessmentSession::query()->where('status', 'result_available');
-        $period($completionEventQuery, 'result_available_at');
-
-        $runs = RecommendationRun::query()
-            ->when($from, fn (Builder $query) => $query->whereDate('generated_at', '>=', $from))
-            ->when($to, fn (Builder $query) => $query->whereDate('generated_at', '<=', $to))
-            ->get(['user_id']);
-
-        $savedProgrammeQuery = StudentSavedProgramme::query();
-        $period($savedProgrammeQuery, 'created_at');
-
-        $completionSessionsByMonth = (clone $completionEventQuery)
-            ->get(['user_id', 'result_available_at'])
-            ->groupBy(static fn (AssessmentSession $session): string => $session->result_available_at->format('Y-m'));
-
-        $startedSessionsByMonth = (clone $assessmentActivityQuery)
-            ->get(['user_id', 'started_at'])
-            ->groupBy(static fn (AssessmentSession $session): string => $session->started_at->format('Y-m'));
-
-        $savedByMonth = (clone $savedProgrammeQuery)
-            ->get(['user_id', 'created_at'])
-            ->groupBy(static fn (StudentSavedProgramme $save): string => $save->created_at->format('Y-m'));
-
-        $allMonths = $completionSessionsByMonth->keys()
-            ->merge($startedSessionsByMonth->keys())
-            ->merge($savedByMonth->keys())
-            ->unique()
-            ->sort()
-            ->values();
-
-        $completionMonths = $allMonths->map(static function (string $month) use ($completionSessionsByMonth, $startedSessionsByMonth, $savedByMonth): array {
-            $completedCount = isset($completionSessionsByMonth[$month]) ? $completionSessionsByMonth[$month]->pluck('user_id')->unique()->count() : 0;
-            $startedCount = isset($startedSessionsByMonth[$month]) ? $startedSessionsByMonth[$month]->pluck('user_id')->unique()->count() : 0;
-            $savedCount = isset($savedByMonth[$month]) ? $savedByMonth[$month]->count() : 0;
-
-            return [
-                'month' => $month,
-                'count' => $completedCount,
-                'completed' => $completedCount,
-                'started' => $startedCount,
-                'saved' => $savedCount,
-            ];
-        })->all();
-
         return [
             'generatedAt' => now()->toAtomString(),
             'from' => $from,
             'to' => $to,
             'scope' => 'institution',
-            'studentCount' => $this->studentQuery()->count(),
-            'eligibilityDistribution' => [
-                'board' => (int) ($eligibility['board'] ?? 0),
-                'nonBoard' => (int) ($eligibility['non_board'] ?? 0),
-            ],
-            'completedAssessments' => $completedStudents,
-            'assessmentCompletionRate' => $assessmentActivity > 0 ? round(($completedStudents / $assessmentActivity) * 100, 1) : 0,
-            'assessmentFunnel' => [
-                'started' => $assessmentActivity,
-                'inProgress' => (int) ($assessmentStatusCounts['in_progress'] ?? 0),
-                'processing' => (int) ($assessmentStatusCounts['preparing_result'] ?? 0),
-                'resultAvailable' => (int) ($assessmentStatusCounts['result_available'] ?? 0),
-                'failed' => (int) ($assessmentStatusCounts['result_failed'] ?? 0),
-            ],
-            'recommendationRuns' => $runs->pluck('user_id')->filter()->unique()->count(),
-            'programmeSaves' => $savedProgrammeQuery->count(),
-            'retakeMetrics' => [
-                'totalAssessmentAttempts' => (clone $assessmentActivityQuery)->count(),
-                'totalCompletedAttempts' => (clone $completionEventQuery)->count(),
-                'studentsWithRetakes' => AssessmentSession::query()
-                    ->where('status', 'result_available')
-                    ->selectRaw('user_id, count(*) as completed_count')
-                    ->groupBy('user_id')
-                    ->havingRaw('count(*) > 1')
-                    ->get()
-                    ->count(),
-                'totalRetakeAttempts' => (clone $assessmentActivityQuery)->where('attempt_number', '>', 1)->count(),
-            ],
-            'assessmentCompletionsByMonth' => $completionMonths,
+            'enrollmentAlignment' => $this->enrollmentAlignment($from, $to),
         ];
     }
 
-    /** @return Builder<User> */
-    private function studentQuery(): Builder
+    /** @return array<string, mixed> */
+    private function enrollmentAlignment(?string $from, ?string $to): array
     {
-        return User::query()->whereHas('roles', static fn (Builder $query) => $query->where('slug', RoleSlug::Student->value));
+        $catalogue = $this->catalogues->current();
+        $programmes = collect($catalogue['programmes'] ?? []);
+        $counts = $programmes->mapWithKeys(static fn (array $programme): array => [
+            (string) $programme['id'] => [
+                'programmeId' => (string) $programme['id'],
+                'programmeCode' => (string) ($programme['short_label'] ?? $programme['id']),
+                'programmeName' => (string) ($programme['display_name'] ?? $programme['id']),
+                'recommended' => 0,
+                'aligned' => 0,
+                'notAligned' => 0,
+                'unallocated' => 0,
+            ],
+        ])->all();
+
+        $latestRuns = RecommendationRun::query()
+            ->when($from, fn (Builder $query) => $query->whereDate('generated_at', '>=', $from))
+            ->when($to, fn (Builder $query) => $query->whereDate('generated_at', '<=', $to))
+            ->latest('generated_at')
+            ->get(['user_id', 'ranked_courses'])
+            ->unique('user_id');
+
+        $enrollments = StudentEnrollment::query()
+            ->get(['user_id', 'enrolled_programme_id', 'verification_status'])
+            ->keyBy('user_id');
+
+        foreach ($latestRuns as $run) {
+            $topCourse = $run->ranked_courses[0] ?? null;
+            $topProgrammeId = is_array($topCourse) ? (string) ($topCourse['id'] ?? '') : '';
+            if ($topProgrammeId === '' || ! isset($counts[$topProgrammeId])) {
+                continue;
+            }
+
+            $counts[$topProgrammeId]['recommended']++;
+            $enrollment = $enrollments->get($run->user_id);
+
+            if (! $enrollment instanceof StudentEnrollment || $enrollment->verification_status !== 'verified') {
+                $counts[$topProgrammeId]['unallocated']++;
+            } elseif ($enrollment->enrolled_programme_id === $topProgrammeId) {
+                $counts[$topProgrammeId]['aligned']++;
+            } else {
+                $counts[$topProgrammeId]['notAligned']++;
+            }
+        }
+
+        $programsList = collect($counts)
+            ->map(static function (array $row): array {
+                $recommended = $row['recommended'];
+
+                return [
+                    ...$row,
+                    'alignmentRate' => $recommended > 0
+                        ? round(($row['aligned'] / $recommended) * 100, 2)
+                        : 0.0,
+                ];
+            })
+            ->sortBy([
+                ['recommended', 'desc'],
+                ['programmeName', 'asc'],
+            ])
+            ->values()
+            ->all();
+
+        $totalRecommended = array_sum(array_column($programsList, 'recommended'));
+        $totalAligned = array_sum(array_column($programsList, 'aligned'));
+        $totalNotAligned = array_sum(array_column($programsList, 'notAligned'));
+        $totalUnallocated = array_sum(array_column($programsList, 'unallocated'));
+
+        return [
+            'programs' => $programsList,
+            'overall' => [
+                'recommended' => $totalRecommended,
+                'aligned' => $totalAligned,
+                'notAligned' => $totalNotAligned,
+                'unallocated' => $totalUnallocated,
+                'alignmentRate' => $totalRecommended > 0
+                    ? round(($totalAligned / $totalRecommended) * 100, 2)
+                    : 0.0,
+            ],
+        ];
     }
 }

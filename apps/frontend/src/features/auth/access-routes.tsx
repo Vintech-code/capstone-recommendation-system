@@ -226,6 +226,14 @@ function SharedStateRoute({
   );
 }
 
+function ProtectedAdminRedirect({ to }: { to: string }) {
+  return (
+    <ProtectedRoute role="admin">
+      <Navigate to={to} replace />
+    </ProtectedRoute>
+  );
+}
+
 function AccessRoutes() {
   return (
     <Suspense
@@ -286,7 +294,7 @@ function AccessRoutes() {
         />
         <Route
           path="/admin/assessments"
-          element={<Navigate to="/admin/students" replace />}
+          element={<ProtectedAdminRedirect to="/admin/students" />}
         />
         <Route path="/admin/programmes" element={<AdminWorkspaceRoute />} />
         <Route
@@ -295,7 +303,7 @@ function AccessRoutes() {
         />
         <Route
           path="/admin/programmes/sources"
-          element={<Navigate to="/admin/programmes" replace />}
+          element={<ProtectedAdminRedirect to="/admin/programmes" />}
         />
         <Route path="/admin/reports" element={<AdminWorkspaceRoute />} />
         <Route path="/admin/feedback" element={<AdminWorkspaceRoute />} />
@@ -304,47 +312,47 @@ function AccessRoutes() {
         <Route path="/admin/profile" element={<AdminWorkspaceRoute />} />
         <Route
           path="/admin/settings"
-          element={<Navigate to="/admin/profile" replace />}
+          element={<ProtectedAdminRedirect to="/admin/profile" />}
         />
         <Route
           path="/admin/applicants/*"
-          element={<Navigate to="/admin/students" replace />}
+          element={<ProtectedAdminRedirect to="/admin/students" />}
         />
         <Route
           path="/admin/official-results/*"
-          element={<Navigate to="/admin/students" replace />}
+          element={<ProtectedAdminRedirect to="/admin/students" />}
         />
         <Route
           path="/admin/exam-results/*"
-          element={<Navigate to="/admin/students" replace />}
+          element={<ProtectedAdminRedirect to="/admin/students" />}
         />
         <Route
           path="/admin/imports/*"
-          element={<Navigate to="/admin/students" replace />}
+          element={<ProtectedAdminRedirect to="/admin/students" />}
         />
         <Route
           path="/admin/questionnaires/*"
-          element={<Navigate to="/admin/students" replace />}
+          element={<ProtectedAdminRedirect to="/admin/students" />}
         />
         <Route
           path="/admin/recommendations/*"
-          element={<Navigate to="/admin/students" replace />}
+          element={<ProtectedAdminRedirect to="/admin/students" />}
         />
         <Route
           path="/admin/validation-cases"
-          element={<Navigate to="/admin/students" replace />}
+          element={<ProtectedAdminRedirect to="/admin/students" />}
         />
         <Route
           path="/admin/decisions"
-          element={<Navigate to="/admin/students" replace />}
+          element={<ProtectedAdminRedirect to="/admin/students" />}
         />
         <Route
           path="/admin/courses/*"
-          element={<Navigate to="/admin/programmes" replace />}
+          element={<ProtectedAdminRedirect to="/admin/programmes" />}
         />
         <Route
           path="/admin/rules/*"
-          element={<Navigate to="/admin/programmes" replace />}
+          element={<ProtectedAdminRedirect to="/admin/programmes" />}
         />
         <Route
           path="/forbidden"

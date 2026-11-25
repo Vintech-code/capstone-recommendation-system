@@ -1,3 +1,6 @@
+import { AlertCircle } from "lucide-react";
+
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { RecommendationMatchCard } from "@/features/student/recommendations/components/recommendation-match-card";
 import type { StudentRecommendationSnapshot } from "@/features/student/recommendations/recommendation-types";
 
@@ -27,6 +30,15 @@ function RecommendationRankedList({
             : `Top ${snapshot.courses.length}`}
         </span>
       </div>
+      {snapshot.courses[0]?.isEnrollmentOpen === false ? (
+        <Alert className="mb-5 border-warning/40 bg-warning/10 text-warning-ink">
+          <AlertCircle aria-hidden="true" className="size-4 text-warning-ink" />
+          <AlertTitle className="font-bold">Top recommendation is currently full</AlertTitle>
+          <AlertDescription className="text-xs">
+            Your #1 match ({snapshot.courses[0].name}) has reached enrollment capacity. Please review your next best matches below.
+          </AlertDescription>
+        </Alert>
+      ) : null}
       <ol className="space-y-4 sm:space-y-5">
         {snapshot.courses.map((course, index) => (
           <li key={course.id}>

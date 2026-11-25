@@ -1,26 +1,18 @@
 import {
-  createContext,
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useState,
   type ReactNode,
 } from "react";
-
-export type AdminThemeMode = "light" | "dark" | "system";
-export type ResolvedTheme = "light" | "dark";
-
-interface AdminThemeContextValue {
-  themeMode: AdminThemeMode;
-  resolvedTheme: ResolvedTheme;
-  setThemeMode: (mode: AdminThemeMode) => void;
-  toggleTheme: () => void;
-}
+import {
+  AdminThemeContext,
+  type AdminThemeContextValue,
+  type AdminThemeMode,
+  type ResolvedTheme,
+} from "@/features/admin/theme/admin-theme-state";
 
 const THEME_STORAGE_KEY = "tcc_admin_theme_mode";
-
-const AdminThemeContext = createContext<AdminThemeContextValue | null>(null);
 
 function getStoredTheme(): AdminThemeMode {
   if (typeof window === "undefined") return "light";
@@ -43,7 +35,7 @@ function getSystemTheme(): ResolvedTheme {
     : "light";
 }
 
-export function AdminThemeProvider({ children }: { children: ReactNode }) {
+function AdminThemeProvider({ children }: { children: ReactNode }) {
   const [themeMode, setThemeModeState] = useState<AdminThemeMode>(getStoredTheme);
   const [systemTheme, setSystemTheme] = useState<ResolvedTheme>(getSystemTheme);
 
@@ -111,16 +103,5 @@ export function AdminThemeProvider({ children }: { children: ReactNode }) {
   );
 }
 
-export function useAdminTheme(): AdminThemeContextValue {
-  const context = useContext(AdminThemeContext);
-  if (!context) {
-    return {
-      themeMode: "light",
-      resolvedTheme: "light",
-      setThemeMode: () => {},
-      toggleTheme: () => {},
-    };
-  }
-  return context;
-}
+export { AdminThemeProvider };
 

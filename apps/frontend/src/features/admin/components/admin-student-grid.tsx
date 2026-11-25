@@ -24,10 +24,11 @@ function AdminStudentGrid({ students, onOpenStudent }: AdminStudentGridProps) {
 
     const grid = new Grid({
       columns: [
-        { name: "Student", width: "24%" },
-        { name: "Journey state", width: "18%" },
-        { name: "Assessment evidence", width: "21%" },
-        { name: "Recommendation", width: "16%" },
+        { name: "No.", width: "6%" },
+        { name: "Student", width: "22%" },
+        { name: "Journey state", width: "17%" },
+        { name: "Assessment evidence", width: "20%" },
+        { name: "Recommendation", width: "14%" },
         { name: "Last activity", width: "13%" },
         { name: "Action", width: "8%" },
       ],
@@ -66,7 +67,9 @@ function AdminStudentGrid({ students, onOpenStudent }: AdminStudentGridProps) {
 }
 
 function toGridRow(student: AdminStudent) {
+  const numberLabel = String(student.studentNumber ?? student.id).padStart(2, "0");
   return [
+    html(`<span class="font-display text-sm font-black text-primary-ink">${escapeHtml(numberLabel)}</span>`),
     html(renderStudentIdentity(student)),
     html(renderJourneyState(student)),
     html(renderAssessmentEvidence(student)),

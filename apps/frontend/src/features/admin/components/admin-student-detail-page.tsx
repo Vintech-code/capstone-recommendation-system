@@ -23,6 +23,7 @@ import {
   AdminPageSkeleton,
   EmptyPanel,
 } from "@/features/admin/components/admin-shared";
+import { AdminStudentEnrollmentPanel } from "@/features/admin/components/admin-student-enrollment-panel";
 import {
   getAdminStudentResultCard,
   type AdminAssessment,
@@ -337,6 +338,13 @@ export function AdminStudentDetailPage({
                         {student.savedProgrammeCount === 1 ? "" : "s"}
                       </span>
                     </div>
+                    {student.enrollment ? (
+                      <AdminStudentEnrollmentPanel
+                        studentId={student.id}
+                        enrollment={student.enrollment}
+                        onUpdated={resource.retry}
+                      />
+                    ) : null}
                   </div>
                 </div>
 

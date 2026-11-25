@@ -1,6 +1,6 @@
 # Three-code RIASEC tie variants
 
-**Status:** IN PROGRESS pending clean repository-wide frontend lint and Playwright runner shutdown.  
+**Status:** SUPERSEDED on 2026-11-26 by `2026-11-26-riasec-tied-tier-result-variants.md`; retained as historical implementation and validation evidence.
 **Date:** 2026-11-24.  
 **Owner:** Assessment result-presentation domain.  
 **Methodology status:** Repository-owner-approved for local implementation; external institutional and psychometric review remains required.

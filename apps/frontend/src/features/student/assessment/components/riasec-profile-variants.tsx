@@ -39,7 +39,7 @@ function RiasecProfileVariants({
             id="profile-variants-title"
             className="block font-display text-sm font-bold text-foreground sm:text-base"
           >
-            View all {variants.length} three-code results
+            View all {variants.length} tied-score results
           </span>
           <span className="mt-0.5 block text-xs leading-5 text-muted-foreground sm:text-sm">
             Each result follows the recorded tie-expansion rule.
@@ -57,7 +57,7 @@ function RiasecProfileVariants({
       <div
         id="profile-variants-list"
         role="region"
-        aria-label="Three-code result explanations"
+        aria-label="Tied-score result explanations"
         hidden={!expanded}
         className="max-h-[32rem] overflow-y-auto border-t border-border bg-secondary/20"
       >
@@ -76,7 +76,7 @@ function RiasecProfileVariants({
                 <p className="mt-2 text-sm leading-6 text-foreground/90">
                   {copy
                     ? formatRiasecProfileDescription(copy)
-                    : `${variant.labels.join(", ")} form one generated three-code result from your recorded scores.`}
+                    : `${variant.labels.join(", ")} form one generated RIASEC result from your recorded score tiers.`}
                 </p>
               </li>
             );

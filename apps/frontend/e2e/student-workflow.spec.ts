@@ -41,14 +41,16 @@ const recommendation = {
   profile: {
     sessionReference: 'ASMT-000001',
     availableAt: '2026-08-08T00:00:00Z',
-    topCode: 'R-A-S',
-    topLabels: ['Realistic', 'Artistic', 'Social'],
-    profileVariantVersion: 'PROPOSED-RIASEC-PROFILE-VARIANTS-2026-11-24',
+    topCode: 'R-I-A-S',
+    topLabels: ['Realistic', 'Investigative', 'Artistic', 'Social'],
+    profileVariantVersion: 'PROPOSED-RIASEC-TIED-TIERS-2026-11-26',
     profileVariants: [
-      { code: 'R-A-S', compactCode: 'RAS', codes: ['R', 'A', 'S'], labels: ['Realistic', 'Artistic', 'Social'] },
-      { code: 'R-S-A', compactCode: 'RSA', codes: ['R', 'S', 'A'], labels: ['Realistic', 'Social', 'Artistic'] },
-      { code: 'I-A-S', compactCode: 'IAS', codes: ['I', 'A', 'S'], labels: ['Investigative', 'Artistic', 'Social'] },
-      { code: 'I-S-A', compactCode: 'ISA', codes: ['I', 'S', 'A'], labels: ['Investigative', 'Social', 'Artistic'] },
+      { code: 'R-I-A-S', compactCode: 'RIAS', codes: ['R', 'I', 'A', 'S'], labels: ['Realistic', 'Investigative', 'Artistic', 'Social'] },
+      { code: 'R-I-S-A', compactCode: 'RISA', codes: ['R', 'I', 'S', 'A'], labels: ['Realistic', 'Investigative', 'Social', 'Artistic'] },
+      { code: 'R-A-I-S', compactCode: 'RAIS', codes: ['R', 'A', 'I', 'S'], labels: ['Realistic', 'Artistic', 'Investigative', 'Social'] },
+      { code: 'R-A-S-I', compactCode: 'RASI', codes: ['R', 'A', 'S', 'I'], labels: ['Realistic', 'Artistic', 'Social', 'Investigative'] },
+      { code: 'R-S-I-A', compactCode: 'RSIA', codes: ['R', 'S', 'I', 'A'], labels: ['Realistic', 'Social', 'Investigative', 'Artistic'] },
+      { code: 'R-S-A-I', compactCode: 'RSAI', codes: ['R', 'S', 'A', 'I'], labels: ['Realistic', 'Social', 'Artistic', 'Investigative'] },
     ],
     dimensions: resultEntries.map((entry) => ({
       code: entry.area[0],
@@ -174,6 +176,20 @@ async function installStudentApi(
         personalAcademic: { location: { regionId: 1, provinceId: 2, cityMunicipalityId: 3, barangayId: 4 }, complete: true, idNumber: '12345678', birthDate: '2007-04-18', age: 19, phone: '+63 917 842 1928', addressLine: 'Zone 2', barangay: 'Poblacion', municipality: 'Tagoloan', province: 'Misamis Oriental', updatedAt: '2026-09-07T10:00:00+08:00' },
         riasec: null,
       } })
+    }
+    if (path === '/api/v1/student/enrollment' && method === 'GET') {
+      return json(route, {
+        data: {
+          enrollment: null,
+          programmes: [
+            {
+              id: 'bs-information-technology',
+              code: 'BSIT',
+              name: 'BS Information Technology',
+            },
+          ],
+        },
+      })
     }
     if (path === '/api/v1/student/entrance-examination') {
       return json(route, { data: { status: 'declared', result: { id: 1, score: 2.5, eligibilityGroup: 'board', ruleReference: 'SELF-DECLARED-TCC-ENTRANCE-2026-01', source: 'student_self_declared', declaredAt: '2026-08-08T07:00:00+08:00' } } })
@@ -581,14 +597,14 @@ test('completes the student assessment and opens a recommendation detail', async
   const resultSummary = page.getByRole('heading', { level: 1 }).locator('xpath=ancestor::section[1]')
   const careerPaths = page.getByRole('heading', { name: 'Recommended career paths' }).locator('xpath=ancestor::section[1]')
   await expect(resultSummary.getByText('Why it fits you')).toBeVisible()
-  const profileVariants = resultSummary.getByRole('button', { name: /View all 4 three-code results/ })
+  const profileVariants = resultSummary.getByRole('button', { name: /View all 6 tied-score results/ })
   await expect(profileVariants).toHaveAttribute('aria-expanded', 'false')
   await profileVariants.focus()
   await page.keyboard.press('Enter')
   await expect(profileVariants).toHaveAttribute('aria-expanded', 'true')
-  await expect(resultSummary.getByRole('region', { name: 'Three-code result explanations' })).toContainText('R-A-S')
-  await expect(resultSummary.getByRole('region', { name: 'Three-code result explanations' })).toContainText('I-S-A')
-  await resultSummary.getByRole('region', { name: 'Three-code result explanations' }).screenshot({ path: testInfo.outputPath('profile-variants.png') })
+  await expect(resultSummary.getByRole('region', { name: 'Tied-score result explanations' })).toContainText('R-I-A-S')
+  await expect(resultSummary.getByRole('region', { name: 'Tied-score result explanations' })).toContainText('R-S-A-I')
+  await resultSummary.getByRole('region', { name: 'Tied-score result explanations' }).screenshot({ path: testInfo.outputPath('profile-variants.png') })
   await expect(careerPaths.getByText('Why it fits you')).toHaveCount(0)
   await expect(careerPaths.getByText(/do not predict employment/i)).toHaveCount(0)
   await expectNoHorizontalOverflow(page)

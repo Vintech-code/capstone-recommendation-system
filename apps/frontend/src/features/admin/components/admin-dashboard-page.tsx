@@ -166,7 +166,7 @@ export function AdminDashboardPage({ onNavigate }: NavigateProps) {
                   <span className="font-display text-xl sm:text-2xl font-black tracking-tight text-foreground">
                     {data.students}
                   </span>
-                  <span className="inline-flex items-center text-[10px] sm:text-xs font-bold text-emerald-600">
+                  <span className="inline-flex items-center text-[10px] sm:text-xs font-bold text-emerald-700">
                     ▲ 32%
                   </span>
                 </div>
@@ -181,7 +181,7 @@ export function AdminDashboardPage({ onNavigate }: NavigateProps) {
                   <span className="font-display text-xl sm:text-2xl font-black tracking-tight text-foreground">
                     {data.completed}
                   </span>
-                  <span className="inline-flex items-center text-[10px] sm:text-xs font-bold text-emerald-600">
+                  <span className="inline-flex items-center text-[10px] sm:text-xs font-bold text-emerald-700">
                     ▲ {completionRate}%
                   </span>
                 </div>
@@ -196,7 +196,7 @@ export function AdminDashboardPage({ onNavigate }: NavigateProps) {
                   <span className="font-display text-xl sm:text-2xl font-black tracking-tight text-foreground">
                     {data.inProgress}
                   </span>
-                  <span className="inline-flex items-center text-[10px] sm:text-xs font-bold text-rose-500">
+                  <span className="inline-flex items-center text-[10px] sm:text-xs font-bold text-rose-700">
                     ▼ {data.inProgress > 0 ? "Active" : "0%"}
                   </span>
                 </div>
@@ -284,11 +284,11 @@ export function AdminDashboardPage({ onNavigate }: NavigateProps) {
                 {data.funnel.entranceDeclared} of {data.students} students declared
               </span>
               {pendingDeclaration > 0 ? (
-                <span className="font-semibold text-amber-600 dark:text-amber-400">
+                <span className="font-semibold text-amber-700 dark:text-amber-300">
                   {pendingDeclaration} pending
                 </span>
               ) : (
-                <span className="font-semibold text-emerald-600 dark:text-emerald-400">
+                <span className="font-semibold text-emerald-700 dark:text-emerald-300">
                   100% completed
                 </span>
               )}
@@ -423,7 +423,7 @@ export function AdminDashboardPage({ onNavigate }: NavigateProps) {
                   <p className="text-[11px] font-semibold text-muted-foreground">
                     Completion rate
                   </p>
-                  <p className="text-[10px] text-muted-foreground/80">
+                  <p className="text-[10px] text-muted-foreground">
                     {data.funnel.resultAvailable} of {data.funnel.assessmentStarted || 1} ready
                   </p>
                 </div>
@@ -458,7 +458,7 @@ export function AdminDashboardPage({ onNavigate }: NavigateProps) {
                 <span className="size-1.5 rounded-full bg-emerald-500" aria-hidden="true" />
                 {data.funnel.resultAvailable} results ready
               </span>
-              <span className="flex items-center gap-1.5 font-semibold text-amber-600">
+              <span className="flex items-center gap-1.5 font-semibold text-amber-700">
                 <span className="size-1.5 rounded-full bg-amber-500" aria-hidden="true" />
                 {data.funnel.inProgress} in progress
               </span>

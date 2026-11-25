@@ -4,6 +4,7 @@ import { defineConfig, devices } from '@playwright/test'
 
 export default defineConfig({
   testDir: './e2e',
+  globalSetup: './e2e/global-setup.ts',
   fullyParallel: false,
   workers: 1,
   forbidOnly: Boolean(process.env.CI),
@@ -25,10 +26,4 @@ export default defineConfig({
       use: { ...devices['Pixel 7'], channel: 'chrome' },
     },
   ],
-  webServer: {
-    command: 'npm.cmd run dev -- --host 127.0.0.1 --port 4175',
-    url: 'http://127.0.0.1:4175/student/login',
-    reuseExistingServer: !process.env.CI,
-    timeout: 120_000,
-  },
 })

@@ -19,6 +19,8 @@ interface StudentRecommendedCourse {
   name: string
   eligibilityGroup?: 'board' | 'non_board' | null
   eligibleForDeclaredGroup?: boolean
+  isEnrollmentOpen?: boolean
+  availabilityNote?: string | null
   department: string
   duration: string
   durationSource?: PhilippineSourceFact | null

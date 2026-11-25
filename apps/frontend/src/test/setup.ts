@@ -198,7 +198,33 @@ async function defaultFetch(
   }
 
   if (url.startsWith('/api/v1/admin/reports')) {
-    return Response.json({ data: { generatedAt: '2026-08-08T12:00:00+08:00', from: null, to: null, scope: 'institution', studentCount: 2, eligibilityDistribution: { board: 1, nonBoard: 1 }, completedAssessments: 2, assessmentCompletionRate: 100, assessmentFunnel: { started: 2, inProgress: 0, processing: 0, resultAvailable: 2 }, recommendationRuns: 2, programmeSaves: 1, assessmentCompletionsByMonth: [{ month: '2026-08', count: 2 }], retakeMetrics: { totalAssessmentAttempts: 3, totalCompletedAttempts: 2, studentsWithRetakes: 1, totalRetakeAttempts: 1 } } })
+    return Response.json({
+      data: {
+        generatedAt: '2026-08-08T12:00:00+08:00',
+        from: null,
+        to: null,
+        scope: 'institution',
+        enrollmentAlignment: {
+          programs: [
+            { programmeId: 'bs-information-technology', programmeCode: 'BSIT', programmeName: 'BS Information Technology', recommended: 2, aligned: 1, notAligned: 0, unallocated: 1, alignmentRate: 50 },
+          ],
+          overall: { recommended: 2, aligned: 1, notAligned: 0, unallocated: 1, alignmentRate: 50 },
+        },
+      },
+    })
+  }
+
+  if (url === '/api/v1/student/enrollment' && (!init?.method || init.method === 'GET')) {
+    return Response.json({
+      data: {
+        hasRecommendation: false,
+        enrollment: null,
+        programmes: [
+          { id: 'bs-information-technology', code: 'BSIT', name: 'BS Information Technology', isEnrollmentOpen: true },
+          { id: 'bs-criminology', code: 'BSCRIM', name: 'BS Criminology', isEnrollmentOpen: true },
+        ],
+      },
+    })
   }
 
   if (url.startsWith('/api/v1/admin/feedback')) {

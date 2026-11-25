@@ -6,7 +6,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
-import { useAdminTheme } from "@/features/admin/theme/admin-theme-context";
+import { useAdminTheme } from "@/features/admin/theme/admin-theme-state";
 
 export function AdminThemeToggle() {
   const { resolvedTheme, toggleTheme } = useAdminTheme();

@@ -266,9 +266,11 @@ describe("server-backed authentication", () => {
       },
     });
 
-    expect(window.location.pathname).toBe("/forbidden");
+    await waitFor(() => expect(window.location.pathname).toBe("/forbidden"));
     expect(
-      screen.getByRole("heading", { name: "You cannot open this page" }),
+      await screen.findByRole("heading", {
+        name: "You cannot open this page",
+      }),
     ).toBeVisible();
   });
 

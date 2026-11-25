@@ -92,6 +92,7 @@ final class StudentProfilePresenter
             $dimension['isTied'] = ($rankCounts[$dimension['rank']] ?? 0) > 1;
         }
         unset($dimension);
+        $rankedByCode = collect($leading)->keyBy('code');
         $profileVariants = $this->profileVariantGenerator->generate($leading);
         $leading = $profileVariants['leadingDimensions'];
         $firstVariant = $profileVariants['variants'][0] ?? ['code' => '', 'codes' => []];
@@ -107,12 +108,16 @@ final class StudentProfilePresenter
             'primary' => isset($orderedFirstVariant[0]) ? ['code' => $orderedFirstVariant[0]['code'], 'label' => $orderedFirstVariant[0]['label']] : null,
             'secondary' => isset($orderedFirstVariant[1]) ? ['code' => $orderedFirstVariant[1]['code'], 'label' => $orderedFirstVariant[1]['label']] : null,
             'tertiary' => isset($orderedFirstVariant[2]) ? ['code' => $orderedFirstVariant[2]['code'], 'label' => $orderedFirstVariant[2]['label']] : null,
-            'leadingAreas' => array_map(static fn (array $dimension): array => [
-                'code' => $dimension['code'],
-                'label' => $dimension['label'],
-                'rank' => $dimension['rank'],
-                'isTied' => $dimension['isTied'],
-            ], $leading),
+            'leadingAreas' => array_map(static function (array $dimension) use ($rankedByCode): array {
+                $ranked = $rankedByCode->get($dimension['code'], []);
+
+                return [
+                    'code' => $dimension['code'],
+                    'label' => $dimension['label'],
+                    'rank' => (int) ($dimension['rank'] ?? $ranked['rank'] ?? 0),
+                    'isTied' => (bool) ($dimension['isTied'] ?? $ranked['isTied'] ?? false),
+                ];
+            }, $leading),
             'code' => $firstVariant['code'],
             'profileVariantVersion' => $profileVariants['version'],
             'profileVariants' => $profileVariants['variants'],

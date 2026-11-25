@@ -1,3 +1,4 @@
+import { mutateAdmin } from '@/features/admin/data/admin-service'
 import { csrfToken } from '@/services/api-client'
 
 export { invalidateAdminResource } from '@/features/admin/data/admin-resource-cache'
@@ -44,7 +45,30 @@ async function uploadProgrammeMedia(programmeId: string, kind: 'cover' | 'logo',
   })
 }
 
-export { uploadProgrammeMedia }
+function verifyStudentEnrollment(
+  studentId: number,
+  status: 'verified' | 'rejected',
+  note?: string,
+) {
+  return mutateAdmin(`/students/${studentId}/enrollment/verification`, 'PUT', {
+    status,
+    note: note?.trim() || null,
+  })
+}
+
+function updateProgrammeAvailability(
+  programmeId: string,
+  isEnrollmentOpen: boolean,
+  statusNote?: string,
+) {
+  return mutateAdmin(
+    `/programmes/${encodeURIComponent(programmeId)}/availability`,
+    'PUT',
+    { isEnrollmentOpen, statusNote: statusNote?.trim() || null },
+  )
+}
+
+export { updateProgrammeAvailability, uploadProgrammeMedia, verifyStudentEnrollment }
 export type {
   AdminActivity,
   AdminActivityResponse,

@@ -3,6 +3,8 @@
 namespace App\Services\Admin;
 
 use App\Models\RecommendationFeedback;
+use App\Models\RoleSlug;
+use App\Models\User;
 use App\Services\Recommendation\ProgrammeRankPresenter;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -68,9 +70,17 @@ final class AdminRecommendationFeedbackService
             ])
             ->values();
 
+        $studentOrderMap = User::query()
+            ->whereHas('roles', static fn (Builder $roleQuery) => $roleQuery->where('slug', RoleSlug::Student->value))
+            ->orderBy('created_at')
+            ->orderBy('id')
+            ->pluck('id')
+            ->flip()
+            ->map(static fn (int $index): int => $index + 1);
+
         $respondents = $latestStudentProgrammeResponses
             ->groupBy('user_id')
-            ->map(function ($responses): array {
+            ->map(function ($responses, int|string $userId) use ($studentOrderMap): array {
                 $programmeFeedback = $responses
                     ->sortByDesc('updated_at')
                     ->map(fn (RecommendationFeedback $feedback): array => [
@@ -131,6 +141,7 @@ final class AdminRecommendationFeedbackService
                     ]);
 
                 return [
+                    'respondentNumber' => (int) ($studentOrderMap->get((int) $userId) ?? $userId),
                     'responseCount' => $programmeFeedback->count(),
                     'commentCount' => $programmeFeedback
                         ->filter(static fn (array $feedback): bool => $feedback['comment'] !== null)
@@ -142,11 +153,7 @@ final class AdminRecommendationFeedbackService
                 ];
             })
             ->sortByDesc('latestUpdatedAt')
-            ->values()
-            ->map(static fn (array $respondent, int $index): array => [
-                'respondentNumber' => $index + 1,
-                ...$respondent,
-            ]);
+            ->values();
 
         return [
             'generatedAt' => now()->toAtomString(),
