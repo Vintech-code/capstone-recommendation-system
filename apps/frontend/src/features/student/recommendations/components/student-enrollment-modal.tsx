@@ -10,6 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   saveStudentEnrollment,
@@ -34,21 +35,32 @@ export function StudentEnrollmentModal({
   onSaved,
 }: StudentEnrollmentModalProps) {
   const [selectedProgrammeId, setSelectedProgrammeId] = useState("");
+  const [studentIdNumber, setStudentIdNumber] = useState("");
   const [corFile, setCorFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const isVerified = enrollment?.verificationStatus === "verified";
 
   useEffect(() => {
     if (!open) return;
     setSelectedProgrammeId(enrollment?.enrolledProgrammeId ?? "");
+    setStudentIdNumber(enrollment?.studentIdNumber ?? "");
     setCorFile(null);
     setError(null);
   }, [open, enrollment]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (isVerified) {
+      return;
+    }
     if (!selectedProgrammeId) {
       setError("Please select the academic programme you enrolled in.");
+      return;
+    }
+    const normalizedId = studentIdNumber.trim();
+    if (!/^\d{1,10}$/.test(normalizedId)) {
+      setError("Please enter your Student ID number.");
       return;
     }
     const hasExistingFile = Boolean(enrollment?.hasCorFile);
@@ -62,6 +74,7 @@ export function StudentEnrollmentModal({
     try {
       const saved = await saveStudentEnrollment({
         enrolledProgrammeId: selectedProgrammeId,
+        studentIdNumber: normalizedId,
         corFile,
       });
       onSaved(saved.enrollment);
@@ -154,11 +167,12 @@ export function StudentEnrollmentModal({
             <select
               id="modal-enrolled-programme"
               value={selectedProgrammeId}
+              disabled={isVerified}
               onChange={(event) => {
                 setSelectedProgrammeId(event.target.value);
                 setError(null);
               }}
-              className="h-12 w-full rounded-xl border border-input bg-background px-3.5 text-sm font-medium text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+              className="h-12 w-full rounded-xl border border-input bg-background px-3.5 text-sm font-medium text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:bg-muted/40 disabled:text-muted-foreground"
               required
             >
               <option value="">Select your enrolled programme...</option>
@@ -177,47 +191,80 @@ export function StudentEnrollmentModal({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="modal-cor-file" className="text-xs font-bold text-foreground">
-              Upload COR Document{" "}
-              <span className="font-normal text-muted-foreground">(PDF, JPG, PNG · max 5MB)</span>
+            <Label htmlFor="modal-student-id-number" className="text-xs font-bold text-foreground">
+              Student ID Number
             </Label>
-            <label
-              htmlFor="modal-cor-file"
-              className="flex h-14 cursor-pointer items-center gap-3 rounded-xl border border-dashed border-input bg-background px-4 text-sm text-muted-foreground transition-colors hover:border-primary/60 hover:bg-secondary/30"
-            >
-              <Upload aria-hidden="true" className="size-4 shrink-0 text-primary-ink" />
-              <span className="truncate font-medium">
-                {corFile
-                  ? corFile.name
-                  : enrollment?.hasCorFile
-                    ? `Replace current COR (${enrollment.corOriginalName ?? "uploaded"})`
-                    : "Choose your COR file to upload"}
-              </span>
-              <input
-                id="modal-cor-file"
-                type="file"
-                accept=".pdf,.jpg,.jpeg,.png"
-                className="sr-only"
-                onChange={(event) => {
-                  setCorFile(event.target.files?.[0] ?? null);
-                  setError(null);
-                }}
-              />
-            </label>
+            <Input
+              id="modal-student-id-number"
+              type="text"
+              inputMode="numeric"
+              autoComplete="off"
+              maxLength={10}
+              placeholder="e.g. 2026001234"
+              value={studentIdNumber}
+              disabled={isVerified}
+              readOnly={isVerified}
+              onChange={(event) => {
+                setStudentIdNumber(event.target.value.replace(/\D/g, "").slice(0, 10));
+                setError(null);
+              }}
+              className="h-12 rounded-xl border border-input bg-background px-3.5 font-mono text-sm font-medium text-foreground disabled:cursor-not-allowed disabled:bg-muted/40 disabled:text-muted-foreground"
+              required
+            />
           </div>
 
+          {!isVerified ? (
+            <div className="space-y-2">
+              <Label htmlFor="modal-cor-file" className="text-xs font-bold text-foreground">
+                Upload COR Document{" "}
+                <span className="font-normal text-muted-foreground">(PDF, JPG, PNG · max 5MB)</span>
+              </Label>
+              <label
+                htmlFor="modal-cor-file"
+                className="flex h-14 cursor-pointer items-center gap-3 rounded-xl border border-dashed border-input bg-background px-4 text-sm text-muted-foreground transition-colors hover:border-primary/60 hover:bg-secondary/30"
+              >
+                <Upload aria-hidden="true" className="size-4 shrink-0 text-primary-ink" />
+                <span className="truncate font-medium">
+                  {corFile
+                    ? corFile.name
+                    : enrollment?.hasCorFile
+                      ? `Replace current COR (${enrollment.corOriginalName ?? "uploaded"})`
+                      : "Choose your COR file to upload"}
+                </span>
+                <input
+                  id="modal-cor-file"
+                  type="file"
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  className="sr-only"
+                  onChange={(event) => {
+                    setCorFile(event.target.files?.[0] ?? null);
+                    setError(null);
+                  }}
+                />
+              </label>
+            </div>
+          ) : null}
+
           <div className="flex items-center justify-end gap-3 pt-2">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              variant="clay"
-              disabled={submitting}
-              className="font-bold text-primary-ink"
-            >
-              {submitting ? "Uploading..." : "Save enrollment record"}
-            </Button>
+            {isVerified ? (
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                Close
+              </Button>
+            ) : (
+              <>
+                <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  variant="clay"
+                  disabled={submitting}
+                  className="font-bold text-primary-ink"
+                >
+                  {submitting ? "Uploading..." : "Save enrollment record"}
+                </Button>
+              </>
+            )}
           </div>
         </form>
       </DialogContent>

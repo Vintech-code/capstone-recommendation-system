@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { apiBlobRequest, apiDataRequest } from './api-client'
+import { apiBlobRequest, apiDataRequest, downloadProtectedFile } from './api-client'
 
 describe('api client', () => {
   afterEach(() => {
@@ -69,5 +69,40 @@ describe('api client', () => {
         headers: { Accept: 'image/*' },
       }),
     )
+  })
+
+  it('downloads protected files with the requested media type and filename', async () => {
+    vi.useFakeTimers()
+    const createObjectUrl = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:word-report')
+    const revokeObjectUrl = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined)
+    const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => undefined)
+    vi.mocked(fetch).mockResolvedValueOnce(new Response('word-report'))
+
+    try {
+      await downloadProtectedFile(
+        '/api/v1/admin/reports/enrollment-alignment.docx',
+        'alignment.docx',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      )
+
+      expect(fetch).toHaveBeenCalledWith(
+        '/api/v1/admin/reports/enrollment-alignment.docx',
+        expect.objectContaining({
+          credentials: 'include',
+          headers: {
+            Accept: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          },
+        }),
+      )
+      expect(click).toHaveBeenCalledOnce()
+      expect(document.querySelector('a[download="alignment.docx"]')).toBeNull()
+      vi.runAllTimers()
+      expect(revokeObjectUrl).toHaveBeenCalledWith('blob:word-report')
+    } finally {
+      createObjectUrl.mockRestore()
+      revokeObjectUrl.mockRestore()
+      click.mockRestore()
+      vi.useRealTimers()
+    }
   })
 })

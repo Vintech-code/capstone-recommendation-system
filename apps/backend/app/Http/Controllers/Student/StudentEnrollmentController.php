@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ProgrammeAvailability;
 use App\Models\RoleSlug;
 use App\Models\StudentEnrollment;
+use App\Models\StudentProfile;
 use App\Models\User;
 use App\Services\Recommendation\TccProgrammeCatalogueRepository;
 use Illuminate\Http\JsonResponse;
@@ -45,10 +46,17 @@ class StudentEnrollmentController extends Controller
 
     public function store(Request $request, TccProgrammeCatalogueRepository $catalogues): JsonResponse
     {
-        $validated = $request->validate([
-            'enrolledProgrammeId' => ['required', 'string', 'max:120'],
-            'corFile' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
-        ]);
+        $validated = $request->validate(
+            [
+                'enrolledProgrammeId' => ['required', 'string', 'max:120'],
+                'studentIdNumber' => ['required', 'string', 'regex:/^\d{1,10}$/'],
+                'corFile' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
+            ],
+            [
+                'studentIdNumber.required' => 'Enter your Student ID number.',
+                'studentIdNumber.regex' => 'The Student ID number must contain only digits (up to 10).',
+            ],
+        );
 
         $catalogue = $catalogues->current();
         $programmes = collect($catalogue['programmes'] ?? []);
@@ -62,6 +70,24 @@ class StudentEnrollmentController extends Controller
 
         $user = $request->user();
         $existing = $user->enrollment;
+
+        if ($existing !== null && $existing->verification_status === 'verified') {
+            throw ValidationException::withMessages([
+                'enrolledProgrammeId' => ['Your enrollment and COR have already been verified by an Administrator and can no longer be modified.'],
+            ]);
+        }
+
+        $studentIdNumber = $validated['studentIdNumber'];
+        $idNumberLookupHash = hash('sha256', $studentIdNumber);
+
+        if (StudentProfile::query()
+            ->where('id_number_lookup_hash', $idNumberLookupHash)
+            ->where('user_id', '!=', $user->getKey())
+            ->exists()) {
+            throw ValidationException::withMessages([
+                'studentIdNumber' => ['This Student ID number is already connected to another account.'],
+            ]);
+        }
 
         $availability = ProgrammeAvailability::query()
             ->where('programme_id', $validated['enrolledProgrammeId'])
@@ -105,6 +131,7 @@ class StudentEnrollmentController extends Controller
             [
                 'recommendation_run_id' => $latestRun?->getKey(),
                 'enrolled_programme_id' => (string) $programme['id'],
+                'student_id_number' => $studentIdNumber,
                 'cor_reference' => null,
                 'cor_file_path' => $filePath,
                 'cor_original_name' => $originalName,
@@ -151,6 +178,7 @@ class StudentEnrollmentController extends Controller
             'enrolledProgrammeId' => $enrollment->enrolled_programme_id,
             'enrolledProgrammeCode' => (string) ($programme['short_label'] ?? $enrollment->enrolled_programme_id),
             'enrolledProgrammeName' => (string) ($programme['display_name'] ?? $enrollment->enrolled_programme_id),
+            'studentIdNumber' => $enrollment->student_id_number,
             'corReference' => $enrollment->cor_reference,
             'hasCorFile' => $enrollment->cor_file_path !== null,
             'corOriginalName' => $enrollment->cor_original_name,

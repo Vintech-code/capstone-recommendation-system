@@ -30,6 +30,7 @@ final class AdminReportService
     {
         $catalogue = $this->catalogues->current();
         $programmes = collect($catalogue['programmes'] ?? []);
+        $programmesById = $programmes->keyBy('id');
         $counts = $programmes->mapWithKeys(static fn (array $programme): array => [
             (string) $programme['id'] => [
                 'programmeId' => (string) $programme['id'],
@@ -39,6 +40,7 @@ final class AdminReportService
                 'aligned' => 0,
                 'notAligned' => 0,
                 'unallocated' => 0,
+                'alternateEnrollmentCounts' => [],
             ],
         ])->all();
 
@@ -69,15 +71,42 @@ final class AdminReportService
                 $counts[$topProgrammeId]['aligned']++;
             } else {
                 $counts[$topProgrammeId]['notAligned']++;
+                $enrolledProgrammeId = $enrollment->enrolled_programme_id;
+                $counts[$topProgrammeId]['alternateEnrollmentCounts'][$enrolledProgrammeId] =
+                    ($counts[$topProgrammeId]['alternateEnrollmentCounts'][$enrolledProgrammeId] ?? 0) + 1;
             }
         }
 
         $programsList = collect($counts)
-            ->map(static function (array $row): array {
+            ->map(static function (array $row) use ($programmesById): array {
                 $recommended = $row['recommended'];
+                $alternateEnrollments = collect($row['alternateEnrollmentCounts'])
+                    ->map(function (int $count, string $programmeId) use ($programmesById): array {
+                        $programme = $programmesById->get($programmeId);
+
+                        return [
+                            'programmeId' => $programmeId,
+                            'programmeCode' => is_array($programme)
+                                ? (string) ($programme['short_label'] ?? $programmeId)
+                                : $programmeId,
+                            'programmeName' => is_array($programme)
+                                ? (string) ($programme['display_name'] ?? $programmeId)
+                                : $programmeId,
+                            'count' => $count,
+                        ];
+                    })
+                    ->sortBy([
+                        ['count', 'desc'],
+                        ['programmeName', 'asc'],
+                    ])
+                    ->values()
+                    ->all();
+                unset($row['alternateEnrollmentCounts']);
 
                 return [
                     ...$row,
+                    'verifiedEnrolled' => $row['aligned'] + $row['notAligned'],
+                    'alternateEnrollments' => $alternateEnrollments,
                     'alignmentRate' => $recommended > 0
                         ? round(($row['aligned'] / $recommended) * 100, 2)
                         : 0.0,
@@ -94,6 +123,7 @@ final class AdminReportService
         $totalAligned = array_sum(array_column($programsList, 'aligned'));
         $totalNotAligned = array_sum(array_column($programsList, 'notAligned'));
         $totalUnallocated = array_sum(array_column($programsList, 'unallocated'));
+        $totalVerifiedEnrolled = $totalAligned + $totalNotAligned;
 
         return [
             'programs' => $programsList,
@@ -102,6 +132,7 @@ final class AdminReportService
                 'aligned' => $totalAligned,
                 'notAligned' => $totalNotAligned,
                 'unallocated' => $totalUnallocated,
+                'verifiedEnrolled' => $totalVerifiedEnrolled,
                 'alignmentRate' => $totalRecommended > 0
                     ? round(($totalAligned / $totalRecommended) * 100, 2)
                     : 0.0,

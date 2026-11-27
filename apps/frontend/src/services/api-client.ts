@@ -126,12 +126,20 @@ async function apiBlobRequest(
   path: string,
   options: ApiRequestOptions = {},
 ): Promise<Blob> {
+  return apiBinaryRequest(path, 'image/*', options)
+}
+
+async function apiBinaryRequest(
+  path: string,
+  accept: string,
+  options: ApiRequestOptions = {},
+): Promise<Blob> {
   let response: Response
 
   try {
     response = await fetch(apiUrl(path), {
       credentials: 'include',
-      headers: { Accept: 'image/*' },
+      headers: { Accept: accept },
     })
   } catch {
     throw createError(
@@ -154,6 +162,25 @@ async function apiBlobRequest(
   return response.blob()
 }
 
+async function downloadProtectedFile(
+  path: string,
+  filename: string,
+  accept = 'application/octet-stream',
+): Promise<void> {
+  const blob = await apiBinaryRequest(path, accept, {
+    fallbackMessage: 'The requested file could not be downloaded.',
+    networkMessage: 'Unable to reach the server. Check your connection and try again.',
+  })
+  const objectUrl = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = objectUrl
+  link.download = filename
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  window.setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000)
+}
+
 async function openProtectedFile(path: string, filename = 'document'): Promise<void> {
   const blob = await apiBlobRequest(path, {
     fallbackMessage: 'The requested document could not be opened.',
@@ -171,5 +198,14 @@ async function openProtectedFile(path: string, filename = 'document'): Promise<v
   window.setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000)
 }
 
-export { ApiClientError, apiBlobRequest, apiDataRequest, apiRequest, apiUrl, csrfToken, openProtectedFile }
+export {
+  ApiClientError,
+  apiBlobRequest,
+  apiDataRequest,
+  apiRequest,
+  apiUrl,
+  csrfToken,
+  downloadProtectedFile,
+  openProtectedFile,
+}
 export type { ApiErrorFactory, ApiRequestOptions }

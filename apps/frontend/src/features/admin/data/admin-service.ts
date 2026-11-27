@@ -2,7 +2,7 @@ import { invalidateAdminResource } from '@/features/admin/data/admin-resource-ca
 import type { EscoOccupationSearchResult } from '@/features/admin/data/admin-types'
 import type { ResultCardData } from '@/features/student/assessment/assessment-api'
 import type { CareerOpportunity } from '@/features/student/programmes/programme-types'
-import { apiDataRequest } from '@/services/api-client'
+import { apiDataRequest, downloadProtectedFile } from '@/services/api-client'
 
 class AdminApiError extends Error {}
 
@@ -37,4 +37,19 @@ async function getAdminStudentResultCard(studentId: number, sessionId: number): 
   return requestAdmin<ResultCardData>(`/students/${studentId}/attempts/${sessionId}/card`)
 }
 
-export { getAdminStudentResultCard, getEscoOccupation, mutateAdmin, requestAdmin, searchEscoOccupations }
+async function downloadEnrollmentAlignmentReport(query = ''): Promise<void> {
+  await downloadProtectedFile(
+    `/api/v1/admin/reports/enrollment-alignment.docx${query}`,
+    'recommendation-enrollment-alignment-report.docx',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  )
+}
+
+export {
+  downloadEnrollmentAlignmentReport,
+  getAdminStudentResultCard,
+  getEscoOccupation,
+  mutateAdmin,
+  requestAdmin,
+  searchEscoOccupations,
+}

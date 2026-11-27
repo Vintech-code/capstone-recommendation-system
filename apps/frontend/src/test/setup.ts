@@ -197,6 +197,14 @@ async function defaultFetch(
     return Response.json({ data: { id: 1, kind: 'catalogue', version: 2, status: url.endsWith('/publish') ? 'published' : 'draft', academicYear: null, payload: {}, createdBy: 'Authenticated User', publishedBy: url.endsWith('/publish') ? 'Authenticated User' : null, createdAt: '2026-08-08T12:00:00+08:00', publishedAt: url.endsWith('/publish') ? '2026-08-08T12:05:00+08:00' : null } })
   }
 
+  if (url === '/api/v1/admin/reports/enrollment-alignment.docx') {
+    return new Response('word-report', {
+      headers: {
+        'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      },
+    })
+  }
+
   if (url.startsWith('/api/v1/admin/reports')) {
     return Response.json({
       data: {
@@ -206,9 +214,9 @@ async function defaultFetch(
         scope: 'institution',
         enrollmentAlignment: {
           programs: [
-            { programmeId: 'bs-information-technology', programmeCode: 'BSIT', programmeName: 'BS Information Technology', recommended: 2, aligned: 1, notAligned: 0, unallocated: 1, alignmentRate: 50 },
+            { programmeId: 'bs-information-technology', programmeCode: 'BSIT', programmeName: 'BS Information Technology', recommended: 3, aligned: 1, notAligned: 1, unallocated: 1, verifiedEnrolled: 2, alternateEnrollments: [{ programmeId: 'bs-criminology', programmeCode: 'BSCrim', programmeName: 'BS Criminology', count: 1 }], alignmentRate: 33.33 },
           ],
-          overall: { recommended: 2, aligned: 1, notAligned: 0, unallocated: 1, alignmentRate: 50 },
+          overall: { recommended: 3, aligned: 1, notAligned: 1, unallocated: 1, verifiedEnrolled: 2, alignmentRate: 33.33 },
         },
       },
     })

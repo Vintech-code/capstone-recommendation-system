@@ -57,6 +57,54 @@ const assessment = { id: 1, reference: 'ASMT-000001', studentId: 10, studentName
 const resultCard = { id: 1, reference: 'ASMT-000001', studentName: 'Ana Santos', attemptNumber: 1, isCurrent: true, instrumentCode: 'tcc-uhcc-riasec-42-v1', status: 'result_available', resultAvailableAt: '2026-08-08T08:20:01+08:00', topCode: 'ICR', formattedTopCode: 'I-C-R', topDimensions: [{ code: 'I', label: 'Investigative', value: 7 }, { code: 'C', label: 'Conventional', value: 6 }, { code: 'R', label: 'Realistic', value: 5 }], dimensions: [{ code: 'R', label: 'Realistic', value: 5 }, { code: 'I', label: 'Investigative', value: 7 }, { code: 'A', label: 'Artistic', value: 2 }, { code: 'S', label: 'Social', value: 3 }, { code: 'E', label: 'Enterprising', value: 4 }, { code: 'C', label: 'Conventional', value: 6 }], scoringVersion: 'RIASEC-OQ42-2026-01', guidanceVersion: 'PSG-PROFILE-NAMES-2026-09-21', disclaimer: 'This result reflects self-reported vocational interests.' }
 const student = { id: 10, name: 'Ana Santos', email: 'ana@example.test', accountStatus: 'active', attemptCount: 1, latestResultAt: '2026-08-08T08:20:01+08:00', latestTopCode: 'I-C-R', declarationStatus: 'declared', selfDeclaredScore: 2.5, eligibilityGroup: 'board', currentAssessmentStatus: 'result_available', currentAssessmentReference: 'ASMT-000001', recommendationAvailable: true, savedProgrammeCount: 1, lastActivityAt: '2026-08-08T08:20:01+08:00' }
 const catalogueProgramme = { id: 'bs-information-technology', display_name: 'BS Information Technology', short_label: 'BSIT', majors: [], riasec_profile: ['I', 'R', 'C'], riasec_profile_status: 'psg_informed_analytical_classification', eligibility_group: 'non_board', description: 'Studies computing infrastructure and solutions for organisational needs.', learning_areas: ['IT infrastructure', 'Computing solutions'], learning_area_descriptions: {}, learning_area_topics: {}, career_directions: ['Web and applications developer'], career_opportunities: [], content_status: 'ched_psg_sourced', content_source: { source_name: 'CHED CMO No. 25, series of 2015', source_url: 'https://ched.gov.ph/', reference: 'Article IV, Sections 5 and 6' }, cover_image_url: null, logo_image_url: null }
+const enrollmentReportResponse = {
+  data: {
+    generatedAt: '2026-11-27T10:00:00+08:00', from: null, to: null, scope: 'institution',
+    enrollmentAlignment: {
+      programs: [{
+        programmeId: 'bs-information-technology', programmeCode: 'BSIT', programmeName: 'BS Information Technology',
+        recommended: 500, verifiedEnrolled: 425, aligned: 400, notAligned: 25, unallocated: 75,
+        alternateEnrollments: [
+          { programmeId: 'bs-criminology', programmeCode: 'BSCrim', programmeName: 'BS Criminology', count: 15 },
+          { programmeId: 'bachelor-library-information-science', programmeCode: 'BLIS', programmeName: 'Bachelor of Library and Information Science', count: 10 },
+        ],
+        alignmentRate: 80,
+      }],
+      overall: { recommended: 500, verifiedEnrolled: 425, aligned: 400, notAligned: 25, unallocated: 75, alignmentRate: 80 },
+    },
+  },
+}
+const feedbackResponse = {
+  data: {
+    generatedAt: '2026-11-27T10:00:00+08:00', from: null, to: null,
+    publishedResponseCount: 2, publishedRespondentCount: 1, eligibleProgrammeCount: 2, commentCount: 1,
+    respondents: [{
+      respondentNumber: 1, responseCount: 2, commentCount: 1, averageRating: 4.5,
+      latestUpdatedAt: '2026-11-27T09:00:00+08:00', programmeFeedback: [],
+      resultSets: [{
+        resultSetNumber: 1, resultDate: '2026-11-27T08:00:00+08:00', recommendationCount: 3, feedbackCount: 2,
+        assessmentResult: {
+          topCode: 'I-S-A', profileVariantVersion: 'PROPOSED-RIASEC-TIED-TIERS-2026-11-26',
+          profileVariants: [
+            { code: 'I-S-A', labels: ['Investigative', 'Social', 'Artistic'] },
+            { code: 'I-S-C', labels: ['Investigative', 'Social', 'Conventional'] },
+          ],
+          dimensions: [
+            { code: 'R', label: 'Realistic', value: 4 }, { code: 'I', label: 'Investigative', value: 7 },
+            { code: 'A', label: 'Artistic', value: 5 }, { code: 'S', label: 'Social', value: 6 },
+            { code: 'E', label: 'Enterprising', value: 3 }, { code: 'C', label: 'Conventional', value: 5 },
+          ],
+        },
+        recommendations: [
+          { programmeId: 'bs-information-technology', programmeCode: 'BSIT', programmeName: 'BS Information Technology', rank: 1, match: 90, feedback: { rating: 4, comment: 'This recommendation reflects my interests in technology.', updatedAt: '2026-11-27T09:00:00+08:00' } },
+          { programmeId: 'bachelor-library-information-science', programmeCode: 'BLIS', programmeName: 'Bachelor of Library and Information Science', rank: 2, match: 88.57, feedback: { rating: 5, comment: null, updatedAt: '2026-11-27T08:30:00+08:00' } },
+          { programmeId: 'bs-business-administration-financial-management', programmeCode: 'BSBA-FM', programmeName: 'BS Business Administration - Financial Management', rank: 3, match: 82.86, feedback: null },
+        ],
+      }],
+    }],
+    programmes: [], comments: [],
+  },
+}
 
 test('shows an uploaded Administrator photo and uses the full profile canvas', async ({ page }, testInfo) => {
   await installAdminApi(page, true)
@@ -304,6 +352,52 @@ test('Admin workspace is responsive, accessible, and navigable', async ({ page }
   expect(consoleErrors).toEqual([])
 })
 
+test('Admin reports show verified recommendation enrollment outcomes and alternate programmes', async ({ page }, testInfo) => {
+  const consoleErrors: string[] = []
+  page.on('console', (message) => {
+    if (message.type() === 'error') consoleErrors.push(message.text())
+  })
+
+  await installAdminApi(page, true)
+  await page.route('**/api/v1/admin/reports', (route) => json(route, enrollmentReportResponse))
+  await page.route('**/api/v1/admin/reports/enrollment-alignment.docx', (route) => route.fulfill({
+    status: 200,
+    contentType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    headers: { 'Content-Disposition': 'attachment; filename="recommendation-enrollment-alignment-report.docx"' },
+    body: 'word-report',
+  }))
+  await page.goto('/admin/reports', { waitUntil: 'domcontentloaded' })
+
+  const report = page.getByRole('region', { name: 'Program Enrollment Alignment' })
+  await expect(report).toBeVisible()
+  await expect(report.getByText('Enrolled in #1 recommendation')).toBeVisible()
+  await expect(report.getByText('400', { exact: true }).first()).toBeVisible()
+  await expect(report.getByText('BSCrim')).toBeVisible()
+  await expect(report.getByText('BS Criminology')).toBeVisible()
+  await expect(report.getByText('(15)')).toBeVisible()
+  await expect(report.getByText(/does not prove that the recommendation caused/)).toBeVisible()
+
+  const downloadPromise = page.waitForEvent('download')
+  await page.getByRole('button', { name: 'Download Word report' }).click()
+  const download = await downloadPromise
+  expect(download.suggestedFilename()).toBe('recommendation-enrollment-alignment-report.docx')
+  await expect(page.getByText('Word report downloaded')).toBeVisible()
+
+  const overflow = await page.evaluate(() => ({
+    clientWidth: document.documentElement.clientWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+  }))
+  expect(overflow.scrollWidth).toBeLessThanOrEqual(overflow.clientWidth)
+
+  const accessibility = await report.evaluate(async (element, source) => {
+    eval(source)
+    return window.axe.run(element, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa'] } })
+  }, axe.source)
+  expect(accessibility.violations.filter((violation) => ['serious', 'critical'].includes(violation.impact ?? ''))).toEqual([])
+  expect(consoleErrors).toEqual([])
+  await page.screenshot({ path: testInfo.outputPath('admin-enrollment-alignment-report.png'), fullPage: true })
+})
+
 test('Admin feedback page lists anonymous respondents and opens complete programme feedback', async ({ page }, testInfo) => {
   const consoleErrors: string[] = []
   page.on('console', (message) => {
@@ -311,6 +405,7 @@ test('Admin feedback page lists anonymous respondents and opens complete program
   })
 
   await installAdminApi(page, true)
+  await page.route('**/api/v1/admin/feedback', (route) => json(route, feedbackResponse))
   await page.goto('/admin/feedback', { waitUntil: 'domcontentloaded' })
 
   await expect(page.getByRole('heading', { name: 'Student feedback' })).toBeVisible()
@@ -321,13 +416,18 @@ test('Admin feedback page lists anonymous respondents and opens complete program
   await expect(feedback.getByText('Student Applicant')).toBeVisible()
   await expect(feedback.getByText(/not Student numbers or account identifiers/)).toBeVisible()
 
-  await feedback.getByRole('button', { name: 'View feedback' }).click()
+  await feedback.getByRole('button', { name: 'View feedback' }).click({ force: true })
   const details = page.getByRole('dialog')
   await expect(details.getByRole('heading', { name: 'Student Applicant #1' })).toBeVisible()
   await expect(details.getByText('BS Information Technology')).toBeVisible()
   await expect(details.getByText('Bachelor of Library and Information Science')).toBeVisible()
   await expect(details.getByText('BS Business Administration - Financial Management')).toBeVisible()
   await expect(details.getByText('Complete programme ranking')).toBeVisible()
+  const assessmentResult = details.getByRole('region', { name: 'Student RIASEC result' })
+  await expect(assessmentResult.getByText('I-S-A').first()).toBeVisible()
+  await expect(assessmentResult.getByText('I · Investigative')).toBeVisible()
+  await expect(assessmentResult.getByText('7 / 7')).toBeVisible()
+  await expect(assessmentResult.getByText('2 tied-score variants')).toBeVisible()
   await expect(details.getByText('90%')).toBeVisible()
   await expect(details.getByText('88.57%')).toBeVisible()
   await expect(details.getByText('82.86%')).toBeVisible()

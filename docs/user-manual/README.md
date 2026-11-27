@@ -25,7 +25,7 @@ The authenticated Student sections use protected URLs: `/student`, `/student/pro
 2. Use Dashboard for truthful operational counts and recent Student evidence.
 3. Use Students for server-filtered records and immutable assessment evidence.
 4. Use Programmes to manage allowed enrichment fields and media, preview the shared catalogue draft, and publish deliberately.
-5. Use Reports for aggregate, privacy-aware data and Activity for sanitized audit history.
+5. Use Reports for aggregate, privacy-aware data, including verified COR enrollment alignment with each Student's Rank #1 recommendation. The summary shows how many verified enrollments match the top recommendation, while the table shows alternative programme counts for Students who enrolled elsewhere. These counts show observed alignment and do not prove that the recommendation caused the enrollment choice. Use Activity for sanitized audit history.
 6. If your account has Administrator-management access, use Administrators to send a single-use setup invitation, review invitation state, suspend/reactivate accounts, manage account-management access, or revoke sessions. Confirm each sensitive action with your own password; never create or send another Administrator's password.
 
 Administrators cannot alter completed Student answers, historical recommendations, protected CMO facts, entrance groups, or RIASEC profiles through the ordinary editor.

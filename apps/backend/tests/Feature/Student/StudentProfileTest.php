@@ -54,7 +54,6 @@ class StudentProfileTest extends TestCase
             'firstName' => 'Clark',
             'lastName' => 'Cabatuan',
             'location' => ['regionId' => $region->id, 'provinceId' => $province->id, 'cityMunicipalityId' => $city->id, 'barangayId' => $barangay->id],
-            'idNumber' => '12345678',
             'birthDate' => '2007-04-18',
             'phone' => '+63 917 842 1928',
             'addressLine' => 'Zone 2',
@@ -67,7 +66,7 @@ class StudentProfileTest extends TestCase
             ->putJson('/api/v1/student/profile', $payload)
             ->assertOk()
             ->assertJsonPath('data.personalAcademic.complete', true)
-            ->assertJsonPath('data.personalAcademic.idNumber', '12345678')
+            ->assertJsonPath('data.personalAcademic.idNumber', null)
             ->assertJsonMissingPath('data.personalAcademic.shsStrand')
             ->assertJsonPath('data.student.id', $student->getKey())
             ->assertJsonPath('data.student.firstName', 'Clark')
@@ -96,8 +95,7 @@ class StudentProfileTest extends TestCase
             'name' => 'Clark Cabatuan',
         ]);
         $stored = StudentProfile::query()->where('user_id', $student->getKey())->firstOrFail();
-        $this->assertSame('12345678', $stored->id_number);
-        $this->assertNotSame('12345678', $stored->getRawOriginal('id_number'));
+        $this->assertNull($stored->id_number);
         $this->assertNotSame('+63 917 000 0000', $stored->getRawOriginal('phone'));
         $this->assertArrayNotHasKey('shs_gwa', $stored->getAttributes());
         $this->assertDatabaseHas('student_profiles', ['user_id' => $other->getKey()]);
@@ -114,33 +112,30 @@ class StudentProfileTest extends TestCase
         ])->assertUnprocessable()->assertJsonValidationErrors('shsStrand');
     }
 
-    public function test_id_number_is_required_and_cannot_be_connected_to_multiple_student_accounts(): void
+    public function test_profile_submission_preserves_verified_id_number_and_requires_name(): void
     {
-        $first = $this->userWithRole(RoleSlug::Student);
-        $second = $this->userWithRole(RoleSlug::Student);
-        $payload = [
-            'firstName' => $first->first_name,
-            'lastName' => $first->last_name,
-            'idNumber' => '12345678',
-        ];
+        $student = $this->userWithRole(RoleSlug::Student);
+        StudentProfile::query()->create([
+            'user_id' => $student->getKey(),
+            'id_number' => '2026001234',
+            'id_number_lookup_hash' => hash('sha256', '2026001234'),
+        ]);
 
-        $this->actingAs($first)->putJson('/api/v1/student/profile', $payload)->assertOk();
-        $this->actingAs($second)
+        $this->actingAs($student)
             ->putJson('/api/v1/student/profile', [
-                ...$payload,
-                'firstName' => $second->first_name,
-                'lastName' => $second->last_name,
+                'firstName' => $student->first_name,
+                'lastName' => $student->last_name,
             ])
-            ->assertUnprocessable()
-            ->assertJsonValidationErrors('idNumber');
+            ->assertOk()
+            ->assertJsonPath('data.personalAcademic.idNumber', '2026001234');
 
         $this->actingAs($this->userWithRole(RoleSlug::Student))
             ->putJson('/api/v1/student/profile', [])
             ->assertUnprocessable()
-            ->assertJsonValidationErrors('idNumber');
+            ->assertJsonValidationErrors(['firstName', 'lastName']);
     }
 
-    public function test_profile_submission_rejects_malformed_id_and_removed_fields(): void
+    public function test_profile_submission_rejects_removed_fields(): void
     {
         $student = $this->userWithRole(RoleSlug::Student);
 
@@ -148,11 +143,10 @@ class StudentProfileTest extends TestCase
             ->putJson('/api/v1/student/profile', [
                 'firstName' => '   ',
                 'lastName' => '',
-                'idNumber' => '1234ABCD',
                 'strengths' => ['Clinically gifted'],
             ])
             ->assertUnprocessable()
-            ->assertJsonValidationErrors(['firstName', 'lastName', 'idNumber', 'strengths']);
+            ->assertJsonValidationErrors(['firstName', 'lastName', 'strengths']);
 
         $this->assertDatabaseCount('student_profiles', 0);
     }

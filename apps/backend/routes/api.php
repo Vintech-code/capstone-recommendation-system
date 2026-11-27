@@ -141,6 +141,7 @@ Route::prefix('v1/admin')
         Route::get('/esco/occupation', [AdminEscoOccupationController::class, 'show'])->middleware('throttle:30,1');
         Route::post('/programmes/{programme}/media', [AdminProgrammeMediaController::class, 'store']);
         Route::get('/reports', [AdminWorkspaceController::class, 'reports']);
+        Route::get('/reports/enrollment-alignment.docx', [AdminWorkspaceController::class, 'downloadEnrollmentAlignmentReport']);
         Route::get('/feedback', [AdminWorkspaceController::class, 'feedback']);
         Route::get('/activity', [AdminWorkspaceController::class, 'activity']);
         Route::get('/configurations/{kind}', [AdminConfigurationController::class, 'index']);

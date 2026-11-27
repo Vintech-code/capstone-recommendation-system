@@ -151,8 +151,28 @@ describe("Administration workspace", () => {
       screen.getByRole("heading", { name: "Program Enrollment Alignment" }),
     ).toBeVisible();
     expect(screen.getByText("BSIT")).toBeVisible();
+    expect(screen.getByText("Enrolled in #1 recommendation")).toBeVisible();
+    expect(screen.getByText("Actual programme chosen instead")).toBeVisible();
+    expect(screen.getByText("BSCrim")).toBeVisible();
+    expect(screen.getByText(/BS Criminology/)).toBeVisible();
+    expect(screen.getByText(/does not prove that the recommendation caused/i)).toBeVisible();
     expect(screen.getByText("Overall")).toBeVisible();
     expect(screen.getByRole("button", { name: "Date range" })).toBeVisible();
+    expect(
+      screen.queryByRole("button", { name: "Print report" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Preview & download report" }),
+    ).toBeVisible();
+    await userEvent.click(
+      screen.getByRole("button", { name: "Preview & download report" }),
+    );
+    expect(
+      await screen.findByRole("heading", { name: "Word Report Preview" }),
+    ).toBeVisible();
+    expect(
+      screen.getByRole("button", { name: "Confirm & Download .docx" }),
+    ).toBeVisible();
     expect(
       screen.queryByRole("heading", {
         name: "Recommendation interest-match feedback",
@@ -190,7 +210,7 @@ describe("Administration workspace", () => {
     expect(
       within(details).getByText("BS Business Administration - Financial Management"),
     ).toBeVisible();
-    expect(within(details).getByText("Complete programme ranking")).toBeVisible();
+    expect(within(details).getByText("Result #1")).toBeVisible();
     expect(within(details).getByText("90%")).toBeVisible();
     expect(within(details).getByText("88.57%")).toBeVisible();
     expect(within(details).getByText("82.86%")).toBeVisible();

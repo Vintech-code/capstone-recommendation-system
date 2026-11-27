@@ -88,7 +88,7 @@ function renderStudentIdentity(student: AdminStudent) {
   const avatar = student.photoUrl
     ? `<img src="${escapeHtml(student.photoUrl)}" alt="${name}" referrerpolicy="no-referrer" class="admin-grid-avatar" />`
     : `<span class="admin-grid-initials">${escapeHtml(getInitials(student.name))}</span>`;
-  return `<div class="admin-grid-student">${avatar}<span class="admin-grid-student-copy"><strong>${name}</strong><span>${escapeHtml(student.email)}</span></span></div>`;
+  return `<div class="admin-grid-student">${avatar}<button type="button" data-open-student="${student.id}" class="admin-grid-student-copy group cursor-pointer text-left focus-visible:outline-none focus-visible:underline"><strong class="underline-offset-2 transition-colors group-hover:text-primary-ink group-hover:underline">${name}</strong><span class="underline-offset-2 group-hover:underline">${escapeHtml(student.email)}</span></button></div>`;
 }
 
 function renderJourneyState(student: AdminStudent) {

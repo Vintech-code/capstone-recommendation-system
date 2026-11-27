@@ -10,13 +10,14 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use PharData;
 use Tests\TestCase;
 
 class StudentEnrollmentTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_student_must_upload_cor_file(): void
+    public function test_student_must_upload_cor_file_and_provide_valid_student_id(): void
     {
         $student = $this->userWithRole(RoleSlug::Student);
 
@@ -25,10 +26,26 @@ class StudentEnrollmentTest extends TestCase
                 'enrolledProgrammeId' => 'bs-information-technology',
             ])
             ->assertUnprocessable()
+            ->assertJsonValidationErrors(['studentIdNumber']);
+
+        $this->actingAs($student)
+            ->postJson('/api/v1/student/enrollment', [
+                'enrolledProgrammeId' => 'bs-information-technology',
+                'studentIdNumber' => '12345678901',
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['studentIdNumber']);
+
+        $this->actingAs($student)
+            ->postJson('/api/v1/student/enrollment', [
+                'enrolledProgrammeId' => 'bs-information-technology',
+                'studentIdNumber' => '2026001234',
+            ])
+            ->assertUnprocessable()
             ->assertJsonValidationErrors(['corFile']);
     }
 
-    public function test_student_can_declare_enrollment_with_cor_file_and_authorized_users_can_view_it(): void
+    public function test_student_can_declare_enrollment_with_cor_file_and_id_reflects_in_profile_after_admin_verification(): void
     {
         Storage::fake('local');
         $student = $this->userWithRole(RoleSlug::Student);
@@ -40,16 +57,39 @@ class StudentEnrollmentTest extends TestCase
         $this->actingAs($student)
             ->post('/api/v1/student/enrollment', [
                 'enrolledProgrammeId' => 'bs-criminology',
+                'studentIdNumber' => '2026001234',
                 'corFile' => $file,
             ], ['Accept' => 'application/json'])
             ->assertCreated()
             ->assertJsonPath('data.enrollment.enrolledProgrammeId', 'bs-criminology')
+            ->assertJsonPath('data.enrollment.studentIdNumber', '2026001234')
             ->assertJsonPath('data.enrollment.hasCorFile', true)
             ->assertJsonPath('data.enrollment.verificationStatus', 'pending');
+
+        $this->assertNull($student->studentProfile()->first()?->id_number);
 
         $this->actingAs($student)->get('/api/v1/enrollment-cor/'.$student->getKey())->assertOk();
         $this->actingAs($admin)->get('/api/v1/enrollment-cor/'.$student->getKey())->assertOk();
         $this->actingAs($otherStudent)->get('/api/v1/enrollment-cor/'.$student->getKey())->assertForbidden();
+
+        $this->actingAs($admin)
+            ->putJson('/api/v1/admin/students/'.$student->getKey().'/enrollment/verification', [
+                'status' => 'verified',
+            ])
+            ->assertOk()
+            ->assertJsonPath('data.verificationStatus', 'verified')
+            ->assertJsonPath('data.studentIdNumber', '2026001234');
+
+        $this->assertSame('2026001234', $student->studentProfile()->firstOrFail()->id_number);
+
+        $this->actingAs($student)
+            ->post('/api/v1/student/enrollment', [
+                'enrolledProgrammeId' => 'bs-information-technology',
+                'studentIdNumber' => '2026009999',
+                'corFile' => UploadedFile::fake()->create('new.pdf', 100, 'application/pdf'),
+            ], ['Accept' => 'application/json'])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['enrolledProgrammeId']);
     }
 
     public function test_admin_can_mark_programme_full_and_student_cannot_enroll_in_it(): void
@@ -71,6 +111,7 @@ class StudentEnrollmentTest extends TestCase
         $this->actingAs($student)
             ->post('/api/v1/student/enrollment', [
                 'enrolledProgrammeId' => 'bs-information-technology',
+                'studentIdNumber' => '2026001111',
                 'corFile' => $file,
             ], ['Accept' => 'application/json'])
             ->assertUnprocessable()
@@ -91,11 +132,13 @@ class StudentEnrollmentTest extends TestCase
 
         $this->actingAs($alignedStudent)->post('/api/v1/student/enrollment', [
             'enrolledProgrammeId' => 'bs-information-technology',
+            'studentIdNumber' => '2026002222',
             'corFile' => UploadedFile::fake()->create('aligned.pdf', 100, 'application/pdf'),
         ], ['Accept' => 'application/json'])->assertCreated();
 
         $this->actingAs($notAlignedStudent)->post('/api/v1/student/enrollment', [
             'enrolledProgrammeId' => 'bs-criminology',
+            'studentIdNumber' => '2026003333',
             'corFile' => UploadedFile::fake()->create('other.pdf', 100, 'application/pdf'),
         ], ['Accept' => 'application/json'])->assertCreated();
 
@@ -121,7 +164,71 @@ class StudentEnrollmentTest extends TestCase
             ->assertJsonPath('data.enrollmentAlignment.overall.aligned', 1)
             ->assertJsonPath('data.enrollmentAlignment.overall.notAligned', 1)
             ->assertJsonPath('data.enrollmentAlignment.overall.unallocated', 1)
+            ->assertJsonPath('data.enrollmentAlignment.overall.verifiedEnrolled', 2)
+            ->assertJsonPath('data.enrollmentAlignment.programs.0.programmeId', 'bs-information-technology')
+            ->assertJsonPath('data.enrollmentAlignment.programs.0.verifiedEnrolled', 2)
+            ->assertJsonPath('data.enrollmentAlignment.programs.0.aligned', 1)
+            ->assertJsonPath('data.enrollmentAlignment.programs.0.notAligned', 1)
+            ->assertJsonPath('data.enrollmentAlignment.programs.0.alternateEnrollments.0.programmeId', 'bs-criminology')
+            ->assertJsonPath('data.enrollmentAlignment.programs.0.alternateEnrollments.0.programmeCode', 'BSCrim')
+            ->assertJsonPath('data.enrollmentAlignment.programs.0.alternateEnrollments.0.count', 1)
             ->assertJsonPath('data.enrollmentAlignment.overall.alignmentRate', 33.33);
+    }
+
+    public function test_admin_can_download_the_aggregate_enrollment_alignment_word_report(): void
+    {
+        $admin = $this->userWithRole(RoleSlug::Admin);
+        $student = $this->userWithRole(RoleSlug::Student);
+        $this->createTopRecommendation($student, 'bs-information-technology');
+
+        $response = $this->actingAs($admin)->get(
+            '/api/v1/admin/reports/enrollment-alignment.docx?from='.now()->format('Y-m-d'),
+        );
+
+        $response->assertOk()
+            ->assertDownload('recommendation-enrollment-alignment-report.docx')
+            ->assertHeader(
+                'content-type',
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            );
+
+        $generatedPath = $response->baseResponse->getFile()->getPathname();
+        $templatePath = resource_path('report-templates/recommendation-enrollment-alignment.docx');
+        $documentXml = $this->readDocxEntry($generatedPath, 'word/document.xml');
+
+        $this->assertStringContainsString('Recommendation and Enrollment Alignment Report', $documentXml);
+        $this->assertStringContainsString('BSIT - BS Information Technology', $documentXml);
+        $this->assertStringContainsString('Actual programme chosen instead: None recorded', $documentXml);
+        $this->assertStringContainsString('does not prove that the recommendation caused', $documentXml);
+        $this->assertStringNotContainsString($student->email, $documentXml);
+        $this->assertSame(
+            $this->readDocxEntry($templatePath, 'word/header1.xml'),
+            $this->readDocxEntry($generatedPath, 'word/header1.xml'),
+        );
+        $this->assertSame(
+            $this->readDocxEntry($templatePath, 'word/footer1.xml'),
+            $this->readDocxEntry($generatedPath, 'word/footer1.xml'),
+        );
+        $this->assertDatabaseHas('admin_audit_events', [
+            'actor_id' => $admin->getKey(),
+            'action' => 'report.downloaded',
+            'subject_type' => 'report',
+            'subject_reference' => 'recommendation-enrollment-alignment',
+        ]);
+    }
+
+    public function test_word_report_download_requires_an_admin_and_valid_date_range(): void
+    {
+        $student = $this->userWithRole(RoleSlug::Student);
+        $admin = $this->userWithRole(RoleSlug::Admin);
+        $endpoint = '/api/v1/admin/reports/enrollment-alignment.docx';
+
+        $this->getJson($endpoint)->assertUnauthorized();
+        $this->actingAs($student)->getJson($endpoint)->assertForbidden();
+        $this->actingAs($admin)
+            ->getJson($endpoint.'?from=2026-11-28&to=2026-11-27')
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['to']);
     }
 
     private function userWithRole(RoleSlug $slug): User
@@ -161,5 +268,24 @@ class StudentEnrollmentTest extends TestCase
             ],
             'generated_at' => now(),
         ]);
+    }
+
+    private function readDocxEntry(string $documentPath, string $entryName): string
+    {
+        $temporaryBase = tempnam(sys_get_temp_dir(), 'docx-test-');
+        $this->assertNotFalse($temporaryBase);
+        @unlink($temporaryBase);
+        $zipPath = $temporaryBase.'.zip';
+        copy($documentPath, $zipPath);
+
+        try {
+            $archive = new PharData($zipPath);
+            $contents = $archive[$entryName]->getContent();
+            unset($archive);
+
+            return $contents;
+        } finally {
+            @unlink($zipPath);
+        }
     }
 }

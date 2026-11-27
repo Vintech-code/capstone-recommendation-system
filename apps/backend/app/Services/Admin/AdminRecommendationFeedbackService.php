@@ -5,18 +5,25 @@ namespace App\Services\Admin;
 use App\Models\RecommendationFeedback;
 use App\Models\RoleSlug;
 use App\Models\User;
+use App\Services\Assessment\ResultCardPresenter;
 use App\Services\Recommendation\ProgrammeRankPresenter;
 use Illuminate\Database\Eloquent\Builder;
 
 final class AdminRecommendationFeedbackService
 {
-    public function __construct(private readonly ProgrammeRankPresenter $rankPresenter) {}
+    public function __construct(
+        private readonly ProgrammeRankPresenter $rankPresenter,
+        private readonly ResultCardPresenter $resultPresenter,
+    ) {}
 
     /** @return array<string, mixed> */
     public function generate(?string $from, ?string $to): array
     {
         $query = RecommendationFeedback::query()
-            ->with('recommendationRun:id,ranked_courses,generated_at')
+            ->with([
+                'recommendationRun:id,assessment_session_id,ranked_courses,generated_at',
+                'recommendationRun.assessmentSession:id,result_payload',
+            ])
             ->when($from, fn (Builder $builder) => $builder->whereDate('updated_at', '>=', $from))
             ->when($to, fn (Builder $builder) => $builder->whereDate('updated_at', '<=', $to))
             ->latest('updated_at');
@@ -100,6 +107,7 @@ final class AdminRecommendationFeedbackService
                         /** @var RecommendationFeedback|null $first */
                         $first = $resultResponses->first();
                         $run = $first?->recommendationRun;
+                        $session = $run?->assessmentSession;
                         $feedbackByProgramme = $resultResponses->keyBy('programme_id');
                         $recommendations = collect($this->rankPresenter->dense($run?->ranked_courses ?? []))
                             ->map(function (array $course) use ($feedbackByProgramme): array {
@@ -126,8 +134,26 @@ final class AdminRecommendationFeedbackService
                             })
                             ->values();
 
+                        $assessmentResult = null;
+                        if ($session !== null) {
+                            $profileVariants = $this->resultPresenter->profileVariants($session);
+                            $assessmentResult = [
+                                'topCode' => $profileVariants['variants'][0]['code'] ?? null,
+                                'profileVariantVersion' => $profileVariants['version'],
+                                'profileVariants' => array_map(
+                                    static fn (array $variant): array => [
+                                        'code' => $variant['code'],
+                                        'labels' => $variant['labels'],
+                                    ],
+                                    $profileVariants['variants'],
+                                ),
+                                'dimensions' => $this->resultPresenter->dimensions($session),
+                            ];
+                        }
+
                         return [
                             'resultDate' => $run?->generated_at?->toAtomString(),
+                            'assessmentResult' => $assessmentResult,
                             'recommendationCount' => $recommendations->count(),
                             'feedbackCount' => $resultResponses->count(),
                             'recommendations' => $recommendations->all(),

@@ -3,6 +3,7 @@ import { csrfToken } from '@/services/api-client'
 
 export { invalidateAdminResource } from '@/features/admin/data/admin-resource-cache'
 export {
+  downloadEnrollmentAlignmentReport,
   getAdminStudentResultCard,
   getEscoOccupation,
   mutateAdmin,

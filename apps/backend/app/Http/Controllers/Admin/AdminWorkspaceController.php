@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\AdminDateRangeRequest;
 use App\Models\AdminAuditEvent;
 use App\Models\AssessmentSession;
 use App\Models\EntranceExaminationResult;
@@ -10,10 +11,12 @@ use App\Models\ProgrammeAvailability;
 use App\Models\RecommendationRun;
 use App\Models\RoleSlug;
 use App\Models\StudentEnrollment;
+use App\Models\StudentProfile;
 use App\Models\StudentSavedProgramme;
 use App\Models\User;
 use App\Services\Admin\AdminAssessmentPresenter;
 use App\Services\Admin\AdminAuditPresenter;
+use App\Services\Admin\AdminEnrollmentAlignmentDocumentService;
 use App\Services\Admin\AdminRecommendationFeedbackService;
 use App\Services\Admin\AdminReportService;
 use App\Services\Assessment\ResultCardPresenter;
@@ -21,15 +24,19 @@ use App\Services\Recommendation\ProgrammeRankPresenter;
 use App\Services\Recommendation\TccProgrammeCatalogueRepository;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 final class AdminWorkspaceController extends Controller
 {
     public function __construct(
         private readonly AdminAssessmentPresenter $assessmentPresenter,
         private readonly AdminAuditPresenter $auditPresenter,
+        private readonly AdminEnrollmentAlignmentDocumentService $enrollmentAlignmentDocuments,
         private readonly AdminRecommendationFeedbackService $feedbackService,
         private readonly AdminReportService $reportService,
         private readonly ProgrammeRankPresenter $rankPresenter,
@@ -242,6 +249,7 @@ final class AdminWorkspaceController extends Controller
                 'savedProgrammeCount' => $student->savedProgrammes()->count(),
                 'enrollment' => $student->enrollment ? [
                     'enrolledProgrammeId' => $student->enrollment->enrolled_programme_id,
+                    'studentIdNumber' => $student->enrollment->student_id_number,
                     'corReference' => $student->enrollment->cor_reference,
                     'hasCorFile' => $student->enrollment->cor_file_path !== null,
                     'corOriginalName' => $student->enrollment->cor_original_name,
@@ -295,27 +303,57 @@ final class AdminWorkspaceController extends Controller
             ? trim($validated['note'])
             : null;
 
-        $enrollment->update([
-            'verification_status' => $validated['status'],
-            'verification_note' => $note,
-            'verified_at' => now(),
-            'verified_by' => $request->user()->getKey(),
-        ]);
+        $studentIdNumber = $enrollment->student_id_number;
+        $idNumberLookupHash = $studentIdNumber !== null && $studentIdNumber !== ''
+            ? hash('sha256', $studentIdNumber)
+            : null;
 
-        AdminAuditEvent::query()->create([
-            'actor_id' => $request->user()->getKey(),
-            'action' => 'enrollment.'.$validated['status'],
-            'subject_type' => 'student_enrollment',
-            'subject_reference' => (string) $student->getKey(),
-            'metadata' => [
-                'enrolledProgrammeId' => $enrollment->enrolled_programme_id,
-                'status' => $validated['status'],
-            ],
-        ]);
+        if ($validated['status'] === 'verified' && $idNumberLookupHash !== null) {
+            if (StudentProfile::query()
+                ->where('id_number_lookup_hash', $idNumberLookupHash)
+                ->where('user_id', '!=', $student->getKey())
+                ->exists()) {
+                throw ValidationException::withMessages([
+                    'status' => ['This Student ID number is already connected to another student account.'],
+                ]);
+            }
+        }
+
+        DB::transaction(function () use ($enrollment, $idNumberLookupHash, $note, $request, $student, $studentIdNumber, $validated): void {
+            $enrollment->update([
+                'verification_status' => $validated['status'],
+                'verification_note' => $note,
+                'verified_at' => now(),
+                'verified_by' => $request->user()->getKey(),
+            ]);
+
+            if ($validated['status'] === 'verified' && $studentIdNumber !== null && $studentIdNumber !== '' && $idNumberLookupHash !== null) {
+                StudentProfile::query()->updateOrCreate(
+                    ['user_id' => $student->getKey()],
+                    [
+                        'id_number' => $studentIdNumber,
+                        'id_number_lookup_hash' => $idNumberLookupHash,
+                    ],
+                );
+            }
+
+            AdminAuditEvent::query()->create([
+                'actor_id' => $request->user()->getKey(),
+                'action' => 'enrollment.'.$validated['status'],
+                'subject_type' => 'student_enrollment',
+                'subject_reference' => (string) $student->getKey(),
+                'metadata' => [
+                    'enrolledProgrammeId' => $enrollment->enrolled_programme_id,
+                    'studentIdNumber' => $studentIdNumber,
+                    'status' => $validated['status'],
+                ],
+            ]);
+        });
 
         return response()->json([
             'data' => [
                 'enrolledProgrammeId' => $enrollment->enrolled_programme_id,
+                'studentIdNumber' => $enrollment->student_id_number,
                 'corReference' => $enrollment->cor_reference,
                 'hasCorFile' => $enrollment->cor_file_path !== null,
                 'corOriginalName' => $enrollment->cor_original_name,
@@ -364,33 +402,33 @@ final class AdminWorkspaceController extends Controller
                         'name' => $programme['display_name'],
                         'isEnrollmentOpen' => $availability?->is_enrollment_open ?? true,
                         'availabilityNote' => $availability?->status_note,
-                    'profile' => $programme['riasec_profile'] ?? [],
-                    'profileStatus' => $programme['riasec_profile_status'] ?? 'unknown',
-                    'profileVersion' => $programme['profile_version'] ?? null,
-                    'eligibilityGroup' => $programme['eligibility_group'] ?? null,
-                    'majors' => $programme['majors'] ?? [],
-                    'description' => $programme['description'] ?? '',
-                    'learningAreas' => $programme['learning_areas'] ?? [],
-                    'learningAreaDescriptions' => $programme['learning_area_descriptions'] ?? [],
-                    'learningAreaTopics' => $programme['learning_area_topics'] ?? [],
-                    'careerDirections' => $programme['career_directions'] ?? [],
-                    'careerOpportunities' => $programme['career_opportunities'] ?? [],
-                    'requirements' => $programme['requirements'] ?? [],
-                    'readinessPrompt' => $programme['readiness_prompt'] ?? '',
-                    'contentStatus' => $programme['content_status'] ?? 'proposed',
-                    'contentSource' => $programme['content_source'] ?? null,
-                    'contentVersion' => $programme['content_version'] ?? null,
-                    'degreeType' => $programme['degree_type'] ?? '',
-                    'duration' => $programme['duration'] ?? null,
-                    'salary' => $programme['salary'] ?? null,
-                    'jobGrowth' => $programme['job_growth'] ?? null,
-                    'outlookVersion' => $programme['outlook_version'] ?? null,
-                    'coverImageUrl' => $programme['cover_image_url'] ?? null,
-                    'logoImageUrl' => $programme['logo_image_url'] ?? null,
-                    'monitoring' => [
-                        'savedByStudents' => (int) ($savedCounts[$programme['id']] ?? 0),
-                    ],
-                ];
+                        'profile' => $programme['riasec_profile'] ?? [],
+                        'profileStatus' => $programme['riasec_profile_status'] ?? 'unknown',
+                        'profileVersion' => $programme['profile_version'] ?? null,
+                        'eligibilityGroup' => $programme['eligibility_group'] ?? null,
+                        'majors' => $programme['majors'] ?? [],
+                        'description' => $programme['description'] ?? '',
+                        'learningAreas' => $programme['learning_areas'] ?? [],
+                        'learningAreaDescriptions' => $programme['learning_area_descriptions'] ?? [],
+                        'learningAreaTopics' => $programme['learning_area_topics'] ?? [],
+                        'careerDirections' => $programme['career_directions'] ?? [],
+                        'careerOpportunities' => $programme['career_opportunities'] ?? [],
+                        'requirements' => $programme['requirements'] ?? [],
+                        'readinessPrompt' => $programme['readiness_prompt'] ?? '',
+                        'contentStatus' => $programme['content_status'] ?? 'proposed',
+                        'contentSource' => $programme['content_source'] ?? null,
+                        'contentVersion' => $programme['content_version'] ?? null,
+                        'degreeType' => $programme['degree_type'] ?? '',
+                        'duration' => $programme['duration'] ?? null,
+                        'salary' => $programme['salary'] ?? null,
+                        'jobGrowth' => $programme['job_growth'] ?? null,
+                        'outlookVersion' => $programme['outlook_version'] ?? null,
+                        'coverImageUrl' => $programme['cover_image_url'] ?? null,
+                        'logoImageUrl' => $programme['logo_image_url'] ?? null,
+                        'monitoring' => [
+                            'savedByStudents' => (int) ($savedCounts[$programme['id']] ?? 0),
+                        ],
+                    ];
                 }, $catalogue['programmes'] ?? []),
             ],
         ]);
@@ -443,12 +481,9 @@ final class AdminWorkspaceController extends Controller
         ]);
     }
 
-    public function reports(Request $request): JsonResponse
+    public function reports(AdminDateRangeRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'from' => ['nullable', 'date_format:Y-m-d'],
-            'to' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:from'],
-        ]);
+        $validated = $request->validated();
 
         return response()->json([
             'data' => $this->reportService->generate(
@@ -458,12 +493,35 @@ final class AdminWorkspaceController extends Controller
         ]);
     }
 
-    public function feedback(Request $request): JsonResponse
+    public function downloadEnrollmentAlignmentReport(AdminDateRangeRequest $request): BinaryFileResponse
     {
-        $validated = $request->validate([
-            'from' => ['nullable', 'date_format:Y-m-d'],
-            'to' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:from'],
+        $validated = $request->validated();
+        $from = $validated['from'] ?? null;
+        $to = $validated['to'] ?? null;
+        $documentPath = $this->enrollmentAlignmentDocuments->generate($from, $to);
+
+        AdminAuditEvent::query()->create([
+            'actor_id' => $request->user()->getKey(),
+            'action' => 'report.downloaded',
+            'subject_type' => 'report',
+            'subject_reference' => 'recommendation-enrollment-alignment',
+            'metadata' => [
+                'format' => 'docx',
+                'from' => $from,
+                'to' => $to,
+            ],
         ]);
+
+        return response()->download(
+            $documentPath,
+            'recommendation-enrollment-alignment-report.docx',
+            ['Content-Type' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+        )->deleteFileAfterSend(true);
+    }
+
+    public function feedback(AdminDateRangeRequest $request): JsonResponse
+    {
+        $validated = $request->validated();
 
         return response()->json([
             'data' => $this->feedbackService->generate(

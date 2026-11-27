@@ -6,12 +6,14 @@ return [
 
     'accounts' => [
         'student' => [
-            'name' => env('LOCAL_STUDENT_NAME', 'Local Student Applicant'),
+            'name' => env('LOCAL_STUDENT_NAME', 'Student Applicant'),
             'email' => env('LOCAL_STUDENT_EMAIL', 'student@example.test'),
+            'password' => env('LOCAL_STUDENT_PASSWORD'),
         ],
         'admin' => [
-            'name' => env('LOCAL_ADMIN_NAME', 'Local Administrator'),
+            'name' => env('LOCAL_ADMIN_NAME', 'Administrator'),
             'email' => env('LOCAL_ADMIN_EMAIL', 'admin@example.test'),
+            'password' => env('LOCAL_ADMIN_PASSWORD'),
         ],
     ],
 ];

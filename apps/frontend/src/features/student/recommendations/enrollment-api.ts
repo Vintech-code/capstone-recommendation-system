@@ -12,6 +12,7 @@ export interface StudentEnrollmentRecord {
   enrolledProgrammeId: string;
   enrolledProgrammeCode: string;
   enrolledProgrammeName: string;
+  studentIdNumber?: string | null;
   hasCorFile: boolean;
   corOriginalName: string | null;
   corFileUrl: string | null;
@@ -37,10 +38,12 @@ export function getStudentEnrollment(): Promise<StudentEnrollmentState> {
 
 export function saveStudentEnrollment(input: {
   enrolledProgrammeId: string;
+  studentIdNumber: string;
   corFile: File | null;
 }): Promise<{ enrollment: StudentEnrollmentRecord }> {
   const formData = new FormData();
   formData.append("enrolledProgrammeId", input.enrolledProgrammeId);
+  formData.append("studentIdNumber", input.studentIdNumber);
   if (input.corFile) {
     formData.append("corFile", input.corFile);
   }

@@ -79,6 +79,7 @@ interface AdminStudentRecord {
   savedProgrammeCount: number
   enrollment?: {
     enrolledProgrammeId: string
+    studentIdNumber?: string | null
     corReference: string | null
     hasCorFile: boolean
     corOriginalName: string | null
@@ -148,6 +149,13 @@ interface AdminEnrollmentAlignmentProgram {
   aligned: number
   notAligned: number
   unallocated: number
+  verifiedEnrolled: number
+  alternateEnrollments: Array<{
+    programmeId: string
+    programmeCode: string
+    programmeName: string
+    count: number
+  }>
   alignmentRate: number
 }
 
@@ -158,6 +166,7 @@ interface AdminEnrollmentAlignment {
     aligned: number
     notAligned: number
     unallocated: number
+    verifiedEnrolled: number
     alignmentRate: number
   }
 }
@@ -194,6 +203,19 @@ interface AdminRecommendationFeedback {
     resultSets: Array<{
       resultSetNumber: number
       resultDate: string | null
+      assessmentResult: {
+        topCode: string | null
+        profileVariantVersion: string
+        profileVariants: Array<{
+          code: string
+          labels: string[]
+        }>
+        dimensions: Array<{
+          code: string
+          label: string
+          value: number
+        }>
+      } | null
       recommendationCount: number
       feedbackCount: number
       recommendations: Array<{

@@ -32,7 +32,6 @@ final class StudentProfileController extends Controller
             [
                 'firstName' => ['required', 'string', 'max:100'],
                 'lastName' => ['required', 'string', 'max:100'],
-                'idNumber' => ['required', 'string', 'regex:/^\d{8}$/'],
                 'lrn' => ['prohibited'],
                 'birthDate' => ['nullable', 'date_format:Y-m-d', 'before_or_equal:today', 'after:1900-01-01'],
                 'phone' => ['nullable', 'string', 'max:32'],
@@ -53,8 +52,6 @@ final class StudentProfileController extends Controller
             [
                 'firstName.required' => 'Enter your first name.',
                 'lastName.required' => 'Enter your last name.',
-                'idNumber.required' => 'Enter your eight-digit ID number.',
-                'idNumber.regex' => 'The ID number must contain exactly eight digits.',
             ],
         );
 
@@ -62,18 +59,7 @@ final class StudentProfileController extends Controller
             ? app(ProfileLocation::class)->attributes($validated['location'])
             : [];
 
-        $idNumber = $validated['idNumber'];
-        $idNumberLookupHash = hash('sha256', $idNumber);
-        if (StudentProfile::query()
-            ->where('id_number_lookup_hash', $idNumberLookupHash)
-            ->where('user_id', '!=', $request->user()->getKey())
-            ->exists()) {
-            throw ValidationException::withMessages([
-                'idNumber' => 'This ID number is already connected to another account.',
-            ]);
-        }
-
-        DB::transaction(function () use ($idNumber, $idNumberLookupHash, $location, $request, $validated): void {
+        DB::transaction(function () use ($location, $request, $validated): void {
             $request->user()->update([
                 'name' => trim($validated['firstName'].' '.$validated['lastName']),
             ]);
@@ -81,8 +67,6 @@ final class StudentProfileController extends Controller
             StudentProfile::query()->updateOrCreate(
                 ['user_id' => $request->user()->getKey()],
                 [
-                    'id_number' => $idNumber,
-                    'id_number_lookup_hash' => $idNumberLookupHash,
                     'birth_date' => $this->nullableText($validated['birthDate'] ?? null),
                     'phone' => $this->nullableText($validated['phone'] ?? null),
                     'address_line' => $this->nullableText($validated['addressLine'] ?? null),

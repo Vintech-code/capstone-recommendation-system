@@ -19,6 +19,16 @@ interface RecommendationFeedbackSummaryProps {
 }
 
 type AnonymousRespondent = AdminRecommendationFeedback["respondents"][number];
+type RecordedAssessmentResult = AnonymousRespondent["resultSets"][number]["assessmentResult"];
+
+const riasecIndicatorClass: Record<string, string> = {
+  R: "bg-riasec-r",
+  I: "bg-riasec-i",
+  A: "bg-riasec-a",
+  S: "bg-riasec-s",
+  E: "bg-riasec-e",
+  C: "bg-riasec-c",
+};
 
 function RecommendationFeedbackSummary({ feedback }: RecommendationFeedbackSummaryProps) {
   const [selectedRespondent, setSelectedRespondent] = useState<AnonymousRespondent | null>(null);
@@ -128,14 +138,12 @@ function RecommendationFeedbackSummary({ feedback }: RecommendationFeedbackSumma
 function AnonymousRespondentDetails({ respondent }: { respondent: AnonymousRespondent }) {
   return (
     <>
-      <SheetHeader className="border-b border-border pb-5">
-        <p className="font-label text-xs font-bold uppercase tracking-wider text-primary-ink">Anonymous feedback record</p>
+      <SheetHeader className="border-b border-border pb-4">
         <SheetTitle className="font-display text-2xl font-black">
           Student Applicant #{respondent.respondentNumber}
         </SheetTitle>
-        <SheetDescription>
-          Review each complete recorded recommendation ranking and the latest published feedback attached to its
-          programmes. Student identity is not included.
+        <SheetDescription className="sr-only">
+          Programme ranking and feedback details for Student Applicant #{respondent.respondentNumber}
         </SheetDescription>
       </SheetHeader>
 
@@ -148,16 +156,13 @@ function AnonymousRespondentDetails({ respondent }: { respondent: AnonymousRespo
       <div className="divide-y divide-border">
         {respondent.resultSets.map((resultSet) => (
           <section key={resultSet.resultSetNumber} className="py-6" aria-labelledby={`result-set-${resultSet.resultSetNumber}`}>
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <p className="font-label text-xs font-bold uppercase tracking-wider text-primary-ink">
-                  Recorded result {resultSet.resultSetNumber}
-                </p>
-                <h3 id={`result-set-${resultSet.resultSetNumber}`} className="mt-1 font-display text-lg font-bold text-foreground">
-                  Complete programme ranking
+                <h3 id={`result-set-${resultSet.resultSetNumber}`} className="font-display text-lg font-bold text-foreground">
+                  Result #{resultSet.resultSetNumber}
                 </h3>
-                <time dateTime={resultSet.resultDate ?? undefined} className="mt-1 block text-xs text-muted-foreground">
-                  Generated {formatDate(resultSet.resultDate)}
+                <time dateTime={resultSet.resultDate ?? undefined} className="mt-0.5 block text-xs text-muted-foreground">
+                  {formatDate(resultSet.resultDate)}
                 </time>
               </div>
               <Badge variant="secondary">
@@ -165,7 +170,9 @@ function AnonymousRespondentDetails({ respondent }: { respondent: AnonymousRespo
               </Badge>
             </div>
 
-            <ol className="mt-5 divide-y divide-border border-y border-border">
+            <RecordedResultSummary result={resultSet.assessmentResult} />
+
+            <ol className="mt-4 divide-y divide-border border-y border-border">
               {resultSet.recommendations.map((recommendation) => (
                 <li
                   key={recommendation.programmeId}
@@ -230,12 +237,71 @@ function AnonymousRespondentDetails({ respondent }: { respondent: AnonymousRespo
           </section>
         ))}
       </div>
-
-      <p className="border-t border-border pt-5 text-xs leading-5 text-muted-foreground">
-        This anonymous number applies only to the current filtered view. Free text can still contain details entered by
-        the Student and must be handled only by authorized Administrators.
-      </p>
     </>
+  );
+}
+
+function RecordedResultSummary({ result }: { result: RecordedAssessmentResult }) {
+  if (!result) {
+    return (
+      <div className="mt-5 border-y border-border py-4">
+        <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Student RIASEC result</p>
+        <p className="mt-2 text-sm text-muted-foreground">
+          The assessment result is unavailable for this historical recommendation record.
+        </p>
+      </div>
+    );
+  }
+
+  const hasMultipleVariants = result.profileVariants.length > 1;
+
+  return (
+    <section className="mt-5 border-y border-border py-4" aria-label="Student RIASEC result">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">RIASEC Result</p>
+          <p className="mt-1 font-display text-xl font-black text-foreground">
+            {result.topCode ?? "Result unavailable"}
+          </p>
+        </div>
+        {hasMultipleVariants ? (
+          <Badge variant="secondary">{result.profileVariants.length} tied-score variants</Badge>
+        ) : null}
+      </div>
+
+      {result.dimensions.length > 0 ? (
+        <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-3">
+          {result.dimensions.map((dimension) => (
+            <div key={dimension.code} className="min-w-0">
+              <dt className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
+                <span
+                  aria-hidden="true"
+                  className={cn("size-2.5 shrink-0 rounded-full", riasecIndicatorClass[dimension.code] ?? "bg-muted-foreground")}
+                />
+                <span className="truncate">{dimension.code} · {dimension.label}</span>
+              </dt>
+              <dd className="mt-1 text-sm font-bold tabular-nums text-foreground">{dimension.value} / 7</dd>
+            </div>
+          ))}
+        </dl>
+      ) : null}
+
+      {hasMultipleVariants ? (
+        <details className="mt-4 border-t border-border pt-3">
+          <summary className="cursor-pointer text-sm font-bold text-primary-ink focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50">
+            View all {result.profileVariants.length} recorded variants
+          </summary>
+          <ul className="mt-3 max-h-48 space-y-2 overflow-y-auto pr-2">
+            {result.profileVariants.map((variant) => (
+              <li key={variant.code} className="text-sm text-foreground">
+                <span className="font-bold">{variant.code}</span>
+                <span className="text-muted-foreground"> · {variant.labels.join(", ")}</span>
+              </li>
+            ))}
+          </ul>
+        </details>
+      ) : null}
+    </section>
   );
 }
 

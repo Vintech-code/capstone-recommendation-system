@@ -35,7 +35,6 @@ final class StudentProfilePresenter
             ],
             'personalAcademic' => [
                 'complete' => $profile !== null
-                    && $profile->id_number !== null
                     && $birthDate !== null
                     && $profile->phone !== null
                     && $profile->municipality !== null

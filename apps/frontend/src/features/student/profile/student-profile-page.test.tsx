@@ -35,7 +35,10 @@ it('edits the Student-owned profile without GWA fields', async () => {
   expect(await screen.findByRole('heading', { name: 'Authenticated User' })).toBeVisible()
   expect(screen.getByRole('textbox', { name: 'First Name *' })).toHaveValue('Authenticated')
   expect(screen.getByRole('textbox', { name: 'Last Name *' })).toHaveValue('User')
-  expect(screen.getByLabelText('ID number *')).toHaveValue('12345678')
+  const idInput = screen.getByLabelText('ID number')
+  expect(idInput).toHaveValue('12345678')
+  expect(idInput).toHaveAttribute('readonly')
+  expect(screen.queryByText('Enter exactly 8 digits.')).not.toBeInTheDocument()
   expect(screen.queryByLabelText(/GWA/i)).not.toBeInTheDocument()
 
   const identityColumn = document.querySelector('[data-profile-column="identity"]')

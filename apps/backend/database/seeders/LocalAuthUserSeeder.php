@@ -19,17 +19,23 @@ class LocalAuthUserSeeder extends Seeder
             );
         }
 
-        $password = config('local-auth.password');
-
-        if (! is_string($password) || $password === '') {
-            throw new RuntimeException(
-                'Set LOCAL_AUTH_SEED_PASSWORD in apps/api/.env before seeding local authentication accounts.',
-            );
-        }
+        $defaultPassword = config('local-auth.password');
 
         $this->call(RoleSeeder::class);
 
         foreach (RoleSlug::cases() as $role) {
+            $account = config("local-auth.accounts.{$role->value}");
+            $rolePassword = $account['password'] ?? null;
+            $password = is_string($rolePassword) && $rolePassword !== ''
+                ? $rolePassword
+                : $defaultPassword;
+
+            if (! is_string($password) || $password === '') {
+                throw new RuntimeException(
+                    'Set LOCAL_AUTH_SEED_PASSWORD (or role-specific passwords) in apps/backend/.env before seeding local authentication accounts.',
+                );
+            }
+
             $this->seedAccount($role, $password);
         }
     }
@@ -63,6 +69,8 @@ class LocalAuthUserSeeder extends Seeder
             'email' => $validated['email'],
             'password' => $password,
             'can_manage_administrators' => $role === RoleSlug::Admin,
+        ])->forceFill([
+            'email_verified_at' => $user->email_verified_at ?? now(),
         ])->save();
         $user->roles()->syncWithoutDetaching([$roleModel->id]);
     }

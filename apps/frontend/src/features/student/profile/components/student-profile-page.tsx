@@ -100,7 +100,6 @@ function StudentProfilePage({ onBack, onIdentityUpdated }: StudentProfilePagePro
       form.firstName.trim() &&
         form.lastName.trim() &&
         form.birthDate &&
-        /^\d{8}$/.test(form.idNumber) &&
         form.phone &&
         form.location?.barangayId,
     )
@@ -399,25 +398,18 @@ function StudentProfilePage({ onBack, onIdentityUpdated }: StudentProfilePagePro
                   {/* Student ID number */}
                   <div>
                     <Label htmlFor="id-number" className="text-xs font-semibold text-foreground/80 mb-1.5 block">
-                      ID number <span className="text-destructive">*</span>
+                      ID number
                     </Label>
                     <Input
                       id="id-number"
                       type="text"
-                      inputMode="numeric"
-                      pattern="[0-9]{8}"
-                      required
+                      readOnly
                       autoComplete="off"
-                      minLength={8}
-                      maxLength={8}
-                      placeholder="8-digit ID number"
+                      maxLength={10}
+                      placeholder="Verified via COR submission"
                       value={form.idNumber}
-                      onChange={(event) =>
-                        setField('idNumber', event.target.value.replace(/\D/g, '').slice(0, 8))
-                      }
-                      className="h-10 sm:h-11 rounded-xs border-border/80 text-xs sm:text-sm font-mono"
+                      className="h-10 sm:h-11 rounded-xs border-border/80 bg-muted/40 text-xs sm:text-sm font-mono text-muted-foreground"
                     />
-                    <p className="mt-1.5 text-xs text-muted-foreground">Enter exactly 8 digits.</p>
                   </div>
 
                 </div>

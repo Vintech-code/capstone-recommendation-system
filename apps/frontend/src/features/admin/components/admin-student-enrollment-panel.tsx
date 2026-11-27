@@ -56,6 +56,11 @@ export function AdminStudentEnrollmentPanel({
         <span className="font-bold text-foreground">
           Enrolled: {enrollment.enrolledProgrammeId}
         </span>
+        {enrollment.studentIdNumber ? (
+          <span className="text-muted-foreground">
+            ID: <strong className="font-mono text-foreground">{enrollment.studentIdNumber}</strong>
+          </span>
+        ) : null}
         {enrollment.corReference ? (
           <span className="text-muted-foreground">
             COR Ref: <strong className="text-foreground">{enrollment.corReference}</strong>

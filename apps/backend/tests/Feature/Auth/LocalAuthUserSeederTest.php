@@ -16,6 +16,14 @@ class LocalAuthUserSeederTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        config()->set('local-auth.accounts.student.password');
+        config()->set('local-auth.accounts.admin.password');
+    }
+
     public function test_it_creates_one_local_sign_in_account_for_each_approved_role(): void
     {
         config()->set('local-auth.password', 'local-test-password');
@@ -36,8 +44,24 @@ class LocalAuthUserSeederTest extends TestCase
 
             $this->assertTrue($user->hasRole($role));
             $this->assertTrue(Hash::check('local-test-password', $user->password));
+            $this->assertNotNull($user->email_verified_at);
             $this->assertSame($role === RoleSlug::Admin, (bool) $user->can_manage_administrators);
         }
+    }
+
+    public function test_it_supports_distinct_passwords_per_role(): void
+    {
+        config()->set('local-auth.password', 'shared-fallback-password');
+        config()->set('local-auth.accounts.student.password', 'student-secret-123');
+        config()->set('local-auth.accounts.admin.password', 'admin-secret-456');
+
+        app(LocalAuthUserSeeder::class)->run();
+
+        $student = User::query()->where('email', config('local-auth.accounts.student.email'))->firstOrFail();
+        $admin = User::query()->where('email', config('local-auth.accounts.admin.email'))->firstOrFail();
+
+        $this->assertTrue(Hash::check('student-secret-123', $student->password));
+        $this->assertTrue(Hash::check('admin-secret-456', $admin->password));
     }
 
     public function test_it_is_idempotent_and_refreshes_the_configured_local_password(): void
